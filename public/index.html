@@ -860,7 +860,7 @@
       btnValider.textContent = "Évaluation sécurisée par le serveur en cours...";
     }
 
-    fetch('http://localhost:3000/api/evaluer', {
+    fetch('/api/evaluer', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
