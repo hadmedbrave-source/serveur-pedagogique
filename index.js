@@ -1,15 +1,17 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
-// --- ROUTE D'ACCUEIL DU SERVEUR ---
-app.get('/', (req, res) => {
-  res.send('✅ Le serveur pédagogique du Centre Pro-Langues & Prépa Concours est en ligne et opérationnel !');
-});
+// --- SERVIR LES FICHIERS STATIQUES DE L'INTERFACE ---
+// Cette ligne indique à Railway d'afficher votre page HTML (index.html, etc.) stockée dans votre dépôt
+app.use(express.static(path.join(__dirname, 'public')));
+// Si vos fichiers HTML/CSS sont directement à la racine (sans dossier public), remplacez la ligne du dessus par :
+// app.use(express.static(__dirname));
 
 // --- FONCTIONS LOGIQUES PROTÉGÉES CÔTÉ SERVEUR ---
 
