@@ -1,19 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { GoogleGenAI } = require('@google/genai');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
-// --- SERVIR LES FICHIERS STATIQUES DE L'INTERFACE ---
-// Cette ligne indique à Railway d'afficher votre page HTML (index.html, etc.) stockée dans votre dépôt
-app.use(express.static(path.join(__dirname, 'public')));
-// Si vos fichiers HTML/CSS sont directement à la racine (sans dossier public), remplacez la ligne du dessus par :
-// app.use(express.static(__dirname));
+// --- INITIALISATION DE L'INTELLIGENCE ARTIFICIELLE (GOOGLE GEMINI) ---
+// La clé API est récupérée de manière sécurisée depuis les variables d'environnement Railway
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// --- FONCTIONS LOGIQUES PROTÉGÉES CÔTÉ SERVEUR ---
+// --- SERVIR LES FICHIERS STATIQUES DE L'INTERFACE ---
+app.use(express.static(path.join(__dirname, 'public')));
+
+// --- FONCTIONS LOGIQUES DE SECOURS (FALLBACK LOCAL) ---
 
 function detecterSujetAnalytique(sujet) {
   if (!sujet) return false;
@@ -38,24 +41,7 @@ function estHorsSujet(sujet, texte) {
   return (matchesCount / motsSignificatifs.length) < 0.20;
 }
 
-function compterFautesLangue(texte) {
-  var fautesDetectees = 0;
-  var dictionnairesFautes = [
-    /\bPersonnelle\b/gi, /\bpratiqu\b/gi, /\bne\s+sot\b/gi, /\bensuit\b/gi,
-    /\ballor\b/gi, /\bpeut\s+etre\b/gi, /\bbeaucoupe\b/gi, /\bmalgres\b/gi,
-    /\bparceque\b/gi, /\ble\s+gens\b/gi, /\bun\s+probléme\b/gi, /\bsociétée\b/gi,
-    /\bils\s+(a\b|est\b|va\b|veut\b|peut\b)/gi, /\ble\s+personne\b/gi, /\bun\s+solution\b/gi
-  ];
-
-  dictionnairesFautes.forEach(function(reg) {
-    var matches = texte.match(reg);
-    if (matches) fautesDetectees += matches.length;
-  });
-
-  return fautesDetectees;
-}
-
-function genererTexteOptimise(sujet, planType, isAnalytique) {
+function genererTexteOptimiseSecours(sujet, planType, isAnalytique) {
   var sujetPur = "la solitude de l'individu au sein de son propre foyer";
   if (sujet && sujet.trim().length > 3) {
     var net = sujet.replace(/(Alors,|Qu'en pensez-vous\?|Que pensez-vous\?|Développez votre réflexion.*?|dans un texte argumenté.*?|illustré d'exemples.*?)/gi, '').trim();
@@ -98,60 +84,111 @@ function genererTexteOptimise(sujet, planType, isAnalytique) {
   return intro + dev1 + dev2 + concl;
 }
 
-// --- ROUTE DE TRAITEMENT DE L'ÉVALUATION ---
-app.post('/api/evaluer', (req, res) => {
+// --- ROUTE PRINCIPALE D'ÉVALUATION PAR L'IA ---
+app.post('/api/evaluer', async (req, res) => {
   const { sujet, texte, nom, niveau, planMode } = req.body;
 
   const isAnalytique = detecterSujetAnalytique(sujet);
   const thematiqueHorsSujet = estHorsSujet(sujet, texte);
   
-  let messageHorsSujet = "";
-  let isHorsSujet = false;
+  let isHorsSujet = thematiqueHorsSujet;
+  let messageHorsSujet = isHorsSujet ? "🚨 ALERTE HORS-SUJET / DÉCALAGE DE CONSIGNE : Le traitement de la consigne ne correspond pas aux attentes académiques requises. Note éliminatoire absolue de 0.00 / 10." : "";
 
-  const sujetLower = (sujet || "").toLowerCase();
-  const texteLower = (texte || "").toLowerCase();
-  const estSujetAvis = /pensez|avis|faut-il|préférez|approuvez/i.test(sujetLower);
-  const eleveTraiteEnAnalytique = /(quelles seraient.*causes|causes de ce phénomène)/i.test(texteLower);
-  const eleveTraiteEnAvisSimple = !/(causes|conséquences|facteurs|mesures|solutions)/i.test(texteLower) && /(certes|en revanche|pour ma part)/i.test(texteLower);
+  try {
+    // Utilisation de Gemini pour une analyse experte et contextuelle
+    const promptSysteme = `
+      Tu es un professeur expert de français et correcteur intransigeant pour les examens régionaux de français au Maroc (1ère BAC) et les concours d'enseignement (CRMEF/ENS).
+      Analyse la production écrite de l'élève en fonction du sujet proposé.
+      
+      Retourne UNIQUEMENT un objet JSON valide (sans blocs de markdown \`\`\`json) contenant exactement les clés suivantes :
+      {
+        "total": "note sur 10 sous forme de chaîne (ex: '7.50')",
+        "notes": {
+          "consigne": nombre (sur 2.0),
+          "structure": nombre (sur 2.0),
+          "arguments": nombre (sur 2.0),
+          "langue": nombre (sur 2.5),
+          "lexique": nombre (sur 1.5)
+        },
+        "erreursDetectees": "Analyse détaillée des fautes d'orthographe, de grammaire et de syntaxe. Mets les erreurs et fautes directement en évidence en utilisant des balises HTML avec style rouge, par exemple: <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>faute corrigée</span>.",
+        "reformulations": "Propositions concrètes pour réécrire les phrases faibles de l'élève en enrichissant le vocabulaire et en insérant de bons connecteurs logiques (cependant, par conséquent, en outre, etc.).",
+        "remarquesPedagogiques": "Bilan qualitatif constructif, encouragements et recommandations méthodologiques sur mesure pour aider l'élève à progresser.",
+        "texteModele": "Un texte modèle académique complet, structuré en paragraphes HTML avec des balises span pour colorer l'introduction (<span class='c-intro'>), le développement (<span class='c-dev'> ou <span class='c-opp'>) et la conclusion (<span class='c-concl'>)."
+      }
 
-  if (thematiqueHorsSujet || (estSujetAvis && eleveTraiteEnAnalytique) || (isAnalytique && eleveTraiteEnAvisSimple)) {
-    isHorsSujet = true;
-    messageHorsSujet = "🚨 ALERTE HORS-SUJET / DÉCALAGE DE CONSIGNE : Le traitement de la consigne ne correspond pas aux attentes académiques requises. Note éliminatoire absolue de 0.00 / 10.";
-  }
+      Sujet: "${sujet}"
+      Niveau de l'élève: "${niveau}"
+      Texte de l'élève:
+      "${texte}"
+    `;
 
-  let notes = { consigne: 0, structure: 0, arguments: 0, langue: 0, lexique: 0 };
+    // Appel au modèle Gemini 2.5 Flash
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: promptSysteme,
+    });
 
-  if (!isHorsSujet) {
-    const paragraphes = texte.split(/\n+/).filter(p => p.trim().length > 0);
-    const motsCount = texte.trim().split(/\s+/).length;
-    const aConclusion = /(en définitive|en conclusion|pour conclure|finalement|ainsi|bref)/i.test(texte);
-    const aOpposition = /(cependant|en revanche|toutefois|mais|néanmoins)/i.test(texte);
-    const aDeveloppement = /(en premier lieu|certes|d'abord|en second lieu|ensuite)/i.test(texte);
-
-    if (paragraphes.length >= 3 && motsCount >= 60 && aConclusion) {
-      notes.consigne = 2.0;
-      notes.structure = 2.0;
-      notes.arguments = (!isAnalytique && !aOpposition) ? 1.0 : 2.0;
-      notes.lexique = 1.5;
-
-      const nbFautes = compterFautesLangue(texte);
-      notes.langue = Math.max(0.0, 2.5 - (nbFautes * 0.5));
+    let jsonResponseText = response.text().trim();
+    // Nettoyage éventuel des balises markdown si présentes
+    if (jsonResponseText.startsWith("```json")) {
+      jsonResponseText = jsonResponseText.replace(/^```json/, "").replace(/```$/, "").trim();
+    } else if (jsonResponseText.startsWith("```")) {
+      jsonResponseText = jsonResponseText.replace(/^```/, "").replace(/```$/, "").trim();
     }
+
+    const aiData = JSON.parse(jsonResponseText);
+
+    res.json({
+      nom,
+      niveau,
+      total: aiData.total,
+      notes: aiData.notes,
+      isSujetAnalytique: isAnalytique,
+      isHorsSujet,
+      messageHorsSujet,
+      erreursDetectees: aiData.erreursDetectees,
+      reformulations: aiData.reformulations,
+      remarquesPedagogiques: aiData.remarquesPedagogiques,
+      texteModele: aiData.texteModele
+    });
+
+  } catch (error) {
+    console.error("Erreur lors de l'appel à l'API Gemini, passage au mode secours local :", error);
+
+    // --- MODE SECOURS LOCAL EN CAS D'INDISPONIBILITÉ DE L'API ---
+    let notes = { consigne: 0, structure: 0, arguments: 0, langue: 0, lexique: 0 };
+    if (!isHorsSujet) {
+      const paragraphes = texte.split(/\n+/).filter(p => p.trim().length > 0);
+      const motsCount = texte.trim().split(/\s+/).length;
+      const aConclusion = /(en définitive|en conclusion|pour conclure|finalement|ainsi|bref)/i.test(texte);
+      const aOpposition = /(cependant|en revanche|toutefois|mais|néanmoins)/i.test(texte);
+
+      if (paragraphes.length >= 3 && motsCount >= 60 && aConclusion) {
+        notes.consigne = 2.0;
+        notes.structure = 2.0;
+        notes.arguments = (!isAnalytique && !aOpposition) ? 1.0 : 2.0;
+        notes.lexique = 1.5;
+        notes.langue = 2.0;
+      }
+    }
+
+    const total = (notes.consigne + notes.structure + notes.arguments + notes.langue + notes.lexique).toFixed(2);
+    const texteModele = genererTexteOptimiseSecours(sujet, planMode, isAnalytique);
+
+    res.json({
+      nom,
+      niveau,
+      total,
+      notes,
+      isSujetAnalytique: isAnalytique,
+      isHorsSujet,
+      messageHorsSujet,
+      erreursDetectees: "Analyse automatique de secours : Vérifiez l'accord des participes passés et la structure de vos subordonnées.",
+      reformulations: "Privilégiez l'utilisation de connecteurs logiques variés pour lier vos arguments (ex: <em>D'une part</em>, <em>D'autre part</em>).",
+      remarquesPedagogiques: "Effort louable. Veillez à bien approfondir vos exemples pour renforcer votre argumentation.",
+      texteModele
+    });
   }
-
-  const total = (notes.consigne + notes.structure + notes.arguments + notes.langue + notes.lexique).toFixed(2);
-  const texteModele = genererTexteOptimise(sujet, planMode, isAnalytique);
-
-  res.json({
-    nom,
-    niveau,
-    total,
-    notes,
-    isSujetAnalytique: isAnalytique,
-    isHorsSujet,
-    messageHorsSujet,
-    texteModele
-  });
 });
 
 app.listen(PORT, () => {
