@@ -119,7 +119,9 @@ app.post('/api/evaluer', async (req, res) => {
       Analyse extrêmement rigoureusement le texte de l'élève fourni ci-dessous. Tu DOIS produire un rapport d'évaluation complet, détaillé et structuré selon les exigences académiques marocaines.
 
       Voici les impératifs absolus de ta réponse :
-      1. Détection des erreurs (langue et syntaxe) : Passe en revue le texte de l'élève. Si des fautes d'orthographe, de grammaire, de conjugaison, d'accord ou de syntaxe sont présentes, cite explicitement le passage erroné et propose la correction en rouge vif avec ce style exact : <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>[Correction / Explication]</span>.
+      1. Détection des erreurs (langue et syntaxe) : 
+         - Affiche d'abord la transcription complète du texte de l'élève en HTML, dans laquelle tu surlignes et corriges chaque erreur directement à l'intérieur du texte en rouge vif avec ce format exact : <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>[Texte erroné ➔ Correction]</span>.
+         - Fournis ensuite un tableau HTML clair répertoriant les erreurs détectées, la nature de l'erreur et sa correction officielle.
       2. Propositions de reformulations : Identifie les phrases faibles, lourdes ou mal construites du texte de l'élève. Pour chaque phrase faible repérée, propose une reformulation claire, élégante, enrichie en vocabulaire précis et articulée par de bons connecteurs logiques.
       3. Remarques et recommandations pédagogiques : Rédige des conseils méthodologiques sur mesure, précis et constructifs pour aider l'élève à progresser.
       4. Texte modèle optimisé et unifié : Rédige un texte argumentatif modèle d'une longueur riche et conséquente (minimum 18 à 20 lignes/développements), structuré en paragraphes HTML avec les classes span c-intro, c-dev, c-opp, c-concl. 
@@ -135,7 +137,7 @@ app.post('/api/evaluer', async (req, res) => {
           "langue": nombre,
           "lexique": nombre
         },
-        "erreursDetectees": "Le texte HTML détaillé listant les erreurs relevées dans le texte de l'élève et affichant les corrections en rouge.",
+        "erreursDetectees": "Le texte transcrit de l'élève avec les erreurs corrigées en rouge à l'intérieur, suivi d'un tableau HTML listant les erreurs et leurs corrections.",
         "reformulations": "Un tableau ou une liste claire présentant les phrases faibles de l'élève accompagnées de leurs propositions de reformulations argumentées et riches en connecteurs.",
         "remarquesPedagogiques": "Bilan qualitatif constructif et recommandations pédagogiques sur mesure.",
         "texteModele": "Le texte modèle académique complet d'une longueur de 18 à 20 lignes minimum, structuré en paragraphes HTML avec des balises span c-intro, c-dev, c-opp, c-concl, intégrant des exemples littéraires si le sujet le requiert ou du quotidien dans le cas contraire."
@@ -205,9 +207,9 @@ app.post('/api/evaluer', async (req, res) => {
       isSujetAnalytique: isAnalytique,
       isHorsSujet,
       messageHorsSujet,
-      erreursDetectees: "Analyse de secours : Veuillez vérifier attentivement l'accord des participes passés et la syntaxe générale des phrases.",
+      erreursDetectees: `<p><strong>Transcription du texte avec corrections de secours :</strong></p><p>${texte}</p><p><em>Veuillez vérifier attentivement l'accord des participes passés et la syntaxe générale.</em></p>`,
       reformulations: "Privilégiez l'utilisation de connecteurs logiques variés et structurez vos phrases avec des propositions subordonnées plus riches.",
-      remarquesPedagogiques: "Effort louable. Veillez à bien structurer vos paragraphes en veillant à la clarté de l'argumentation.",
+      remarquesPedagogiques: "Effort louable. Veillez à bien structurer vos paragraphes en veillant à la clarté de l' argumentation.",
       texteModele
     });
   }
