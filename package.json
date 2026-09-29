@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "cors": "^2.8.6",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "@google/genai": "^0.1.1"
   },
   "scripts": {
     "start": "node index.js"
