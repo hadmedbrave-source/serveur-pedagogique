@@ -66,7 +66,13 @@ Réponds uniquement avec le JSON valide, sans markdown superflu autour si possib
             }
         });
 
-        const resultJson = JSON.parse(response.text());
+        // Correction : response.text est une propriété et non une fonction
+        const rawText = response.text;
+        
+        // Nettoyage optionnel au cas où le modèle encapsule le JSON dans des balises markdown ```json
+        const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        const resultJson = JSON.parse(cleanedText);
         return res.json(resultJson);
 
     } catch (error) {
