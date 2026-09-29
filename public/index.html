@@ -1,4 +1,821 @@
-function verifierMotDePasse() {
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Évaluation Interactive - Production Écrite | Centre Al Akhawayn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #c5221f;
+      --primary-dark: #8e1513;
+      --navy: #0b1528;
+      --navy-light: #16243d;
+      --gold: #b45309;
+      --gold-light: #fef3c7;
+      --border-blue: #2563eb;
+      --border-amber: #d97706;
+      --border-purple: #7c3aed;
+      --border-red: #c5221f;
+      --border-green: #059669;
+      --bg-page: #f1f5f9;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --line-height: 28px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      padding: 30px 15px;
+      display: flex;
+      justify-content: center;
+      line-height: 1.6;
+    }
+
+    /* --- ÉCRAN DE VERROUILLAGE SÉCURISÉ --- */
+    #authOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(11, 21, 40, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: #ffffff;
+      padding: 35px;
+      border-radius: 16px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border-top: 5px solid var(--primary);
+      text-align: center;
+    }
+
+    .auth-card h3 {
+      font-family: 'Outfit', sans-serif;
+      color: var(--navy);
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .auth-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .auth-input {
+      width: 100%;
+      height: 46px;
+      padding: 10px 14px;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      outline: none;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    .auth-input:focus {
+      border-color: var(--primary);
+    }
+
+    .auth-btn {
+      width: 100%;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .auth-btn:hover {
+      background: var(--navy-light);
+    }
+
+    .auth-error {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .main-wrapper {
+      position: relative;
+      max-width: 980px;
+      width: 100%;
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 18px 45px -10px rgba(11, 21, 40, 0.12);
+      padding: 40px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 22px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      gap: 15px;
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title span { color: var(--navy); }
+
+    .brand-sub {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .institution-seal {
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #091222 0%, #1e293b 100%);
+      color: #f8fafc;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border-left: 3.5px solid #eab308;
+      font-size: 12.5px;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(11, 21, 40, 0.15);
+    }
+
+    .header-right { 
+      text-align: right; 
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .eval-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      text-transform: uppercase;
+    }
+
+    .certif-stamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #047857;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+
+    .zone-student {
+      border: 2px solid var(--border-blue);
+      background: #eff6ff;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+
+    .field-wrap label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .field-wrap input, .field-wrap select {
+      width: 100%;
+      height: 42px;
+      padding: 8px 12px;
+      border: 1.5px solid #93c5fd;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #ffffff;
+      outline: none;
+    }
+
+    .zone-card {
+      border-radius: 12px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .zone-head {
+      padding: 12px 18px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .zone-body { padding: 18px; }
+
+    .zone-sujet { border: 2px solid var(--border-amber); }
+    .zone-sujet .zone-head { background: #fffbeb; color: #b45309; }
+
+    .sujet-input {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      border: 1.5px dashed var(--border-amber);
+      border-radius: 8px;
+      font-size: 14.5px;
+      line-height: 1.5;
+      resize: vertical;
+      background: #fffdfa;
+      outline: none;
+    }
+
+    .zone-bareme { border: 2px solid var(--border-purple); }
+    .zone-bareme .zone-head { background: #faf5ff; color: #6d28d9; }
+
+    .bareme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .bareme-pill {
+      background: #fdf4ff;
+      border: 1px solid #e879f9;
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #701a75;
+    }
+
+    .zone-redaction { border: 2px solid var(--border-red); }
+    .zone-redaction .zone-head {
+      background: #fff1f2;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sheet-wrapper {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sheet-area {
+      width: 100%;
+      height: calc(25 * var(--line-height));
+      line-height: var(--line-height);
+      font-size: 15px;
+      padding: 0 16px;
+      border: none;
+      outline: none;
+      resize: none;
+      background-attachment: local;
+      background-image: linear-gradient(to bottom, transparent calc(var(--line-height) - 1px), #e2e8f0 calc(var(--line-height) - 1px));
+      background-size: 100% var(--line-height);
+    }
+
+    .sheet-status {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 14px;
+      background: #f8fafc;
+      border-top: 1px solid #cbd5e1;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .btn-evaluate {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #ffffff;
+      border: none;
+      padding: 16px;
+      font-size: 16.5px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(197, 34, 31, 0.28);
+      transition: all 0.2s ease;
+    }
+
+    .btn-evaluate:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(197, 34, 31, 0.35);
+    }
+
+    .btn-evaluate:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    #reportSection {
+      display: none;
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 2px dashed #cbd5e1;
+    }
+
+    .report-hero-card {
+      background: linear-gradient(135deg, #091222 0%, #1e293b 100%);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 22px 26px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+
+    .score-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .criteria-matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .matrix-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--border-blue);
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+
+    .matrix-item .title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .matrix-item .val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    /* Grille de rétroaction IA */
+    .ai-feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .ai-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .ai-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-errors-box { border-color: #fca5a5; background: #fff5f5; }
+    .ai-errors-box .ai-card-title { color: #c5221f; }
+
+    .ai-reform-box { border-color: #93c5fd; background: #eff6ff; }
+    .ai-reform-box .ai-card-title { color: #1e40af; }
+
+    .ai-remarks-box { border-color: #fde047; background: #fefce8; }
+    .ai-remarks-box .ai-card-title { color: #a16207; }
+
+    .model-paper {
+      background: #ffffff;
+      border: 2px solid var(--border-green);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 10px;
+    }
+
+    .academic-para {
+      margin-bottom: 18px;
+      line-height: 1.9;
+      font-size: 15px;
+      color: #0f172a;
+      text-align: justify;
+      text-indent: 30px;
+    }
+
+    .academic-para:last-child { margin-bottom: 0; }
+
+    .c-intro { background-color: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .c-dev { background-color: #f3e8ff; color: #6b21a8; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .c-opp { background-color: #ffedd5; color: #9a3412; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .c-concl { background-color: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+
+    .plan-switcher-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f1f5f9;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #cbd5e1;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .plan-btns-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-plan-switch {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: var(--navy);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-plan-switch.active {
+      background: var(--navy);
+      color: #ffffff;
+      border-color: var(--navy);
+      box-shadow: 0 2px 6px rgba(11, 21, 40, 0.2);
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+
+    .alert-hors-sujet {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-bottom: 18px;
+      font-size: 14px;
+    }
+
+    .official-signature-card {
+      background: #fafaf9;
+      border: 1.5px solid #d6d3d1;
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .signature-details h5 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .signature-details p {
+      font-size: 12px;
+      color: #57534e;
+      margin-top: 2px;
+    }
+
+    .seal-emblem {
+      border: 2px solid #b45309;
+      background: #fffbeb;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-family: 'Cinzel', serif;
+      box-shadow: 0 2px 6px rgba(180, 83, 9, 0.15);
+      flex-shrink: 0;
+    }
+
+    .footer-auth {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      gap: 10px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 8px 4px; }
+      .main-wrapper { padding: 14px; border-radius: 10px; }
+      .header-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .header-right { align-items: flex-start; text-align: left; }
+      .zone-student { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+      .report-hero-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+      .official-signature-card { flex-direction: column; align-items: flex-start; }
+      .footer-auth { flex-direction: column; gap: 6px; }
+      .brand-title { font-size: 22px; }
+      .score-val { font-size: 30px; }
+      .sheet-area { font-size: 14px; padding: 0 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ÉCRAN DE SÉCURITÉ PROFESSEUR -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <h3>Centre Al Akhawayn</h3>
+    <p>Accès restreint. Veuillez saisir le mot de passe professeur pour déverrouiller la session.</p>
+    <input type="password" id="profPasswordInput" class="auth-input" placeholder="Mot de passe" autocomplete="current-password">
+    <button type="button" class="auth-btn" onclick="verifierMotDePasse()">Déverrouiller</button>
+    <div id="authErrorMsg" class="auth-error">Mot de passe incorrect.</div>
+  </div>
+</div>
+
+<div class="main-wrapper" id="appRoot">
+
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">CENTRE <span>AL AKHAWAYN</span></div>
+      <div class="brand-sub">Centre Pro-Langues & Prépa Concours</div>
+      <div class="institution-seal">
+        <span>Statut :</span>
+        <span>Plateforme Pédagogique Officielle</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="eval-title">Production Écrite & Expression</div>
+      <div class="certif-stamp">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        Moteur Régional Intransigeant & Anti-Hors-Sujet
+      </div>
+    </div>
+  </div>
+
+  <div class="zone-student">
+    <div class="field-wrap">
+      <label for="studentName">Nom et Prénom :</label>
+      <input type="text" id="studentName" autocomplete="off" placeholder="Ex: Karim Benjelloun">
+    </div>
+    <div class="field-wrap">
+      <label for="studentLevel">Niveau Scolaire :</label>
+      <select id="studentLevel">
+        <optgroup label="1ère Année du Baccalauréat">
+          <option value="1ère BAC - Sciences Expérimentales" selected>1ère BAC - Sciences Expérimentales</option>
+          <option value="1ère BAC - Sciences Mathématiques">1ère BAC - Sciences Mathématiques</option>
+          <option value="1ère BAC - Lettres & Sciences Humaines">1ère BAC - Lettres & Sciences Humaines</option>
+        </optgroup>
+        <optgroup label="Supérieur & Préparation Concours">
+          <option value="Prépa Concours Enseignement (CRMEF / ENS)">Prépa Concours Enseignement (CRMEF / ENS)</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <div class="zone-card zone-sujet">
+    <div class="zone-head">1) Sujet d'expression écrite</div>
+    <div class="zone-body">
+      <textarea id="sujetInput" class="sujet-input" placeholder="Saisissez ou collez ici la consigne complète du sujet (ex: causes, conséquences, solutions)..."></textarea>
+    </div>
+  </div>
+
+  <div class="zone-card zone-bareme">
+    <div class="zone-head">2) Barème officiel de notation (Total: 10 Points)</div>
+    <div class="zone-body">
+      <div class="bareme-grid">
+        <div class="bareme-pill">
+          <span>Consigne & organisation</span>
+          <span>2.0 Pts</span>
+        </div>
+        <div class="bareme-pill">
+          <span>Structure argumentative du plan</span>
+          <span>2.0 Pts</span>
+        </div>
+        <div class="bareme-pill">
+          <span>Force argumentative & exemples</span>
+          <span>2.0 Pts</span>
+        </div>
+        <div class="bareme-pill">
+          <span>Correction de la langue</span>
+          <span>2.5 Pts</span>
+        </div>
+        <div class="bareme-pill">
+          <span>Richesse lexicale</span>
+          <span>1.5 Pts</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="zone-redaction">
+    <div class="zone-head">
+      <span>3) Zone de production écrite</span>
+      <span>25 lignes maximum</span>
+    </div>
+    <div class="zone-body">
+      <div class="sheet-wrapper">
+        <textarea id="studentText" class="sheet-area" spellcheck="false" oninput="actualiserCompteurs()" placeholder="Rédigez ici votre production écrite..."></textarea>
+        <div class="sheet-status">
+          <span id="lineInfo">Lignes utilisées : 0 / 25</span>
+          <span id="wordInfo">Mots rédigés : 0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" class="btn-evaluate" id="btnValider" onclick="lancerEvaluation()">Valider et générer le rapport pédagogique certifié</button>
+
+  <div id="reportSection">
+
+    <div id="horsSujetNotice" class="alert-hors-sujet" style="display: none;">
+      🚨 ALERTE HORS-SUJET : La rédaction ne traite pas la question posée par le sujet. Note éliminatoire absolue de 0.00 / 10 appliquée conformément aux exigences de l'examen régional.
+    </div>
+
+    <div class="report-hero-card">
+      <div>
+        <div id="repHeroNom" style="font-size: 19px; font-weight: bold;">Candidat</div>
+        <div id="repHeroNiveau" style="font-size: 13px; color: #94a3b8; margin-top: 3px;">Niveau</div>
+        <div style="font-size: 11.5px; color: #38bdf8; font-weight: 700; margin-top: 6px;">
+          Évaluation certifiée conforme aux exigences régionales
+        </div>
+      </div>
+      <div>
+        <div class="score-val" id="repNoteTotal">-- / 10</div>
+      </div>
+    </div>
+
+    <div class="criteria-matrix">
+      <div class="matrix-item">
+        <div class="title">Consigne & Organisation</div>
+        <div class="val" id="ptsConsigne">-- / 2.0</div>
+      </div>
+      <div class="matrix-item">
+        <div class="title">Structure Argumentative</div>
+        <div class="val" id="ptsStructure">-- / 2.0</div>
+      </div>
+      <div class="matrix-item">
+        <div class="title">Force Argumentative</div>
+        <div class="val" id="ptsArguments">-- / 2.0</div>
+      </div>
+      <div class="matrix-item" style="border-left-color: #c5221f;">
+        <div class="title">Correction de la Langue</div>
+        <div class="val" id="ptsLangue" style="color: #c5221f;">-- / 2.5</div>
+      </div>
+      <div class="matrix-item">
+        <div class="title">Richesse du Lexique</div>
+        <div class="val" id="ptsLexique">-- / 1.5</div>
+      </div>
+    </div>
+
+    <!-- SECTIONS DE RÉTROACTION DE L'IA -->
+    <div class="ai-feedback-grid">
+      <div class="ai-card ai-errors-box">
+        <div class="ai-card-title">🔍 Détection des erreurs (Langue & Syntaxe)</div>
+        <div id="repErreursDetectees" style="font-size: 14px; color: #7f1d1d; line-height: 1.6;">
+          Analyse des erreurs en cours...
+        </div>
+      </div>
+
+      <div class="ai-card ai-reform-box">
+        <div class="ai-card-title">💡 Propositions de reformulation & Connecteurs logiques</div>
+        <div id="repReformulations" style="font-size: 14px; color: #1e3a8a; line-height: 1.6;">
+          Suggestions de reformulation en cours...
+        </div>
+      </div>
+
+      <div class="ai-card ai-remarks-box">
+        <div class="ai-card-title">📌 Remarques & Recommandations pédagogiques de l'IA</div>
+        <div id="repRemarques" style="font-size: 14px; color: #713f12; line-height: 1.6;">
+          Recommandations en cours...
+        </div>
+      </div>
+    </div>
+
+    <div class="zone-card" style="border: 2px solid #059669;">
+      <div class="zone-head" style="background: #ecfdf5; color: #065f46;">
+        Texte modèle optimisé et unifié (Basé sur l'expertise de l'IA)
+      </div>
+      <div class="zone-body">
+        
+        <div class="plan-switcher-bar">
+          <span id="repPlanDetecte" style="font-size: 13px; font-weight: 700; color: var(--navy);">Mode de plan :</span>
+          <div class="plan-btns-group" id="planButtonsContainer">
+            <button type="button" class="btn-plan-switch active" id="btnPlanSimple" onclick="changerPlanMode('simple')">Plan Simple</button>
+            <button type="button" class="btn-plan-switch" id="btnPlanDialectique" onclick="changerPlanMode('dialectique')">Plan Dialectique</button>
+          </div>
+        </div>
+
+        <div class="legend-row" id="legendContainer">
+          <span class="c-intro">Introduction & Problématique</span>
+          <span class="c-dev">Développement (Argument 1 & 2)</span>
+          <span class="c-concl">Conclusion & Bilan</span>
+        </div>
+
+        <div class="model-paper" id="repAcademicEssay"></div>
+      </div>
+    </div>
+
+    <div class="official-signature-card">
+      <div class="signature-details">
+        <h5>Rapport Pédagogique Certifié Conforme</h5>
+        <p>Expertise pédagogique, conception didactique et barèmes académiques officiels.</p>
+        <p>Centre Al Akhawayn • Centre Pro-Langues & Prépa Concours d'Excellence.</p>
+      </div>
+      <div class="seal-emblem">
+        <div class="seal-title">Sceau d'Authenticité</div>
+        <div class="seal-name">C. Al Akhawayn</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-auth">
+    <span>Centre Al Akhawayn © Tous droits réservés</span>
+    <span>Plateforme Pédagogique Interactive</span>
+    <span>Certifié Anti-Plagiat</span>
+  </div>
+
+</div>
+
+<script>
+  // Validation sécurisée du mot de passe côté serveur
+  function verifierMotDePasse() {
     var saisie = document.getElementById('profPasswordInput').value;
     var errorMsg = document.getElementById('authErrorMsg');
 
@@ -23,3 +840,180 @@ function verifierMotDePasse() {
       errorMsg.style.display = 'block';
     });
   }
+
+  document.getElementById('profPasswordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      verifierMotDePasse();
+    }
+  });
+
+  var dernierSujet = "";
+  var dernierRaw = "";
+  var modePlanActuel = "simple";
+  var estSujetAnalytiqueGlobal = false;
+
+  function countLines(text) {
+    if (!text) return 0;
+    var lines = text.split('\n');
+    var total = 0;
+    for (var i = 0; i < lines.length; i++) {
+      total += (lines[i].length === 0) ? 1 : Math.max(1, Math.ceil(lines[i].length / 80));
+    }
+    return total;
+  }
+
+  function actualiserCompteurs() {
+    var editor = document.getElementById('studentText');
+    if (!editor) return;
+    var txt = editor.value;
+    var lines = countLines(txt);
+    var words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+    document.getElementById('lineInfo').textContent = 'Lignes utilisées : ' + lines + ' / 25';
+    document.getElementById('wordInfo').textContent = 'Mots rédigés : ' + words;
+  }
+
+  window.changerPlanMode = function(nouveauMode) {
+    if (estSujetAnalytiqueGlobal) return;
+    modePlanActuel = nouveauMode;
+    var btnSimple = document.getElementById('btnPlanSimple');
+    var btnDialectique = document.getElementById('btnPlanDialectique');
+    var legendContainer = document.getElementById('legendContainer');
+    
+    if (nouveauMode === 'simple') {
+      if (btnSimple) btnSimple.classList.add('active');
+      if (btnDialectique) btnDialectique.classList.remove('active');
+      legendContainer.innerHTML = `
+        <span class="c-intro">Introduction & Problématique</span>
+        <span class="c-dev">Développement (Argument 1 & 2)</span>
+        <span class="c-concl">Conclusion & Bilan</span>
+      `;
+    } else {
+      if (btnDialectique) btnDialectique.classList.add('active');
+      if (btnSimple) btnSimple.classList.remove('active');
+      legendContainer.innerHTML = `
+        <span class="c-intro">Introduction & Problématique</span>
+        <span class="c-dev">Développement (Thèse)</span>
+        <span class="c-opp">Antithèse / Nuance</span>
+        <span class="c-concl">Conclusion & Bilan</span>
+      `;
+    }
+
+    if (dernierRaw) {
+      lancerEvaluationRequete(modePlanActuel);
+    }
+  };
+
+  window.lancerEvaluation = function() {
+    modePlanActuel = "simple";
+    lancerEvaluationRequete(modePlanActuel);
+  };
+
+  function lancerEvaluationRequete(planMode) {
+    var btnValider = document.getElementById('btnValider');
+    var editor = document.getElementById('studentText');
+    var raw = editor ? editor.value.trim() : "";
+    var sujet = document.getElementById('sujetInput') ? document.getElementById('sujetInput').value.trim() : "";
+    var nameInput = document.getElementById('studentName');
+    var nom = (nameInput && nameInput.value.trim()) || "Candidat(e)";
+    var niveauSelect = document.getElementById('studentLevel');
+    var niveau = niveauSelect ? niveauSelect.value : "1ère BAC";
+
+    if (!raw) {
+      alert("Veuillez saisir votre texte dans la zone de production écrite avant de cliquer sur Valider.");
+      return;
+    }
+
+    dernierSujet = sujet;
+    dernierRaw = raw;
+
+    if(btnValider) {
+      btnValider.disabled = true;
+      btnValider.textContent = "Évaluation intelligente par l'IA en cours...";
+    }
+
+    fetch('/api/evaluer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sujet: sujet,
+        texte: raw,
+        nom: nom,
+        niveau: niveau,
+        planMode: planMode
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Erreur de communication avec le serveur de notation.");
+      }
+      return response.json();
+    })
+    .then(data => {
+      estSujetAnalytiqueGlobal = data.isSujetAnalytique;
+
+      var noticeBox = document.getElementById('horsSujetNotice');
+      if (data.isHorsSujet) {
+        noticeBox.textContent = data.messageHorsSujet;
+        noticeBox.style.display = 'block';
+      } else {
+        noticeBox.style.display = 'none';
+      }
+
+      document.getElementById('repHeroNom').textContent = data.nom;
+      document.getElementById('repHeroNiveau').textContent = data.niveau;
+      document.getElementById('repNoteTotal').textContent = data.total + ' / 10';
+
+      document.getElementById('ptsConsigne').textContent = data.notes.consigne.toFixed(1) + ' / 2.0';
+      document.getElementById('ptsStructure').textContent = data.notes.structure.toFixed(1) + ' / 2.0';
+      document.getElementById('ptsArguments').textContent = data.notes.arguments.toFixed(1) + ' / 2.0';
+      document.getElementById('ptsLangue').textContent = data.notes.langue.toFixed(1) + ' / 2.5';
+      document.getElementById('ptsLexique').textContent = data.notes.lexique.toFixed(1) + ' / 1.5';
+
+      // Affichage dynamique des retours de l'IA
+      document.getElementById('repErreursDetectees').innerHTML = data.erreursDetectees || "Aucune erreur détectée.";
+      document.getElementById('repReformulations').innerHTML = data.reformulations || "Texte fluide.";
+      document.getElementById('repRemarques').innerHTML = data.remarquesPedagogiques || "Bonne maîtrise.";
+
+      var planButtonsContainer = document.getElementById('planButtonsContainer');
+      var legendContainer = document.getElementById('legendContainer');
+      var repPlanDetecte = document.getElementById('repPlanDetecte');
+
+      if (data.isSujetAnalytique) {
+        repPlanDetecte.textContent = "Mode de plan détecté :";
+        planButtonsContainer.innerHTML = '<span style="background:#e0f2fe; color:#0369a1; padding:6px 12px; border-radius:6px; font-size:12.5px; font-weight:800; border:1px solid #bae6fd;">📊 PLAN ANALYTIQUE (Causes / Solutions)</span>';
+        legendContainer.innerHTML = `
+          <span class="c-intro">Introduction & Problématique</span>
+          <span class="c-dev">Développement (Causes / Facteurs)</span>
+          <span class="c-opp">Développement (Conséquences / Solutions)</span>
+          <span class="c-concl">Conclusion & Bilan</span>
+        `;
+      } else {
+        repPlanDetecte.textContent = "Mode de plan :";
+        planButtonsContainer.innerHTML = `
+          <button type="button" class="btn-plan-switch ${planMode === 'simple' ? 'active' : ''}" id="btnPlanSimple" onclick="changerPlanMode('simple')">Plan Simple</button>
+          <button type="button" class="btn-plan-switch ${planMode === 'dialectique' ? 'active' : ''}" id="btnPlanDialectique" onclick="changerPlanMode('dialectique')">Plan Dialectique</button>
+        `;
+      }
+
+      document.getElementById('repAcademicEssay').innerHTML = data.texteModele;
+
+      var reportSec = document.getElementById('reportSection');
+      reportSec.style.display = 'block';
+      reportSec.scrollIntoView({ behavior: 'smooth' });
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Impossible de joindre le serveur. Détails : " + err.message);
+    })
+    .finally(() => {
+      if(btnValider) {
+        btnValider.disabled = false;
+        btnValider.textContent = "Valider et générer le rapport pédagogique certifié";
+      }
+    });
+  }
+</script>
+</body>
+</html>
