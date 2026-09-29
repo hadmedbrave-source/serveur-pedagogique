@@ -13,7 +13,6 @@ app.use(express.json());
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // --- GESTION DE LA SESSION PROFESSEUR CÔTÉ SERVEUR ---
-// Stockage en mémoire du serveur : une fois connecté, le serveur s'en souvient
 let professeurAuthentifie = false;
 
 // --- SERVIR LES FICHIERS STATIQUES DE L'INTERFACE ---
@@ -73,43 +72,39 @@ function genererTexteOptimiseSecours(sujet, planType, isAnalytique) {
 
   var intro = "";
   if (isBoite) {
-    intro = "<div class='academic-para'><span class='c-intro'>À la lecture attentive du roman autobiographique <em>La Boîte à merveilles</em> d'Ahmed Sefrioui, on se rend vite compte que</span> " + sujetPur + " <span class='c-intro'>occupe une place centrale. Dès lors, s'agit-il d'un simple repli ou d'un véritable danger ?</span></div>";
+    intro = "<div class='academic-para'><span class='c-intro'>À la lecture attentive du roman autobiographique <em>La Boîte à merveilles</em> d'Ahmed Sefrioui, notamment à travers le personnage de Sidi Mohammed, on se rend vite compte que</span> " + sujetPur + " <span class='c-intro'>occupe une place centrale. Dès lors, s'agit-il d'un simple repli ou d'un véritable danger pour l'équilibre de l'enfant ? En effet, l'isolement au Msid ou à la maison renvoie à une profonde solitude existentielle. Par conséquent, il convient d'analyser les causes et les répercussions de ce phénomène dans le texte.</span></div>";
   } else if (isAntigone) {
-    intro = "<div class='academic-para'><span class='c-intro'>L'étude approfondie de la tragédie <em>Antigone</em> de Jean Anouilh montre clairement que</span> " + sujetPur + " <span class='c-intro'>place les consciences face à un choix crucial. Dès lors, comment analyser cette situation ?</span></div>";
+    intro = "<div class='academic-para'><span class='c-intro'>L'étude approfondie de la tragédie <em>Antigone</em> de Jean Anouilh montre clairement que</span> " + sujetPur + " <span class='c-intro'>place les consciences face à un choix crucial, à l'image du personnage de Créon ou d'Antigone confrontée à sa solitude. Dès lors, comment analyser cette situation face aux contraintes du pouvoir et de la destinée ? Il est primordial d'examiner les motivations profondes de ce comportement tragique.</span></div>";
   } else if (isCondamne) {
-    intro = "<div class='academic-para'><span class='c-intro'>En découvrant les pages de l'œuvre <em>Le Dernier Jour d'un condamné</em> de Victor Hugo, force est de constater que</span> " + sujetPur + " <span class='c-intro'>révèle une grande détresse humaine. Dès lors, quelle position adopter ?</span></div>";
+    intro = "<div class='academic-para'><span class='c-intro'>En découvrant les pages poignantes de l'œuvre <em>Le Dernier Jour d'un condamné</em> de Victor Hugo, force est de constater que</span> " + sujetPur + " <span class='c-intro'>révèle une immense détresse humaine et un enfermement total à Bicêtre. Dès lors, quelle position adopter face à cette solitude carcérale ? Cette question mérite un examen approfondi des arguments en présence.</span></div>";
   } else if (isAnalytique) {
-    intro = "<div class='academic-para'><span class='c-intro'>De nos jours</span>, <span class='c-intro'>" + sujetPur + "</span> <span class='c-intro'>pose un problème qui suscite de nombreuses interrogations. Dès lors, quelles en sont les causes et les solutions ?</span></div>";
+    intro = "<div class='academic-para'><span class='c-intro'>De nos jours</span>, <span class='c-intro'>" + sujetPur + "</span> <span class='c-intro'>pose un problème sociétal complexe qui suscite de nombreuses interrogations légitimes. En premier lieu, face aux mutations de la société moderne, l'individu se retrouve souvent confronté à lui-même. Dès lors, quelles en sont les causes profondes et quelles solutions peut-on envisager pour y remédier durablement ?</span></div>";
   } else {
-    intro = "<div class='academic-para'><span class='c-intro'>Il est fréquent de constater que</span> " + sujetPur + ", <span class='c-intro'>ce qui engendre un réel débat au sein de la société. Dès lors, qu'en penser ?</span></div>";
+    intro = "<div class='academic-para'><span class='c-intro'>Il est fréquent de constater que</span> " + sujetPur + ", <span class='c-intro'>ce qui engendre un réel débat au sein de la société contemporaine. Pour bien cerner les enjeux de cette problématique, il est indispensable d'analyser les différents aspects liés à cette question délicate et d'en mesurer toutes les répercussions sur le plan humain.</span></div>";
   }
 
-  var dev1 = "", dev2 = "";
+  var dev1 = "", dev2 = "", dev3 = "";
   if (isAnalytique) {
-    dev1 = "<div class='academic-para'><span class='c-dev'>En premier lieu</span>, <span class='c-dev'>sur le plan des causes, il est clair que les tensions et le rythme de vie moderne favorisent le repli sur soi.</span></div>";
-    dev2 = "<div class='academic-para'><span class='c-opp'>En second lieu</span>, <span class='c-opp'>pour résoudre ce problème, l'écoute et le soutien psychologique s'avèrent indispensables.</span></div>";
+    dev1 = "<div class='academic-para'><span class='c-dev'>En premier lieu</span>, <span class='c-dev'>sur le plan des causes, il est indéniable que le rythme de vie trépidant, l'omniprésence des écrans et l'affaiblissement du dialogue familial favorisent grandement le repli sur soi. Cet isolement progressif coupe l'individu de ses repères affectifs et sociaux fondamentaux.</span></div>";
+    dev2 = "<div class='academic-para'><span class='c-dev'>En second lieu</span>, <span class='c-dev'>les conséquences de cette situation se traduisent par une fragilisation psychologique évidente, de l'anxiété et une perte progressive du sens de la communication interpersonnelle au sein même du foyer.</span></div>";
+    dev3 = "<div class='academic-para'><span class='c-opp'>Enfin</span>, <span class='c-opp'>pour résoudre efficacement ce problème, l'écoute active, le renforcement des liens familiaux et le soutien psychologique s'avèrent des solutions indispensables et urgentes.</span></div>";
   } else if (planType === 'dialectique') {
-    dev1 = "<div class='academic-para'><span class='c-dev'>Certes</span>, <span class='c-dev'>on peut comprendre que la solitude au sein du foyer offre parfois un espace de repos ou un moyen de se protéger.</span></div>";
-    dev2 = "<div class='academic-para'><span class='c-opp'>En revanche</span>, <span class='c-opp'>il ne faut pas oublier que si cet isolement s'installe durablement, il devient destructeur et nuit à l'équilibre familial.</span></div>";
+    dev1 = "<div class='academic-para'><span class='c-dev'>D'un côté, certains estiment que</span> <span class='c-dev'>la solitude au sein du foyer peut offrir un espace nécessaire de repos, d'introspection et de protection contre les agressions du monde extérieur.</span></div>";
+    dev2 = "<div class='academic-para'><span class='c-opp'>D'un autre côté, il ne faut pas oublier que</span> <span class='c-opp'>si cet isolement devient permanent, il engendre l'exclusion, l'incompréhension et nuit gravement à l'épanouissement personnel et familial.</span></div>";
+    dev3 = "<div class='academic-para'><span class='c-concl'>Il apparaît donc clairement qu'</span> <span class='c-concl'>un juste équilibre s'impose entre le besoin légitime de moments d'intimité et la nécessité absolue du partage.</span></div>";
   } else {
-    dev1 = "<div class='academic-para'><span class='c-dev'>D'abord</span>, <span class='c-dev'>la recherche de la solitude au milieu des siens s'explique par un besoin légitime de recul face aux pressions extérieures.</span></div>";
-    dev2 = "<div class='academic-para'><span class='c-dev'>De surcroît</span>, <span class='c-dev'>cet état passager favorise l'introspection et aide l'individu à mieux se connaître.</span></div>";
+    dev1 = "<div class='academic-para'><span class='c-dev'>D'abord</span>, <span class='c-dev'>la recherche de la solitude s'explique par un besoin légitime de recul face aux pressions de la vie quotidienne et aux exigences de l'entourage.</span></div>";
+    dev2 = "<div class='academic-para'><span class='c-dev'>De surcroît</span>, <span class='c-dev'>cet état passager favorise la créativité, la maturité intellectuelle et aide l'individu à fortifier sa personnalité.</span></div>";
+    dev3 = "<div class='academic-para'><span class='c-dev'>Toutefois</span>, <span class='c-dev'>cet ancrage doit rester mesuré pour ne pas basculer dans une marginalisation dangereuse.</span></div>";
   }
 
-  var concl = "<div class='academic-para'><span class='c-concl'>En définitive</span>, <span class='c-concl'>il ressort de cette analyse que</span> <span class='c-concl'>" + sujetPur + "</span> <span class='c-concl'>constitue une situation délicate qui nécessite un juste équilibre entre autonomie et communication.</span></div>";
+  var concl = "<div class='academic-para'><span class='c-concl'>En définitive</span>, <span class='c-concl'>il ressort de cette analyse approfondie que</span> <span class='c-concl'>" + sujetPur + "</span> <span class='c-concl'>constitue un enjeu majeur qui nécessite de concilier harmonieusement autonomie personnelle et communication au quotidien, tout en gardant à l'esprit les leçons universelles que nous enseignent les grandes œuvres littéraires.</span></div>";
 
-  return intro + dev1 + dev2 + concl;
+  return intro + dev1 + dev2 + dev3 + concl;
 }
 
 // --- ROUTE PRINCIPALE D'ÉVALUATION PAR L'IA ---
 app.post('/api/evaluer', async (req, res) => {
-  // Optionnel : Sécurité stricte exigeant que le professeur soit connecté
-  /*
-  if (!professeurAuthentifie) {
-    return res.status(403.json({ error: "Accès non autorisé. Veuillez vous authentifier." });
-  }
-  */
-
   const { sujet, texte, nom, niveau, planMode } = req.body;
 
   const isAnalytique = detecterSujetAnalytique(sujet);
@@ -120,17 +115,19 @@ app.post('/api/evaluer', async (req, res) => {
 
   try {
     const promptSysteme = `
-      Tu es un professeur de français intransigeant et un correcteur officiel pour les examens régionaux (1ère BAC) et les concours de l'enseignement au Maroc.
-      Analyse rigoureusement le texte de l'élève ci-dessous. Tu DOIS traquer la moindre faute d'orthographe, de grammaire, de conjugaison, d'accord ou de syntaxe.
+      Tu es un professeur de français intransigeant et un correcteur officiel expert pour les examens régionaux (1ère BAC) et les concours de l'enseignement au Maroc.
+      Analyse extrêmement rigoureusement le texte de l'élève fourni ci-dessous. Tu DOIS produire un rapport d'évaluation complet, détaillé et structuré selon les exigences académiques marocaines.
 
-      Règles strictes pour la clé "erreursDetectees":
-      - Si l'élève a fait des fautes, liste-les clairement.
-      - Pour chaque faute trouvée, cite le passage erroné et mets la correction directement en évidence en rouge vif avec ce style exact : <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>[Correction / Explication]</span>.
-      - Si le texte est parfait, écris : "Aucune faute d'orthographe ou de grammaire détectée. Excellent travail !"
+      Voici les impératifs absolus de ta réponse :
+      1. Détection des erreurs (langue et syntaxe) : Passe en revue le texte de l'élève. Si des fautes d'orthographe, de grammaire, de conjugaison, d'accord ou de syntaxe sont présentes, cite explicitement le passage erroné et propose la correction en rouge vif avec ce style exact : <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>[Correction / Explication]</span>.
+      2. Propositions de reformulations : Identifie les phrases faibles, lourdes ou mal construites du texte de l'élève. Pour chaque phrase faible repérée, propose une reformulation claire, élégante, enrichie en vocabulaire précis et articulée par de bons connecteurs logiques.
+      3. Remarques et recommandations pédagogiques : Rédige des conseils méthodologiques sur mesure, précis et constructifs pour aider l'élève à progresser.
+      4. Texte modèle optimisé et unifié : Rédige un texte argumentatif modèle d'une longueur riche et conséquente (minimum 18 à 20 lignes/développements), structuré en paragraphes HTML avec les classes span c-intro, c-dev, c-opp, c-concl. 
+         - ATTENTION : Si le sujet de production écrite mentionne explicitement une œuvre littéraire au programme (ex: "La Boîte à merveilles" d'Ahmed Sefrioui, "Antigone" de Jean Anouilh, ou "Le Dernier Jour d'un condamné" de Victor Hugo), ton texte modèle DOIT impérativement intégrer des exemples littéraires précis tirés de ces œuvres (ex: mentionner Sidi Mohammed, Lalla Zoubida, le Msid, le pacha, Créon, le condamné à mort, etc.). Si aucune œuvre n'est mentionnée dans le sujet, base ton texte sur des exemples solides de la vie quotidienne et de la société.
 
       Retourne UNIQUEMENT un objet JSON valide (sans aucun bloc de code markdown \`\`\`json) contenant exactement les clés suivantes :
       {
-        "total": "note sur 10 sous forme de chaîne (ex: '6.50')",
+        "total": "note sur 10 sous forme de chaîne (ex: '14.00' ou '9.50')",
         "notes": {
           "consigne": nombre,
           "structure": nombre,
@@ -138,10 +135,10 @@ app.post('/api/evaluer', async (req, res) => {
           "langue": nombre,
           "lexique": nombre
         },
-        "erreursDetectees": "Le texte HTML détaillé listant les erreurs et affichant les corrections en rouge.",
-        "reformulations": "Propositions concrètes pour réécrire les phrases lourdes ou faibles de l'élève en enrichissant le vocabulaire et en insérant de bons connecteurs logiques.",
-        "remarquesPedagogiques": "Bilan qualitatif constructif et recommandations méthodologiques sur mesure.",
-        "texteModele": "Un texte modèle académique complet structuré en paragraphes HTML avec des balises span c-intro, c-dev, c-opp, c-concl."
+        "erreursDetectees": "Le texte HTML détaillé listant les erreurs relevées dans le texte de l'élève et affichant les corrections en rouge.",
+        "reformulations": "Un tableau ou une liste claire présentant les phrases faibles de l'élève accompagnées de leurs propositions de reformulations argumentées et riches en connecteurs.",
+        "remarquesPedagogiques": "Bilan qualitatif constructif et recommandations pédagogiques sur mesure.",
+        "texteModele": "Le texte modèle académique complet d'une longueur de 18 à 20 lignes minimum, structuré en paragraphes HTML avec des balises span c-intro, c-dev, c-opp, c-concl, intégrant des exemples littéraires si le sujet le requiert ou du quotidien dans le cas contraire."
       }
 
       Sujet: "${sujet}"
@@ -208,9 +205,9 @@ app.post('/api/evaluer', async (req, res) => {
       isSujetAnalytique: isAnalytique,
       isHorsSujet,
       messageHorsSujet,
-      erreursDetectees: "Analyse automatique de secours : Vérifiez l'accord des participes passés.",
-      reformulations: "Privilégiez l'utilisation de connecteurs logiques variés.",
-      remarquesPedagogiques: "Effort louable. Veillez à bien structurer vos paragraphes.",
+      erreursDetectees: "Analyse de secours : Veuillez vérifier attentivement l'accord des participes passés et la syntaxe générale des phrases.",
+      reformulations: "Privilégiez l'utilisation de connecteurs logiques variés et structurez vos phrases avec des propositions subordonnées plus riches.",
+      remarquesPedagogiques: "Effort louable. Veillez à bien structurer vos paragraphes en veillant à la clarté de l'argumentation.",
       texteModele
     });
   }
