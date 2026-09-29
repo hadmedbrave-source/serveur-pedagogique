@@ -9,14 +9,32 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// --- INITIALISATION DE L'INTELLIGENCE ARTIFICIELLE (GOOGLE GEMINI) ---
+// --- INITIALISATION DE L'INTELLIGENCE ARTIFICIELLE ---
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// --- GESTION DE LA SESSION PROFESSEUR CÔTÉ SERVEUR ---
+// Stockage en mémoire du serveur : une fois connecté, le serveur s'en souvient
+let professeurAuthentifie = false;
 
 // --- SERVIR LES FICHIERS STATIQUES DE L'INTERFACE ---
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- FONCTIONS LOGIQUES DE SECOURS (FALLBACK LOCAL) ---
+// --- ROUTE DE VÉRIFICATION DU MOT DE PASSE ---
+app.post('/api/connexion', (req, res) => {
+  const { password } = req.body;
+  if (password === "Akhawayn2026!") {
+    professeurAuthentifie = true;
+    return res.json({ success: true, message: "Authentification réussie." });
+  }
+  return res.status(401).json({ success: false, message: "Mot de passe incorrect." });
+});
 
+// --- ROUTE POUR VÉRIFIER SI LE PROFESSEUR EST DÉJÀ CONNECTÉ ---
+app.get('/api/verifier-session', (req, res) => {
+  res.json({ authentifie: professeurAuthentifie });
+});
+
+// --- FONCTIONS LOGIQUES DE SECOURS (FALLBACK LOCAL) ---
 function detecterSujetAnalytique(sujet) {
   if (!sujet) return false;
   var sLower = sujet.toLowerCase();
@@ -85,6 +103,13 @@ function genererTexteOptimiseSecours(sujet, planType, isAnalytique) {
 
 // --- ROUTE PRINCIPALE D'ÉVALUATION PAR L'IA ---
 app.post('/api/evaluer', async (req, res) => {
+  // Optionnel : Sécurité stricte exigeant que le professeur soit connecté
+  /*
+  if (!professeurAuthentifie) {
+    return res.status(403.json({ error: "Accès non autorisé. Veuillez vous authentifier." });
+  }
+  */
+
   const { sujet, texte, nom, niveau, planMode } = req.body;
 
   const isAnalytique = detecterSujetAnalytique(sujet);
@@ -94,17 +119,16 @@ app.post('/api/evaluer', async (req, res) => {
   let messageHorsSujet = isHorsSujet ? "🚨 ALERTE HORS-SUJET / DÉCALAGE DE CONSIGNE : Le traitement de la consigne ne correspond pas aux attentes académiques requises. Note éliminatoire absolue de 0.00 / 10." : "";
 
   try {
-    // --- PROMPT ULTRA-DIRECTIF POUR FORCER L'IA À DÉTECTER LES ERREURS ---
     const promptSysteme = `
       Tu es un professeur de français intransigeant et un correcteur officiel pour les examens régionaux (1ère BAC) et les concours de l'enseignement au Maroc.
       Analyse rigoureusement le texte de l'élève ci-dessous. Tu DOIS traquer la moindre faute d'orthographe, de grammaire, de conjugaison, d'accord ou de syntaxe.
 
       Règles strictes pour la clé "erreursDetectees":
-      - Si l'élève a fait des fautes, liste-les clairement sous forme de texte ou de points HTML.
+      - Si l'élève a fait des fautes, liste-les clairement.
       - Pour chaque faute trouvée, cite le passage erroné et mets la correction directement en évidence en rouge vif avec ce style exact : <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>[Correction / Explication]</span>.
-      - Ne laisse jamais cette section vide s'il y a la moindre imperfection linguistique.
+      - Si le texte est parfait, écris : "Aucune faute d'orthographe ou de grammaire détectée. Excellent travail !"
 
-      Retourne UNIQUEMENT un objet JSON valide (sans aucun bloc de code markdown \`\`\`json au début ou à la fin) contenant exactement les clés suivantes :
+      Retourne UNIQUEMENT un objet JSON valide (sans aucun bloc de code markdown \`\`\`json) contenant exactement les clés suivantes :
       {
         "total": "note sur 10 sous forme de chaîne (ex: '6.50')",
         "notes": {
@@ -114,9 +138,9 @@ app.post('/api/evaluer', async (req, res) => {
           "langue": nombre,
           "lexique": nombre
         },
-        "erreursDetectees": "Le texte HTML détaillé listant les erreurs et affichant les corrections en rouge selon les règles ci-dessus.",
+        "erreursDetectees": "Le texte HTML détaillé listant les erreurs et affichant les corrections en rouge.",
         "reformulations": "Propositions concrètes pour réécrire les phrases lourdes ou faibles de l'élève en enrichissant le vocabulaire et en insérant de bons connecteurs logiques.",
-        "remarquesPedagogiques": "Bilan qualitatif constructif et recommandations méthodologiques sur mesure pour progresser.",
+        "remarquesPedagogiques": "Bilan qualitatif constructif et recommandations méthodologiques sur mesure.",
         "texteModele": "Un texte modèle académique complet structuré en paragraphes HTML avec des balises span c-intro, c-dev, c-opp, c-concl."
       }
 
@@ -126,15 +150,12 @@ app.post('/api/evaluer', async (req, res) => {
       "${texte}"
     `;
 
-    // Appel au modèle Gemini 2.5 Flash
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: promptSysteme,
     });
 
     let jsonResponseText = response.text().trim();
-    
-    // Nettoyage rigoureux des balises markdown si l'IA en ajoute
     if (jsonResponseText.startsWith("```json")) {
       jsonResponseText = jsonResponseText.replace(/^```json/, "").replace(/```$/, "").trim();
     } else if (jsonResponseText.startsWith("```")) {
@@ -158,9 +179,8 @@ app.post('/api/evaluer', async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Erreur lors de l'appel à l'API Gemini, passage au mode secours local :", error);
+    console.error("Erreur lors de l'appel à l'API Gemini :", error);
 
-    // --- MODE SECOURS LOCAL EN CAS D'INDISPONIBILITÉ DE L'API ---
     let notes = { consigne: 0, structure: 0, arguments: 0, langue: 0, lexique: 0 };
     if (!isHorsSujet) {
       const paragraphes = texte.split(/\n+/).filter(p => p.trim().length > 0);
@@ -188,9 +208,9 @@ app.post('/api/evaluer', async (req, res) => {
       isSujetAnalytique: isAnalytique,
       isHorsSujet,
       messageHorsSujet,
-      erreursDetectees: "Analyse automatique de secours : Vérifiez l'accord des participes passés et l'orthographe lexicale de vos termes.",
-      reformulations: "Privilégiez l'utilisation de connecteurs logiques variés pour lier vos arguments (ex: <span style='color: #c5221f; font-weight: bold;'>D'une part / D'autre part</span>).",
-      remarquesPedagogiques: "Effort louable. Veillez à bien structurer vos paragraphes pour renforcer votre argumentation.",
+      erreursDetectees: "Analyse automatique de secours : Vérifiez l'accord des participes passés.",
+      reformulations: "Privilégiez l'utilisation de connecteurs logiques variés.",
+      remarquesPedagogiques: "Effort louable. Veillez à bien structurer vos paragraphes.",
       texteModele
     });
   }
