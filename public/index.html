@@ -411,7 +411,7 @@
       color: var(--navy);
     }
 
-    /* Grille de rétroaction IA */
+    /* Styles IA : Erreurs en rouge, reformulations et remarques */
     .ai-feedback-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -439,6 +439,7 @@
 
     .ai-errors-box { border-color: #fca5a5; background: #fff5f5; }
     .ai-errors-box .ai-card-title { color: #c5221f; }
+    .error-highlight { color: #c5221f; font-weight: 700; background: #fee2e2; padding: 1px 4px; border-radius: 4px; }
 
     .ai-reform-box { border-color: #93c5fd; background: #eff6ff; }
     .ai-reform-box .ai-card-title { color: #1e40af; }
@@ -743,7 +744,7 @@
       </div>
     </div>
 
-    <!-- SECTIONS DE RÉTROACTION DE L'IA -->
+    <!-- NOUVELLES SECTIONS IA : Erreurs en rouge, Reformulations & Remarques -->
     <div class="ai-feedback-grid">
       <div class="ai-card ai-errors-box">
         <div class="ai-card-title">🔍 Détection des erreurs (Langue & Syntaxe)</div>
@@ -814,7 +815,7 @@
 </div>
 
 <script>
-  // Validation sécurisée du mot de passe côté serveur
+  // Validation sécurisée du mot de passe côté serveur (plus en dur dans le navigateur)
   function verifierMotDePasse() {
     var saisie = document.getElementById('profPasswordInput').value;
     var errorMsg = document.getElementById('authErrorMsg');
@@ -971,10 +972,10 @@
       document.getElementById('ptsLangue').textContent = data.notes.langue.toFixed(1) + ' / 2.5';
       document.getElementById('ptsLexique').textContent = data.notes.lexique.toFixed(1) + ' / 1.5';
 
-      // Affichage dynamique des retours de l'IA
-      document.getElementById('repErreursDetectees').innerHTML = data.erreursDetectees || "Aucune erreur détectée.";
-      document.getElementById('repReformulations').innerHTML = data.reformulations || "Texte fluide.";
-      document.getElementById('repRemarques').innerHTML = data.remarquesPedagogiques || "Bonne maîtrise.";
+      // Affichage des retours IA (Erreurs en rouge, reformulations, remarques)
+      document.getElementById('repErreursDetectees').innerHTML = data.erreursDetectees || "Aucune erreur majeure détectée.";
+      document.getElementById('repReformulations').innerHTML = data.reformulations || "Texte fluide et bien formulé.";
+      document.getElementById('repRemarques').innerHTML = data.remarquesPedagogiques || "Bonne maîtrise globale.";
 
       var planButtonsContainer = document.getElementById('planButtonsContainer');
       var legendContainer = document.getElementById('legendContainer');
@@ -1005,7 +1006,7 @@
     })
     .catch(err => {
       console.error(err);
-      alert("Impossible de joindre le serveur. Détails : " + err.message);
+      alert("Impossible de joindre le serveur. Vérifiez qu'il est bien démarré. Détails : " + err.message);
     })
     .finally(() => {
       if(btnValider) {
