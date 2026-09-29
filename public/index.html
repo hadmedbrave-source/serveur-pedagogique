@@ -411,6 +411,42 @@
       color: var(--navy);
     }
 
+    /* Styles IA : Erreurs en rouge, reformulations et remarques */
+    .ai-feedback-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .ai-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 18px;
+      border: 1.5px solid #cbd5e1;
+    }
+
+    .ai-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-errors-box { border-color: #fca5a5; background: #fff5f5; }
+    .ai-errors-box .ai-card-title { color: #c5221f; }
+    .error-highlight { color: #c5221f; font-weight: 700; background: #fee2e2; padding: 1px 4px; border-radius: 4px; }
+
+    .ai-reform-box { border-color: #93c5fd; background: #eff6ff; }
+    .ai-reform-box .ai-card-title { color: #1e40af; }
+
+    .ai-remarks-box { border-color: #fde047; background: #fefce8; }
+    .ai-remarks-box .ai-card-title { color: #a16207; }
+
     .model-paper {
       background: #ffffff;
       border: 2px solid var(--border-green);
@@ -708,9 +744,33 @@
       </div>
     </div>
 
+    <!-- NOUVELLES SECTIONS IA : Erreurs en rouge, Reformulations & Remarques -->
+    <div class="ai-feedback-grid">
+      <div class="ai-card ai-errors-box">
+        <div class="ai-card-title">🔍 Détection des erreurs (Langue & Syntaxe)</div>
+        <div id="repErreursDetectees" style="font-size: 14px; color: #7f1d1d; line-height: 1.6;">
+          Analyse des erreurs en cours...
+        </div>
+      </div>
+
+      <div class="ai-card ai-reform-box">
+        <div class="ai-card-title">💡 Propositions de reformulation & Connecteurs logiques</div>
+        <div id="repReformulations" style="font-size: 14px; color: #1e3a8a; line-height: 1.6;">
+          Suggestions de reformulation en cours...
+        </div>
+      </div>
+
+      <div class="ai-card ai-remarks-box">
+        <div class="ai-card-title">📌 Remarques & Recommandations pédagogiques de l'IA</div>
+        <div id="repRemarques" style="font-size: 14px; color: #713f12; line-height: 1.6;">
+          Recommandations en cours...
+        </div>
+      </div>
+    </div>
+
     <div class="zone-card" style="border: 2px solid #059669;">
       <div class="zone-head" style="background: #ecfdf5; color: #065f46;">
-        Texte modèle optimisé et unifié (Basé sur les reformulations de l'élève)
+        Texte modèle optimisé et unifié (Basé sur l'expertise de l'IA)
       </div>
       <div class="zone-body">
         
@@ -857,7 +917,7 @@
 
     if(btnValider) {
       btnValider.disabled = true;
-      btnValider.textContent = "Évaluation sécurisée par le serveur en cours...";
+      btnValider.textContent = "Évaluation intelligente par l'IA en cours...";
     }
 
     fetch('/api/evaluer', {
@@ -899,6 +959,11 @@
       document.getElementById('ptsArguments').textContent = data.notes.arguments.toFixed(1) + ' / 2.0';
       document.getElementById('ptsLangue').textContent = data.notes.langue.toFixed(1) + ' / 2.5';
       document.getElementById('ptsLexique').textContent = data.notes.lexique.toFixed(1) + ' / 1.5';
+
+      // Affichage des retours IA (Erreurs en rouge, reformulations, remarques)
+      document.getElementById('repErreursDetectees').innerHTML = data.erreursDetectees || "Aucune erreur majeure détectée.";
+      document.getElementById('repReformulations').innerHTML = data.reformulations || "Texte fluide et bien formulé.";
+      document.getElementById('repRemarques').innerHTML = data.remarquesPedagogiques || "Bonne maîtrise globale.";
 
       var planButtonsContainer = document.getElementById('planButtonsContainer');
       var legendContainer = document.getElementById('legendContainer');
