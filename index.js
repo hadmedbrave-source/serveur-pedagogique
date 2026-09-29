@@ -10,7 +10,6 @@ app.use(cors());
 app.use(express.json());
 
 // --- INITIALISATION DE L'INTELLIGENCE ARTIFICIELLE (GOOGLE GEMINI) ---
-// La clé API est récupérée de manière sécurisée depuis les variables d'environnement Railway
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // --- SERVIR LES FICHIERS STATIQUES DE L'INTERFACE ---
@@ -95,25 +94,30 @@ app.post('/api/evaluer', async (req, res) => {
   let messageHorsSujet = isHorsSujet ? "🚨 ALERTE HORS-SUJET / DÉCALAGE DE CONSIGNE : Le traitement de la consigne ne correspond pas aux attentes académiques requises. Note éliminatoire absolue de 0.00 / 10." : "";
 
   try {
-    // Utilisation de Gemini pour une analyse experte et contextuelle
+    // --- PROMPT ULTRA-DIRECTIF POUR FORCER L'IA À DÉTECTER LES ERREURS ---
     const promptSysteme = `
-      Tu es un professeur expert de français et correcteur intransigeant pour les examens régionaux de français au Maroc (1ère BAC) et les concours d'enseignement (CRMEF/ENS).
-      Analyse la production écrite de l'élève en fonction du sujet proposé.
-      
-      Retourne UNIQUEMENT un objet JSON valide (sans blocs de markdown \`\`\`json) contenant exactement les clés suivantes :
+      Tu es un professeur de français intransigeant et un correcteur officiel pour les examens régionaux (1ère BAC) et les concours de l'enseignement au Maroc.
+      Analyse rigoureusement le texte de l'élève ci-dessous. Tu DOIS traquer la moindre faute d'orthographe, de grammaire, de conjugaison, d'accord ou de syntaxe.
+
+      Règles strictes pour la clé "erreursDetectees":
+      - Si l'élève a fait des fautes, liste-les clairement sous forme de texte ou de points HTML.
+      - Pour chaque faute trouvée, cite le passage erroné et mets la correction directement en évidence en rouge vif avec ce style exact : <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>[Correction / Explication]</span>.
+      - Ne laisse jamais cette section vide s'il y a la moindre imperfection linguistique.
+
+      Retourne UNIQUEMENT un objet JSON valide (sans aucun bloc de code markdown \`\`\`json au début ou à la fin) contenant exactement les clés suivantes :
       {
-        "total": "note sur 10 sous forme de chaîne (ex: '7.50')",
+        "total": "note sur 10 sous forme de chaîne (ex: '6.50')",
         "notes": {
-          "consigne": nombre (sur 2.0),
-          "structure": nombre (sur 2.0),
-          "arguments": nombre (sur 2.0),
-          "langue": nombre (sur 2.5),
-          "lexique": nombre (sur 1.5)
+          "consigne": nombre,
+          "structure": nombre,
+          "arguments": nombre,
+          "langue": nombre,
+          "lexique": nombre
         },
-        "erreursDetectees": "Analyse détaillée des fautes d'orthographe, de grammaire et de syntaxe. Mets les erreurs et fautes directement en évidence en utilisant des balises HTML avec style rouge, par exemple: <span style='color: #c5221f; font-weight: bold; background: #fee2e2; padding: 1px 4px; border-radius: 4px;'>faute corrigée</span>.",
-        "reformulations": "Propositions concrètes pour réécrire les phrases faibles de l'élève en enrichissant le vocabulaire et en insérant de bons connecteurs logiques (cependant, par conséquent, en outre, etc.).",
-        "remarquesPedagogiques": "Bilan qualitatif constructif, encouragements et recommandations méthodologiques sur mesure pour aider l'élève à progresser.",
-        "texteModele": "Un texte modèle académique complet, structuré en paragraphes HTML avec des balises span pour colorer l'introduction (<span class='c-intro'>), le développement (<span class='c-dev'> ou <span class='c-opp'>) et la conclusion (<span class='c-concl'>)."
+        "erreursDetectees": "Le texte HTML détaillé listant les erreurs et affichant les corrections en rouge selon les règles ci-dessus.",
+        "reformulations": "Propositions concrètes pour réécrire les phrases lourdes ou faibles de l'élève en enrichissant le vocabulaire et en insérant de bons connecteurs logiques.",
+        "remarquesPedagogiques": "Bilan qualitatif constructif et recommandations méthodologiques sur mesure pour progresser.",
+        "texteModele": "Un texte modèle académique complet structuré en paragraphes HTML avec des balises span c-intro, c-dev, c-opp, c-concl."
       }
 
       Sujet: "${sujet}"
@@ -129,7 +133,8 @@ app.post('/api/evaluer', async (req, res) => {
     });
 
     let jsonResponseText = response.text().trim();
-    // Nettoyage éventuel des balises markdown si présentes
+    
+    // Nettoyage rigoureux des balises markdown si l'IA en ajoute
     if (jsonResponseText.startsWith("```json")) {
       jsonResponseText = jsonResponseText.replace(/^```json/, "").replace(/```$/, "").trim();
     } else if (jsonResponseText.startsWith("```")) {
@@ -183,9 +188,9 @@ app.post('/api/evaluer', async (req, res) => {
       isSujetAnalytique: isAnalytique,
       isHorsSujet,
       messageHorsSujet,
-      erreursDetectees: "Analyse automatique de secours : Vérifiez l'accord des participes passés et la structure de vos subordonnées.",
-      reformulations: "Privilégiez l'utilisation de connecteurs logiques variés pour lier vos arguments (ex: <em>D'une part</em>, <em>D'autre part</em>).",
-      remarquesPedagogiques: "Effort louable. Veillez à bien approfondir vos exemples pour renforcer votre argumentation.",
+      erreursDetectees: "Analyse automatique de secours : Vérifiez l'accord des participes passés et l'orthographe lexicale de vos termes.",
+      reformulations: "Privilégiez l'utilisation de connecteurs logiques variés pour lier vos arguments (ex: <span style='color: #c5221f; font-weight: bold;'>D'une part / D'autre part</span>).",
+      remarquesPedagogiques: "Effort louable. Veillez à bien structurer vos paragraphes pour renforcer votre argumentation.",
       texteModele
     });
   }
