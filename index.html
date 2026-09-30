@@ -15,6 +15,7 @@
       --navy: #0b1528;
       --navy-light: #16243d;
       --gold: #b45309;
+      --gold-light: #fef3c7;
       --border-blue: #2563eb;
       --border-amber: #d97706;
       --border-purple: #7c3aed;
@@ -291,6 +292,44 @@
       white-space: pre-wrap;
     }
 
+    .official-signature-card {
+      background: #fafaf9;
+      border: 1.5px solid #d6d3d1;
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .signature-details h5 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .signature-details p {
+      font-size: 12px;
+      color: #57534e;
+      margin-top: 2px;
+    }
+
+    .seal-emblem {
+      border: 2px solid #b45309;
+      background: #fffbeb;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-family: 'Cinzel', serif;
+      box-shadow: 0 2px 6px rgba(180, 83, 9, 0.15);
+      flex-shrink: 0;
+    }
+
     .footer-auth {
       margin-top: 30px;
       padding-top: 15px;
@@ -312,6 +351,7 @@
       .header-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
       .header-right { align-items: flex-start; text-align: left; }
       .zone-student { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+      .official-signature-card { flex-direction: column; align-items: flex-start; }
       .footer-auth { flex-direction: column; gap: 6px; }
     }
   </style>
@@ -347,7 +387,8 @@
       <select id="studentLevel">
         <option value="1ère BAC - Sciences Expérimentales">1ère BAC - Sciences Expérimentales</option>
         <option value="1ère BAC - Sciences Mathématiques">1ère BAC - Sciences Mathématiques</option>
-        <option value="Prépa Concours Enseignement">Prépa Concours Enseignement</option>
+        <option value="1ère BAC - Lettres & Sciences Humaines">1ère BAC - Lettres & Sciences Humaines</option>
+        <option value="Prépa Concours Enseignement (CRMEF / ENS)">Prépa Concours Enseignement (CRMEF / ENS)</option>
       </select>
     </div>
   </div>
@@ -388,15 +429,27 @@
     </div>
   </div>
 
-  <button type="button" class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Valider et générer le rapport par l'IA</button>
+  <button type="button" class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Valider et générer le rapport pédagogique certifié</button>
 
   <div id="reportSection">
     <div class="zone-card" style="border: 2px solid #059669;">
       <div class="zone-head" style="background: #ecfdf5; color: #065f46;">
-        Rapport d'évaluation de l'IA (Conforme au barème officiel)
+        Rapport d'Évaluation Certifié & Correction Intelligente (IA)
       </div>
       <div class="zone-body">
         <div id="repAcademicEssay" class="response-box">En attente de traitement...</div>
+      </div>
+    </div>
+
+    <div class="official-signature-card">
+      <div class="signature-details">
+        <h5>Rapport Pédagogique Certifié Conforme</h5>
+        <p>Expertise pédagogique, conception didactique et barèmes académiques officiels.</p>
+        <p>Centre Al Akhawayn • Centre Pro-Langues & Préparation aux Concours d'Excellence.</p>
+      </div>
+      <div class="seal-emblem">
+        <div class="seal-title">Sceau d'Authenticité</div>
+        <div class="seal-name">C. Al Akhawayn</div>
       </div>
     </div>
   </div>
@@ -404,6 +457,7 @@
   <div class="footer-auth">
     <span>Centre Al Akhawayn © Tous droits réservés</span>
     <span>Plateforme Pédagogique Interactive</span>
+    <span>Certifié Anti-Plagiat</span>
   </div>
 
 </div>
@@ -430,34 +484,33 @@
   }
 
   async function lancerEvaluationIA() {
-    var nom = document.getElementById('studentName').value || "Candidat";
+    var nom = document.getElementById('studentName').value.trim() || "Candidat(e)";
     var niveau = document.getElementById('studentLevel').value;
-    var sujet = document.getElementById('sujetInput').value;
-    var texte = document.getElementById('studentText').value;
+    var sujet = document.getElementById('sujetInput').value.trim();
+    var texte = document.getElementById('studentText').value.trim();
     var btn = document.getElementById('btnValider');
     var reportSec = document.getElementById('reportSection');
     var resultBox = document.getElementById('repAcademicEssay');
 
-    if (!sujet.trim()) {
+    if (!sujet) {
       alert("Veuillez saisir le sujet d'expression écrite.");
       return;
     }
 
-    if (!texte.trim()) {
+    if (!texte) {
       alert("Veuillez saisir votre texte dans la zone de rédaction.");
       return;
     }
 
     btn.disabled = true;
-    btn.textContent = "Évaluation par l'IA en cours...";
+    btn.textContent = "Génération du rapport pédagogique par l'IA...";
     reportSec.style.display = 'block';
-    resultBox.textContent = "Analyse rigoureuse de la copie en cours...";
+    resultBox.textContent = "Analyse rigoureuse de la copie, détection du plan et correction des erreurs en cours...";
 
-    // On formate le prompt proprement pour que votre index.js l'envoie à Gemini
     const promptComplet = `Agis en tant qu'examinateur et correcteur intransigeant d'expression écrite pour le cycle secondaire au Maroc (examen régional de français).
-Évalue la copie de l'élève en respectant strictement le barème officiel sur 10 points.
+Évalue la copie de l'élève en respectant strictement et à 100% le barème officiel sur 10 points.
 
-INFORMATIONS DE L'ÉLÈVE :
+INFORMATIONS DE L'CANDIDAT :
 - Nom : ${nom}
 - Niveau : ${niveau}
 
@@ -467,10 +520,17 @@ ${sujet}
 PRODUCTION DE L'ÉLÈVE :
 ${texte}
 
-Fournis un rapport pédagogique structuré détaillant :
-1. La note globale sur 10 selon le barème officiel (Consigne, Structure, Arguments, Langue, Lexique).
-2. Une analyse des points forts et des fautes de langue.
-3. Un texte modèle corrigé et optimisé.`;
+Génère un rapport pédagogique structuré comportant obligatoirement les éléments suivants :
+1. **Identification du plan détecté** (ex: Plan Analytique si le sujet demande causes/conséquences/solutions, ou Plan Simple / Dialectique si le sujet demande un avis/opinion).
+2. **Grille de notation détaillée sur 10 points** selon le barème :
+   - Consigne & organisation (sur 2.0 Pts)
+   - Structure argumentative du plan (sur 2.0 Pts)
+   - Force argumentative & exemples (sur 2.0 Pts)
+   - Correction de la langue (sur 2.5 Pts)
+   - Richesse lexicale (sur 1.5 Pts)
+3. **Transcription et correction des erreurs de l'élève** : affiche le texte avec les erreurs signalées, suivies d'un tableau clair détaillant les erreurs relevées et leurs corrections logiques.
+4. **Analyse des formulations faibles** avec proposition de reformulations adaptées.
+5. **Texte modèle optimisé et unifié** : rédigé en respectant strictement le type de plan détecté. Si le sujet mentionne une œuvre au programme (comme *La Boîte à merveilles*, *Antigone* ou *Le Dernier Jour d'un condamné*), intègre et cite **deux exemples précis en gras** tirés de ces œuvres.`;
 
     try {
       const response = await fetch('/api/chat', {
@@ -483,14 +543,14 @@ Fournis un rapport pédagogique structuré détaillant :
       if (response.ok) {
         resultBox.textContent = data.result || "Rapport généré avec succès.";
       } else {
-        resultBox.textContent = "Erreur : " + (data.error || "Une erreur est survenue.");
+        resultBox.textContent = "Erreur de l'IA : " + (data.error || "Une erreur est survenue.");
       }
     } catch (error) {
       console.error(error);
-      resultBox.textContent = "Erreur de connexion avec le serveur.";
+      resultBox.textContent = "Erreur de connexion avec le serveur d'évaluation.";
     } finally {
       btn.disabled = false;
-      btn.textContent = "Valider et générer le rapport par l'IA";
+      btn.textContent = "Valider et générer le rapport pédagogique certifié";
     }
   }
 </script>
