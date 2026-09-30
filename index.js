@@ -32,11 +32,17 @@ app.get('/api/verifier-session', (req, res) => {
   return res.json({ professeurAuthentifie });
 });
 
-async function appelerGeminiAvecRetry(promptSysteme, maxTentatives = 3) {
-  for (let tentative = 1; tentative <= maxTentatives; tentative++) {
+// Fonction robuste avec bascule automatique entre plusieurs modèles en cas de surcharge
+async function appelerGeminiAvecSecours(promptSysteme) {
+  const modelesTestes = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+  
+  let derniereErreur = null;
+
+  for (const modele of modelesTestes) {
     try {
+      console.log(`Tentative d'évaluation avec le modèle : ${modele}`);
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: modele,
         contents: promptSysteme,
         config: {
           responseMimeType: 'application/json'
@@ -44,13 +50,13 @@ async function appelerGeminiAvecRetry(promptSysteme, maxTentatives = 3) {
       });
       return response;
     } catch (error) {
-      console.warn(`Tentative ${tentative} échouée :`, error.message);
-      if (tentative === maxTentatives || (!error.message.includes('503') && !error.message.includes('high demand'))) {
-        throw error;
-      }
-      await new Promise(resolve => setTimeout(resolve, tentative * 2000));
+      console.warn(`Le modèle ${modele} a échoué :`, error.message);
+      derniereErreur = error;
+      // Si ce n'est pas une erreur de surcharge, on continue d'essayer les autres
     }
   }
+
+  throw derniereErreur;
 }
 
 app.post('/api/evaluer', async (req, res) => {
@@ -120,7 +126,7 @@ Tu dois répondre UNIQUEMENT avec un objet JSON strict au format exact suivant :
 }
 `;
 
-    const response = await appelerGeminiAvecRetry(promptSysteme);
+    const response = await appelerGeminiAvecSecours(promptSysteme);
 
     const rawText = response.text || '';
     const cleanedText = rawText.replace(/```json/gi, '').replace(/```/gi, '').trim();
