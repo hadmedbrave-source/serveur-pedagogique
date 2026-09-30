@@ -39,7 +39,6 @@
             responseDiv.innerText = "Génération en cours...";
 
             try {
-                // Remplacez l'URL par l'URL de votre déploiement Railway une fois en ligne
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
