@@ -40,7 +40,6 @@
       line-height: 1.6;
     }
 
-    /* --- ÉCRAN DE VERROUILLAGE SÉCURISÉ --- */
     #authOverlay {
       position: fixed;
       top: 0;
@@ -411,14 +410,6 @@
       color: var(--navy);
     }
 
-    /* Styles IA : Erreurs en rouge, reformulations et remarques */
-    .ai-feedback-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
     .ai-card {
       background: #ffffff;
       border-radius: 12px;
@@ -437,15 +428,34 @@
       gap: 8px;
     }
 
-    .ai-errors-box { border-color: #fca5a5; background: #fff5f5; }
-    .ai-errors-box .ai-card-title { color: #c5221f; }
-    .error-highlight { color: #c5221f; font-weight: 700; background: #fee2e2; padding: 1px 4px; border-radius: 4px; }
-
     .ai-reform-box { border-color: #93c5fd; background: #eff6ff; }
     .ai-reform-box .ai-card-title { color: #1e40af; }
 
     .ai-remarks-box { border-color: #fde047; background: #fefce8; }
     .ai-remarks-box .ai-card-title { color: #a16207; }
+
+    /* Style du tableau des erreurs */
+    .table-erreurs {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 13.5px;
+    }
+    .table-erreurs th, .table-erreurs td {
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      text-align: left;
+    }
+    .table-erreurs th {
+      background: #fee2e2;
+      color: #991b1b;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
 
     .model-paper {
       background: #ffffff;
@@ -598,7 +608,6 @@
 </head>
 <body>
 
-<!-- ÉCRAN DE SÉCURITÉ PROFESSEUR -->
 <div id="authOverlay">
   <div class="auth-card">
     <h3>Centre Al Akhawayn</h3>
@@ -744,33 +753,42 @@
       </div>
     </div>
 
-    <!-- NOUVELLES SECTIONS IA : Erreurs en rouge, Reformulations & Remarques -->
-    <div class="ai-feedback-grid">
-      <div class="ai-card ai-errors-box">
-        <div class="ai-card-title">🔍 Détection des erreurs (Langue & Syntaxe)</div>
-        <div id="repErreursDetectees" style="font-size: 14px; color: #7f1d1d; line-height: 1.6;">
-          Analyse des erreurs en cours...
-        </div>
-      </div>
-
-      <div class="ai-card ai-reform-box">
-        <div class="ai-card-title">💡 Propositions de reformulation & Connecteurs logiques</div>
-        <div id="repReformulations" style="font-size: 14px; color: #1e3a8a; line-height: 1.6;">
-          Suggestions de reformulation en cours...
-        </div>
-      </div>
-
-      <div class="ai-card ai-remarks-box">
-        <div class="ai-card-title">📌 Remarques & Recommandations pédagogiques de l'IA</div>
-        <div id="repRemarques" style="font-size: 14px; color: #713f12; line-height: 1.6;">
-          Recommandations en cours...
-        </div>
+    <!-- 1. TEXTE TRANSCRIT DE L'ÉLÈVE (Erreurs en rouge / Liens logiques en gras) -->
+    <div class="ai-card" style="border-color: #cbd5e1; background: #ffffff; margin-bottom: 20px;">
+      <div class="ai-card-title" style="color: var(--navy);">📝 Texte transcrit de l'élève (Erreurs en rouge / Liens logiques en gras)</div>
+      <div id="repTexteTranscrit" style="font-size: 15px; line-height: 1.8; color: #0f172a; text-align: justify; padding: 10px;">
+        Transcription en cours...
       </div>
     </div>
 
+    <!-- 2. TABLEAU DES ERREURS & CORRECTIONS -->
+    <div class="ai-card" style="border-color: #fca5a5; background: #fff5f5; margin-bottom: 20px; overflow-x: auto;">
+      <div class="ai-card-title" style="color: #c5221f;">📊 Tableau d'analyse des erreurs & corrections</div>
+      <div id="repTableauErreurs">
+        Analyse du tableau en cours...
+      </div>
+    </div>
+
+    <!-- 3. PROPOSITIONS DE REFORMULATION -->
+    <div class="ai-card ai-reform-box" style="margin-bottom: 20px;">
+      <div class="ai-card-title">💡 Propositions de reformulation & Connecteurs logiques</div>
+      <div id="repReformulations" style="font-size: 14px; color: #1e3a8a; line-height: 1.6;">
+        Suggestions en cours...
+      </div>
+    </div>
+
+    <!-- 4. REMARQUES & RECOMMANDATIONS PÉDAGOGIQUES -->
+    <div class="ai-card ai-remarks-box" style="margin-bottom: 20px;">
+      <div class="ai-card-title">📌 Remarques & Recommandations pédagogiques</div>
+      <div id="repRemarques" style="font-size: 14px; color: #713f12; line-height: 1.6;">
+        Recommandations en cours...
+      </div>
+    </div>
+
+    <!-- 5. TEXTE MODÈLE OPTIMISÉ -->
     <div class="zone-card" style="border: 2px solid #059669;">
       <div class="zone-head" style="background: #ecfdf5; color: #065f46;">
-        Texte modèle optimisé et unifié (Basé sur l'expertise de l'IA)
+        Texte modèle optimisé (Basé sur les reformulations recommandées)
       </div>
       <div class="zone-body">
         
@@ -928,7 +946,7 @@
 
     if(btnValider) {
       btnValider.disabled = true;
-      btnValider.textContent = "Évaluation intelligente par l'IA en cours...";
+      btnValider.textContent = "Évaluation en cours par l'équipe pédagogique du Centre Al Akhawayn...";
     }
 
     fetch('/api/evaluer', {
@@ -972,7 +990,9 @@
       document.getElementById('ptsLangue').textContent = data.notes.langue.toFixed(1) + ' / 2.5';
       document.getElementById('ptsLexique').textContent = data.notes.lexique.toFixed(1) + ' / 1.5';
 
-      document.getElementById('repErreursDetectees').innerHTML = data.erreursDetectees || "Aucune erreur majeure détectée.";
+      // Injection des données dans l'ordre rigoureux demandé
+      document.getElementById('repTexteTranscrit').innerHTML = data.texteTranscrit || "Texte non disponible.";
+      document.getElementById('repTableauErreurs').innerHTML = data.tableauErreurs || "Aucune erreur répertoriée.";
       document.getElementById('repReformulations').innerHTML = data.reformulations || "Texte fluide et bien formulé.";
       document.getElementById('repRemarques').innerHTML = data.remarquesPedagogiques || "Bonne maîtrise globale.";
 
