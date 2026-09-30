@@ -9,80 +9,120 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-// INITIALISATION DE L'INTELLIGENCE ARTIFICIELLE
+// Initialisation de Gemini API
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// GESTION DE LA SESSION PROFESSEUR CÔTÉ SERVEUR
+// Gestion de session
 let professeurAuthentifie = false;
 
-// SERVIR LES FICHIERS STATIQUES DE L'INTERFACE
+// Fichiers statiques du front-end
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ROUTE RACINE POUR ÉVITER LE 404 SUR L'URL PRINCIPALE
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ROUTE DE VÉRIFICATION DU MOT DE PASSE
+// Authentification professeur
 app.post('/api/connexion', (req, res) => {
-    const { password } = req.body;
-    if (password === 'Akhawayn2026!') {
-        professeurAuthentifie = true;
-        return res.json({ success: true, message: 'Authentification réussie.' });
-    }
-    return res.status(403).json({ success: false, message: 'Mot de passe incorrect.' });
+  const { password } = req.body;
+  if (password === 'Akhawayn2026!') {
+    professeurAuthentifie = true;
+    return res.json({ success: true, message: 'Authentification réussie.' });
+  }
+  return res.status(403).json({ success: false, message: 'Mot de passe incorrect.' });
 });
 
-// ROUTE POUR VÉRIFIER SI LE PROFESSEUR EST CONNECTÉ
 app.get('/api/verifier-session', (req, res) => {
-    return res.json({ professeurAuthentifie });
+  return res.json({ professeurAuthentifie });
 });
 
-// ANALYSE PÉDAGOGIQUE ET CORRECTION DE LA COPIE DE L'ÉLÈVE
+// Route d'évaluation pédagogique
 app.post('/api/evaluer', async (req, res) => {
-    const { texteEleve, niveauScolaire, sujet } = req.body;
+  try {
+    // Récupération souple des champs envoyés par index.html
+    const texte = req.body.texte || req.body.texteEleve;
+    const sujet = req.body.sujet || 'Sujet libre';
+    const nom = req.body.nom || 'Candidat(e)';
+    const niveau = req.body.niveau || req.body.niveauScolaire || '1ère BAC';
+    const planMode = req.body.planMode || 'simple';
 
-    if (!texteEleve) {
-        return res.status(400).json({ error: "Le texte de l'élève est requis." });
+    if (!texte || texte.trim() === '') {
+      return res.status(400).json({ error: "Le texte de l'élève est requis." });
     }
 
-    try {
-        const promptSysteme = `
-Tu es un expert en didactique du français et correcteur officiel pour le Centre Pro-Langues & Prépa Concours. 
-Analyse la copie de l'élève pour le niveau "${niveauScolaire}" sur le sujet "${sujet}".
+    const promptSysteme = `
+Tu es un inspecteur et correcteur officiel expert pour le Centre Al Akhawayn (Centre Pro-Langues & Prépa Concours).
+Tu évalues une copie de production écrite pour l'examen régional selon le barème officiel marocain sur 10 points.
 
-Tu dois impérativement répondre sous la forme d'un objet JSON strict contenant les clés suivantes :
-1. "texteTranscrit": Le texte de l'élève corrigé et formaté en HTML. 
-   - Les liens logiques doivent être en **noir et en gras** (ex: <strong>En premier lieu</strong>).
-   - Les fautes d'orthographe, de grammaire, de conjugaison ou de syntaxe doivent apparaître en rouge (ex: <span style="color:red; font-weight:bold;">faute</span>).
-2. "tableauErreurs": Un tableau d'objets listant chaque erreur détectée avec les clés "erreur" et "correction".
-3. "recommandations": Un tableau de chaînes de caractères listant les remarques et recommandations pédagogiques.
-4. "texteOptimise": Le texte modèle optimisé et unifié, rigoureusement structuré selon le plan analytique.
-5. "titreTexteOptimise": Doit être exactement la chaîne de caractères : "Basé sur les reformulations recommandées".
+Informations de la copie :
+- Candidat : "${nom}"
+- Niveau scolaire : "${niveau}"
+- Sujet posé : "${sujet}"
+- Mode de plan sélectionné : "${planMode}"
 
-Réponds uniquement avec le JSON valide, sans markdown superflu autour si possible, ou bien dans un bloc JSON standard.
+Copie de l'élève :
+"""
+${texte}
+"""
+
+Critères de notation stricts (Total sur 10 Points) :
+1. Consigne & organisation (sur 2.0)
+2. Structure argumentative du plan (sur 2.0)
+3. Force argumentative & exemples (sur 2.0)
+4. Correction de la langue (orthographe, grammaire, syntaxe, conjugaison) (sur 2.5)
+5. Richesse lexicale (sur 1.5)
+
+Détection hors-sujet :
+- Si la rédaction est manifestement hors-sujet, attribue 0 à tous les critères, passe isHorsSujet à true et donne une explication dans messageHorsSujet.
+
+Consignes pour les retours pédagogiques :
+- "erreursDetectees" : Doit contenir une liste HTML (<ul><li>...</li></ul>) détaillant chaque faute repérée. Mets en rouge gras la faute (<span style="color:#c5221f; font-weight:bold;">faute</span>) suivie de la règle et de la correction (<span style="color:#059669; font-weight:bold;">correction</span>).
+- "reformulations" : Doit contenir une liste HTML des propositions d'amélioration syntaxique et stylistique, en mettant en valeur les liens logiques recommandés (ex: <strong>En premier lieu</strong>, <strong>Par ailleurs</strong>, <strong>En somme</strong>).
+- "remarquesPedagogiques" : Conseils méthodologiques précis et bienveillants adaptés au profil et aux lacunes observées.
+- "texteModele" : Un texte modèle complet, exemplaire et académique rédigé en paragraphes structurés avec la classe <p class="academic-para">. Utilise les balises <span class="c-intro"> pour l'introduction, <span class="c-dev"> pour le développement (ou <span class="c-opp"> pour la nuance/antithèse), et <span class="c-concl"> pour la conclusion.
+
+Tu dois répondre UNIQUEMENT avec un objet JSON strict au format exact suivant :
+{
+  "nom": "${nom}",
+  "niveau": "${niveau}",
+  "isHorsSujet": false,
+  "messageHorsSujet": "",
+  "isSujetAnalytique": false,
+  "total": 7.5,
+  "notes": {
+    "consigne": 1.5,
+    "structure": 1.5,
+    "arguments": 1.5,
+    "langue": 2.0,
+    "lexique": 1.0
+  },
+  "erreursDetectees": "<ul>...</ul>",
+  "reformulations": "<ul>...</ul>",
+  "remarquesPedagogiques": "<ul>...</ul>",
+  "texteModele": "<p class=\\"academic-para\\"><span class=\\"c-intro\\">...</span></p>"
+}
 `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [promptSysteme, `Copie de l'élève :\n${texteEleve}`],
-            config: {
-                responseMimeType: 'application/json'
-            }
-        });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: promptSysteme,
+      config: {
+        responseMimeType: 'application/json'
+      }
+    });
 
-        const rawText = response.text;
-        const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const rawText = response.text || '';
+    const cleanedText = rawText.replace(/```json/gi, '').replace(/```/gi, '').trim();
+    const resultJson = JSON.parse(cleanedText);
 
-        const resultJson = JSON.parse(cleanedText);
-        return res.json(resultJson);
+    return res.json(resultJson);
 
-    } catch (error) {
-        console.error("Erreur lors de l'évaluation avec Gemini :", error);
-        return res.status(500).json({ error: "Erreur interne du serveur lors de l'analyse pédagogique." });
-    }
+  } catch (error) {
+    console.error("Erreur d'évaluation :", error);
+    return res.status(500).json({ error: "Erreur interne lors de l'analyse pédagogique : " + error.message });
+  }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Serveur additionnel du Centre Pro-Langues & Prépa Concours démarré sur le port ${PORT} !`);
+  console.log(`Serveur du Centre Pro-Langues & Prépa Concours démarré sur le port ${PORT} !`);
 });
