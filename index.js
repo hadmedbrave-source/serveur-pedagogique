@@ -7,30 +7,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servir les fichiers statiques (index.html) du dossier courant
 app.use(express.static(__dirname));
 
-// Initialisation du client Google Gen AI (récupère automatiquement process.env.GEMINI_API_KEY)
-const ai = new GoogleGenAI();
+// Initialisation explicite avec la clé d'API fournie
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Route racine
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Route pour interroger Gemini
 app.post('/api/chat', async (req, res) => {
   try {
     const { prompt } = req.body;
     
+    if (!prompt) {
+      return res.status(400).json({ error: 'Le prompt est vide.' });
+    }
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash', // Modèle standard et stable validé
+      model: 'gemini-1.5-flash',
       contents: prompt,
     });
 
     res.json({ result: response.text });
   } catch (error) {
-    console.error(error);
+    console.error("Erreur détaillée:", error);
     res.status(500).json({ error: 'Erreur lors de la communication avec l\'intelligence artificielle.' });
   }
 });
