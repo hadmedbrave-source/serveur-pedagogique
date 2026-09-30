@@ -1,19 +1,24 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Indiquer à Express de servir les fichiers statiques (comme index.html) du dossier courant
+app.use(express.static(__dirname));
+
 // Initialisation du client Google Gen AI (il récupère automatiquement process.env.GEMINI_API_KEY)
 const ai = new GoogleGenAI();
 
+// Route racine qui renvoie votre page index.html
 app.get('/', (req, res) => {
-  res.send('Serveur pédagogique - Centre Pro-Langues & Prépa Concours est en ligne !');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Exemple de route pour interroger Gemini
+// Route pour interroger Gemini
 app.post('/api/chat', async (req, res) => {
   try {
     const { prompt } = req.body;
