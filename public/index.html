@@ -815,7 +815,6 @@
 </div>
 
 <script>
-  // Validation sécurisée du mot de passe côté serveur (plus en dur dans le navigateur)
   function verifierMotDePasse() {
     var saisie = document.getElementById('profPasswordInput').value;
     var errorMsg = document.getElementById('authErrorMsg');
@@ -945,11 +944,12 @@
         planMode: planMode
       })
     })
-    .then(response => {
+    .then(async response => {
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error("Erreur de communication avec le serveur de notation.");
+        throw new Error(data.error || "Erreur de communication avec le serveur de notation.");
       }
-      return response.json();
+      return data;
     })
     .then(data => {
       estSujetAnalytiqueGlobal = data.isSujetAnalytique;
@@ -972,7 +972,6 @@
       document.getElementById('ptsLangue').textContent = data.notes.langue.toFixed(1) + ' / 2.5';
       document.getElementById('ptsLexique').textContent = data.notes.lexique.toFixed(1) + ' / 1.5';
 
-      // Affichage des retours IA (Erreurs en rouge, reformulations, remarques)
       document.getElementById('repErreursDetectees').innerHTML = data.erreursDetectees || "Aucune erreur majeure détectée.";
       document.getElementById('repReformulations').innerHTML = data.reformulations || "Texte fluide et bien formulé.";
       document.getElementById('repRemarques').innerHTML = data.remarquesPedagogiques || "Bonne maîtrise globale.";
@@ -1006,7 +1005,7 @@
     })
     .catch(err => {
       console.error(err);
-      alert("Impossible de joindre le serveur. Vérifiez qu'il est bien démarré. Détails : " + err.message);
+      alert("Erreur : " + err.message);
     })
     .finally(() => {
       if(btnValider) {
