@@ -3,60 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centre Pro-Langues & Prépa Concours - Assistant Pédagogique</title>
+    <title>CENTRE AL AKHAWAYN - Centre Pro-Langues & Prépa Concours</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9f9; color: #333; }
-        h1 { color: #2c3e50; font-size: 1.5rem; text-align: center; }
-        .chat-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        textarea { width: 100%; height: 100px; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; }
-        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 1rem; }
-        button:hover { background: #2980b9; }
-        #response { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 4px; white-space: pre-wrap; }
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #b30000; font-size: 1.5rem; text-transform: uppercase; margin-bottom: 5px; }
+        .subtitle { font-weight: bold; margin-bottom: 15px; color: #222; }
+        .badge { background: #1a2530; color: #fff; padding: 6px 12px; border-radius: 5px; display: inline-block; font-size: 0.9rem; margin-bottom: 20px; }
+        h2 { font-size: 1.2rem; color: #111; border-bottom: 2px solid #b30000; padding-bottom: 5px; margin-top: 0; }
+        .engine-badge { background: #e8f8f0; color: #0e6234; padding: 8px; border-radius: 5px; font-size: 0.85rem; font-weight: bold; margin-bottom: 20px; border: 1px solid #a9dfbf; }
+        .form-group { margin-bottom: 20px; padding: 15px; border: 2px solid #34495e; border-radius: 8px; background: #fafbfc; }
+        .form-group-orange { border: 2px solid #d35400; background: #fffcf9; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #1a2530; font-size: 0.95rem; }
+        input[type="text"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 0.95rem; box-sizing: border-box; }
+        textarea { height: 100px; resize: vertical; }
+        button { background-color: #2980b9; color: white; border: none; padding: 12px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+        button:hover { background-color: #2471a3; }
+        .response-box { margin-top: 20px; padding: 15px; background: #f2f4f4; border-radius: 5px; border-left: 5px solid #2980b9; }
     </style>
 </head>
 <body>
 
-    <div class="chat-box">
-        <h1>Centre Pro-Langues & Prépa Concours</h1>
-        <p>Posez votre question ou rédigez une consigne pédagogique :</p>
-        <textarea id="promptInput" placeholder="Exposez votre sujet ici..."></textarea>
-        <button onclick="envoyerRequete()">Générer</button>
-        
-        <h3>Réponse :</h3>
-        <div id="response">En attente d'une question...</div>
+<div class="container">
+    <h1>CENTRE AL AKHAWAYN</h1>
+    <div class="subtitle">CENTRE PRO-LANGUES & PRÉPA CONCOURS</div>
+    <div class="badge">Statut : Plateforme Pédagogique Officielle</div>
+
+    <h2>PRODUCTION ÉCRITE & EXPRESSION</h2>
+    <div class="engine-badge">✔ MOTEUR RÉGIONAL INTRANSIGEANT & ANTI-HORS-SUJET</div>
+
+    <div class="form-group">
+        <label for="nom">NOM ET PRÉNOM :</label>
+        <input type="text" id="nom" placeholder="Ex: Karim Benjelloun">
+
+        <label for="niveau" style="margin-top: 15px;">NIVEAU SCOLAIRE :</label>
+        <select id="niveau">
+            <option value="1bac-exp">1ère BAC - Sciences Expérimentales</option>
+            <option value="1bac-math">1ère BAC - Sciences Mathématiques</option>
+            <option value="tc">Tronc Commun</option>
+            <option value="2bac">2ème BAC</option>
+        </select>
     </div>
 
-    <script>
-        async function envoyerRequete() {
-            const prompt = document.getElementById('promptInput').value;
-            const responseDiv = document.getElementById('response');
-            
-            if (!prompt.trim()) {
-                alert('Veuillez entrer une question.');
-                return;
-            }
+    <div class="form-group form-group-orange">
+        <label for="sujet">1) SUJET D'EXPRESSION ÉCRITE</label>
+        <textarea id="sujet" placeholder="Saisissez ou collez ici la consigne complète du sujet (ex: causes, conséquences...)"></textarea>
+    </div>
 
-            responseDiv.innerText = "Génération en cours...";
+    <button onclick="envoyerPrompt()">Générer la correction</button>
 
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
-                });
+    <div class="response-box">
+        <strong>Réponse :</strong>
+        <p id="resultat">En attente d'une question...</p>
+    </div>
+</div>
 
-                const data = await res.json();
-                if (res.ok) {
-                    responseDiv.innerText = data.result;
-                } else {
-                    responseDiv.innerText = "Erreur : " + (data.error || "Une erreur est survenue.");
-                }
-            } catch (err) {
-                console.error(err);
-                responseDiv.innerText = "Erreur de connexion au serveur.";
-            }
+<script>
+    async function envoyerPrompt() {
+        const nom = document.getElementById('nom').value;
+        const niveau = document.getElementById('niveau').value;
+        const sujet = document.getElementById('sujet').value;
+        const resultat = document.getElementById('resultat');
+
+        if (!sujet.trim()) {
+            resultat.innerText = "Veuillez saisir un sujet d'expression écrite.";
+            return;
         }
-    </script>
+
+        resultat.innerText = "Génération en cours...";
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nom, niveau, prompt: sujet })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                resultat.innerText = data.result;
+            } else {
+                resultat.innerText = "Erreur : " + (data.error || "Une erreur est survenue.");
+            }
+        } catch (error) {
+            console.error(error);
+            resultat.innerText = "Erreur de connexion au serveur.";
+        }
+    }
+</script>
 
 </body>
 </html>
