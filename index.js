@@ -32,33 +32,6 @@ app.get('/api/verifier-session', (req, res) => {
   return res.json({ professeurAuthentifie });
 });
 
-// Fonction robuste avec bascule automatique entre plusieurs modèles en cas de surcharge
-async function appelerGeminiAvecSecours(promptSysteme) {
-  const modelesTestes = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash'];
-  
-  let derniereErreur = null;
-
-  for (const modele of modelesTestes) {
-    try {
-      console.log(`Tentative d'évaluation avec le modèle : ${modele}`);
-      const response = await ai.models.generateContent({
-        model: modele,
-        contents: promptSysteme,
-        config: {
-          responseMimeType: 'application/json'
-        }
-      });
-      return response;
-    } catch (error) {
-      console.warn(`Le modèle ${modele} a échoué :`, error.message);
-      derniereErreur = error;
-      // Si ce n'est pas une erreur de surcharge, on continue d'essayer les autres
-    }
-  }
-
-  throw derniereErreur;
-}
-
 app.post('/api/evaluer', async (req, res) => {
   try {
     const texte = req.body.texte || req.body.texteEleve;
@@ -126,7 +99,13 @@ Tu dois répondre UNIQUEMENT avec un objet JSON strict au format exact suivant :
 }
 `;
 
-    const response = await appelerGeminiAvecSecours(promptSysteme);
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: promptSysteme,
+      config: {
+        responseMimeType: 'application/json'
+      }
+    });
 
     const rawText = response.text || '';
     const cleanedText = rawText.replace(/```json/gi, '').replace(/```/gi, '').trim();
