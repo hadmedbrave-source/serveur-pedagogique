@@ -7,13 +7,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Indiquer à Express de servir les fichiers statiques (comme index.html) du dossier courant
+// Servir les fichiers statiques (index.html) du dossier courant
 app.use(express.static(__dirname));
 
-// Initialisation du client Google Gen AI (il récupère automatiquement process.env.GEMINI_API_KEY)
+// Initialisation du client Google Gen AI (récupère automatiquement process.env.GEMINI_API_KEY)
 const ai = new GoogleGenAI();
 
-// Route racine qui renvoie votre page index.html
+// Route racine
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -24,7 +24,7 @@ app.post('/api/chat', async (req, res) => {
     const { prompt } = req.body;
     
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash', // Modèle standard et stable validé
       contents: prompt,
     });
 
