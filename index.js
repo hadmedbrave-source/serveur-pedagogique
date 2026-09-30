@@ -4,7 +4,7 @@ const path = require('path');
 const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
@@ -17,6 +17,11 @@ let professeurAuthentifie = false;
 
 // SERVIR LES FICHIERS STATIQUES DE L'INTERFACE
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ROUTE RACINE POUR ÉVITER LE 404 SUR L'URL PRINCIPALE
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // ROUTE DE VÉRIFICATION DU MOT DE PASSE
 app.post('/api/connexion', (req, res) => {
@@ -66,10 +71,7 @@ Réponds uniquement avec le JSON valide, sans markdown superflu autour si possib
             }
         });
 
-        // Correction : response.text est une propriété et non une fonction
         const rawText = response.text;
-        
-        // Nettoyage optionnel au cas où le modèle encapsule le JSON dans des balises markdown ```json
         const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
 
         const resultJson = JSON.parse(cleanedText);
@@ -81,6 +83,6 @@ Réponds uniquement avec le JSON valide, sans markdown superflu autour si possib
     }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Serveur additionnel du Centre Pro-Langues & Prépa Concours démarré sur le port ${PORT} !`);
 });
