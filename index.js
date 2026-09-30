@@ -104,7 +104,7 @@ Tu dois répondre UNIQUEMENT avec un objet JSON strict au format exact suivant :
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       contents: promptSysteme,
       config: {
         responseMimeType: 'application/json'
