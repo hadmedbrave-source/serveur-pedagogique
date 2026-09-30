@@ -1,62 +1,499 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centre Pro-Langues & Prépa Concours - Assistant Pédagogique</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9f9; color: #333; }
-        h1 { color: #2c3e50; font-size: 1.5rem; text-align: center; }
-        .chat-box { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        textarea { width: 100%; height: 100px; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; }
-        button { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 1rem; }
-        button:hover { background: #2980b9; }
-        #response { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 4px; white-space: pre-wrap; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Évaluation Interactive - Production Écrite | Centre Al Akhawayn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #c5221f;
+      --primary-dark: #8e1513;
+      --navy: #0b1528;
+      --navy-light: #16243d;
+      --gold: #b45309;
+      --border-blue: #2563eb;
+      --border-amber: #d97706;
+      --border-purple: #7c3aed;
+      --border-red: #c5221f;
+      --border-green: #059669;
+      --bg-page: #f1f5f9;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --line-height: 28px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      padding: 30px 15px;
+      display: flex;
+      justify-content: center;
+      line-height: 1.6;
+    }
+
+    .main-wrapper {
+      position: relative;
+      max-width: 980px;
+      width: 100%;
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 18px 45px -10px rgba(11, 21, 40, 0.12);
+      padding: 40px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 22px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      gap: 15px;
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title span { color: var(--navy); }
+
+    .brand-sub {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .institution-seal {
+      margin-top: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #091222 0%, #1e293b 100%);
+      color: #f8fafc;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border-left: 3.5px solid #eab308;
+      font-size: 12.5px;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(11, 21, 40, 0.15);
+    }
+
+    .header-right { 
+      text-align: right; 
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .eval-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      text-transform: uppercase;
+    }
+
+    .certif-stamp {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #047857;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+
+    .zone-student {
+      border: 2px solid var(--border-blue);
+      background: #eff6ff;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+
+    .field-wrap label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e40af;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .field-wrap input, .field-wrap select {
+      width: 100%;
+      height: 42px;
+      padding: 8px 12px;
+      border: 1.5px solid #93c5fd;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #ffffff;
+      outline: none;
+    }
+
+    .zone-card {
+      border-radius: 12px;
+      margin-bottom: 22px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .zone-head {
+      padding: 12px 18px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .zone-body { padding: 18px; }
+
+    .zone-sujet { border: 2px solid var(--border-amber); }
+    .zone-sujet .zone-head { background: #fffbeb; color: #b45309; }
+
+    .sujet-input {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      border: 1.5px dashed var(--border-amber);
+      border-radius: 8px;
+      font-size: 14.5px;
+      line-height: 1.5;
+      resize: vertical;
+      background: #fffdfa;
+      outline: none;
+    }
+
+    .zone-bareme { border: 2px solid var(--border-purple); }
+    .zone-bareme .zone-head { background: #faf5ff; color: #6d28d9; }
+
+    .bareme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .bareme-pill {
+      background: #fdf4ff;
+      border: 1px solid #e879f9;
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #701a75;
+    }
+
+    .zone-redaction { border: 2px solid var(--border-red); }
+    .zone-redaction .zone-head {
+      background: #fff1f2;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sheet-wrapper {
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sheet-area {
+      width: 100%;
+      height: calc(25 * var(--line-height));
+      line-height: var(--line-height);
+      font-size: 15px;
+      padding: 0 16px;
+      border: none;
+      outline: none;
+      resize: none;
+      background-attachment: local;
+      background-image: linear-gradient(to bottom, transparent calc(var(--line-height) - 1px), #e2e8f0 calc(var(--line-height) - 1px));
+      background-size: 100% var(--line-height);
+    }
+
+    .sheet-status {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 14px;
+      background: #f8fafc;
+      border-top: 1px solid #cbd5e1;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .btn-evaluate {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #ffffff;
+      border: none;
+      padding: 16px;
+      font-size: 16.5px;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(197, 34, 31, 0.28);
+      transition: all 0.2s ease;
+    }
+
+    .btn-evaluate:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(197, 34, 31, 0.35);
+    }
+
+    .btn-evaluate:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    #reportSection {
+      display: none;
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 2px dashed #cbd5e1;
+    }
+
+    .response-box {
+      margin-top: 15px;
+      padding: 20px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 15px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .footer-auth {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      gap: 10px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 8px 4px; }
+      .main-wrapper { padding: 14px; border-radius: 10px; }
+      .header-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .header-right { align-items: flex-start; text-align: left; }
+      .zone-student { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
+      .footer-auth { flex-direction: column; gap: 6px; }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="chat-box">
-        <h1>Centre Pro-Langues & Prépa Concours</h1>
-        <p>Posez votre question ou rédigez une consigne pédagogique :</p>
-        <textarea id="promptInput" placeholder="Exposez votre sujet ici..."></textarea>
-        <button onclick="envoyerRequete()">Générer</button>
-        
-        <h3>Réponse :</h3>
-        <div id="response">En attente d'une question...</div>
+<div class="main-wrapper" id="appRoot">
+
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">CENTRE <span>AL AKHAWAYN</span></div>
+      <div class="brand-sub">Centre Pro-Langues & Prépa Concours</div>
+      <div class="institution-seal">
+        <span>Statut :</span>
+        <span>Plateforme Pédagogique Officielle</span>
+      </div>
     </div>
+    <div class="header-right">
+      <div class="eval-title">Production Écrite & Expression</div>
+      <div class="certif-stamp">
+        Moteur Régional Intransigeant & Anti-Hors-Sujet (IA)
+      </div>
+    </div>
+  </div>
 
-    <script>
-        async function envoyerRequete() {
-            const prompt = document.getElementById('promptInput').value;
-            const responseDiv = document.getElementById('response');
-            
-            if (!prompt.trim()) {
-                alert('Veuillez entrer une question.');
-                return;
-            }
+  <div class="zone-student">
+    <div class="field-wrap">
+      <label for="studentName">Nom et Prénom :</label>
+      <input type="text" id="studentName" autocomplete="off" placeholder="Ex: Karim Benjelloun">
+    </div>
+    <div class="field-wrap">
+      <label for="studentLevel">Niveau Scolaire :</label>
+      <select id="studentLevel">
+        <option value="1ère BAC - Sciences Expérimentales">1ère BAC - Sciences Expérimentales</option>
+        <option value="1ère BAC - Sciences Mathématiques">1ère BAC - Sciences Mathématiques</option>
+        <option value="Prépa Concours Enseignement">Prépa Concours Enseignement</option>
+      </select>
+    </div>
+  </div>
 
-            responseDiv.innerText = "Génération en cours...";
+  <div class="zone-card zone-sujet">
+    <div class="zone-head">1) Sujet d'expression écrite</div>
+    <div class="zone-body">
+      <textarea id="sujetInput" class="sujet-input" placeholder="Saisissez ou collez ici la consigne complète du sujet..."></textarea>
+    </div>
+  </div>
 
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
-                });
+  <div class="zone-card zone-bareme">
+    <div class="zone-head">2) Barème officiel de notation (Total: 10 Points)</div>
+    <div class="zone-body">
+      <div class="bareme-grid">
+        <div class="bareme-pill"><span>Consigne & organisation</span><span>2.0 Pts</span></div>
+        <div class="bareme-pill"><span>Structure argumentative du plan</span><span>2.0 Pts</span></div>
+        <div class="bareme-pill"><span>Force argumentative & exemples</span><span>2.0 Pts</span></div>
+        <div class="bareme-pill"><span>Correction de la langue</span><span>2.5 Pts</span></div>
+        <div class="bareme-pill"><span>Richesse lexicale</span><span>1.5 Pts</span></div>
+      </div>
+    </div>
+  </div>
 
-                const data = await res.json();
-                if (res.ok) {
-                    responseDiv.innerText = data.result;
-                } else {
-                    responseDiv.innerText = "Erreur : " + (data.error || "Une erreur est survenue.");
-                }
-            } catch (err) {
-                console.error(err);
-                responseDiv.innerText = "Erreur de connexion au serveur.";
-            }
-        }
-    </script>
+  <div class="zone-redaction">
+    <div class="zone-head">
+      <span>3) Zone de production écrite</span>
+      <span>25 lignes maximum</span>
+    </div>
+    <div class="zone-body">
+      <div class="sheet-wrapper">
+        <textarea id="studentText" class="sheet-area" spellcheck="false" oninput="actualiserCompteurs()" placeholder="Rédigez ici votre production écrite..."></textarea>
+        <div class="sheet-status">
+          <span id="lineInfo">Lignes utilisées : 0 / 25</span>
+          <span id="wordInfo">Mots rédigés : 0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Valider et générer le rapport par l'IA</button>
+
+  <div id="reportSection">
+    <div class="zone-card" style="border: 2px solid #059669;">
+      <div class="zone-head" style="background: #ecfdf5; color: #065f46;">
+        Rapport d'évaluation de l'IA (Conforme au barème officiel)
+      </div>
+      <div class="zone-body">
+        <div id="repAcademicEssay" class="response-box">En attente de traitement...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-auth">
+    <span>Centre Al Akhawayn © Tous droits réservés</span>
+    <span>Plateforme Pédagogique Interactive</span>
+  </div>
+
+</div>
+
+<script>
+  function countLines(text) {
+    if (!text) return 0;
+    var lines = text.split('\n');
+    var total = 0;
+    for (var i = 0; i < lines.length; i++) {
+      total += (lines[i].length === 0) ? 1 : Math.max(1, Math.ceil(lines[i].length / 80));
+    }
+    return total;
+  }
+
+  function actualiserCompteurs() {
+    var editor = document.getElementById('studentText');
+    if (!editor) return;
+    var txt = editor.value;
+    var lines = countLines(txt);
+    var words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+    document.getElementById('lineInfo').textContent = 'Lignes utilisées : ' + lines + ' / 25';
+    document.getElementById('wordInfo').textContent = 'Mots rédigés : ' + words;
+  }
+
+  async function lancerEvaluationIA() {
+    var nom = document.getElementById('studentName').value || "Candidat";
+    var niveau = document.getElementById('studentLevel').value;
+    var sujet = document.getElementById('sujetInput').value;
+    var texte = document.getElementById('studentText').value;
+    var btn = document.getElementById('btnValider');
+    var reportSec = document.getElementById('reportSection');
+    var resultBox = document.getElementById('repAcademicEssay');
+
+    if (!sujet.trim()) {
+      alert("Veuillez saisir le sujet d'expression écrite.");
+      return;
+    }
+
+    if (!texte.trim()) {
+      alert("Veuillez saisir votre texte dans la zone de rédaction.");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Évaluation par l'IA en cours...";
+    reportSec.style.display = 'block';
+    resultBox.textContent = "Analyse rigoureuse de la copie en cours...";
+
+    // On formate le prompt proprement pour que votre index.js l'envoie à Gemini
+    const promptComplet = `Agis en tant qu'examinateur et correcteur intransigeant d'expression écrite pour le cycle secondaire au Maroc (examen régional de français).
+Évalue la copie de l'élève en respectant strictement le barème officiel sur 10 points.
+
+INFORMATIONS DE L'ÉLÈVE :
+- Nom : ${nom}
+- Niveau : ${niveau}
+
+SUJET PROPOSÉ :
+${sujet}
+
+PRODUCTION DE L'ÉLÈVE :
+${texte}
+
+Fournis un rapport pédagogique structuré détaillant :
+1. La note globale sur 10 selon le barème officiel (Consigne, Structure, Arguments, Langue, Lexique).
+2. Une analyse des points forts et des fautes de langue.
+3. Un texte modèle corrigé et optimisé.`;
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptComplet })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        resultBox.textContent = data.result || "Rapport généré avec succès.";
+      } else {
+        resultBox.textContent = "Erreur : " + (data.error || "Une erreur est survenue.");
+      }
+    } catch (error) {
+      console.error(error);
+      resultBox.textContent = "Erreur de connexion avec le serveur.";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Valider et générer le rapport par l'IA";
+    }
+  }
+</script>
 
 </body>
 </html>
