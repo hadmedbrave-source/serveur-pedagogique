@@ -36,7 +36,7 @@ async function appelerGeminiAvecRetry(promptSysteme, maxTentatives = 3) {
   for (let tentative = 1; tentative <= maxTentatives; tentative++) {
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-1.5-pro',
         contents: promptSysteme,
         config: {
           responseMimeType: 'application/json'
