@@ -1,10 +1,14 @@
 {
-  "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "@google/genai": "latest"
-  },
+  "name": "serveur-pedagogique",
+  "version": "1.0.0",
+  "description": "Serveur du Centre Pro-Langues & Prépa Concours",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js"
+  },
+  "dependencies": {
+    "@google/genai": "latest",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
   }
 }
