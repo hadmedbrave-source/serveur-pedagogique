@@ -104,7 +104,7 @@ Tu dois répondre UNIQUEMENT avec un objet JSON strict au format exact suivant :
 `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: promptSysteme,
       config: {
         responseMimeType: 'application/json'
@@ -118,8 +118,11 @@ Tu dois répondre UNIQUEMENT avec un objet JSON strict au format exact suivant :
     return res.json(resultJson);
 
   } catch (error) {
-    console.error("Erreur d'évaluation :", error);
-    return res.status(500).json({ error: "Erreur interne lors de l'analyse pédagogique : " + error.message });
+    console.error("Erreur détaillée d'évaluation :", error);
+    return res.status(500).json({ 
+      error: "Erreur technique : " + error.message,
+      stack: error.stack 
+    });
   }
 });
 
