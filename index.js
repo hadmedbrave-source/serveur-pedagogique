@@ -32,6 +32,27 @@ app.get('/api/verifier-session', (req, res) => {
   return res.json({ professeurAuthentifie });
 });
 
+async function appelerGeminiAvecRetry(promptSysteme, maxTentatives = 3) {
+  for (let tentative = 1; tentative <= maxTentatives; tentative++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: promptSysteme,
+        config: {
+          responseMimeType: 'application/json'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.warn(`Tentative ${tentative} échouée :`, error.message);
+      if (tentative === maxTentatives || (!error.message.includes('503') && !error.message.includes('high demand'))) {
+        throw error;
+      }
+      await new Promise(resolve => setTimeout(resolve, tentative * 2000));
+    }
+  }
+}
+
 app.post('/api/evaluer', async (req, res) => {
   try {
     const texte = req.body.texte || req.body.texteEleve;
@@ -99,13 +120,7 @@ Tu dois répondre UNIQUEMENT avec un objet JSON strict au format exact suivant :
 }
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: promptSysteme,
-      config: {
-        responseMimeType: 'application/json'
-      }
-    });
+    const response = await appelerGeminiAvecRetry(promptSysteme);
 
     const rawText = response.text || '';
     const cleanedText = rawText.replace(/```json/gi, '').replace(/```/gi, '').trim();
