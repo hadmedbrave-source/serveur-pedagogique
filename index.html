@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Inclusion de Marked.js pour le rendu visuel du Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
 
   <style>
     :root {
@@ -289,7 +291,30 @@
       border-radius: 10px;
       font-size: 15px;
       line-height: 1.8;
-      white-space: pre-wrap;
+    }
+
+    /* Styles pour le rendu Markdown formaté */
+    .response-box h1, .response-box h2, .response-box h3 {
+      color: var(--navy);
+      margin-top: 15px;
+      margin-bottom: 8px;
+    }
+    .response-box ul, .response-box ol {
+      margin-left: 20px;
+      margin-bottom: 10px;
+    }
+    .response-box table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    .response-box th, .response-box td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .response-box th {
+      background-color: #e2e8f0;
     }
 
     .official-signature-card {
@@ -372,7 +397,7 @@
     <div class="header-right">
       <div class="eval-title">Production Écrite & Expression</div>
       <div class="certif-stamp">
-        Moteur Régional Intransigeant & Anti-Hors-Sujet (IA)
+        Moteur Régional Intransigeant & Anti-Hors-Sujet
       </div>
     </div>
   </div>
@@ -434,7 +459,7 @@
   <div id="reportSection">
     <div class="zone-card" style="border: 2px solid #059669;">
       <div class="zone-head" style="background: #ecfdf5; color: #065f46;">
-        Rapport d'Évaluation Certifié & Correction Intelligente (IA)
+        Rapport d'Évaluation et d'Expertise Pédagogique
       </div>
       <div class="zone-body">
         <div id="repAcademicEssay" class="response-box">En attente de traitement...</div>
@@ -503,9 +528,9 @@
     }
 
     btn.disabled = true;
-    btn.textContent = "Génération du rapport pédagogique par l'IA...";
+    btn.textContent = "Génération du rapport pédagogique par l'équipe pédagogique...";
     reportSec.style.display = 'block';
-    resultBox.textContent = "Analyse rigoureuse de la copie, détection du plan et correction des erreurs en cours...";
+    resultBox.innerHTML = "Analyse rigoureuse de la copie, détection du plan et correction des erreurs en cours...";
 
     const promptComplet = `Agis en tant qu'examinateur et correcteur intransigeant d'expression écrite pour le cycle secondaire au Maroc (examen régional de français).
 Évalue la copie de l'élève en respectant strictement et à 100% le barème officiel sur 10 points.
@@ -541,13 +566,14 @@ Génère un rapport pédagogique structuré comportant obligatoirement les élé
 
       const data = await response.json();
       if (response.ok) {
-        resultBox.textContent = data.result || "Rapport généré avec succès.";
+        // Utilisation de marked.parse pour transformer le texte Markdown en HTML stylisé
+        resultBox.innerHTML = marked.parse(data.result || "Rapport généré avec succès.");
       } else {
-        resultBox.textContent = "Erreur de l'IA : " + (data.error || "Une erreur est survenue.");
+        resultBox.innerHTML = "Erreur de traitement : " + (data.error || "Une erreur est survenue.");
       }
     } catch (error) {
       console.error(error);
-      resultBox.textContent = "Erreur de connexion avec le serveur d'évaluation.";
+      resultBox.innerHTML = "Erreur de connexion avec le serveur d'évaluation.";
     } finally {
       btn.disabled = false;
       btn.textContent = "Valider et générer le rapport pédagogique certifié";
