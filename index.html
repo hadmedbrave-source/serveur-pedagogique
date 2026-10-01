@@ -150,7 +150,6 @@
     .zone-rapport { border: 2px solid #059669; }
     .zone-rapport .zone-head { background: #ecfdf5; color: #065f46; border-bottom: 1px solid #a7f3d0; }
 
-    /* DESIGN GÉRÉ PAR LE SCRIPT ET CSS (MISE EN PAGE PROPRE) */
     .response-box { padding: 24px; background: #ffffff; font-size: 15px; line-height: 1.8; color: var(--text); }
     
     .report-card-ui {
@@ -161,12 +160,13 @@
       margin-bottom: 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
-    .report-card-ui h4 {
+    .report-card-ui h3, .report-card-ui h4 {
       font-family: 'Outfit', sans-serif;
       font-size: 16px;
       color: var(--navy);
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 8px;
+      margin-top: 15px;
       margin-bottom: 12px;
       text-transform: uppercase;
     }
@@ -378,7 +378,6 @@
     reportSec.style.display = 'block';
     resultBox.innerHTML = "<div style='text-align: center; padding: 20px; color: #64748b; font-weight: 600;'>Analyse rigoureuse de la copie en cours...</div>";
 
-    // L'IA se consacre uniquement au contenu textuel brut et analytique
     const promptComplet = `Agis en tant qu'examinateur et correcteur intransigeant d'expression écrite pour le cycle secondaire au Maroc. Évalue la copie de l'élève en respectant à 100% le barème officiel sur 10 points.
 
 INFORMATIONS :
@@ -405,10 +404,10 @@ Génère uniquement les sections textuelles d'analyse :
       if (response.ok) {
         let rawContent = data.result || "Rapport généré avec succès.";
         
-        // LE SCRIPT JS PREND LE RELAIS DU DESIGN : Encadrement structuré en cartes UI propres
+        // C'est le script JS et le CSS qui structurent tout le design et la mise en page
         resultBox.innerHTML = `
           <div class="report-card-ui">
-            <h4>Analyse & Bilan de l'Évaluation</h4>
+            <h3>Bilan de l'Évaluation Pédagogique</h3>
             ${marked.parse(rawContent)}
           </div>
         `;
