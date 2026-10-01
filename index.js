@@ -37,48 +37,21 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'Clé API manquante sur le serveur.' });
     }
 
-    // Liste des modèles à tester en boucle pour garantir la connexion
-    const modelsToTry = [
-      "gemini-3.8-flash",
-      "gemini-2.5-flash",
-      "gemini-1.5-flash",
-      "gemini-2.0-flash"
-    ];
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
-    let apiResponse = null;
-    let data = null;
-    let successModel = null;
+    const apiResponse = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: fullPrompt }] }]
+      })
+    });
 
-    for (const model of modelsToTry) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: fullPrompt }] }]
-          })
-        });
+    const data = await apiResponse.json();
 
-        const responseData = await response.json();
-
-        if (response.ok) {
-          apiResponse = response;
-          data = responseData;
-          successModel = model;
-          break; // Sortie de boucle dès qu'un modèle répond avec succès
-        } else {
-          console.warn(`Modèle ${model} indisponible, essai du suivant...`);
-        }
-      } catch (err) {
-        console.warn(`Erreur réseau avec le modèle ${model}, essai du suivant...`);
-      }
-    }
-
-    if (!apiResponse || !apiResponse.ok) {
-      console.error("Erreur critique: Aucun modèle n'a pu répondre.");
-      return res.status(500).json({ error: 'Erreur de communication : aucun modèle compatible trouvé.' });
+    if (!apiResponse.ok) {
+      console.error("Erreur API Gemini:", JSON.stringify(data));
+      return res.status(500).json({ error: data.error?.message || 'Erreur de communication avec Google AI Studio.' });
     }
 
     const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text || "Aucune réponse générée.";
