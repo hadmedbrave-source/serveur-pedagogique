@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Inclusion de marked.js pour formater proprement les sections textuelles -->
+  <!-- Inclusion de marked.js pour le rendu visuel automatique du Markdown en HTML propre -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
 
   <style>
@@ -151,46 +151,37 @@
     .zone-rapport { border: 2px solid #059669; }
     .zone-rapport .zone-head { background: #ecfdf5; color: #065f46; border-bottom: 1px solid #a7f3d0; }
 
-    /* DESIGN STRICTEMENT GÉRÉ PAR CSS (STYLE DE L'IMAGE) */
+    /* MISE EN FORME DU RAPPORT GÉNÉRÉ */
     .response-box { padding: 24px; background: #ffffff; font-size: 15px; line-height: 1.8; color: var(--text); }
-    
-    .styled-report-card {
-      background: #fdfdfd;
-      border: 2px solid #a7f3d0;
-      border-radius: 12px;
-      padding: 22px;
-      margin-top: 15px;
-      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.08);
+    .response-box h1, .response-box h2, .response-box h3 {
+      color: var(--navy);
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-family: 'Outfit', sans-serif;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 6px;
     }
-    .styled-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 16px 0;
-    }
-    .styled-tab-item {
-      background: #e0f2fe;
-      color: #0369a1;
-      border: 1px solid #bae6fd;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 12.5px;
-      font-weight: 700;
-      text-transform: uppercase;
+    .response-box table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .styled-content-box {
-      background: #f0fdf4;
-      border: 1.5px solid #bbf7d0;
-      border-radius: 8px;
-      padding: 18px;
-      margin: 14px 0;
-      line-height: 1.8;
-      color: #14532d;
+    .response-box th, .response-box td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 14px;
     }
-    .response-box table { width: 100%; border-collapse: collapse; margin: 18px 0; background: #fff; border-radius: 8px; overflow: hidden; }
-    .response-box th, .response-box td { border: 1px solid #cbd5e1; padding: 10px 14px; text-align: left; font-size: 14px; }
-    .response-box th { background-color: var(--navy); color: #fff; }
+    .response-box th {
+      background-color: var(--navy);
+      color: #ffffff;
+    }
+    .response-box ul, .response-box ol { margin-left: 20px; margin-bottom: 12px; }
+    .response-box p { margin-bottom: 12px; }
 
     .official-signature-card {
       background: #fafaf9; border: 1.5px solid #d6d3d1; border-radius: 12px; padding: 20px 24px; margin-top: 24px;
@@ -381,7 +372,6 @@
     reportSec.style.display = 'block';
     resultBox.innerHTML = "<div style='text-align: center; padding: 20px; color: #64748b; font-weight: 600;'>Analyse rigoureuse de la copie en cours...</div>";
 
-    // Le rôle de l'IA est strictement textuel et analytique : pas de design, juste du contenu pur
     const promptComplet = `Agis en tant qu'examinateur et correcteur intransigeant d'expression écrite pour le cycle secondaire au Maroc. Évalue la copie de l'élève en respectant à 100% le barème officiel sur 10 points.
 
 INFORMATIONS :
@@ -390,7 +380,7 @@ INFORMATIONS :
 - Sujet : ${sujet}
 - Texte : ${texte}
 
-Génère les sections d'analyse textuelle suivantes :
+Génère un rapport pédagogique structuré comportant obligatoirement :
 1. Identification du plan détecté et note /10 (avec alerte si hors-sujet).
 2. Grille de notation détaillée (Consigne, Structure, Argumentation, Langue, Lexique).
 3. Transcription de la copie avec les erreurs en rouge (<span style="color:red; font-weight:bold;">mot</span>) et les liens logiques en gras, suivie d'un tableau des corrections.
@@ -406,17 +396,8 @@ Génère les sections d'analyse textuelle suivantes :
 
       const data = await response.json();
       if (response.ok) {
-        // APPLICATION DU DESIGN PAR SCRIPT JS (Encadré stylisé avec onglets et blocs verts)
-        let rawText = data.result || "";
-        
-        let formattedHtml = `
-          <div class="styled-report-card">
-            <div style="font-weight: 700; color: #065f46; margin-bottom: 12px; font-size: 15px; text-transform: uppercase;">Rapport d'Expertise & Correction Pédagogique</div>
-            ${marked.parse(rawText)}
-          </div>
-        `;
-        
-        resultBox.innerHTML = formattedHtml;
+        // Transformation automatique du texte brut/Markdown en HTML stylisé et propre grâce à marked.parse
+        resultBox.innerHTML = marked.parse(data.result || "Rapport généré avec succès.");
       } else {
         resultBox.innerHTML = "<p style='color:red; font-weight:600;'>Erreur de traitement : " + (data.error || "Une erreur est survenue.") + "</p>";
       }
