@@ -37,8 +37,9 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'Clé API manquante sur le serveur.' });
     }
 
-    // Correction ici : utilisation du nom de modèle valide pour l'API
-   const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
+    // URL mise à jour avec le modèle demandé par l'API de Google
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=" + apiKey;
+
     const apiResponse = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
