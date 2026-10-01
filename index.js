@@ -38,15 +38,16 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'Clé API manquante sur le serveur.' });
     }
 
-    // Initialisation et appel avec le SDK officiel @google/genai et gemini-3.8-flash
+    // Initialisation du client avec le SDK officiel @google/genai
     const ai = new GoogleGenAI({ apiKey: apiKey });
 
-    const interaction = await ai.interactions.create({
-      model: "gemini-3.8-flash",
-      input: fullPrompt,
+    // Appel standardisé et robuste via le modèle Flash
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: fullPrompt,
     });
 
-    const textResult = interaction.output_text || "Aucune réponse générée.";
+    const textResult = response.text || "Aucune réponse générée.";
     res.json({ result: textResult });
 
   } catch (error) {
