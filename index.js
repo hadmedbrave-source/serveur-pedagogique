@@ -33,6 +33,7 @@ app.post('/api/chat', async (req, res) => {
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
+      console.error("Erreur: Clé API manquante");
       return res.status(500).json({ error: 'Clé API manquante sur le serveur.' });
     }
 
@@ -49,6 +50,7 @@ app.post('/api/chat', async (req, res) => {
     const data = await apiResponse.json();
 
     if (!apiResponse.ok) {
+      console.error("Erreur API Gemini:", JSON.stringify(data));
       return res.status(500).json({ error: data.error?.message || 'Erreur de communication avec Google AI Studio.' });
     }
 
@@ -56,6 +58,7 @@ app.post('/api/chat', async (req, res) => {
     res.json({ result: textResult });
 
   } catch (error) {
+    console.error("Erreur critique:", error);
     res.status(500).json({ error: 'Erreur interne du serveur.' });
   }
 });
