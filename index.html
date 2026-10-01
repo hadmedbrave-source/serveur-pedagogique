@@ -293,7 +293,7 @@
       line-height: 1.8;
     }
 
-    /* Styles pour le rendu Markdown formaté */
+    /* Styles élégants pour le rendu Markdown formaté */
     .response-box h1, .response-box h2, .response-box h3 {
       color: var(--navy);
       margin-top: 15px;
@@ -566,7 +566,6 @@ Génère un rapport pédagogique structuré comportant obligatoirement les élé
 
       const data = await response.json();
       if (response.ok) {
-        // Utilisation de marked.parse pour transformer le texte Markdown en HTML stylisé
         resultBox.innerHTML = marked.parse(data.result || "Rapport généré avec succès.");
       } else {
         resultBox.innerHTML = "Erreur de traitement : " + (data.error || "Une erreur est survenue.");
