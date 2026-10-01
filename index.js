@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -51,7 +52,7 @@ app.post('/api/chat', async (req, res) => {
     const data = await apiResponse.json();
 
     if (!apiResponse.ok) {
-      console.error("Erreur API Gemini:", JSON.stringify(data));
+      console.err("Erreur API Gemini:", JSON.stringify(data));
       return res.status(500).json({ error: data.error?.message || 'Erreur de communication avec Google AI Studio.' });
     }
 
