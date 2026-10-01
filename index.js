@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 app.use(cors());
@@ -38,21 +37,29 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'Clé API manquante sur le serveur.' });
     }
 
-    // Initialisation du client avec le SDK officiel @google/genai
-    const ai = new GoogleGenAI({ apiKey: apiKey });
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    // Appel standardisé et robuste via le modèle Flash
-    const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: fullPrompt,
+    const apiResponse = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: fullPrompt }] }]
+      })
     });
 
-    const textResult = response.text || "Aucune réponse générée.";
+    const data = await apiResponse.json();
+
+    if (!apiResponse.ok) {
+      console.error("Erreur API Gemini:", JSON.stringify(data));
+      return res.status(500).json({ error: data.error?.message || 'Erreur de communication avec Google AI Studio.' });
+    }
+
+    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text || "Aucune réponse générée.";
     res.json({ result: textResult });
 
   } catch (error) {
-    console.error("Erreur critique:", error);
-    res.status(500).json({ error: 'Erreur interne du serveur.' });
+    console.error("Erreur critique détaillée:", error);
+    res.status(500).json({ error: 'Erreur interne du serveur: ' + error.message });
   }
 });
 
