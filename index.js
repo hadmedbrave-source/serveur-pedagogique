@@ -28,8 +28,8 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'Clé API manquante sur le serveur.' });
     }
 
-    // Utilisation de v1beta avec gemini-1.5-flash pour assurer la compatibilité
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+    // Utilisation du modèle actuel et stable gemini-2.5-flash
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
     const apiResponse = await fetch(url, {
       method: 'POST',
