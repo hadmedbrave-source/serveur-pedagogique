@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 app.use(cors());
@@ -37,24 +38,15 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ error: 'Clé API manquante sur le serveur.' });
     }
 
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+    // Initialisation et appel avec le SDK officiel @google/genai et gemini-3.8-flash
+    const ai = new GoogleGenAI({ apiKey: apiKey });
 
-    const apiResponse = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt }] }]
-      })
+    const interaction = await ai.interactions.create({
+      model: "gemini-3.8-flash",
+      input: fullPrompt,
     });
 
-    const data = await apiResponse.json();
-
-    if (!apiResponse.ok) {
-      console.error("Erreur API Gemini:", JSON.stringify(data));
-      return res.status(500).json({ error: data.error?.message || 'Erreur de communication avec Google AI Studio.' });
-    }
-
-    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text || "Aucune réponse générée.";
+    const textResult = interaction.output_text || "Aucune réponse générée.";
     res.json({ result: textResult });
 
   } catch (error) {
