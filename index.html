@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Inclusion de marked.js pour le rendu visuel automatique du Markdown en HTML propre -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
 
   <style>
@@ -151,27 +150,36 @@
     .zone-rapport { border: 2px solid #059669; }
     .zone-rapport .zone-head { background: #ecfdf5; color: #065f46; border-bottom: 1px solid #a7f3d0; }
 
-    /* MISE EN FORME DU RAPPORT GÉNÉRÉ */
+    /* DESIGN GÉRÉ PAR LE SCRIPT ET CSS (MISE EN PAGE PROPRE) */
     .response-box { padding: 24px; background: #ffffff; font-size: 15px; line-height: 1.8; color: var(--text); }
-    .response-box h1, .response-box h2, .response-box h3 {
-      color: var(--navy);
-      margin-top: 18px;
-      margin-bottom: 8px;
+    
+    .report-card-ui {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .report-card-ui h4 {
       font-family: 'Outfit', sans-serif;
-      border-bottom: 2px solid #f1f5f9;
-      padding-bottom: 6px;
+      font-size: 16px;
+      color: var(--navy);
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
     }
     .response-box table {
       width: 100%;
       border-collapse: collapse;
       margin: 15px 0;
       background: #ffffff;
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .response-box th, .response-box td {
-      border: 1px solid #e2e8f0;
+      border: 1px solid #cbd5e1;
       padding: 10px 14px;
       text-align: left;
       font-size: 14px;
@@ -180,8 +188,6 @@
       background-color: var(--navy);
       color: #ffffff;
     }
-    .response-box ul, .response-box ol { margin-left: 20px; margin-bottom: 12px; }
-    .response-box p { margin-bottom: 12px; }
 
     .official-signature-card {
       background: #fafaf9; border: 1.5px solid #d6d3d1; border-radius: 12px; padding: 20px 24px; margin-top: 24px;
@@ -372,6 +378,7 @@
     reportSec.style.display = 'block';
     resultBox.innerHTML = "<div style='text-align: center; padding: 20px; color: #64748b; font-weight: 600;'>Analyse rigoureuse de la copie en cours...</div>";
 
+    // L'IA se consacre uniquement au contenu textuel brut et analytique
     const promptComplet = `Agis en tant qu'examinateur et correcteur intransigeant d'expression écrite pour le cycle secondaire au Maroc. Évalue la copie de l'élève en respectant à 100% le barème officiel sur 10 points.
 
 INFORMATIONS :
@@ -380,7 +387,7 @@ INFORMATIONS :
 - Sujet : ${sujet}
 - Texte : ${texte}
 
-Génère un rapport pédagogique structuré comportant obligatoirement :
+Génère uniquement les sections textuelles d'analyse :
 1. Identification du plan détecté et note /10 (avec alerte si hors-sujet).
 2. Grille de notation détaillée (Consigne, Structure, Argumentation, Langue, Lexique).
 3. Transcription de la copie avec les erreurs en rouge (<span style="color:red; font-weight:bold;">mot</span>) et les liens logiques en gras, suivie d'un tableau des corrections.
@@ -396,8 +403,15 @@ Génère un rapport pédagogique structuré comportant obligatoirement :
 
       const data = await response.json();
       if (response.ok) {
-        // Transformation automatique du texte brut/Markdown en HTML stylisé et propre grâce à marked.parse
-        resultBox.innerHTML = marked.parse(data.result || "Rapport généré avec succès.");
+        let rawContent = data.result || "Rapport généré avec succès.";
+        
+        // LE SCRIPT JS PREND LE RELAIS DU DESIGN : Encadrement structuré en cartes UI propres
+        resultBox.innerHTML = `
+          <div class="report-card-ui">
+            <h4>Analyse & Bilan de l'Évaluation</h4>
+            ${marked.parse(rawContent)}
+          </div>
+        `;
       } else {
         resultBox.innerHTML = "<p style='color:red; font-weight:600;'>Erreur de traitement : " + (data.error || "Une erreur est survenue.") + "</p>";
       }
