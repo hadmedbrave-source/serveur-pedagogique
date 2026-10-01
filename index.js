@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Route pour interroger Gemini via une requête HTTP directe
+// Route pour interroger Gemini
 app.post('/api/chat', async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -22,7 +22,6 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Le prompt est vide.' });
     }
 
-    // Instruction système et pédagogique stricte intégrée dans le prompt envoyé à l'API
     const systemInstruction = `
       Tu es un correcteur expert et un professeur principal pour le Centre Pro-Langues & Prépa Concours / Centre Al Akhawayen.
       RÈGLES ABSOLUES :
