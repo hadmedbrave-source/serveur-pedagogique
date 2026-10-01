@@ -7,8 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Inclusion de Marked.js pour le rendu visuel du Markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
 
   <style>
     :root {
@@ -285,36 +283,43 @@
 
     .response-box {
       margin-top: 15px;
-      padding: 20px;
+      padding: 24px;
       background: #f8fafc;
       border: 1px solid #cbd5e1;
       border-radius: 10px;
       font-size: 15px;
       line-height: 1.8;
+      color: var(--text);
     }
 
-    /* Styles élégants pour le rendu Markdown formaté */
-    .response-box h1, .response-box h2, .response-box h3 {
+    /* Style professionnel pour le rapport généré */
+    .response-box h3, .response-box h4 {
       color: var(--navy);
-      margin-top: 15px;
+      margin-top: 18px;
       margin-bottom: 8px;
-    }
-    .response-box ul, .response-box ol {
-      margin-left: 20px;
-      margin-bottom: 10px;
+      font-family: 'Outfit', sans-serif;
     }
     .response-box table {
       width: 100%;
       border-collapse: collapse;
       margin: 15px 0;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .response-box th, .response-box td {
-      border: 1px solid #cbd5e1;
-      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      padding: 10px 14px;
       text-align: left;
+      font-size: 14px;
     }
     .response-box th {
-      background-color: #e2e8f0;
+      background-color: #0b1528;
+      color: #ffffff;
+    }
+    .response-box p {
+      margin-bottom: 10px;
     }
 
     .official-signature-card {
@@ -545,17 +550,12 @@ ${sujet}
 PRODUCTION DE L'ÉLÈVE :
 ${texte}
 
-Génère un rapport pédagogique structuré comportant obligatoirement les éléments suivants :
-1. **Identification du plan détecté** (ex: Plan Analytique si le sujet demande causes/conséquences/solutions, ou Plan Simple / Dialectique si le sujet demande un avis/opinion).
-2. **Grille de notation détaillée sur 10 points** selon le barème :
-   - Consigne & organisation (sur 2.0 Pts)
-   - Structure argumentative du plan (sur 2.0 Pts)
-   - Force argumentative & exemples (sur 2.0 Pts)
-   - Correction de la langue (sur 2.5 Pts)
-   - Richesse lexicale (sur 1.5 Pts)
-3. **Transcription et correction des erreurs de l'élève** : affiche le texte avec les erreurs signalées, suivies d'un tableau clair détaillant les erreurs relevées et leurs corrections logiques.
-4. **Analyse des formulations faibles** avec proposition de reformulations adaptées.
-5. **Texte modèle optimisé et unifié** : rédigé en respectant strictement le type de plan détecté. Si le sujet mentionne une œuvre au programme (comme *La Boîte à merveilles*, *Antigone* ou *Le Dernier Jour d'un condamné*), intègre et cite **deux exemples précis en gras** tirés de ces œuvres.`;
+Génère un rapport pédagogique structuré en HTML propre et stylisé comportant obligatoirement :
+1. **Identification du plan détecté** avec alerte claire si hors-sujet (0/10).
+2. **Grille de notation détaillée sur 10 points** (Consigne 2.0, Structure 2.0, Force argumentative 2.0, Langue 2.5, Lexique 1.5).
+3. **Transcription et correction des erreurs de l'élève** : affiche le texte avec les erreurs signalées en balises HTML propres (<span style="color:red; font-weight:bold;">mot erroné</span>) et les liens logiques en gras, suivies d'un tableau HTML propre détaillant les erreurs et leurs corrections.
+4. **Analyse des formulations faibles** avec reformulations.
+5. **Texte modèle optimisé et unifié** respectant le plan.`;
 
     try {
       const response = await fetch('/api/chat', {
@@ -566,13 +566,14 @@ Génère un rapport pédagogique structuré comportant obligatoirement les élé
 
       const data = await response.json();
       if (response.ok) {
-        resultBox.innerHTML = marked.parse(data.result || "Rapport généré avec succès.");
+        // Injection directe du HTML pour un rendu visuel coloré, structuré et sans aucun code brut visible
+        resultBox.innerHTML = data.result || "Rapport généré avec succès.";
       } else {
-        resultBox.innerHTML = "Erreur de traitement : " + (data.error || "Une erreur est survenue.");
+        resultBox.innerHTML = "<p style='color:red;'>Erreur de traitement : " + (data.error || "Une erreur est survenue.") + "</p>";
       }
     } catch (error) {
       console.error(error);
-      resultBox.innerHTML = "Erreur de connexion avec le serveur d'évaluation.";
+      resultBox.innerHTML = "<p style='color:red;'>Erreur de connexion avec le serveur d'évaluation.</p>";
     } finally {
       btn.disabled = false;
       btn.textContent = "Valider et générer le rapport pédagogique certifié";
