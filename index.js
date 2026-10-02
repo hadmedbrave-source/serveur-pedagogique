@@ -1,70 +1,77 @@
+// On tente de charger dotenv pour le local, Railway l'ignorera si le fichier est absent
 require('dotenv').config();
 const express = require('express');
 const { OpenAI } = require('openai');
 const cors = require('cors');
 
 const app = express();
-app.use(express.json());
-app.use(cors()); // Autorise le frontend à appeler le backend
 
-// Configuration de l'API OpenAI
+// --- CONFIGURATION ---
+app.use(express.json());
+app.use(cors()); // INDISPENSABLE pour que votre HTML puisse communiquer avec Railway
+
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY, // Votre clé doit être dans un fichier .env
+    apiKey: process.env.OPENAI_API_KEY // Railway récupère la clé ici
 });
 
+// --- LOGIQUE D'ÉVALUATION ---
 app.post('/api/chat', async (req, res) => {
-    const { prompt, sujet, texte, nom, niveau } = req.body;
-
-    // Construction du "Système Prompt" pour forcer l'IA à agir comme un correcteur rigoureux
-    const systemInstruction = `
-    Tu es un examinateur expert du Centre Al Akhawayn pour le baccalauréat marocain. 
-    Ton rôle est d'évaluer une production écrite de manière intransigeante.
-
-    DIRECTIVES DE CORRECTION :
-    1. ANALYSE DU SUJET : Si le texte est hors-sujet, tu dois impérativement renvoyer : 
-       <div class="hors-sujet-alert">⚠️ HORS-SUJET DÉTECTÉ - NOTE : 00/10</div>
-       suivi d'une explication brève de pourquoi le sujet n'est pas respecté. Arrête-toi là.
-
-    2. BARÈME (Si sujet respecté) : Note sur 10 points.
-       - Consigne & organisation : 2 pts
-       - Structure argumentative : 2 pts
-       - Force argumentative & exemples : 2 pts
-       - Correction de la langue : 2.5 pts
-       - Richesse lexicale : 1.5 pts
-
-    3. TRANSCRIPTION ANNOTÉE (TRÈS IMPORTANT) : 
-       Réécris le texte de l'élève en respectant ce balisage HTML :
-       - Erreurs (orthographe, grammaire, syntaxe) : <span class="error-highlight">ERREUR ICI</span>
-       - Connecteurs logiques et liens : <b class="connector-bold">CONNECTEUR</b>
-       Ne modifie pas le sens des phrases ici, souligne juste les erreurs.
-
-    4. TABLEAU DES CORRECTIONS : Analyse les fautes sous forme de tableau Markdown (Erreur | Nature | Correction).
-
-    5. REFORMULATIONS : Propose 3 à 4 phrases du texte original améliorées pour un style plus soutenu.
-
-    6. MODÈLE D'EXCELLENCE : Rédige une version parfaite du sujet. 
-       - Si le sujet demande une opinion : utilise un PLAN DIALECTIQUE (Thèse, Antithèse, Synthèse) ou SIMPLE.
-       - Si le sujet demande causes/conséquences : utilise un PLAN ANALYTIQUE.
-    `;
-
     try {
+        const { prompt } = req.body;
+
+        if (!prompt) {
+            return res.status(400).json({ error: "Aucune donnée reçue." });
+        }
+
+        const systemPrompt = `
+        Tu es un examinateur expert et intransigeant du Centre Al Akhawayn pour le baccalauréat au Maroc.
+        
+        TES MISSIONS :
+        1. VÉRIFICATION DU SUJET : Si le texte de l'élève ne traite absolument pas du sujet demandé, tu dois renvoyer IMMEDIATEMENT :
+           <div class="hors-sujet-alert">⚠️ HORS-SUJET DÉTECTÉ - NOTE : 00/10</div>
+           Explique brièvement pourquoi c'est hors-sujet et arrête-toi là.
+
+        2. NOTATION (Si sujet respecté) : Applique strictement ce barème sur 10 :
+           - Consigne & organisation : 2.0 Pts
+           - Structure argumentative du plan : 2.0 Pts
+           - Force argumentative & exemples : 2.0 Pts
+           - Correction de la langue : 2.5 Pts
+           - Richesse lexicale : 1.5 Pts
+
+        3. TRANSCRIPTION VISUELLE : 
+           Réécris le texte de l'élève. 
+           - Entoure les fautes par : <span class="error-highlight">...</span> (ex: <span class="error-highlight">J'ai allé</span>)
+           - Entoure les connecteurs logiques par : <b class="connector-bold">...</b> (ex: <b class="connector-bold">Cependant</b>)
+
+        4. TABLEAU DES ERREURS : Crée un tableau Markdown avec les colonnes : Erreur | Nature | Correction.
+
+        5. REFORMULATIONS : Propose 3 phrases clés à améliorer pour un niveau de langue soutenu.
+
+        6. MODÈLE D'EXCELLENCE : Rédige la version optimale.
+           - Choix du plan : Si le sujet demande une opinion (Partagez-vous... / Pensez-vous...), utilise un PLAN DIALECTIQUE (Thèse/Antithèse/Synthèse) ou SIMPLE.
+           - Si le sujet demande les causes et les conséquences, utilise un PLAN ANALYTIQUE.
+        `;
+
         const response = await openai.chat.completions.create({
-            model: "gpt-4-turbo-preview", // Ou "gpt-3.5-turbo"
+            model: "gpt-4-turbo-preview", // Ou "gpt-3.5-turbo" selon votre budget
             messages: [
-                { role: "system", content: systemInstruction },
+                { role: "system", content: systemPrompt },
                 { role: "user", content: prompt }
             ],
-            temperature: 0.5, // Pour rester factuel et rigoureux
+            temperature: 0.3, // Température basse pour une correction plus stable et sérieuse
         });
 
         res.json({ result: response.choices[0].message.content });
+
     } catch (error) {
-        console.error("Erreur API:", error);
-        res.status(500).json({ error: "L'IA n'a pas pu répondre. Vérifiez votre clé API." });
+        console.error("Erreur serveur:", error);
+        res.status(500).json({ error: "L'IA ne répond pas. Vérifiez la clé API sur Railway." });
     }
 });
 
+// --- DÉMARRAGE DU SERVEUR ---
+// Railway utilise process.env.PORT, en local on utilise 3000
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Serveur démarré sur http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Serveur Centre Al Akhawayn actif sur le port ${PORT}`);
 });
