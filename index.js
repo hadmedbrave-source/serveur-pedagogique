@@ -1,47 +1,72 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-// On utilise la bibliothèque installée dans votre package.json
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createClient } from '@google/genai';
 
+// Configuration pour gérer les dossiers avec le mode "ES Modules"
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
+// --- INITIALISATION DU CLIENT GOOGLE GEMINI ---
+// Il utilise la clé API (AQ...) que vous avez mise dans Railway
+const client = createClient({ 
+    apiKey: process.env.GOOGLE_API_KEY 
+});
+
+// Route pour afficher votre interface index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Initialisation avec la clé que vous avez mise sur Railway
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-
+// --- LOGIQUE DE CORRECTION PÉDAGOGIQUE ---
 app.post('/api/chat', async (req, res) => {
     try {
         const { prompt } = req.body;
 
-        // On utilise le modèle STABLE : gemini-1.5-flash
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        if (!prompt) {
+            return res.status(400).json({ error: "Aucun texte reçu." });
+        }
 
-        const instructions = `Tu es l'expert du Centre Al Akhawayn. Analyse cette production écrite. 
-        Note sur 10, souligne les erreurs en <span class='error-highlight'>...</span> et les connecteurs en <b class='connector-bold'>...</b>. 
-        Affiche un tableau de correction et un modèle parfait.`;
+        // On utilise le modèle Gemini 1.5 Flash (Ultra-rapide)
+        const response = await client.models.generateContent({
+            model: "gemini-1.5-flash",
+            contents: [{
+                role: "user",
+                parts: [{
+                    text: `Tu es l'expert et examinateur du Centre Al Akhawayn. Ta mission est de corriger une production écrite pour le Baccalauréat Marocain.
 
-        // La méthode officielle Google est generateContent
-        const result = await model.generateContent(`${instructions}\n\nTexte : ${prompt}`);
-        const response = await result.response;
-        const text = response.text();
+                    RÈGLES STRICTES DE RÉPONSE :
+                    1. HORS-SUJET : Si le texte ne respecte pas le sujet, affiche : <div class="hors-sujet-alert">⚠️ HORS-SUJET DÉTECTÉ - NOTE : 00/10</div> et explique pourquoi.
+                    
+                    2. NOTATION : Donne une note sur 10 points (Barème : Consigne 2, Plan 2, Arguments 2, Langue 2.5, Lexique 1.5).
+                    
+                    3. TRANSCRIPTION ANNOTÉE : Réécris le texte de l'élève.
+                       - Souligne les fautes en rouge avec : <span class="error-highlight">...</span>
+                       - Met les connecteurs logiques en gras avec : <b class="connector-bold">...</b>
+                    
+                    4. TABLEAU : Erreur | Nature | Correction.
+                    
+                    5. MODÈLE D'EXCELLENCE : Rédige la version parfaite.
+                       - Si opinion : Plan Dialectique (Thèse/Antithèse/Synthèse).
+                       - Si causes/conséquences : Plan Analytique.
 
-        res.json({ result: text });
+                    Voici le texte de l'élève : ${prompt}`
+                }]
+            }]
+        });
+
+        // Extraction de la réponse selon la structure du nouveau SDK
+        const outputText = response.candidates[0].content.parts[0].text;
+        
+        res.json({ result: outputText });
 
     } catch (error) {
-        console.error("ERREUR :", error.message);
-        res.status(500).json({ error: "L'IA est indisponible.", message: error.message });
-    }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Serveur prêt sur le port ${PORT}`);
-});
+        console.error("ERREUR IA :", error);
+        res.status(500).json({ 
+            error: "L'IA est indispo
