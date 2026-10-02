@@ -2,42 +2,49 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
 const app = express();
-
-// --- CONFIGURATION SERVEUR ---
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
-// Route pour afficher la page d'accueil
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- CONFIGURATION IA GOOGLE ---
+// Initialisation de l'API avec la clé Railway
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 app.post('/api/chat', async (req, res) => {
     try {
         const { prompt } = req.body;
-        if (!prompt) return res.status(400).json({ error: "Aucun texte reçu." });
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        // CHANGEMENT ICI : On utilise le nom court "gemini-1.5-flash"
+        // C'est le nom le plus compatible avec l'endpoint v1beta
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash" 
+        });
 
-        const instructions = `Tu es l'examinateur expert du Centre Al Akhawayn.
-        Corrige cette production écrite pour le baccalauréat marocain.
-        RÈGLES :
-        1. Si hors-sujet : <div class="hors-sujet-alert">⚠️ HORS-SUJET DÉTECTÉ - NOTE : 00/10</div>.
-        2. Sinon, note sur 10 (Consigne 2, Plan 2, Arguments 2, Langue 2.5, Lexique 1.5).
-        3. Transcription : Erreurs en <span class="error-highlight">...</span> et connecteurs en <b class="connector-bold">...</b>.
-        4. Tableau : Erreur | Nature | Correction.
-        5. Modèle d'excellence : Plan Dialectique ou Analytique selon le sujet.`;
+        const instructions = `Tu es l'expert du Centre Al Akhawayn. Analyse cette production écrite (Bac Maroc). 
+        1. Si hors-sujet, alerte rouge et note 0. 
+        2. Sinon note sur 10. 
+        3. Souligne les erreurs en <span class='error-highlight'>...</span> et les connecteurs en <b class='connector-bold'>...</b>. 
+        4. Tableau de correction et modèle parfait.`;
 
-        const fullPrompt = `${instructions}\n\nTravail de l'élève :\n${prompt}`;
+        // Configuration de sécurité pour éviter les blocages par erreur
+        const safetySettings = [
+            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+        ];
 
-        const result = await model.generateContent(fullPrompt);
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: `${instructions}\n\nTexte : ${prompt}` }] }],
+            safetySettings
+        });
+
         const response = await result.response;
         res.json({ result: response.text() });
 
