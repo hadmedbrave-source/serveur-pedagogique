@@ -1,26 +1,16 @@
 {
-  "name": "serveur-pedagogique-centre-al-akhawayn",
+  "name": "serveur-pedagogique",
   "version": "1.0.0",
-  "description": "Plateforme d'expertise en production écrite - Google Gemini 1.5 Flash",
+  "type": "module",
+  "description": "Serveur pédagogique Gemini 2.0 - Centre Al Akhawayn",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [
-    "education",
-    "bac",
-    "maroc",
-    "ia",
-    "gemini"
-  ],
-  "author": "Centre Al Akhawayn",
-  "license": "ISC",
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
+    "@google/genai": "^0.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "path": "^0.12.7"
+    "express": "^4.19.2"
   }
 }
