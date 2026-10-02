@@ -3,214 +3,240 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Évaluation Certifiée - Centre Al Akhawayn</title>
+  <title>Évaluation Interactive - Production Écrite | Centre Al Akhawayn</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Bibliothèque pour transformer le texte de l'IA en joli HTML -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
 
   <style>
     :root {
       --primary: #c5221f;
+      --primary-dark: #8e1513;
       --navy: #0b1528;
-      --bg: #f8fafc;
+      --bg-page: #f8fafc;
       --surface: #ffffff;
-      --border: #e2e8f0;
+      --text: #0f172a;
+      --line-height: 28px;
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background-color: var(--bg);
+      background-color: var(--bg-page);
+      color: var(--text);
       font-family: 'Plus Jakarta Sans', sans-serif;
-      color: #1e293b;
-      margin: 0;
-      padding: 20px;
+      padding: 30px 15px;
+      display: flex;
+      justify-content: center;
+      line-height: 1.6;
     }
 
-    .main-container {
+    .main-wrapper {
       max-width: 1000px;
-      margin: 0 auto;
+      width: 100%;
       background: var(--surface);
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      overflow: hidden;
-      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      border: 1px solid #e2e8f0;
     }
 
-    /* Header */
-    .header-top {
-      background: var(--navy);
-      color: white;
-      padding: 25px 40px;
+    /* --- HEADER --- */
+    .header-banner {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding-bottom: 24px;
+      margin-bottom: 30px;
+      border-bottom: 3px solid #f1f5f9;
     }
-    .header-top h1 { font-family: 'Outfit', sans-serif; font-size: 22px; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
-    .header-top h1 span { color: var(--primary); }
-    .badge-status { background: var(--primary); color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .brand-title { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; color: var(--primary); }
+    .brand-title span { color: var(--navy); }
+    .badge-status { background: var(--navy); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-top: 5px; display: inline-block; }
 
-    .content-padding { padding: 30px 40px; }
+    /* --- FORMULAIRE --- */
+    .zone-card { border-radius: 14px; margin-bottom: 24px; border: 1.5px solid #e2e8f0; overflow: hidden; }
+    .zone-head { padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: var(--navy); }
+    .zone-body { padding: 20px; }
 
-    /* Grille Info */
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-    label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 6px; text-transform: uppercase; }
+    .student-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    label { display: block; font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; }
     input, select, textarea {
-      width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 12px; font-family: inherit; font-size: 14px; box-sizing: border-box;
+      width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 14px; outline: none; transition: 0.2s;
     }
+    input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(197, 34, 31, 0.1); }
 
-    /* Sujet */
-    .zone-sujet { background: #fffcf0; border: 1.5px solid #fde68a; margin-bottom: 25px; border-radius: 8px; padding: 15px; }
+    /* --- ZONE RÉDACTION (Papier) --- */
+    .writing-area {
+      width: 100%; min-height: 450px; line-height: var(--line-height); font-size: 15px; padding: 0 15px; border: none; outline: none; resize: vertical;
+      background-attachment: local;
+      background-image: linear-gradient(to bottom, transparent calc(var(--line-height) - 1px), #e2e8f0 calc(var(--line-height) - 1px));
+      background-size: 100% var(--line-height);
+    }
+    .stats-bar { padding: 10px 20px; background: #f1f5f9; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #475569; }
+
+    /* --- BOUTON --- */
+    .btn-evaluate {
+      width: 100%; background: var(--primary); color: white; border: none; padding: 20px; font-size: 17px; font-weight: 800;
+      font-family: 'Outfit'; border-radius: 12px; cursor: pointer; transition: 0.3s; text-transform: uppercase;
+    }
+    .btn-evaluate:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .btn-evaluate:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* --- RAPPORT IA (Stylisé) --- */
+    #reportSection { display: none; margin-top: 40px; }
+    .report-container { border: 2px solid var(--navy); border-radius: 12px; padding: 30px; background: white; }
     
-    /* Barème */
-    .bareme-table {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px;
+    /* Styles injectés pour le texte de l'IA */
+    .hors-sujet-alert {
+      background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 20px;
+      border-radius: 10px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 20px;
     }
-    .bareme-item { background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between; border: 1px solid #cbd5e1; }
-    .bareme-item b { color: var(--primary); }
-
-    /* Zone Rédaction */
-    .writing-container { border: 2px solid var(--navy); border-radius: 10px; overflow: hidden; }
-    .writing-header { background: var(--navy); color: white; padding: 8px 15px; font-size: 12px; display: flex; justify-content: space-between; }
-    .textarea-paper {
-      min-height: 400px; line-height: 28px; background-attachment: local;
-      background-image: linear-gradient(to bottom, transparent 27px, #e2e8f0 27px);
-      background-size: 100% 28px; border: none; outline: none; padding: 10px 15px; resize: vertical;
-    }
-    .stats-footer { background: #f8fafc; padding: 10px 15px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; }
-
-    .btn-submit {
-      width: 100%; background: var(--primary); color: white; border: none; padding: 18px; font-family: 'Outfit'; 
-      font-weight: 800; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 25px; transition: 0.2s;
-    }
-    .btn-submit:hover { background: #a01a18; transform: translateY(-2px); }
-
-    /* Styles Rapport IA */
-    #reportSection { display: none; margin-top: 40px; padding: 30px; border-top: 3px dashed var(--navy); }
-    .hors-sujet-alert { background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 20px; border-radius: 8px; text-align: center; font-weight: 800; font-size: 18px; margin-bottom: 20px; }
-    
-    .annotated-text { background: #f1f5f9; padding: 25px; border-radius: 8px; line-height: 2.2; font-size: 15px; border: 1px solid #cbd5e1; }
     .error-highlight { color: #dc2626; font-weight: 800; text-decoration: underline; }
-    .connector-bold { color: #000; font-weight: 800; background: #e2e8f0; padding: 2px 4px; border-radius: 4px; }
+    .connector-bold { color: #000; font-weight: 800; background: #f1f5f9; padding: 2px 4px; border-radius: 4px; }
     
     table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th { background: var(--navy); color: white; padding: 10px; text-align: left; font-size: 13px; }
-    td { border: 1px solid #e2e8f0; padding: 10px; font-size: 14px; }
-    
-    .optimized-box { background: #f0fdf4; border-left: 5px solid #16a34a; padding: 25px; border-radius: 0 8px 8px 0; }
+    th { background: var(--navy); color: white; padding: 12px; text-align: left; }
+    td { border: 1px solid #e2e8f0; padding: 12px; font-size: 14px; }
+    tr:nth-child(even) { background: #f8fafc; }
+
+    .optimized-box { background: #f0fdf4; border-left: 5px solid #16a34a; padding: 20px; margin-top: 20px; border-radius: 4px; }
+
+    @media (max-width: 768px) { .student-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
-<div class="main-container">
-  <div class="header-top">
+<div class="main-wrapper">
+  <div class="header-banner">
     <div>
-      <h1>CENTRE <span>AL AKHAWAYN</span></h1>
-      <div style="font-size: 11px; margin-top: 4px; font-weight: 600; opacity: 0.8;">Expertise & Préparation aux Concours</div>
+      <div class="brand-title">CENTRE <span>AL AKHAWAYN</span></div>
+      <div class="badge-status">Plateforme Pédagogique Officielle</div>
     </div>
-    <div class="badge-status">PLATEFORME PÉDAGOGIQUE OFFICIELLE</div>
-  </div>
-
-  <div class="content-padding">
-    <div class="info-grid">
-      <div>
-        <label>Nom & Prénom</label>
-        <input type="text" id="studentName" placeholder="Ex: Karim Benjelloun">
-      </div>
-      <div>
-        <label>Niveau Scolaire</label>
-        <select id="studentLevel">
-          <option>1ère BAC - Sciences Expérimentales</option>
-          <option>1ère BAC - Sciences Mathématiques</option>
-          <option>CRMEF / ENS (Prépa Concours)</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="zone-sujet">
-      <label style="color: #b45309;">1) Sujet de l'épreuve</label>
-      <textarea id="sujetInput" rows="3" placeholder="Saisissez la consigne complète ici (ex: causes, conséquences, opinion...)"></textarea>
-    </div>
-
-    <label>2) Barème de notation (Total 10 pts)</label>
-    <div class="bareme-table">
-      <div class="bareme-item">Consigne <b>2.0</b></div>
-      <div class="bareme-item">Structure <b>2.0</b></div>
-      <div class="bareme-item">Arguments <b>2.0</b></div>
-      <div class="bareme-item">Langue <b>2.5</b></div>
-      <div class="bareme-item">Lexique <b>1.5</b></div>
-    </div>
-
-    <div class="writing-container">
-      <div class="writing-header">
-        <span>3) ZONE DE PRODUCTION ÉCRITE</span>
-        <span>25 LIGNES MAXIMUM</span>
-      </div>
-      <textarea id="studentText" class="textarea-paper" oninput="updateStats()"></textarea>
-      <div class="stats-footer">
-        <span id="lineCount">Lignes : 0 / 25</span>
-        <span id="wordCount">Mots : 0</span>
-      </div>
-    </div>
-
-    <button class="btn-submit" id="btnAnalyze" onclick="lancerIA()">VALIDER ET GÉNÉRER LE RAPPORT CERTIFIÉ</button>
-
-    <div id="reportSection">
-      <div id="iaOutput"></div>
+    <div style="text-align: right; font-weight: 700; font-size: 14px; color: var(--navy);">
+      PRODUCTION ÉCRITE<br><span style="color: var(--primary); font-size: 11px;">Moteur Anti-Hors-Sujet</span>
     </div>
   </div>
+
+  <!-- Infos Candidat -->
+  <div class="zone-card">
+    <div class="zone-head">1) Identification du candidat</div>
+    <div class="zone-body">
+      <div class="student-grid">
+        <div>
+          <label>Nom et Prénom</label>
+          <input type="text" id="studentName" placeholder="Ex: Karim Benjelloun">
+        </div>
+        <div>
+          <label>Niveau Scolaire</label>
+          <select id="studentLevel">
+            <option>1ère BAC - Sciences Expérimentales</option>
+            <option>1ère BAC - Sciences Mathématiques</option>
+            <option>1ère BAC - Lettres</option>
+            <option>Prépa Concours Enseignement</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sujet -->
+  <div class="zone-card">
+    <div class="zone-head" style="color: #b45309;">2) Sujet d'expression écrite</div>
+    <div class="zone-body">
+      <textarea id="sujetInput" rows="3" placeholder="Saisissez ici la consigne complète..."></textarea>
+    </div>
+  </div>
+
+  <!-- Zone de rédaction -->
+  <div class="zone-card" style="border-color: var(--navy);">
+    <div class="zone-head" style="background: var(--navy); color: white;">3) Zone de rédaction (Copie d'examen)</div>
+    <div class="zone-body" style="padding: 0;">
+      <textarea id="studentText" class="writing-area" oninput="actualiserCompteurs()" placeholder="Rédigez votre texte ici..."></textarea>
+      <div class="stats-bar">
+        <span id="lineInfo">Lignes : 0 / 25</span>
+        <span id="wordInfo">Mots : 0</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Générer le rapport d'expertise pédagogique</button>
+
+  <!-- Rapport Final -->
+  <div id="reportSection">
+    <div class="report-container" id="resultatIA">
+      <!-- Le contenu généré par l'IA s'affichera ici -->
+    </div>
+  </div>
+
 </div>
 
 <script>
-  function updateStats() {
+  // --- CONFIGURATION ---
+  // REMPLACEZ CETTE URL PAR VOTRE URL RAILWAY RÉELLE
+  const RAILWAY_URL = "https://votre-projet.up.railway.app/api/chat";
+
+  function actualiserCompteurs() {
     const text = document.getElementById('studentText').value;
     const lines = text.split('\n').length;
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    document.getElementById('lineCount').innerText = `Lignes : ${lines} / 25`;
-    document.getElementById('wordCount').innerText = `Mots : ${words}`;
+    
+    const lineInfo = document.getElementById('lineInfo');
+    lineInfo.textContent = `Lignes : ${lines} / 25`;
+    lineInfo.style.color = lines > 25 ? "red" : "#475569";
+    
+    document.getElementById('wordInfo').textContent = `Mots : ${words}`;
   }
 
-  async function lancerIA() {
-    const sujet = document.getElementById('sujetInput').value;
-    const texte = document.getElementById('studentText').value;
-    const btn = document.getElementById('btnAnalyze');
-    const output = document.getElementById('iaOutput');
-    const report = document.getElementById('reportSection');
+  async function lancerEvaluationIA() {
+    const nom = document.getElementById('studentName').value || "Candidat";
+    const sujet = document.getElementById('sujetInput').value.trim();
+    const texte = document.getElementById('studentText').value.trim();
+    const btn = document.getElementById('btnValider');
+    const output = document.getElementById('resultatIA');
+    const reportSection = document.getElementById('reportSection');
 
-    if(!sujet || !texte) return alert("Veuillez remplir le sujet et le texte.");
+    if (!sujet || !texte) {
+      alert("Veuillez remplir le sujet et votre texte avant de valider.");
+      return;
+    }
 
     btn.disabled = true;
-    btn.innerText = "ANALYSE EXPERTE EN COURS...";
-    report.style.display = 'block';
-    output.innerHTML = "<div style='text-align:center;'>Analyse rigoureuse de la copie...</div>";
+    btn.textContent = "Analyse en cours par l'IA d'excellence...";
+    reportSection.style.display = 'block';
+    output.innerHTML = "<p style='text-align:center; padding: 40px;'>L'IA examine votre copie (vérification du sujet, de la langue et des arguments)...</p>";
 
-    const prompt = `
-    En tant que correcteur officiel du baccalauréat :
-    Sujet : ${sujet}
-    Copie élève : ${texte}
-
-    FORMAT DE RÉPONSE ATTENDU (STRICT) :
-    1. Si hors-sujet : <div class="hors-sujet-alert">HORS-SUJET : NOTE 0/10</div> explication brève.
-    2. Sinon, Tableau de notation /10 selon le barème fourni.
-    3. TRANSCRIPTION : Réécris le texte de l'élève. Entoure les erreurs par <span class="error-highlight">...</span> et les connecteurs logiques par <b class="connector-bold">...</b>.
-    4. TABLEAU DES CORRECTIONS : | Erreur | Nature | Correction |
-    5. REFORMULATIONS : 3 phrases optimisées.
-    6. MODÈLE D'EXCELLENCE : Produis un texte parfait. Choisis le plan selon le sujet :
-       - Si opinion : Plan Dialectique ou Simple.
-       - Si causes/conséquences : Plan Analytique.
+    // Préparation du message pour l'IA
+    const promptComplet = `
+    ÉVALUATION POUR : ${nom}
+    SUJET : ${sujet}
+    TEXTE ÉLÈVE : ${texte}
     `;
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(RAILWAY_URL, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ prompt: prompt })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: promptComplet })
       });
+
       const data = await response.json();
-      output.innerHTML = marked.parse(data.result);
-    } catch (e) {
-      output.innerHTML = "Erreur de connexion avec l'IA.";
+      
+      if (response.ok) {
+        // Transformation du Markdown en HTML
+        output.innerHTML = marked.parse(data.result);
+        window.scrollTo({ top: reportSection.offsetTop, behavior: 'smooth' });
+      } else {
+        output.innerHTML = `<p style="color:red;">Erreur : ${data.error}</p>`;
+      }
+    } catch (error) {
+      output.innerHTML = "<p style='color:red;'>Impossible de contacter le serveur. Vérifiez que votre serveur Railway est actif.</p>";
     } finally {
       btn.disabled = false;
-      btn.innerText = "VALIDER ET GÉNÉRER LE RAPPORT CERTIFIÉ";
+      btn.textContent = "Générer le rapport d'expertise pédagogique";
     }
   }
 </script>
