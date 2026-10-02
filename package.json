@@ -2,13 +2,13 @@
   "name": "serveur-pedagogique",
   "version": "1.0.0",
   "type": "module",
-  "description": "Serveur pédagogique - Centre Al Akhawayn",
+  "description": "Serveur Centre Al Akhawayn - SDK Gemini AQ",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
+    "@google/genai": "^0.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2"
