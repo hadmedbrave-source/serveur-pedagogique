@@ -8,14 +8,21 @@ import OpenAI from 'openai';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
+// --- CONFIGURATION DU SERVEUR ---
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, 
+});
 
-app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
+// Affiche la page d'accueil (index.html)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
+// --- MOTEUR D'INTELLIGENCE PÉDAGOGIQUE ---
 app.post('/api/chat', async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -25,24 +32,33 @@ app.post('/api/chat', async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `Tu es un expert du Baccalauréat Marocain. Ta mission est de corriger la production écrite de l'élève.
-
-          RÈGLES D'OR :
-          1. NE DÉCLARE JAMAIS "HORS-SUJET" si l'élève traite du thème (ex: le maraboutisme). Même s'il prend position contre, il est DANS le sujet.
-          2. ÉVALUATION : Pour un texte structuré avec des exemples littéraires (La Boîte à Merveilles, etc.), sois généreux et attribue une note entre 9/10 et 10/10.
+          content: `Tu es l'expert correcteur du Centre Al Akhawayn pour le Baccalauréat Marocain.
           
-          FORMAT DE RÉPONSE (Strict) :
-          [BILAN_PEDAGOGIQUE]
-          Note : X/10. 
-          Appréciation globale : (Ton avis sur la copie).
-          Transcription : (Texte élève avec <span class="error-highlight">fautes</span> et <b class="connector-bold">connecteurs</b>).
-          Tableau des erreurs : (Markdown).
+          DIRECTIVES DE CORRECTION (TRÈS IMPORTANTES) :
+          1. TOLÉRANCE HORS-SUJET : Ne déclare "HORS-SUJET" que si le texte n'a AUCUN rapport avec le thème. 
+             *NOTE* : Si l'élève s'oppose à l'idée du sujet (ex: critique le maraboutisme au nom de la raison), il est PARFAITEMENT dans le sujet. C'est une argumentation par opposition.
           
-          [PLAN_CHOIX]
-          - Si sujet d'opinion : Fournis DEUX versions séparées par les balises [PLAN_SIMPLE] et [PLAN_DIALECTIQUE].
-          - Si sujet de causes : Fournis une version sous la balise [PLAN_ANALYTIQUE].
+          2. NOTATION : Sois juste et valorisant. Pour un texte bien structuré utilisant des exemples des œuvres au programme (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné), la note doit être entre 9/10 et 10/10.
 
-          IMPORTANT : Utilise les oeuvres (Antigone, Sefrioui, Hugo) et mets les titres en **GRAS**.`
+          3. STRUCTURE DU RAPPORT (Respecte ce format Markdown) :
+             [BILAN_PEDAGOGIQUE]
+             Note : X/10
+             Appréciation : (Ton avis expert sur la qualité de la rédaction).
+             
+             Transcription annotée :
+             (Réécris le texte de l'élève en entourant les fautes par <span class="error-highlight">...</span> et les connecteurs logiques par <b class="connector-bold">...</b>).
+
+             Tableau des corrections : (Erreur | Nature | Correction).
+
+             [MODÈLE_OPTIMISÉ]
+             - Si le sujet demande une OPINION : Fournis DEUX versions séparées par :
+               [PLAN_SIMPLE] (Texte complet)
+               [PLAN_DIALECTIQUE] (Texte complet)
+             
+             - Si le sujet demande CAUSES/CONSÉQUENCES : Fournis une version séparée par :
+               [PLAN_ANALYTIQUE] (Texte complet)
+
+          IMPORTANT : Dans les modèles, mets les titres d'œuvres et les exemples précis en **GRAS**.`
         },
         { role: "user", content: prompt }
       ],
@@ -50,10 +66,15 @@ app.post('/api/chat', async (req, res) => {
     });
 
     res.json({ result: response.choices[0].message.content });
+
   } catch (error) {
-    res.status(500).json({ error: "Erreur IA", details: error.message });
+    console.error("ERREUR SERVEUR :", error.message);
+    res.status(500).json({ error: "L'IA est indisponible.", details: error.message });
   }
 });
 
+// Port dynamique pour Railway
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => { console.log(`Serveur actif sur le port ${PORT}`); });
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Serveur Centre Al Akhawayn opérationnel sur le port ${PORT}`);
+});
