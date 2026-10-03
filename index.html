@@ -3,190 +3,222 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expertise Production Écrite | Centre Al Akhawayn</title>
-  
-  <!-- Polices et Bibliothèques -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Expertise Elite - Centre Al Akhawayn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
-
   <style>
-    :root {
-      --primary: #c5221f;
-      --navy: #0b1528;
-      --gold: #eab308;
-      --bg: #f4f7fa;
-      --surface: #ffffff;
-    }
-
+    :root { --navy: #0b1528; --crimson: #c5221f; --gold: #d97706; --emerald: #059669; --indigo: #4338ca; --bg: #f1f5f9; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background-color: var(--bg); color: #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; line-height: 1.6; }
-
-    .container { max-width: 1100px; margin: 0 auto; background: var(--surface); border-radius: 24px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
+    body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; padding: 30px 15px; color: #1e293b; }
+    .container { max-width: 1100px; margin: 0 auto; background: white; border-radius: 30px; padding: 40px; box-shadow: 0 25px 60px rgba(0,0,0,0.08); }
 
     /* --- HEADER --- */
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--bg); padding-bottom: 20px; margin-bottom: 30px; }
-    .brand { font-family: 'Outfit'; font-size: 28px; font-weight: 800; color: var(--primary); }
-    .brand span { color: var(--navy); }
-    .badge { background: var(--navy); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--bg); padding-bottom: 25px; margin-bottom: 35px; }
+    .brand h1 { font-family: 'Outfit'; font-size: 30px; font-weight: 900; color: var(--navy); }
+    .brand h1 span { color: var(--crimson); }
+    
+    /* --- BARÈME STYLE --- */
+    .bareme-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .pill { background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .pill b { color: var(--crimson); }
 
     /* --- INPUTS --- */
-    .input-group { margin-bottom: 25px; }
-    label { display: block; font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; color: var(--navy); }
-    input, textarea, select { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 15px; transition: 0.3s; font-family: inherit; }
-    input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(197, 34, 31, 0.1); }
-    
-    .writing-area { min-height: 400px; line-height: 30px; background-attachment: local; background-image: linear-gradient(to bottom, transparent 29px, #e2e8f0 29px); background-size: 100% 30px; border-color: var(--navy); }
+    h2 { font-family: 'Outfit'; font-size: 16px; text-transform: uppercase; margin-bottom: 15px; color: var(--navy); display: flex; align-items: center; gap: 10px; }
+    h2::before { content: ''; width: 4px; height: 16px; background: var(--crimson); border-radius: 2px; }
+    input, textarea, select { width: 100%; padding: 16px; border: 2px solid #eef2ff; border-radius: 15px; font-size: 15px; outline: none; transition: 0.3s; background: #f8fafc; }
+    input:focus, textarea:focus { border-color: var(--crimson); background: white; box-shadow: 0 0 0 5px rgba(197, 34, 31, 0.05); }
+    .writing-area { min-height: 400px; line-height: 30px; background-attachment: local; background-image: linear-gradient(#e2e8f0 1px, transparent 1px); background-size: 100% 30px; border: 2px solid var(--navy); }
 
-    .btn-submit { width: 100%; background: var(--primary); color: white; padding: 20px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; font-family: 'Outfit'; cursor: pointer; transition: 0.3s; text-transform: uppercase; margin-top: 10px; }
-    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(197,34,31,0.2); background: #a01a18; }
-    .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-submit { width: 100%; padding: 22px; background: var(--crimson); color: white; border: none; border-radius: 18px; font-size: 18px; font-weight: 800; font-family: 'Outfit'; cursor: pointer; transition: 0.4s; box-shadow: 0 15px 30px rgba(197,34,31,0.2); }
+    .btn-submit:hover { transform: translateY(-3px); background: #a01a18; }
 
-    /* --- RAPPORT PUISSANT --- */
+    /* --- RAPPORT SECTION --- */
     #reportSection { display: none; margin-top: 50px; border-top: 4px solid var(--navy); padding-top: 40px; }
-    .card { background: white; border-radius: 18px; padding: 30px; margin-bottom: 25px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-    .score-banner { display: flex; justify-content: space-between; align-items: center; background: var(--navy); color: white; padding: 25px 35px; border-radius: 20px; margin-bottom: 35px; }
+    .report-card { background: #fff; border-radius: 25px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 10px 40px rgba(0,0,0,0.02); }
     
-    h3 { font-family: 'Outfit'; text-transform: uppercase; font-size: 16px; margin-bottom: 20px; color: var(--navy); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+    .report-header { background: var(--navy); color: white; padding: 30px; border-radius: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+    .report-header h3 { font-family: 'Outfit'; font-size: 22px; text-transform: uppercase; }
+    .final-score { font-size: 40px; font-weight: 900; background: var(--crimson); padding: 10px 20px; border-radius: 15px; font-family: 'Outfit'; }
 
-    /* --- COLORATION IA --- */
-    .error-red { color: #e11d48; font-weight: 800; text-decoration: underline; background: #fff1f2; padding: 0 2px; }
-    .connector-blue { color: #2563eb; font-weight: 800; text-transform: uppercase; font-size: 0.9em; }
+    /* Points détaillés */
+    .grid-points { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 30px; }
+    .point-card { background: #f8fafc; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #e2e8f0; }
+    .point-card span { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
+    .point-card b { font-size: 18px; color: var(--navy); }
+
+    /* IA Decoration */
+    .err { color: #e11d48; font-weight: 800; text-decoration: underline wavy #fda4af; background: #fff1f2; padding: 0 2px; }
+    .connector-trans { color: #2563eb; font-weight: 800; border-bottom: 2px solid #bfdbfe; }
+    .connector-model { color: var(--gold); font-weight: 900; text-decoration: underline; }
     
-    /* Couleurs des Structures de Plan */
-    .plan-intro { background: #fffbeb; padding: 20px; border-left: 6px solid var(--gold); border-radius: 10px; margin-bottom: 15px; }
-    .plan-body { background: #f0fdf4; padding: 20px; border-left: 6px solid #16a34a; border-radius: 10px; margin-bottom: 15px; }
-    .plan-concl { background: #eef2ff; padding: 20px; border-left: 6px solid #4338ca; border-radius: 10px; }
-    .model-connector { color: var(--primary); font-weight: 800; text-decoration: underline; }
+    .box-intro { background: #fffbeb; border-left: 6px solid var(--gold); padding: 20px; border-radius: 12px; margin-bottom: 10px; }
+    .box-dev { background: #f0fdf4; border-left: 6px solid var(--emerald); padding: 20px; border-radius: 12px; margin-bottom: 10px; }
+    .box-ccl { background: #eef2ff; border-left: 6px solid var(--indigo); padding: 20px; border-radius: 12px; }
 
-    /* Onglets de Choix */
-    .tab-nav { display: flex; gap: 12px; margin-bottom: 25px; }
-    .tab-btn { flex: 1; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; font-weight: 800; background: #f8fafc; transition: 0.3s; font-family: 'Outfit'; }
-    .tab-btn.active { background: #16a34a; color: white; border-color: #16a34a; }
+    /* Tabs */
+    .tab-nav { display: flex; gap: 10px; margin: 25px 0; }
+    .tab-btn { flex: 1; padding: 15px; border-radius: 12px; border: 2px solid #e2e8f0; cursor: pointer; font-weight: 800; background: white; font-family: 'Outfit'; }
+    .tab-btn.active { border-color: var(--emerald); color: var(--emerald); background: #f0fdf4; }
+
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th { background: #f8fafc; padding: 15px; text-align: left; font-size: 12px; color: var(--navy); }
+    td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
     
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { background: #f8fafc; text-align: left; padding: 14px; font-size: 13px; color: var(--navy); }
-    td { padding: 14px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-
-    @media (max-width: 768px) { .container { padding: 20px; } .score-banner { flex-direction: column; gap: 15px; text-align: center; } }
+    .loading { text-align: center; padding: 40px; font-weight: 700; color: var(--navy); }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="header">
-    <div class="brand">CENTRE <span>AL AKHAWAYN</span></div>
-    <div class="badge">Expertise IA Haute Précision</div>
-  </div>
+  <header class="header">
+    <div class="brand"><h1>CENTRE <span>AL AKHAWAYN</span></h1></div>
+    <div class="pill" style="border-color: var(--navy); color: var(--navy);">Système d'Expertise Baccalauréat</div>
+  </header>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div class="input-group"><label>Nom & Prénom de l'élève</label><input type="text" id="name" placeholder="Karim Benjelloun"></div>
-    <div class="input-group">
-        <label>Niveau Scolaire</label>
-        <select id="level">
-            <option>1ère BAC - Sciences Expérimentales</option>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+    <div><h2>Nom du candidat</h2><input type="text" id="name" placeholder="Ex: Karim Benjelloun"></div>
+    <div>
+        <h2>Filière / Niveau</h2>
+        <select id="filiere">
             <option>1ère BAC - Sciences Mathématiques</option>
-            <option>1ère BAC - Lettres & Humaines</option>
+            <option>1ère BAC - Sciences Expérimentales</option>
+            <option>1ère BAC - Lettres & Sc. Humaines</option>
             <option>Prépa Concours (CRMEF / ENS)</option>
         </select>
     </div>
   </div>
 
-  <div class="input-group"><label>Sujet d'expression écrite (Consigne complète)</label><textarea id="sujet" rows="3" placeholder="Saisissez le sujet ici..."></textarea></div>
-  <div class="input-group"><label>Zone de rédaction (Copie de l'élève)</label><textarea id="texte" class="writing-area" placeholder="Commencez à rédiger ici..."></textarea></div>
-
-  <button class="btn-submit" id="go" onclick="analyser()">Valider et Générer le Rapport d'Expertise</button>
-
-  <!-- SECTION RAPPORT DYNAMIQUE -->
-  <div id="reportSection">
-    <div class="score-banner">
-      <div id="resName" style="font-size: 22px; font-weight: 800; text-transform: uppercase;">CANDIDAT</div>
-      <div id="resScore" style="font-size: 36px; font-weight: 900; background: var(--primary); padding: 10px 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">--/10</div>
+  <div style="margin-bottom:30px;">
+    <h2>Sujet d'épreuve</h2>
+    <textarea id="sujet" rows="4" placeholder="Collez ici la consigne officielle..."></textarea>
+    <div class="bareme-strip">
+        <div class="pill">Consigne : <b>2pt</b></div>
+        <div class="pill">Structure : <b>2pt</b></div>
+        <div class="pill">Arguments : <b>2pt</b></div>
+        <div class="pill">Langue : <b>2.5pt</b></div>
+        <div class="pill">Lexique : <b>1.5pt</b></div>
     </div>
-
-    <div class="card"><h3>1. Transcription Annotée (Erreurs & Liens)</h3><div id="outTranscription" style="white-space: pre-wrap; font-size: 16px; line-height: 2.2;"></div></div>
-    <div class="card"><h3>2. Bilan Pédagogique & Remarques</h3><div id="outBilan"></div></div>
-    <div class="card"><h3>3. Tableau de Correction Détaillé</h3><div id="outTableau"></div></div>
-    <div class="card"><h3>4. Optimisation des Formulations</h3><div id="outReform"></div></div>
-
-    <div class="card" id="modelCard">
-      <h3>5. Texte Modèle Optimisé (Haut Niveau)</h3>
-      <div id="navOpinion" class="tab-nav" style="display:none;">
-        <button class="tab-btn active" id="btnS" onclick="showModel('S')">PLAN SIMPLE</button>
-        <button class="tab-btn" id="btnD" onclick="showModel('D')">PLAN DIALECTIQUE</button>
-      </div>
-      <div id="outModel"></div>
-    </div>
-    
-    <p style="text-align: center; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Expertise Pédagogique Certifiée - Centre Al Akhawayn</p>
   </div>
+
+  <div style="margin-bottom:30px;">
+    <h2>Votre production écrite</h2>
+    <textarea id="texte" class="writing-area" placeholder="Commencez votre rédaction ici..."></textarea>
+  </div>
+
+  <button class="btn-submit" id="btnGo" onclick="analyser()">Générer le Rapport d'Expertise Certifié</button>
+
+  <section id="reportSection">
+    <div class="report-card">
+      <div class="report-header">
+        <div>
+            <h3 id="resCand">NOM DU CANDIDAT</h3>
+            <p id="resFil" style="font-size: 12px; opacity: 0.8;"></p>
+        </div>
+        <div class="final-score" id="resTotal">--/10</div>
+      </div>
+
+      <div class="grid-points" id="pointDisplay">
+          <div class="point-card"><span>Consigne</span><b id="p1">-</b></div>
+          <div class="point-card"><span>Structure</span><b id="p2">-</b></div>
+          <div class="point-card"><span>Arguments</span><b id="p3">-</b></div>
+          <div class="point-card"><span>Langue</span><b id="p4">-</b></div>
+          <div class="point-card"><span>Lexique</span><b id="p5">-</b></div>
+      </div>
+
+      <h2>1. Transcription & Analyse Visuelle</h2>
+      <div class="card" id="outTranscription" style="line-height:2.4; font-size:16px; white-space: pre-wrap; padding: 25px; background: #fcfcfc;"></div>
+
+      <h2>2. Bilan Pédagogique</h2>
+      <div class="card" id="outBilan" style="margin-bottom: 25px;"></div>
+
+      <h2>3. Tableau des Erreurs</h2>
+      <div id="outTable" style="margin-bottom: 25px;"></div>
+
+      <h2>4. Optimisation des phrases</h2>
+      <div id="outReform" style="margin-bottom: 25px;"></div>
+
+      <div id="modelZone">
+        <h2>5. Texte Modèle d'Excellence</h2>
+        <div id="navChoice" class="tab-nav" style="display:none;">
+            <button class="tab-btn active" id="btnS" onclick="showM('S')">PLAN SIMPLE</button>
+            <button class="tab-btn" id="btnD" onclick="showM('D')">PLAN DIALECTIQUE</button>
+        </div>
+        <div id="outModel"></div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
-  let modelSimple = "", modelDialectique = "";
+  let simpleText = "", dialText = "";
 
-  function showModel(type) {
-    const out = document.getElementById('outModel');
-    document.getElementById('btnS')?.classList.toggle('active', type === 'S');
-    document.getElementById('btnD')?.classList.toggle('active', type === 'D');
-    out.innerHTML = marked.parse(type === 'S' ? modelSimple : modelDialectique);
+  function showM(type) {
+    document.getElementById('btnS')?.classList.toggle('active', type==='S');
+    document.getElementById('btnD')?.classList.toggle('active', type==='D');
+    document.getElementById('outModel').innerHTML = marked.parse(type==='S' ? simpleText : dialText);
   }
 
   async function analyser() {
-    const btn = document.getElementById('go');
-    const name = document.getElementById('name').value || "Candidat";
+    const btn = document.getElementById('btnGo');
+    const nom = document.getElementById('name').value;
+    const filiere = document.getElementById('filiere').value;
     const sujet = document.getElementById('sujet').value;
     const texte = document.getElementById('texte').value;
-    if(!sujet || !texte) return alert("Veuillez remplir le sujet et votre rédaction.");
+    if(!sujet || !texte) return alert("Sujet et texte requis.");
 
-    btn.disabled = true; btn.innerText = "ANALYSE EN COURS...";
+    btn.disabled = true; btn.innerText = "EXPERTISE EN COURS...";
     document.getElementById('reportSection').style.display = "block";
-    document.getElementById('outBilan').innerHTML = "L'IA examine votre production avec rigueur...";
+    document.getElementById('outBilan').innerHTML = "<div class='loading'>Analyse du plan et de la syntaxe par l'IA...</div>";
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: `ELEVE: ${name}\nSUJET: ${sujet}\nTEXTE: ${texte}` })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ prompt: `ELEVE: ${nom}\nSUJET: ${sujet}\nTEXTE: ${texte}`, nom, filiere })
       });
       const data = await res.json();
       const raw = data.result;
 
-      document.getElementById('resName').innerText = name;
-      const scoreMatch = raw.match(/(\d+(?:\.\d+)?)\/10/);
-      if(scoreMatch) document.getElementById('resScore').innerText = scoreMatch[0];
+      // Infos
+      document.getElementById('resCand').innerText = nom.toUpperCase();
+      document.getElementById('resFil').innerText = filiere;
 
-      // Découpage sécurisé des sections
-      const getSection = (start, end) => {
-          const parts = raw.split(start);
-          if (parts.length < 2) return "";
-          return parts[1].split(end)[0].trim();
-      };
-
-      document.getElementById('outBilan').innerHTML = marked.parse(getSection("[SECTION_BILAN]", "[SECTION_TRANSCRIPTION]"));
-      document.getElementById('outTranscription').innerHTML = getSection("[SECTION_TRANSCRIPTION]", "[SECTION_TABLEAU]");
-      document.getElementById('outTableau').innerHTML = marked.parse(getSection("[SECTION_TABLEAU]", "[SECTION_REFORMULATION]"));
-      document.getElementById('outReform').innerHTML = marked.parse(getSection("[SECTION_REFORMULATION]", "[SECTION_MODELES]"));
-
-      const modelSection = raw.split("[SECTION_MODELES]")[1] || "";
-
-      if(modelSection.includes("[PLAN_ANALYTIQUE]")) {
-        document.getElementById('navOpinion').style.display = "none";
-        document.getElementById('outModel').innerHTML = marked.parse(modelSection.replace("[PLAN_ANALYTIQUE]", ""));
-      } else {
-        document.getElementById('navOpinion').style.display = "flex";
-        modelSimple = modelSection.split("[PLAN_SIMPLE]")[1]?.split("[PLAN_DIALECTIQUE]")[0] || "Modèle en cours...";
-        modelDialectique = modelSection.split("[PLAN_DIALECTIQUE]")[1] || "Modèle en cours...";
-        showModel('S');
+      // Grille Points
+      const points = raw.match(/\[GRILLE_POINTS\]\s*:\s*Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
+      if(points) {
+          document.getElementById('p1').innerText = points[1] + '/2';
+          document.getElementById('p2').innerText = points[2] + '/2';
+          document.getElementById('p3').innerText = points[3] + '/2';
+          document.getElementById('p4').innerText = points[4] + '/2.5';
+          document.getElementById('p5').innerText = points[5] + '/1.5';
+          const total = parseFloat(points[1]) + parseFloat(points[2]) + parseFloat(points[3]) + parseFloat(points[4]) + parseFloat(points[5]);
+          document.getElementById('resTotal').innerText = total + "/10";
       }
-      
-      window.scrollTo({ top: document.getElementById('reportSection').offsetTop - 20, behavior: 'smooth' });
-    } catch (e) { 
-        console.error(e);
-        alert("Erreur de connexion avec le serveur."); 
-    } finally {
-        btn.disabled = false; btn.innerText = "Valider et Générer le Rapport d'Expertise";
-    }
+
+      const getS = (s, e) => {
+          const parts = raw.split(s);
+          return parts.length > 1 ? parts[1].split(e)[0].trim() : "";
+      }
+
+      document.getElementById('outBilan').innerHTML = marked.parse(getS("[BILAN_CRITIQUE]", "[TEXTE_ANNOTÉ]"));
+      document.getElementById('outTranscription').innerHTML = getS("[TEXTE_ANNOTÉ]", "[TABLEAU_ERREURS]");
+      document.getElementById('outTable').innerHTML = marked.parse(getS("[TABLEAU_ERREURS]", "[PHRASES_OPTIMISÉES]"));
+      document.getElementById('outReform').innerHTML = marked.parse(getS("[PHRASES_OPTIMISÉES]", "[MODELE_SECTION]"));
+
+      const modeZone = raw.split("[MODELE_SECTION]")[1] || "";
+      if(modeZone.includes("[PLAN_ANALYTIQUE]")) {
+          document.getElementById('navChoice').style.display = "none";
+          document.getElementById('outModel').innerHTML = marked.parse(modeZone.split("[PLAN_ANALYTIQUE]")[1]);
+      } else {
+          document.getElementById('navChoice').style.display = "flex";
+          simpleText = modeZone.split("[PLAN_SIMPLE]")[1]?.split("[PLAN_DIALECTIQUE]")[0] || "";
+          dialText = modeZone.split("[PLAN_DIALECTIQUE]")[1] || "";
+          showM('S');
+      }
+
+      window.scrollTo({ top: document.getElementById('reportSection').offsetTop, behavior: 'smooth' });
+    } catch (e) { alert("Erreur serveur."); }
+    btn.disabled = false; btn.innerText = "Générer le Rapport d'Expertise Certifié";
   }
 </script>
 </body>
