@@ -25,22 +25,27 @@ app.post('/api/chat', async (req, res) => {
           role: "system",
           content: `Tu es l'Expert en Chef du Centre Al Akhawayn. Produis un rapport d'expertise académique pour le candidat ${nom} en ${filiere}.
           
-          STRUCTURE OBLIGATOIRE (Utilise exactement ces balises) :
-          [GRILLE_POINTS] : Format: Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
-          [BILAN_CRITIQUE] : Analyse détaillée de la cohérence et de l'organisation.
-          [TEXTE_ANNOTÉ] : Texte élève. Fautes en <span class="err">faute</span>. Connecteurs logiques en <b class="connector-trans">connecteur</b>.
-          [TABLEAU_ERREURS] : Tableau Erreur|Nature|Correction.
-          [PHRASES_OPTIMISÉES] : Reformulations phrases faibles.
-          [MODELE_SECTION] : 
-          SI OPINION : Génère [PLAN_SIMPLE] ET [PLAN_DIALECTIQUE].
-          SI CAUSES/CONSEQUENCES : Génère [PLAN_ANALYTIQUE].
+          DIRECTIVES CRUCIALES :
+          - NE JAMAIS UTILISER LE MOT "IA", "AI" OU "ALGORITHME".
+          - Si le texte est HORS-SUJET, commence par "###HORS_SUJET###" puis l'explication.
+          
+          STRUCTURE OBLIGATOIRE (Utilise ces balises exactes) :
+          ###POINTS### Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
+          ###BILAN### (Remarques sur la structure et cohérence)
+          ###TRANSCRIPTION### (Texte élève. Fautes en <span class="err-red">...</span>. Connecteurs en <b class="link-blue">...</b>)
+          ###TABLEAU### (Tableau Markdown Erreur|Nature|Correction)
+          ###REFORMULATION### (Phrases optimisées)
+          
+          SECTION MODELES :
+          - Si OPINION : ###START_SIMPLE###...###END_SIMPLE### et ###START_DIALECTIQUE###...###END_DIALECTIQUE###.
+          - Si CAUSES/CONSEQUENCES : ###START_ANALYTIQUE###...###END_ANALYTIQUE###.
 
-          COLORATION DU MODÈLE :
+          COLORATION DU MODELE :
           - Intro : <div class="box-intro">...</div>
           - Développement : <div class="box-dev">...</div>
           - Conclusion : <div class="box-ccl">...</div>
-          - Connecteurs du modèle : <b class="connector-model">...</b>
-          - Œuvres (Antigone, Boîte à Merveilles, Condamné) en **GRAS**.`
+          - Connecteurs modèle : <b class="link-model">...</b>
+          - Exemples d'oeuvres en **GRAS**.`
         },
         { role: "user", content: prompt }
       ],
@@ -53,4 +58,4 @@ app.post('/api/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => { console.log(`Serveur prêt sur port ${PORT}`); });
+app.listen(PORT, '0.0.0.0', () => { console.log(`Serveur prêt`); });
