@@ -3,53 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expertise Écrite - Centre Al Akhawayn</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <title>Expertise Production Écrite | Centre Al Akhawayn</title>
+  
+  <!-- Polices et Bibliothèques -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+
   <style>
-    :root { --primary: #c5221f; --navy: #0b1528; --gold: #eab308; --bg: #f8fafc; }
-    body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: #1e293b; padding: 20px; }
-    .container { max-width: 1100px; margin: 0 auto; background: white; border-radius: 24px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
-    
-    /* Header */
+    :root {
+      --primary: #c5221f;
+      --navy: #0b1528;
+      --gold: #eab308;
+      --bg: #f4f7fa;
+      --surface: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: var(--bg); color: #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; line-height: 1.6; }
+
+    .container { max-width: 1100px; margin: 0 auto; background: var(--surface); border-radius: 24px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
+
+    /* --- HEADER --- */
     .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--bg); padding-bottom: 20px; margin-bottom: 30px; }
     .brand { font-family: 'Outfit'; font-size: 28px; font-weight: 800; color: var(--primary); }
     .brand span { color: var(--navy); }
+    .badge { background: var(--navy); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
 
-    /* Inputs */
+    /* --- INPUTS --- */
     .input-group { margin-bottom: 25px; }
     label { display: block; font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; color: var(--navy); }
-    input, textarea, select { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 15px; transition: 0.3s; }
-    input:focus, textarea:focus { border-color: var(--primary); }
-    .writing-paper { min-height: 350px; line-height: 30px; background-attachment: local; background-image: linear-gradient(to bottom, transparent 29px, #e2e8f0 29px); background-size: 100% 30px; border-color: var(--navy); }
-
-    /* Rapport */
-    #reportSection { display: none; margin-top: 50px; animation: fadeIn 0.8s; }
-    .card { background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-    .score-banner { display: flex; justify-content: space-between; align-items: center; background: var(--navy); color: white; padding: 20px 30px; border-radius: 16px; margin-bottom: 30px; }
+    input, textarea, select { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; outline: none; font-size: 15px; transition: 0.3s; font-family: inherit; }
+    input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(197, 34, 31, 0.1); }
     
-    /* Coloration IA */
-    .error-red { color: #e11d48; font-weight: 800; text-decoration: underline; }
-    .connector-blue { color: #2563eb; font-weight: 800; }
-    
-    /* Couleurs des Plans */
-    .plan-intro { background: #fef3c7; padding: 15px; border-left: 5px solid var(--gold); border-radius: 8px; margin-bottom: 10px; }
-    .plan-body { background: #dcfce7; padding: 15px; border-left: 5px solid #16a34a; border-radius: 8px; margin-bottom: 10px; }
-    .plan-concl { background: #e0e7ff; padding: 15px; border-left: 5px solid #4338ca; border-radius: 8px; }
-    .model-connector { color: #c5221f; font-weight: 800; text-decoration: underline; }
+    .writing-area { min-height: 400px; line-height: 30px; background-attachment: local; background-image: linear-gradient(to bottom, transparent 29px, #e2e8f0 29px); background-size: 100% 30px; border-color: var(--navy); }
 
-    /* Onglets */
-    .tab-nav { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab-btn { flex: 1; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; background: #e2e8f0; transition: 0.3s; }
-    .tab-btn.active { background: var(--primary); color: white; }
-    
-    .btn-submit { width: 100%; background: var(--primary); color: white; padding: 20px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.3s; }
-    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(197,34,31,0.2); }
+    .btn-submit { width: 100%; background: var(--primary); color: white; padding: 20px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; font-family: 'Outfit'; cursor: pointer; transition: 0.3s; text-transform: uppercase; margin-top: 10px; }
+    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(197,34,31,0.2); background: #a01a18; }
+    .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
 
+    /* --- RAPPORT PUISSANT --- */
+    #reportSection { display: none; margin-top: 50px; border-top: 4px solid var(--navy); padding-top: 40px; }
+    .card { background: white; border-radius: 18px; padding: 30px; margin-bottom: 25px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+    .score-banner { display: flex; justify-content: space-between; align-items: center; background: var(--navy); color: white; padding: 25px 35px; border-radius: 20px; margin-bottom: 35px; }
+    
+    h3 { font-family: 'Outfit'; text-transform: uppercase; font-size: 16px; margin-bottom: 20px; color: var(--navy); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+
+    /* --- COLORATION IA --- */
+    .error-red { color: #e11d48; font-weight: 800; text-decoration: underline; background: #fff1f2; padding: 0 2px; }
+    .connector-blue { color: #2563eb; font-weight: 800; text-transform: uppercase; font-size: 0.9em; }
+    
+    /* Couleurs des Structures de Plan */
+    .plan-intro { background: #fffbeb; padding: 20px; border-left: 6px solid var(--gold); border-radius: 10px; margin-bottom: 15px; }
+    .plan-body { background: #f0fdf4; padding: 20px; border-left: 6px solid #16a34a; border-radius: 10px; margin-bottom: 15px; }
+    .plan-concl { background: #eef2ff; padding: 20px; border-left: 6px solid #4338ca; border-radius: 10px; }
+    .model-connector { color: var(--primary); font-weight: 800; text-decoration: underline; }
+
+    /* Onglets de Choix */
+    .tab-nav { display: flex; gap: 12px; margin-bottom: 25px; }
+    .tab-btn { flex: 1; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; font-weight: 800; background: #f8fafc; transition: 0.3s; font-family: 'Outfit'; }
+    .tab-btn.active { background: #16a34a; color: white; border-color: #16a34a; }
+    
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { background: #f1f5f9; text-align: left; padding: 12px; font-size: 13px; }
-    td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    th { background: #f8fafc; text-align: left; padding: 14px; font-size: 13px; color: var(--navy); }
+    td { padding: 14px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+
+    @media (max-width: 768px) { .container { padding: 20px; } .score-banner { flex-direction: column; gap: 15px; text-align: center; } }
   </style>
 </head>
 <body>
@@ -57,61 +76,72 @@
 <div class="container">
   <div class="header">
     <div class="brand">CENTRE <span>AL AKHAWAYN</span></div>
-    <div class="badge">EVALUATION CONNECTÉE</div>
+    <div class="badge">Expertise IA Haute Précision</div>
   </div>
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div class="input-group"><label>Nom de l'élève</label><input type="text" id="name" placeholder="Prénom Nom"></div>
-    <div class="input-group"><label>Niveau</label><select id="level"><option>1ère BAC - Sciences</option><option>CRMEF / ENS</option></select></div>
+    <div class="input-group"><label>Nom & Prénom de l'élève</label><input type="text" id="name" placeholder="Karim Benjelloun"></div>
+    <div class="input-group">
+        <label>Niveau Scolaire</label>
+        <select id="level">
+            <option>1ère BAC - Sciences Expérimentales</option>
+            <option>1ère BAC - Sciences Mathématiques</option>
+            <option>1ère BAC - Lettres & Humaines</option>
+            <option>Prépa Concours (CRMEF / ENS)</option>
+        </select>
+    </div>
   </div>
 
-  <div class="input-group"><label>Sujet d'expression écrite</label><textarea id="sujet" rows="3" placeholder="Collez le sujet ici..."></textarea></div>
-  <div class="input-group"><label>Votre rédaction</label><textarea id="texte" class="writing-paper" placeholder="Rédigez ici..."></textarea></div>
+  <div class="input-group"><label>Sujet d'expression écrite (Consigne complète)</label><textarea id="sujet" rows="3" placeholder="Saisissez le sujet ici..."></textarea></div>
+  <div class="input-group"><label>Zone de rédaction (Copie de l'élève)</label><textarea id="texte" class="writing-area" placeholder="Commencez à rédiger ici..."></textarea></div>
 
-  <button class="btn-submit" id="go" onclick="analyser()">VALIDER ET GÉNÉRER L'EXPERTISE</button>
+  <button class="btn-submit" id="go" onclick="analyser()">Valider et Générer le Rapport d'Expertise</button>
 
+  <!-- SECTION RAPPORT DYNAMIQUE -->
   <div id="reportSection">
     <div class="score-banner">
-      <div id="resName" style="font-size: 20px; font-weight: 800;">CANDIDAT</div>
-      <div id="resScore" style="font-size: 32px; font-weight: 800; background: var(--primary); padding: 5px 15px; border-radius: 10px;">--/10</div>
+      <div id="resName" style="font-size: 22px; font-weight: 800; text-transform: uppercase;">CANDIDAT</div>
+      <div id="resScore" style="font-size: 36px; font-weight: 900; background: var(--primary); padding: 10px 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">--/10</div>
     </div>
 
-    <div class="card"><h3>Transcription & Erreurs</h3><div id="outTranscription"></div></div>
-    <div class="card"><h3>Bilan Pédagogique</h3><div id="outBilan"></div></div>
-    <div class="card"><h3>Tableau des Corrections</h3><div id="outTableau"></div></div>
-    <div class="card"><h3>Optimisation des phrases</h3><div id="outReform"></div></div>
+    <div class="card"><h3>1. Transcription Annotée (Erreurs & Liens)</h3><div id="outTranscription" style="white-space: pre-wrap; font-size: 16px; line-height: 2.2;"></div></div>
+    <div class="card"><h3>2. Bilan Pédagogique & Remarques</h3><div id="outBilan"></div></div>
+    <div class="card"><h3>3. Tableau de Correction Détaillé</h3><div id="outTableau"></div></div>
+    <div class="card"><h3>4. Optimisation des Formulations</h3><div id="outReform"></div></div>
 
     <div class="card" id="modelCard">
-      <h3>Texte Modèle Optimisé</h3>
+      <h3>5. Texte Modèle Optimisé (Haut Niveau)</h3>
       <div id="navOpinion" class="tab-nav" style="display:none;">
         <button class="tab-btn active" id="btnS" onclick="showModel('S')">PLAN SIMPLE</button>
         <button class="tab-btn" id="btnD" onclick="showModel('D')">PLAN DIALECTIQUE</button>
       </div>
       <div id="outModel"></div>
     </div>
+    
+    <p style="text-align: center; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Expertise Pédagogique Certifiée - Centre Al Akhawayn</p>
   </div>
 </div>
 
 <script>
-  let modelSimple = "", modelDialectique = "", modelAnalytique = "";
+  let modelSimple = "", modelDialectique = "";
 
   function showModel(type) {
     const out = document.getElementById('outModel');
     document.getElementById('btnS')?.classList.toggle('active', type === 'S');
     document.getElementById('btnD')?.classList.toggle('active', type === 'D');
-    if(type === 'S') out.innerHTML = marked.parse(modelSimple);
-    if(type === 'D') out.innerHTML = marked.parse(modelDialectique);
+    out.innerHTML = marked.parse(type === 'S' ? modelSimple : modelDialectique);
   }
 
   async function analyser() {
     const btn = document.getElementById('go');
-    const name = document.getElementById('name').value;
+    const name = document.getElementById('name').value || "Candidat";
     const sujet = document.getElementById('sujet').value;
     const texte = document.getElementById('texte').value;
-    if(!sujet || !texte) return alert("Champs vides !");
+    if(!sujet || !texte) return alert("Veuillez remplir le sujet et votre rédaction.");
 
-    btn.disabled = true; btn.innerText = "EXPERTISE EN COURS...";
+    btn.disabled = true; btn.innerText = "ANALYSE EN COURS...";
     document.getElementById('reportSection').style.display = "block";
+    document.getElementById('outBilan').innerHTML = "L'IA examine votre production avec rigueur...";
 
     try {
       const res = await fetch("/api/chat", {
@@ -122,31 +152,41 @@
       const data = await res.json();
       const raw = data.result;
 
-      document.getElementById('resName').innerText = name.toUpperCase();
-      const score = raw.match(/(\d+(?:\.\d+)?)\/10/);
-      if(score) document.getElementById('resScore').innerText = score[0];
+      document.getElementById('resName').innerText = name;
+      const scoreMatch = raw.match(/(\d+(?:\.\d+)?)\/10/);
+      if(scoreMatch) document.getElementById('resScore').innerText = scoreMatch[0];
 
-      // Découpage
-      const getSection = (start, end) => raw.split(start)[1]?.split(end)[0] || "";
-      
+      // Découpage sécurisé des sections
+      const getSection = (start, end) => {
+          const parts = raw.split(start);
+          if (parts.length < 2) return "";
+          return parts[1].split(end)[0].trim();
+      };
+
       document.getElementById('outBilan').innerHTML = marked.parse(getSection("[SECTION_BILAN]", "[SECTION_TRANSCRIPTION]"));
-      document.getElementById('outTranscription').innerHTML = getSection("[SECTION_TRANSCRIPTION]", "[SECTION_TABLEAU]").replace(/\n/g, '<br>');
+      document.getElementById('outTranscription').innerHTML = getSection("[SECTION_TRANSCRIPTION]", "[SECTION_TABLEAU]");
       document.getElementById('outTableau').innerHTML = marked.parse(getSection("[SECTION_TABLEAU]", "[SECTION_REFORMULATION]"));
       document.getElementById('outReform').innerHTML = marked.parse(getSection("[SECTION_REFORMULATION]", "[SECTION_MODELES]"));
 
-      if(raw.includes("[PLAN_ANALYTIQUE]")) {
+      const modelSection = raw.split("[SECTION_MODELES]")[1] || "";
+
+      if(modelSection.includes("[PLAN_ANALYTIQUE]")) {
         document.getElementById('navOpinion').style.display = "none";
-        document.getElementById('outModel').innerHTML = marked.parse(raw.split("[PLAN_ANALYTIQUE]")[1]);
+        document.getElementById('outModel').innerHTML = marked.parse(modelSection.replace("[PLAN_ANALYTIQUE]", ""));
       } else {
         document.getElementById('navOpinion').style.display = "flex";
-        modelSimple = raw.split("[PLAN_SIMPLE]")[1]?.split("[PLAN_DIALECTIQUE]")[0];
-        modelDialectique = raw.split("[PLAN_DIALECTIQUE]")[1];
+        modelSimple = modelSection.split("[PLAN_SIMPLE]")[1]?.split("[PLAN_DIALECTIQUE]")[0] || "Modèle en cours...";
+        modelDialectique = modelSection.split("[PLAN_DIALECTIQUE]")[1] || "Modèle en cours...";
         showModel('S');
       }
       
-      window.scrollTo({ top: document.getElementById('reportSection').offsetTop, behavior: 'smooth' });
-    } catch (e) { alert("Erreur serveur"); }
-    btn.disabled = false; btn.innerText = "VALIDER ET GÉNÉRER L'EXPERTISE";
+      window.scrollTo({ top: document.getElementById('reportSection').offsetTop - 20, behavior: 'smooth' });
+    } catch (e) { 
+        console.error(e);
+        alert("Erreur de connexion avec le serveur."); 
+    } finally {
+        btn.disabled = false; btn.innerText = "Valider et Générer le Rapport d'Expertise";
+    }
   }
 </script>
 </body>
