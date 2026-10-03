@@ -2,6 +2,7 @@
   "name": "serveur-pedagogique-centre-al-akhawayn",
   "version": "1.0.0",
   "type": "module",
+  "description": "Expertise en production écrite pour le Bac Marocain - Modèle GPT-4o-mini",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -11,5 +12,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "openai": "^4.61.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
