@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Expertise Production Écrite | Centre Al Akhawayn</title>
   
+  <!-- Polices et Bibliothèques -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- LIEN CORRIGÉ : Plus stable pour éviter "marked is not defined" -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 
   <style>
@@ -16,10 +15,9 @@
       --primary: #c5221f;
       --primary-dark: #8e1513;
       --navy: #0b1528;
-      --bg-page: #f8fafc;
+      --bg-page: #f1f5f9;
       --surface: #ffffff;
       --text: #0f172a;
-      --line-height: 28px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,6 +41,7 @@
       border: 1px solid #e2e8f0;
     }
 
+    /* --- HEADER --- */
     .header-banner {
       display: flex;
       justify-content: space-between;
@@ -55,6 +54,7 @@
     .brand-title span { color: var(--navy); }
     .badge-status { background: var(--navy); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-top: 5px; display: inline-block; }
 
+    /* --- FORMULAIRE --- */
     .zone-card { border-radius: 14px; margin-bottom: 24px; border: 1.5px solid #e2e8f0; overflow: hidden; background: white; }
     .zone-head { padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: var(--navy); }
     .zone-body { padding: 20px; }
@@ -65,38 +65,56 @@
       width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 14px; outline: none; transition: 0.2s;
     }
 
+    /* --- RÉDACTION STYLE PAPIER --- */
     .writing-area {
-      width: 100%; min-height: 450px; line-height: var(--line-height); font-size: 16px; padding: 0 15px; border: none; outline: none; resize: vertical;
+      width: 100%; min-height: 450px; line-height: 28px; font-size: 16px; padding: 0 15px; border: none; outline: none; resize: vertical;
       background-attachment: local;
-      background-image: linear-gradient(to bottom, transparent calc(var(--line-height) - 1px), #e2e8f0 calc(var(--line-height) - 1px));
-      background-size: 100% var(--line-height);
+      background-image: linear-gradient(to bottom, transparent 27px, #e2e8f0 27px);
+      background-size: 100% 28px;
     }
     .stats-bar { padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #64748b; }
 
+    /* --- BOUTON --- */
     .btn-evaluate {
       width: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white; border: none; padding: 20px; font-size: 17px; font-weight: 800;
       font-family: 'Outfit'; border-radius: 12px; cursor: pointer; transition: 0.3s; text-transform: uppercase;
     }
-    .btn-evaluate:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(197, 34, 31, 0.3); }
+    .btn-evaluate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(197, 34, 31, 0.3); }
     .btn-evaluate:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    #reportSection { display: none; margin-top: 40px; }
-    .report-container { border: 2px solid var(--navy); border-radius: 12px; padding: 35px; background: white; line-height: 1.8; }
+    /* --- RAPPORT IA (Dashboard) --- */
+    #reportSection { display: none; margin-top: 40px; border-top: 3px solid var(--navy); padding-top: 30px; }
     
+    .report-card-ui { background: white; border: 1px solid #e2e8f0; border-radius: 15px; padding: 30px; }
+    
+    .report-header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; }
+    .student-tag h2 { font-family: 'Outfit'; color: var(--navy); text-transform: uppercase; font-size: 22px; }
+    .final-score-badge { background: var(--navy); color: white; padding: 15px 25px; border-radius: 10px; font-size: 32px; font-weight: 800; font-family: 'Outfit'; }
+
     .hors-sujet-alert {
       background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 25px;
       border-radius: 12px; text-align: center; font-weight: 800; font-size: 18px; margin-bottom: 25px;
     }
-    .error-highlight { color: #dc2626; font-weight: 800; text-decoration: underline; }
-    .connector-bold { color: #000; font-weight: 800; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-    
-    table { width: 100%; border-collapse: collapse; margin: 25px 0; }
-    th { background: var(--navy); color: white; padding: 14px; text-align: left; }
-    td { border: 1px solid #e2e8f0; padding: 14px; font-size: 14px; }
-    tr:nth-child(even) { background: #f8fafc; }
 
-    @media (max-width: 768px) { .student-grid { grid-template-columns: 1fr; } }
+    .section-title { background: #f1f5f9; padding: 10px 15px; border-left: 5px solid var(--primary); margin: 25px 0 15px 0; font-weight: 800; text-transform: uppercase; font-size: 13px; color: var(--navy); }
+
+    .error-highlight { color: #dc2626; font-weight: 800; text-decoration: underline; }
+    .connector-bold { color: #000; font-weight: 800; background: #f1f5f9; padding: 2px 5px; border-radius: 4px; }
+
+    /* Onglets de choix de plan */
+    .tab-container { margin-top: 20px; }
+    .tab-buttons { display: flex; gap: 10px; margin-bottom: -2px; }
+    .tab-btn { padding: 12px 25px; border: 2px solid #e2e8f0; border-bottom: none; border-radius: 10px 10px 0 0; cursor: pointer; font-weight: 700; background: #f8fafc; color: #64748b; transition: 0.3s; }
+    .tab-btn.active { background: #f0fdf4; border-color: #16a34a; color: #16a34a; z-index: 2; }
+    .tab-content { display: none; background: #f0fdf4; padding: 25px; border-radius: 0 10px 10px 10px; border: 2px solid #16a34a; line-height: 1.8; }
+    .tab-content.active { display: block; }
+
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th { background: var(--navy); color: white; padding: 12px; text-align: left; }
+    td { border: 1px solid #e2e8f0; padding: 12px; font-size: 14px; }
+
+    @media (max-width: 768px) { .student-grid { grid-template-columns: 1fr; } .report-header-flex { flex-direction: column; gap: 15px; } }
   </style>
 </head>
 <body>
@@ -105,22 +123,22 @@
   <div class="header-banner">
     <div>
       <div class="brand-title">CENTRE <span>AL AKHAWAYN</span></div>
-      <div class="badge-status">Expertise Pédagogique GPT-4o-mini</div>
+      <div class="badge-status">Moteur Régional Anti-Hors-Sujet</div>
     </div>
     <div style="text-align: right; font-weight: 700; font-size: 13px; color: var(--navy);">
-      EXPERTISE ÉCRITE<br><span style="color: var(--primary); font-size: 11px;">Propulsé par OpenAI Excellence</span>
+      EXPERTISE BAC 1ÈRE ANNÉE<br><span style="color: var(--primary); font-size: 10px;">Correction Intelligente & Littéraire</span>
     </div>
   </div>
 
   <div class="zone-card">
-    <div class="zone-head">1) Identification</div>
+    <div class="zone-head">1) Informations du candidat</div>
     <div class="zone-body">
       <div class="student-grid">
-        <input type="text" id="studentName" placeholder="Nom et Prénom de l'élève">
+        <input type="text" id="studentName" placeholder="Prénom et Nom de l'élève">
         <select id="studentLevel">
           <option>1ère BAC - Sciences Expérimentales</option>
           <option>1ère BAC - Sciences Mathématiques</option>
-          <option>1ère BAC - Lettres & Sc. Humaines</option>
+          <option>1ère BAC - Lettres & Humaines</option>
           <option>Préparation Concours (CRMEF / ENS)</option>
         </select>
       </div>
@@ -130,7 +148,7 @@
   <div class="zone-card" style="border-left: 5px solid #f59e0b;">
     <div class="zone-head">2) Sujet d'expression écrite</div>
     <div class="zone-body">
-      <textarea id="sujetInput" rows="3" placeholder="Saisissez ici la consigne complète..."></textarea>
+      <textarea id="sujetInput" rows="3" placeholder="Saisissez ici la consigne officielle..."></textarea>
     </div>
   </div>
 
@@ -145,16 +163,43 @@
     </div>
   </div>
 
-  <button class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Valider et générer le rapport d'expertise</button>
+  <button class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Générer le rapport d'expertise</button>
 
+  <!-- SECTION RAPPORT -->
   <div id="reportSection">
-    <div class="report-container" id="resultatIA"></div>
+    <div class="report-card-ui">
+        <div class="report-header-flex">
+            <div class="student-tag">
+                <h2 id="resStudentName">CANDIDAT</h2>
+                <p id="resStudentLevel" style="color:#64748b; font-weight:600; font-size:12px;"></p>
+            </div>
+            <div class="final-score-badge" id="resScore">--/10</div>
+        </div>
+
+        <div id="bilanContent"></div>
+
+        <!-- Zone Onglets (Plan Opinion) -->
+        <div id="opinionTabs" class="tab-container" style="display:none;">
+            <div class="section-title">Texte Modèle Optimisé (Choisissez votre plan)</div>
+            <div class="tab-buttons">
+                <button id="btnSimple" class="tab-btn active" onclick="switchTab('simple')">PLAN SIMPLE</button>
+                <button id="btnDialectique" class="tab-btn" onclick="switchTab('dialectique')">PLAN DIALECTIQUE</button>
+            </div>
+            <div id="contentSimple" class="tab-content active"></div>
+            <div id="contentDialectique" class="tab-content"></div>
+        </div>
+
+        <!-- Zone Plan Unique (Analytique) -->
+        <div id="analyticalZone" class="tab-container" style="display:none;">
+            <div class="section-title">Texte Modèle Optimisé (Plan Analytique)</div>
+            <div id="contentAnalytique" class="tab-content active"></div>
+        </div>
+    </div>
   </div>
 </div>
 
 <script>
-  // UTILISEZ L'URL COMPLÈTE DE RAILWAY ICI
-  const RAILWAY_BACKEND = "https://serveur-pedagogique-production.up.railway.app/api/chat";
+  const RAILWAY_BACKEND = "/api/chat";
 
   function actualiserCompteurs() {
     const text = document.getElementById('studentText').value;
@@ -162,23 +207,30 @@
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     const lineInfo = document.getElementById('lineInfo');
     lineInfo.textContent = `Lignes utilisées : ${lines} / 25`;
+    lineInfo.style.color = lines > 25 ? "var(--primary)" : "#64748b";
     document.getElementById('wordInfo').textContent = `Nombre de mots : ${words}`;
   }
 
+  function switchTab(type) {
+    document.getElementById('btnSimple').classList.toggle('active', type === 'simple');
+    document.getElementById('btnDialectique').classList.toggle('active', type === 'dialectique');
+    document.getElementById('contentSimple').classList.toggle('active', type === 'simple');
+    document.getElementById('contentDialectique').classList.toggle('active', type === 'dialectique');
+  }
+
   async function lancerEvaluationIA() {
-    const nom = document.getElementById('studentName').value || "Candidat(e)";
+    const nom = document.getElementById('studentName').value || "Candidat";
+    const niveau = document.getElementById('studentLevel').value;
     const sujet = document.getElementById('sujetInput').value.trim();
     const texte = document.getElementById('studentText').value.trim();
     const btn = document.getElementById('btnValider');
-    const output = document.getElementById('resultatIA');
-    const reportSection = document.getElementById('reportSection');
-
-    if (!sujet || !texte) return alert("Veuillez remplir le sujet et la rédaction.");
+    
+    if (!sujet || !texte) return alert("Sujet et texte obligatoires.");
 
     btn.disabled = true;
-    btn.textContent = "Analyse en cours par GPT-4o-mini...";
-    reportSection.style.display = 'block';
-    output.innerHTML = "<div style='text-align:center; padding: 40px;'>L'IA examine votre copie. Veuillez patienter...</div>";
+    btn.textContent = "ANALYSE EN COURS...";
+    document.getElementById('reportSection').style.display = 'block';
+    document.getElementById('bilanContent').innerHTML = "<p style='text-align:center; padding:20px;'>L'IA prépare votre rapport détaillé...</p>";
 
     try {
       const response = await fetch(RAILWAY_BACKEND, {
@@ -188,22 +240,44 @@
       });
 
       const data = await response.json();
-      
-      if (response.ok) {
-        // CORRECTION ICI : Utilisation de marked.parse() qui est plus robuste
-        output.innerHTML = marked.parse(data.result);
-        window.scrollTo({ top: reportSection.offsetTop - 20, behavior: 'smooth' });
+      const raw = data.result;
+
+      // Mise à jour des infos élève
+      document.getElementById('resStudentName').innerText = nom.toUpperCase();
+      document.getElementById('resStudentLevel').innerText = niveau;
+
+      if (raw.includes("HORS-SUJET")) {
+        document.getElementById('bilanContent').innerHTML = raw;
+        document.getElementById('resScore').innerText = "00/10";
+        document.getElementById('opinionTabs').style.display = "none";
+        document.getElementById('analyticalZone').style.display = "none";
       } else {
-        output.innerHTML = `<p style="color:red; text-align:center;">Erreur IA : ${data.error}</p>`;
+        // Extraction de la note
+        const scoreMatch = raw.match(/(\d+(?:\.\d+)?)\/10/);
+        if(scoreMatch) document.getElementById('resScore').innerText = scoreMatch[0];
+
+        // Découpage du texte selon les balises
+        const parts = raw.split(/\[PLAN_SIMPLE\]|\[PLAN_DIALECTIQUE\]|\[PLAN_ANALYTIQUE\]/i);
+        document.getElementById('bilanContent').innerHTML = marked.parse(parts[0]);
+
+        if (raw.includes("[PLAN_SIMPLE]")) {
+            document.getElementById('opinionTabs').style.display = "block";
+            document.getElementById('analyticalZone').style.display = "none";
+            document.getElementById('contentSimple').innerHTML = marked.parse(raw.split("[PLAN_SIMPLE]")[1].split("[PLAN_DIALECTIQUE]")[0]);
+            document.getElementById('contentDialectique').innerHTML = marked.parse(raw.split("[PLAN_DIALECTIQUE]")[1]);
+        } else if (raw.includes("[PLAN_ANALYTIQUE]")) {
+            document.getElementById('opinionTabs').style.display = "none";
+            document.getElementById('analyticalZone').style.display = "block";
+            document.getElementById('contentAnalytique').innerHTML = marked.parse(raw.split("[PLAN_ANALYTIQUE]")[1]);
+        }
       }
+      window.scrollTo({ top: document.getElementById('reportSection').offsetTop - 20, behavior: 'smooth' });
+
     } catch (error) {
-      output.innerHTML = `<p style="color:red; text-align:center; padding: 20px;">
-        <b>Erreur de traitement :</b> ${error.message}<br><br>
-        <i>Vérifiez que vous utilisez bien l'URL https://centrealakhawayn.com</i>
-      </p>`;
+      document.getElementById('bilanContent').innerHTML = "<p style='color:red;'>Erreur de connexion. Vérifiez Railway.</p>";
     } finally {
       btn.disabled = false;
-      btn.textContent = "Valider et générer le rapport d'expertise";
+      btn.textContent = "Générer le rapport d'expertise";
     }
   }
 </script>
