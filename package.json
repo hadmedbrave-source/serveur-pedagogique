@@ -2,15 +2,27 @@
   "name": "serveur-pedagogique-centre-al-akhawayn",
   "version": "1.1.0",
   "type": "module",
-  "description": "Expertise académique de production écrite - Bac Maroc",
+  "description": "Système de Procès-Verbal d'expertise académique pour le Bac Maroc",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "education",
+    "bac-maroc",
+    "openai",
+    "expertise-pedagogique"
+  ],
+  "author": "Centre Al Akhawayn",
+  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "openai": "^4.61.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
