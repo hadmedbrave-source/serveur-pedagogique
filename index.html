@@ -3,89 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centre Al Akhawayn - Rapport d'Expertise</title>
+  <title>PV d'Expertise - Centre Al Akhawayn</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@400;700;900&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
   <style>
     :root { --navy: #0b1528; --crimson: #c5221f; --gold: #b45309; --emerald: #065f46; --indigo: #1e1b4b; --bg: #f8fafc; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px 20px; color: #0f172a; }
-    .container { max-width: 1100px; margin: 0 auto; background: white; border-radius: 12px; padding: 50px; box-shadow: 0 30px 60px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+    
+    .main-box { max-width: 1100px; margin: 0 auto; background: white; border-radius: 12px; padding: 50px; box-shadow: 0 40px 100px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
 
     /* --- TITRES --- */
-    .header-main { text-align: center; border-bottom: 4px double var(--navy); padding-bottom: 30px; margin-bottom: 40px; }
-    .header-main h1 { font-family: 'Outfit'; font-size: 35px; font-weight: 900; color: var(--navy); }
-    .header-main span { color: var(--crimson); }
-    .official-stamp { font-family: 'Cinzel', serif; font-size: 12px; color: var(--gold); letter-spacing: 2px; font-weight: 700; margin-top: 10px; }
+    .header-pv { text-align: center; border-bottom: 5px double var(--navy); padding-bottom: 30px; margin-bottom: 40px; }
+    .header-pv h1 { font-family: 'Outfit'; font-size: 38px; font-weight: 900; color: var(--navy); text-transform: uppercase; }
+    .header-pv span { color: var(--crimson); }
+    .subtitle { font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 3px; font-size: 13px; margin-top: 10px; }
 
     /* --- FORMULAIRE --- */
-    .form-panel { background: #fcfcfc; border: 1.5px solid #f1f5f9; padding: 30px; border-radius: 15px; margin-bottom: 30px; }
+    .section-input { background: #fcfcfc; border: 1px solid #f1f5f9; padding: 30px; border-radius: 15px; margin-bottom: 30px; }
     h2 { font-family: 'Outfit'; font-size: 16px; text-transform: uppercase; color: var(--navy); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-    h2::before { content: ''; width: 5px; height: 18px; background: var(--crimson); border-radius: 10px; }
+    h2::before { content: ''; width: 6px; height: 18px; background: var(--crimson); border-radius: 10px; }
 
-    input, textarea, select { width: 100%; padding: 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; background: white; }
-    input:focus, textarea:focus { border-color: var(--crimson); box-shadow: 0 0 0 5px rgba(197, 34, 31, 0.05); }
+    input, textarea, select { width: 100%; padding: 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; }
+    input:focus, textarea:focus { border-color: var(--crimson); background: white; box-shadow: 0 0 0 5px rgba(197, 34, 31, 0.05); }
 
-    .bareme-strip { display: flex; gap: 10px; flex-wrap: wrap; margin: 15px 0; }
-    .pill { background: white; border: 1.5px solid #e2e8f0; padding: 8px 15px; border-radius: 10px; font-size: 11px; font-weight: 800; color: #475569; }
-    .pill b { color: var(--crimson); }
+    .writing-paper { min-height: 450px; line-height: 32px; background-attachment: local; background-image: linear-gradient(#e2e8f0 1px, transparent 1px); background-size: 100% 32px; border: 2px solid var(--navy); padding: 10px 20px; font-size: 17px; }
 
-    .paper { min-height: 450px; line-height: 32px; background-attachment: local; background-image: linear-gradient(#e2e8f0 1px, transparent 1px); background-size: 100% 32px; border: 2px solid var(--navy); font-size: 17px; }
+    .btn-validate { width: 100%; padding: 25px; background: var(--crimson); color: white; border: none; border-radius: 15px; font-size: 20px; font-weight: 900; font-family: 'Outfit'; cursor: pointer; transition: 0.4s; text-transform: uppercase; box-shadow: 0 20px 40px rgba(197,34,31,0.2); }
+    .btn-validate:hover { transform: translateY(-3px); background: #a01a18; }
 
-    .btn-exec { width: 100%; padding: 25px; background: var(--crimson); color: white; border: none; border-radius: 15px; font-size: 20px; font-weight: 900; font-family: 'Outfit'; cursor: pointer; transition: 0.4s; text-transform: uppercase; box-shadow: 0 15px 30px rgba(197,34,31,0.2); }
-    .btn-exec:hover { transform: translateY(-3px); background: #a01a18; }
-
-    /* --- RAPPORT DE PRESTIGE --- */
-    #reportSection { display: none; margin-top: 80px; border: 1px solid #000; padding: 60px; position: relative; background: #fff; }
-    #reportSection::before { content: 'DOCUMENT OFFICIEL'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 80px; font-family: 'Outfit'; color: rgba(0,0,0,0.02); pointer-events: none; z-index: 0; white-space: nowrap; }
-
-    .doc-header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .doc-header h3 { font-family: 'Cinzel'; font-size: 24px; }
-    .id-card { font-size: 14px; font-weight: 700; text-transform: uppercase; color: #444; }
-
-    /* Grille de Score */
+    /* --- RAPPORT OFFICIEL --- */
+    #reportSection { display: none; margin-top: 80px; border: 2px solid #000; padding: 60px; background: #fff; position: relative; }
+    .doc-head { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .doc-head h3 { font-family: 'Cinzel'; font-size: 28px; text-decoration: underline; }
+    
     .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 40px; }
-    .score-cell { border: 1.5px solid #000; padding: 15px; text-align: center; }
-    .score-cell label { display: block; font-size: 9px; font-weight: 900; margin-bottom: 5px; color: #666; text-transform: uppercase; }
-    .score-cell span { font-size: 22px; font-weight: 900; font-family: 'Outfit'; }
+    .score-box { border: 2px solid #000; padding: 15px; text-align: center; background: #fafafa; }
+    .score-box label { display: block; font-size: 10px; font-weight: 900; margin-bottom: 8px; color: #555; }
+    .score-box span { font-size: 24px; font-weight: 900; font-family: 'Outfit'; }
 
-    /* IA Output Styles */
-    .err-red { color: #e11d48; font-weight: 800; text-decoration: underline wavy #fda4af; background: #fff1f2; }
-    .link-blue { color: #1d4ed8; font-weight: 800; text-transform: uppercase; font-size: 0.9em; border-bottom: 2px solid #bfdbfe; }
-    .link-model { color: var(--crimson); font-weight: 900; border-bottom: 2px solid var(--gold); }
+    .total-banner { background: #000; color: #fff; padding: 20px 40px; display: flex; justify-content: space-between; font-weight: 900; font-size: 28px; margin-bottom: 50px; }
 
-    .box-intro { background: #fffbeb; padding: 30px; border: 1.5px dashed var(--gold); border-radius: 10px; margin-bottom: 15px; }
-    .box-dev { background: #f0fdf4; padding: 30px; border: 1.5px dashed var(--emerald); border-radius: 10px; margin-bottom: 15px; }
-    .box-ccl { background: #eff6ff; padding: 30px; border: 1.5px dashed var(--navy); border-radius: 10px; }
+    /* Coloration IA */
+    .err-red { color: #e11d48; font-weight: 800; text-decoration: underline wavy #fda4af; padding: 0 2px; }
+    .connector-trans { color: #1d4ed8; font-weight: 800; border-bottom: 2px solid #bfdbfe; padding: 0 4px; }
+    .connector-model { color: var(--crimson); font-weight: 900; border-bottom: 2px solid var(--gold); }
 
-    /* Onglets Modèles */
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab-btn { flex: 1; padding: 18px; border: 1px solid #000; font-weight: 800; cursor: pointer; background: #eee; font-family: 'Outfit'; }
-    .tab-btn.active { background: #000; color: #fff; }
+    /* Plan Boxes */
+    .box-intro { background: #fffbeb; padding: 35px; border: 2px solid var(--gold); border-radius: 15px; margin-bottom: 20px; }
+    .box-body { background: #f0fdf4; padding: 35px; border: 2px solid var(--emerald); border-radius: 15px; margin-bottom: 20px; }
+    .box-concl { background: #eff6ff; padding: 35px; border: 2px solid var(--navy); border-radius: 15px; }
 
-    /* Sceau Final */
-    .signature-block { margin-top: 80px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 40px; }
-    .seal-circle { width: 150px; height: 150px; border: 3px solid var(--gold); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-15deg); color: var(--gold); text-align: center; }
-    .seal-circle b { font-family: 'Cinzel'; font-size: 14px; }
-    .seal-circle i { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+    /* Tabs */
+    .tab-group { display: flex; gap: 10px; margin-bottom: 25px; }
+    .t-btn { flex: 1; padding: 20px; border: 2px solid #000; font-weight: 900; cursor: pointer; background: #eee; font-family: 'Outfit'; transition: 0.3s; }
+    .t-btn.active { background: #000; color: #fff; }
 
-    table { width: 100%; border-collapse: collapse; margin: 25px 0; }
-    th { background: #f4f4f4; border: 1px solid #000; padding: 15px; text-align: left; font-size: 12px; }
-    td { border: 1px solid #000; padding: 15px; font-size: 14px; }
+    /* Sceau */
+    .footer-pv { margin-top: 80px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 40px; }
+    .seal-akhawayn { width: 160px; height: 160px; border: 4px solid var(--gold); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-10deg); color: var(--gold); text-align: center; }
+    .seal-akhawayn b { font-family: 'Cinzel'; font-size: 16px; }
+
+    table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+    th { background: #000; color: #fff; padding: 15px; text-align: left; }
+    td { border: 1px solid #000; padding: 15px; font-size: 15px; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <header class="header-main">
+<div class="main-box">
+  <header class="header-pv">
     <h1>CENTRE <span>AL AKHAWAYN</span></h1>
-    <div class="official-stamp">DIRECTION DES ÉTUDES & PRÉPA CONCOURS</div>
+    <p class="subtitle">PLATEFORME D'EXPERTISE PÉDAGOGIQUE OFFICIELLE</p>
   </header>
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div class="form-panel"><h2>Candidat</h2><input type="text" id="name" placeholder="Nom et Prénom"></div>
-    <div class="form-panel">
-        <h2>Filière / Option</h2>
+    <div class="section-input"><h2>Candidat</h2><input type="text" id="name" placeholder="Nom et Prénom"></div>
+    <div class="section-input">
+        <h2>Filière / Niveau</h2>
         <select id="filiere">
             <option>1ère BAC - Sciences Mathématiques</option>
             <option>1ère BAC - Sciences Expérimentales</option>
@@ -95,10 +90,10 @@
     </div>
   </div>
 
-  <div class="form-panel">
-    <h2>Consigne du Sujet</h2>
-    <textarea id="sujet" rows="4" placeholder="Collez le sujet ici..."></textarea>
-    <div class="bareme-strip">
+  <div class="section-input">
+    <h2>Sujet d'épreuve</h2>
+    <textarea id="sujet" rows="4" placeholder="Saisissez la consigne du sujet..."></textarea>
+    <div style="display:flex; gap:10px; margin-top:15px;">
         <div class="pill">Consigne : <b>2pt</b></div>
         <div class="pill">Structure : <b>2pt</b></div>
         <div class="pill">Arguments : <b>2pt</b></div>
@@ -107,85 +102,82 @@
     </div>
   </div>
 
-  <div class="form-panel" style="border: 2px solid var(--navy);">
-    <h2>Production de l'élève</h2>
-    <textarea id="texte" class="paper" placeholder="Rédigez ici..."></textarea>
+  <div class="section-input" style="border: 2px solid var(--navy);">
+    <h2>Zone de Rédaction</h2>
+    <textarea id="texte" class="writing-paper" placeholder="Rédigez votre production écrite ici..."></textarea>
   </div>
 
-  <button class="btn-exec" id="btnRun" onclick="analyser()">Générer le Rapport d'Expertise Certifié</button>
+  <button class="btn-validate" id="btnRun" onclick="analyser()">Lancer la Validation Académique</button>
 
-  <!-- LE RAPPORT OFFICIEL -->
+  <!-- RAPPORT -->
   <section id="reportSection">
-    <div class="doc-header">
+    <div class="doc-head">
         <div>
-            <h3>Expertise Didactique</h3>
-            <div class="id-card">
-                Candidat : <span id="resNom">...</span><br>
-                Filière : <span id="resFil">...</span>
+            <h3>Procès-Verbal d'Expertise</h3>
+            <div style="font-weight:700; margin-top:10px;">
+                CANDIDAT : <span id="rNom">...</span><br>
+                FILIÈRE : <span id="rFil">...</span>
             </div>
         </div>
-        <div style="text-align: right;">
-            <div style="font-weight: 900; font-size: 14px;">Réf : AKH-2024-PRD</div>
-            <div id="resDate" style="font-size: 12px; color: #666;"></div>
+        <div style="text-align:right">
+            <div style="font-weight:900;">Réf : AKH-2024-EX</div>
+            <div id="rDate"></div>
         </div>
     </div>
 
     <div class="score-grid">
-        <div class="score-cell"><label>Consigne</label><span id="v1">0</span></div>
-        <div class="score-cell"><label>Structure</label><span id="v2">0</span></div>
-        <div class="score-cell"><label>Arguments</label><span id="v3">0</span></div>
-        <div class="score-cell"><label>Langue</label><span id="v4">0</span></div>
-        <div class="score-cell"><label>Lexique</label><span id="v5">0</span></div>
+        <div class="score-box"><label>Consigne</label><span id="v1">0</span></div>
+        <div class="score-box"><label>Structure</label><span id="v2">0</span></div>
+        <div class="score-box"><label>Arguments</label><span id="v3">0</span></div>
+        <div class="score-box"><label>Langue</label><span id="v4">0</span></div>
+        <div class="score-box"><label>Lexique</label><span id="v5">0</span></div>
     </div>
 
-    <div style="background: #000; color: #fff; padding: 15px 30px; display: flex; justify-content: space-between; font-weight: 900; font-size: 24px; margin-bottom: 40px;">
-        <span>RESULTAT GLOBAL :</span>
-        <span id="resTotal">--/10</span>
+    <div class="total-banner">
+        <span>RÉSULTAT DE L'EXPERTISE :</span>
+        <span id="rTotal">--/10</span>
     </div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px;">1. Transcription du manuscrit</h2>
-    <div id="outTrans" style="line-height: 2.8; font-size: 18px; padding: 30px; background: #fafafa; border: 1px solid #eee; margin-bottom: 40px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom:10px;">1. Transcription Annotée</h2>
+    <div id="outTrans" style="line-height:2.8; font-size:18px; padding:35px; background:#fcfcfc; border:1px solid #eee; margin-bottom:50px;"></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px;">2. Analyse de la structure</h2>
-    <div id="outBilan" style="margin-bottom: 40px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom:10px;">2. Audit de Structure & Cohérence</h2>
+    <div id="outBilan" style="margin-bottom:50px;"></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px;">3. Audit des erreurs</h2>
-    <div id="outTable" style="margin-bottom: 40px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom:10px;">3. Récapitulatif des Anomalies</h2>
+    <div id="outTable" style="margin-bottom:50px;"></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px;">4. Optimisation stylistique</h2>
-    <div id="outReform" style="margin-bottom: 40px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom:10px;">4. Optimisation Stylistique</h2>
+    <div id="outReform" style="margin-bottom:50px;"></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px;">5. Modèle de référence</h2>
-    <div id="modelBox">
-        <div id="navChoice" class="tabs" style="display:none;">
-            <button class="tab-btn active" id="btnS" onclick="showM('S')">PLAN SIMPLE</button>
-            <button class="tab-btn" id="btnD" onclick="showM('D')">PLAN DIALECTIQUE</button>
-        </div>
-        <div id="outModel"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom:10px;">5. Modèle d'Excellence Certifié</h2>
+    <div id="modelNav" class="tab-group" style="display:none;">
+        <button class="t-btn active" id="ts" onclick="setM('S')">VERSION : PLAN SIMPLE</button>
+        <button class="t-btn" id="td" onclick="setM('D')">VERSION : PLAN DIALECTIQUE</button>
     </div>
+    <div id="outModel"></div>
 
-    <footer class="signature-block">
-        <div class="footer-text">
+    <footer class="footer-pv">
+        <div style="font-size:13px;">
             <strong>Rapport Pédagogique Certifié Conforme</strong><br>
             Expertise pédagogique, conception didactique et barèmes académiques officiels.<br><br>
             Centre Al Akhawayn • Centre Pro-Langues & Préparation aux Concours d'Excellence.
         </div>
-        <div class="seal-circle">
-            <i>Sceau d'Authenticité</i>
+        <div class="seal-akhawayn">
             <b>C. Al Akhawayn</b>
-            <i>Certifié 2024</i>
+            <span style="font-size:9px; margin-top:5px; font-weight:800;">SCEAU D'AUTHENTICITÉ</span>
         </div>
     </footer>
   </section>
 </div>
 
 <script>
-  let sText = "", dText = "";
+  let txtS = "", txtD = "";
 
-  function showM(t) {
-    document.getElementById('btnS')?.classList.toggle('active', t==='S');
-    document.getElementById('btnD')?.classList.toggle('active', t==='D');
-    document.getElementById('outModel').innerHTML = marked.parse(t==='S' ? sText : dText);
+  function setM(t) {
+    document.getElementById('ts')?.classList.toggle('active', t==='S');
+    document.getElementById('td')?.classList.toggle('active', t==='D');
+    document.getElementById('outModel').innerHTML = marked.parse(t==='S' ? txtS : txtD);
   }
 
   async function analyser() {
@@ -193,62 +185,66 @@
     const filiere = document.getElementById('filiere').value;
     const sujet = document.getElementById('sujet').value;
     const texte = document.getElementById('texte').value;
-    if(!sujet || !texte) return alert("Champs obligatoires.");
+    if(!sujet || !texte) return alert("Saisie incomplète.");
 
-    document.getElementById('btnRun').innerText = "GÉNÉRATION DU RAPPORT...";
+    document.getElementById('btnRun').innerText = "GÉNÉRATION EN COURS...";
     document.getElementById('btnRun').disabled = true;
-    document.getElementById('resDate').innerText = new Date().toLocaleDateString('fr-FR');
+    document.getElementById('rDate').innerText = new Date().toLocaleDateString('fr-FR');
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ prompt: `NOM: ${nom}\nFILIERE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`, nom, filiere })
+        body: JSON.stringify({ prompt: `ÉLÈVE: ${nom}\nFILIÈRE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`, nom, filiere })
       });
       const data = await res.json();
       const raw = data.result;
 
-      if(raw.includes("HORS_SUJET")) {
-          alert("Alerte : Le texte produit est hors-sujet.");
+      document.getElementById('rNom').innerText = nom.toUpperCase();
+      document.getElementById('rFil').innerText = filiere;
+
+      const score = raw.match(/Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
+      if(score) {
+          document.getElementById('v1').innerText = score[1];
+          document.getElementById('v2').innerText = score[2];
+          document.getElementById('v3').innerText = score[3];
+          document.getElementById('v4').innerText = score[4];
+          document.getElementById('v5').innerText = score[5];
+          let total = (parseFloat(score[1])+parseFloat(score[2])+parseFloat(score[3])+parseFloat(score[4])+parseFloat(score[5])).toFixed(1);
+          document.getElementById('rTotal').innerText = total + "/10";
       }
 
-      document.getElementById('resNom').innerText = nom.toUpperCase();
-      document.getElementById('resFil').innerText = filiere;
-
-      // Parsing Score
-      const pts = raw.match(/Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
-      if(pts) {
-          document.getElementById('v1').innerText = pts[1];
-          document.getElementById('v2').innerText = pts[2];
-          document.getElementById('v3').innerText = pts[3];
-          document.getElementById('v4').innerText = pts[4];
-          document.getElementById('v5').innerText = pts[5];
-          document.getElementById('resTotal').innerText = (parseFloat(pts[1])+parseFloat(pts[2])+parseFloat(pts[3])+parseFloat(pts[4])+parseFloat(pts[5])).toFixed(1) + "/10";
+      // FONCTION D'EXTRACTION ROBUSTE
+      const get = (tag) => {
+          const parts = raw.split("[["+tag+"]]");
+          if(parts.length < 2) return "";
+          // On cherche la fin de la section soit à la prochaine balise [[ soit à la fin
+          const content = parts[1].split("[[")[0];
+          return content.trim();
       }
 
-      const get = (s, e) => (raw.split(s)[1] || "").split(e)[0].trim();
+      document.getElementById('outBilan').innerHTML = marked.parse(get("BILAN"));
+      document.getElementById('outTrans').innerHTML = get("TRANSCRIPTION");
+      document.getElementById('outTable').innerHTML = marked.parse(get("TABLEAU"));
+      document.getElementById('outReform').innerHTML = marked.parse(get("REFORMULATION"));
 
-      document.getElementById('outBilan').innerHTML = marked.parse(get("###BILAN###", "###TRANSCRIPTION###"));
-      document.getElementById('outTrans').innerHTML = get("###TRANSCRIPTION###", "###TABLEAU###");
-      document.getElementById('outTable').innerHTML = marked.parse(get("###TABLEAU###", "###REFORMULATION###"));
-      document.getElementById('outReform').innerHTML = marked.parse(get("###REFORMULATION###", "###START_"));
-
-      // Extraction Modèles (Bug Fixé ici)
-      if(raw.includes("###START_ANALYTIQUE###")) {
-          document.getElementById('navChoice').style.display = "none";
-          document.getElementById('outModel').innerHTML = marked.parse(get("###START_ANALYTIQUE###", "###END_ANALYTIQUE###"));
+      // GESTION DU TEXTE OPTIMISÉ (BUG FIXÉ)
+      const type = get("MOD_TYPE");
+      if(type.includes("ANALYTIQUE")) {
+          document.getElementById('modelNav').style.display = "none";
+          document.getElementById('outModel').innerHTML = marked.parse(get("MOD_ANALYTIQUE").split("[[END_ANALYTIQUE]]")[0]);
       } else {
-          document.getElementById('navChoice').style.display = "flex";
-          sText = get("###START_SIMPLE###", "###END_SIMPLE###");
-          dText = get("###START_DIALECTIQUE###", "###END_DIALECTIQUE###");
-          showM('S');
+          document.getElementById('modelNav').style.display = "flex";
+          txtS = get("MOD_SIMPLE").split("[[END_SIMPLE]]")[0];
+          txtD = get("MOD_DIALECTIQUE").split("[[END_DIALECTIQUE]]")[0];
+          setM('S');
       }
 
       document.getElementById('reportSection').style.display = "block";
       window.scrollTo({ top: document.getElementById('reportSection').offsetTop - 20, behavior: 'smooth' });
-    } catch (e) { console.error(e); }
+    } catch (e) { alert("Erreur réseau."); }
     document.getElementById('btnRun').disabled = false;
-    document.getElementById('btnRun').innerText = "Générer l'Expertise Certifiée";
+    document.getElementById('btnRun').innerText = "Lancer la Validation Académique";
   }
 </script>
 </body>
