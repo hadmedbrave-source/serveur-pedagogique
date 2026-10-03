@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Expertise Académique | Centre Al Akhawayn</title>
+  <title>Centre Al Akhawayn | Plateforme d'Audit Stylistique</title>
   
-  <!-- Tailwind CSS via CDN -->
+  <!-- Tailwind CSS via CDN pour hébergement statique et GitHub Pages -->
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Polices académiques Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Marked.js pour le rendu Markdown -->
+  <!-- Marked.js pour le rendu Markdown didactique -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 
   <style>
@@ -29,6 +29,7 @@
     .font-cinzel { font-family: 'Cinzel', Georgia, serif; }
     .font-outfit { font-family: 'Outfit', sans-serif; }
     .font-newsreader { font-family: 'Newsreader', Georgia, serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
 
     /* Zone de rédaction réglée façon copie d'examen */
     .writing-zone {
@@ -41,7 +42,22 @@
       font-size: 18px;
     }
 
-    /* Styles pour les annotations IA */
+    /* Styles pour les annotations */
+    .struct-missing {
+      display: block;
+      margin: 8px 0;
+      padding: 4px 10px;
+      background-color: #fef2f2;
+      border: 1.5px dashed #dc2626;
+      border-radius: 6px;
+      color: #991b1b;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
     .err-highlight {
       color: #be123c;
       background-color: #ffe4e6;
@@ -49,6 +65,7 @@
       border-radius: 4px;
       font-weight: 700;
       text-decoration: underline wavy #f43f5e;
+      text-underline-offset: 4px;
       display: inline-block;
       margin: 1px 2px;
       border: 1px solid #fecdd3;
@@ -76,60 +93,96 @@
       margin: 1px 2px;
     }
 
+    /* Modèles de référence */
     .model-intro {
       background: #fffbeb;
-      padding: 20px;
-      border: 1px solid #fef3c7;
+      padding: 24px;
       border-left: 4px solid var(--gold);
-      border-radius: 10px;
-      margin-bottom: 16px;
+      border-top: 1px solid #fef3c7;
+      border-right: 1px solid #fef3c7;
+      border-bottom: 1px solid #fef3c7;
+      margin-bottom: 20px;
+      border-radius: 12px;
+    }
+    .model-intro p {
+      line-height: 1.85;
+      text-indent: 1.5rem;
     }
 
     .model-body {
       background: #f0fdf4;
-      padding: 20px;
-      border: 1px solid #dcfce7;
+      padding: 24px;
       border-left: 4px solid var(--emerald);
-      border-radius: 10px;
-      margin-bottom: 16px;
+      border-top: 1px solid #dcfce7;
+      border-right: 1px solid #dcfce7;
+      border-bottom: 1px solid #dcfce7;
+      margin-bottom: 20px;
+      border-radius: 12px;
+    }
+    .model-body p {
+      margin-bottom: 1.25rem;
+      line-height: 1.85;
+      text-indent: 1.75rem;
+    }
+    .model-body p:last-child {
+      margin-bottom: 0;
     }
 
     .model-concl {
       background: #eef2ff;
-      padding: 20px;
-      border: 1px solid #e0e7ff;
+      padding: 24px;
       border-left: 4px solid var(--indigo);
-      border-radius: 10px;
+      border-top: 1px solid #e0e7ff;
+      border-right: 1px solid #e0e7ff;
+      border-bottom: 1px solid #e0e7ff;
+      border-radius: 12px;
+    }
+    .model-concl p {
+      line-height: 1.85;
+      text-indent: 1.5rem;
+    }
+
+    #outReform blockquote {
+      margin-bottom: 1.25rem;
+      padding: 1rem 1.25rem;
+      border-left: 3.5px solid var(--gold);
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      line-height: 1.85;
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.05rem;
+      color: #1e293b;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .tab-trigger.active {
       background: #0b1528 !important;
       color: #ffffff !important;
       border-color: #0b1528 !important;
+      box-shadow: 0 4px 12px rgba(11, 21, 40, 0.2);
     }
 
     #outTable table {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      border: 1px solid #cbd5e1;
       border-radius: 10px;
       overflow: hidden;
-      margin: 16px 0;
-      background: #ffffff;
-      font-size: 14px;
+      border: 1px solid #cbd5e1;
+      background-color: #ffffff;
+      font-size: 0.875rem;
     }
-
     #outTable th {
       background: #0f172a;
       color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
       padding: 12px 16px;
       text-align: left;
-      font-size: 13px;
-      text-transform: uppercase;
-      font-weight: 700;
+      font-size: 0.75rem;
     }
-
     #outTable td {
       padding: 14px 16px;
       border-bottom: 1px solid #f1f5f9;
@@ -137,40 +190,64 @@
       line-height: 1.5;
     }
 
-    #outTable tr:nth-child(even) td {
-      background-color: #f8fafc;
-    }
-
     .official-seal {
-      width: 145px;
-      height: 145px;
-      border: 4px double var(--gold);
+      width: 130px;
+      height: 130px;
+      border: 3px double #0b1528;
       border-radius: 50%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transform: rotate(-5deg);
-      color: var(--gold);
-      background: radial-gradient(circle, #fffbeb 60%, #fef3c7 100%);
-      box-shadow: 0 4px 15px rgba(180, 83, 9, 0.12);
-      user-select: none;
-    }
-
-    @media print {
-      body { background: white !important; padding: 0 !important; }
-      .no-print { display: none !important; }
-      #reportSection { display: block !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+      text-align: center;
+      padding: 8px;
+      background: radial-gradient(circle, #fffbeb 40%, #fef3c7 100%);
+      box-shadow: 0 0 0 4px rgba(180, 83, 9, 0.15);
     }
   </style>
 </head>
-<body class="bg-slate-100/70 text-slate-900 font-sans p-3 sm:p-6 md:p-10 antialiased">
+<body class="bg-slate-100 text-slate-800 min-h-screen py-8 px-3 sm:px-6 font-sans">
+
+  <!-- Modal de Protection d'Accès Enseignant -->
+  <div id="lockModal" style="display:none;" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 bg-amber-100 text-amber-900 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner">
+          🔒
+        </div>
+        <h3 class="font-cinzel text-xl font-black text-slate-950">Accès Enseignant Sécurisé</h3>
+        <p class="text-xs text-slate-500 mt-1 font-medium">Saisissez le mot de passe pour générer l'expertise officielle.</p>
+      </div>
+
+      <form onsubmit="handleUnlockSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs uppercase font-extrabold tracking-wider text-slate-600 mb-1.5">Mot de passe de session</label>
+          <input 
+            type="password" 
+            id="serverPassInput" 
+            placeholder="••••••••••••" 
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold tracking-wider text-slate-900 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition"
+          >
+        </div>
+
+        <div id="lockError" style="display:none;" class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs font-semibold text-rose-800"></div>
+
+        <button 
+          type="submit" 
+          id="btnUnlock"
+          class="w-full py-3.5 bg-slate-950 hover:bg-slate-800 text-amber-400 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-md cursor-pointer"
+        >
+          Déverrouiller l'Interface
+        </button>
+      </form>
+    </div>
+  </div>
 
   <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-10 md:p-12 relative overflow-hidden">
-    <!-- Ruban aux couleurs officielles -->
+    <!-- Ruban aux couleurs officielles en haut de la carte -->
     <div class="h-2.5 w-full absolute top-0 left-0 bg-gradient-to-r from-[#0b1528] via-[#c5221f] to-[#b45309]"></div>
 
-    <!-- En-tête -->
+    <!-- En-tête officiel -->
     <header class="text-center border-b-2 border-slate-900 pb-7 mb-8 mt-2">
       <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full mb-3">
         <span class="text-[11px] font-bold tracking-widest uppercase text-amber-800">
@@ -185,7 +262,7 @@
       </p>
     </header>
 
-    <!-- Candidat et Filière -->
+    <!-- Grille Candidat & Filière -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
       <div class="bg-slate-50/80 border border-slate-200 p-5 rounded-xl md:col-span-2 shadow-xs">
         <h2 class="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
@@ -210,7 +287,7 @@
           <option>1ère BAC - Sciences Mathématiques</option>
           <option>1ère BAC - Sciences Expérimentales</option>
           <option>1ère BAC - Lettres & Sc. Humaines</option>
-          <option>Prépa Concours (CRMEF / ENS)</option>
+          <option>Prépa Concours d'Excellence</option>
         </select>
       </div>
     </div>
@@ -238,7 +315,7 @@
       </div>
     </div>
 
-    <!-- Zone Manuscrite Lignée -->
+    <!-- Zone de rédaction manuscrite -->
     <div class="border-2 border-slate-900 rounded-xl p-5 mb-8 bg-white shadow-sm">
       <h2 class="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
         <span class="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Manuscrit Rédactionnel du Candidat
@@ -250,19 +327,42 @@
       ></textarea>
     </div>
 
-    <!-- Bouton Déclencher -->
-    <button 
-      id="btnRun" 
-      onclick="processExpertise()" 
-      class="w-full py-5 px-8 bg-gradient-to-r from-[#0b1528] via-[#162544] to-[#0b1528] text-white rounded-xl font-cinzel font-bold text-lg sm:text-xl tracking-wider shadow-lg hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition duration-200 cursor-pointer border border-amber-600/30"
-    >
-      Générer l'Expertise Certifiée
-    </button>
+    <!-- Boutons d'action -->
+    <div class="space-y-3 mb-10">
+      <button 
+        id="btnRun" 
+        onclick="processExpertise()" 
+        class="w-full py-5 px-8 bg-gradient-to-r from-[#0b1528] via-[#162544] to-[#0b1528] text-white rounded-xl font-cinzel font-bold text-lg sm:text-xl tracking-wider shadow-lg hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition duration-200 cursor-pointer border border-amber-600/30"
+      >
+        Générer l'Expertise Certifiée
+      </button>
 
-    <!-- SECTION RAPPORT CERTIFIÉ -->
-    <section id="reportSection" style="display:none;" class="mt-14 border-4 border-double border-slate-950 p-6 sm:p-10 md:p-14 bg-white rounded-xl shadow-2xl">
+      <button
+        type="button"
+        onclick="toggleSamplePreview()"
+        class="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer border border-slate-300 flex items-center justify-center gap-2"
+      >
+        <span>👁️ Voir la mise en page du rapport (Aperçu didactique)</span>
+      </button>
+    </div>
+
+    <!-- SECTION RAPPORT CERTIFIÉ (RÉVÉLÉE APRÈS TRAITEMENT OU CLIC APERÇU) -->
+    <section id="reportSection" style="display:none;" class="mt-8 border-4 border-double border-slate-950 p-6 sm:p-10 md:p-14 bg-white rounded-xl shadow-2xl">
       <div class="text-center font-cinzel text-2xl sm:text-3xl font-black text-slate-950 underline underline-offset-8 decoration-amber-600 mb-8 tracking-tight">
         CERTIFICAT D'EXPERTISE ET DE VALIDATION
+      </div>
+
+      <!-- Alerte Hors-Sujet conditionnelle -->
+      <div id="alertHorsSujet" style="display:none;" class="bg-rose-50 border-2 border-rose-600 text-rose-950 p-4 sm:p-5 rounded-xl mb-8 flex items-center gap-3">
+        <span class="text-2xl">⚠️</span>
+        <div>
+          <h4 class="font-outfit font-extrabold uppercase text-sm tracking-wider text-rose-900">
+            Avertissement Didactique : Production Déclarée Hors-Sujet
+          </h4>
+          <p class="text-xs sm:text-sm text-rose-800 mt-0.5">
+            L'expertise relève une déviation par rapport à la problématique ou à la consigne imposée par le sujet. Consultez le bilan critique ci-dessous.
+          </p>
+        </div>
       </div>
 
       <div class="flex flex-col md:flex-row justify-between border-b-2 border-slate-950 pb-4 mb-8 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800 gap-3 bg-slate-50/70 p-4 rounded-lg border border-slate-200">
@@ -273,38 +373,36 @@
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
         <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50">
           <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Consigne</label>
-          <span id="v1" class="text-2xl sm:text-3xl font-black font-outfit text-slate-950">0</span>
-          <span class="text-xs text-slate-500 font-bold">/2</span>
+          <div class="text-2xl font-black text-slate-950"><span id="v1">0</span><span class="text-xs font-bold text-slate-500">/2</span></div>
         </div>
         <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50">
           <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Structure</label>
-          <span id="v2" class="text-2xl sm:text-3xl font-black font-outfit text-slate-950">0</span>
-          <span class="text-xs text-slate-500 font-bold">/2</span>
+          <div class="text-2xl font-black text-slate-950"><span id="v2">0</span><span class="text-xs font-bold text-slate-500">/2</span></div>
         </div>
         <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50">
           <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Arguments</label>
-          <span id="v3" class="text-2xl sm:text-3xl font-black font-outfit text-slate-950">0</span>
-          <span class="text-xs text-slate-500 font-bold">/2</span>
+          <div class="text-2xl font-black text-slate-950"><span id="v3">0</span><span class="text-xs font-bold text-slate-500">/2</span></div>
         </div>
-        <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50">
-          <label class="text-xs uppercase font-extrabold text-[#c5221f] block mb-1">Langue</label>
-          <span id="v4" class="text-2xl sm:text-3xl font-black font-outfit text-[#c5221f]">0</span>
-          <span class="text-xs text-slate-500 font-bold">/2.5</span>
+        <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-rose-50 border-rose-900">
+          <label class="text-xs uppercase font-extrabold text-rose-900 block mb-1">Langue</label>
+          <div class="text-2xl font-black text-rose-950"><span id="v4">0</span><span class="text-xs font-bold text-rose-700">/2.5</span></div>
         </div>
         <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50 col-span-2 sm:col-span-1">
           <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Lexique</label>
-          <span id="v5" class="text-2xl sm:text-3xl font-black font-outfit text-slate-950">0</span>
-          <span class="text-xs text-slate-500 font-bold">/1.5</span>
+          <div class="text-2xl font-black text-slate-950"><span id="v5">0</span><span class="text-xs font-bold text-slate-500">/1.5</span></div>
         </div>
       </div>
 
-      <div class="bg-gradient-to-r from-[#060b14] via-[#0b1528] to-[#060b14] text-white p-6 sm:p-7 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-4 font-cinzel font-black text-xl sm:text-2xl mb-10 shadow-xl border border-amber-600/40">
-        <span class="tracking-wide">RÉSULTAT GLOBAL :</span>
-        <span id="rTotal" class="text-amber-400 text-4xl sm:text-5xl font-black font-outfit tracking-wider">--/10</span>
+      <div class="p-6 bg-slate-950 text-white rounded-xl mb-10 flex flex-col sm:flex-row justify-between items-center gap-4 border border-amber-600/40">
+        <div>
+          <span class="text-xs uppercase font-bold text-amber-400 tracking-widest block">Note Globale d'Évaluation</span>
+          <span class="text-xs text-slate-400">Total barème officiel marocain</span>
+        </div>
+        <span id="rTotal" class="text-amber-400 font-black text-4xl sm:text-5xl font-outfit tracking-wider">--/10</span>
       </div>
 
       <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> I. Transcription Annotée
+        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> I. Transcription Annotée du Manuscrit
       </h2>
       <div id="outTrans" class="leading-loose text-base sm:text-lg p-6 bg-slate-50/80 border border-slate-200 rounded-xl mb-8 font-newsreader break-words shadow-inner"></div>
 
@@ -319,15 +417,25 @@
       <div class="overflow-x-auto mb-8 shadow-xs rounded-xl border border-slate-200"><div id="outTable"></div></div>
 
       <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> IV. Optimisation Stylistique
+        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> IV. Optimisation Stylistique & Registre de Langue
       </h2>
       <div id="outReform" class="mb-8 bg-amber-50/50 p-6 border border-amber-200/70 rounded-xl text-slate-800 leading-relaxed shadow-xs"></div>
 
       <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> V. Modèle de Référence
+        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> V. Modèle de Référence Didactique
       </h2>
+
+      <!-- Indicateur de Plan Détecté -->
+      <div id="planIndicator" style="display:none;" class="p-4 rounded-xl mb-4 border flex items-center gap-3 shadow-xs">
+        <div id="planIcon" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-base bg-white shrink-0 shadow-xs border border-slate-200">⚖️</div>
+        <div>
+          <div id="planTitle" class="font-outfit font-black text-sm uppercase tracking-wider">Plan Détecté</div>
+          <div id="planDesc" class="text-xs opacity-90 mt-0.5 font-medium">Description</div>
+        </div>
+      </div>
+
       <div id="tabSelectors" class="flex flex-col sm:flex-row gap-3 mb-6" style="display:none;">
-        <button id="ts" onclick="displayM('A')" class="tab-trigger active flex-1 py-3.5 px-6 border-2 border-slate-950 font-cinzel font-bold text-sm uppercase rounded-xl transition cursor-pointer">PLAN SIMPLE</button>
+        <button id="ts" onclick="displayM('A')" class="tab-trigger active flex-1 py-3.5 px-6 border-2 border-slate-950 font-cinzel font-bold text-sm uppercase rounded-xl transition cursor-pointer">PLAN SIMPLE (THÉMATIQUE)</button>
         <button id="td" onclick="displayM('B')" class="tab-trigger flex-1 py-3.5 px-6 border-2 border-slate-950 font-cinzel font-bold text-sm uppercase rounded-xl transition bg-slate-100 cursor-pointer">PLAN DIALECTIQUE</button>
       </div>
       <div id="outModel" class="font-newsreader text-base sm:text-lg mb-10 leading-relaxed text-slate-900"></div>
@@ -335,7 +443,7 @@
       <footer class="mt-14 pt-8 border-t-2 border-slate-950 flex flex-col md:flex-row justify-between items-center gap-6">
         <div class="text-xs text-slate-600 text-center md:text-left leading-relaxed">
           <strong class="text-slate-900 font-bold block font-cinzel text-sm">Rapport Certifié Conforme</strong>
-          Expertise pédagogique et barèmes officiels marocains (MEN / CRMEF).<br>
+          Expertise pédagogique et barèmes officiels marocains.<br>
           Centre Al Akhawayn • Excellence Académique.
         </div>
         <div class="official-seal">
@@ -346,9 +454,44 @@
     </section>
   </div>
 
-  <!-- Code JavaScript Original 100% Intact -->
   <script>
     let planA = "", planB = "";
+    let sessionPassword = "";
+
+    async function handleUnlockSubmit(e) {
+      if (e) e.preventDefault();
+      const pass = document.getElementById('serverPassInput').value;
+      const err = document.getElementById('lockError');
+      const btn = document.getElementById('btnUnlock');
+
+      if (!pass) {
+        if (err) { err.style.display = 'block'; err.innerText = 'Veuillez saisir le mot de passe.'; }
+        return;
+      }
+
+      btn.innerText = "Vérification...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/verify-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pass.trim() })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          sessionPassword = pass.trim();
+          document.getElementById('lockModal').style.display = 'none';
+        } else {
+          if (err) { err.style.display = 'block'; err.innerText = data.message || 'Mot de passe incorrect.'; }
+        }
+      } catch (e) {
+        if (err) { err.style.display = 'block'; err.innerText = 'Erreur serveur.'; }
+      }
+      btn.disabled = false;
+      btn.innerText = "Déverrouiller l'Interface";
+    }
+
     function displayM(type) {
       document.getElementById('ts')?.classList.toggle('active', type === 'A');
       document.getElementById('td')?.classList.toggle('active', type === 'B');
@@ -360,7 +503,7 @@
       const filiere = document.getElementById('filiere').value;
       const sujet = document.getElementById('sujet').value;
       const texte = document.getElementById('texte').value;
-      if(!sujet || !texte) return alert("Saisie manquante.");
+      if(!sujet || !texte) return alert("Veuillez renseigner le sujet et votre manuscrit.");
 
       const btn = document.getElementById('btnRun');
       btn.innerText = "GÉNÉRATION DU RAPPORT...";
@@ -369,11 +512,32 @@
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ prompt: `NOM: ${nom}\nFILIERE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`, nom, filiere })
+          headers: {
+            "Content-Type": "application/json",
+            "x-access-password": sessionPassword
+          },
+          body: JSON.stringify({ 
+            prompt: `NOM: ${nom}\nFILIERE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`, 
+            nom, 
+            filiere,
+            password: sessionPassword
+          })
         });
+
+        if (res.status === 401) {
+          document.getElementById('lockModal').style.display = 'flex';
+          alert('Mot de passe enseignant requis ou modifié.');
+          btn.disabled = false;
+          btn.innerText = "Générer l'Expertise Certifiée";
+          return;
+        }
+
         const data = await res.json();
         const raw = data.result;
+
+        const isHS = raw.includes("[[HORS_SUJET]]");
+        const alertHS = document.getElementById('alertHorsSujet');
+        if (alertHS) alertHS.style.display = isHS ? "flex" : "none";
 
         document.getElementById('rNom').innerText = nom.toUpperCase();
         document.getElementById('rFil').innerText = filiere;
@@ -399,7 +563,28 @@
         document.getElementById('outReform').innerHTML = marked.parse(extract("REFORMULATION"));
 
         const mode = extract("TYPE");
-        if(mode.includes("ANALYTIQUE")) {
+        const isAnalytic = mode.toUpperCase().includes("ANALYTIQUE");
+        const planInd = document.getElementById('planIndicator');
+        const planIcon = document.getElementById('planIcon');
+        const planTitle = document.getElementById('planTitle');
+        const planDesc = document.getElementById('planDesc');
+
+        if (planInd) {
+          planInd.style.display = "flex";
+          if (isAnalytic) {
+            planInd.className = "p-4 rounded-xl mb-4 border flex items-center gap-3 shadow-xs bg-blue-50/90 border-blue-300 text-blue-950";
+            if (planIcon) planIcon.innerText = "📊";
+            if (planTitle) planTitle.innerText = "PLAN DÉTECTÉ : PLAN ANALYTIQUE (CAUSES • CONSÉQUENCES • SOLUTIONS)";
+            if (planDesc) planDesc.innerText = "Le sujet impose d'analyser un fléau ou phénomène : diagnostic des causes, impact sur la société et propositions de remédiation.";
+          } else {
+            planInd.className = "p-4 rounded-xl mb-4 border flex items-center gap-3 shadow-xs bg-amber-50/90 border-amber-300 text-amber-950";
+            if (planIcon) planIcon.innerText = "⚖️";
+            if (planTitle) planTitle.innerText = "PLAN DÉTECTÉ : PLAN D'OPINION (POINT DE VUE / CHOIX D'ORIENTATION)";
+            if (planDesc) planDesc.innerText = "Le sujet demande d'exprimer et défendre une position personnelle : choix libre entre Plan Simple (Thématique) et Plan Dialectique.";
+          }
+        }
+
+        if(isAnalytic) {
             document.getElementById('tabSelectors').style.display = "none";
             planA = extract("PLAN_A");
             displayM('A');
@@ -412,9 +597,88 @@
 
         document.getElementById('reportSection').style.display = "block";
         window.scrollTo({ top: document.getElementById('reportSection').offsetTop - 20, behavior: 'smooth' });
-      } catch (e) { alert("Erreur réseau."); }
+      } catch (e) { alert("Erreur réseau ou communication."); }
       btn.disabled = false;
       btn.innerText = "Générer l'Expertise Certifiée";
+    }
+
+    let isPreviewOpen = false;
+    function toggleSamplePreview() {
+      const rep = document.getElementById('reportSection');
+      if (!isPreviewOpen) {
+        isPreviewOpen = true;
+        document.getElementById('rNom').innerText = (document.getElementById('studentName').value || "MOHAMMED BENALI").toUpperCase();
+        document.getElementById('rFil').innerText = document.getElementById('filiere').value || "1ère BAC - Sciences Expérimentales";
+        
+        document.getElementById('v1').innerText = "1.8";
+        document.getElementById('v2').innerText = "1.7";
+        document.getElementById('v3').innerText = "1.8";
+        document.getElementById('v4').innerText = "2.2";
+        document.getElementById('v5').innerText = "1.3";
+        document.getElementById('rTotal').innerText = "8.8/10";
+
+        document.getElementById('outTrans').innerHTML = `<p>La solitude est un sentiment <span class="err-highlight">partager [partagé]</span> par plusieurs personnes. <span class="struct-missing">[⚠️ Rupture : Alinéa / Connecteur d'attaque manquant]</span> Dans La Boite à Merveilles, Sidi Mohammed est souvent seul à Dar Chouafa. <b class="conn-student">Cependant</b>, cette solitude lui <span class="err-highlight">permet [permettait / permet]</span> de développer son imagination avec sa boîte. <b class="conn-model">En premier lieu</b>, les objets minuscules deviennent pour lui des amis fidèles. <span class="struct-missing">[⚠️ Rupture : Alinéa / Transition manquante]</span> <span class="err-highlight">Malgré qu'il soit [Bien qu'il soit]</span> entouré de tensions, il préfère son monde imaginaire. <b class="conn-model">En définitive</b>, la solitude n'est pas toujours <span class="err-highlight">une tare [un défaut]</span>, mais un sanctuaire personnel.</p>`;
+
+        document.getElementById('outBilan').innerHTML = marked.parse(`### 1. Diagnostic de l'Introduction
+- **Phrase d'amorce :** Présente mais banale. L'amorce littéraire tripartite attentive est recommandée.
+- **Problématique & Annonce :** Posées de manière succincte ; la tension dialectique mérite d'être davantage approfondie.
+
+### 2. Diagnostic du Développement
+- **Structure :** Deux arguments pertinents mais un alinéa manquant entre les paragraphes.
+- **Illustration littéraire :** Référence judicieuse à *La Boîte à Merveilles* (les objets du coffret magique).
+
+### 3. Diagnostic de la Conclusion
+- Bilan synthétique net ; ouverture méritant un élargissement philosophique plus ample.`);
+
+        document.getElementById('outTable').innerHTML = marked.parse(`| Extrait fautif en rouge | Catégorie | Correction didactique certifiée | Règle pédagogique précise |
+| :--- | :--- | :--- | :--- |
+| <span class="err-highlight">partager</span> | Orthographe grammaticale | **partagé** | Participe passé employé avec l'auxiliaire être, accord au masculin singulier. |
+| <span class="err-highlight">Malgré qu'il soit</span> | Syntaxe & Registre | **Bien qu'il soit / Quoiqu'il soit** | La locution conjonctive *malgré que* est proscrite en français académique. |`);
+
+        document.getElementById('outReform').innerHTML = marked.parse(`### A. Chirurgie Stylistique des Phrases Clés (Homogénéité Syntaxique)
+
+- **Phrase de l'élève n°1 (relâchée et juxtaposée) :**
+  > *« Dans La Boite à Merveilles, Sidi Mohammed est souvent seul à Dar Chouafa. Parfois il pleure parce qu'il n'a pas d'amis mais il a sa boîte magique. »*
+  - **Diagnostic didactique :** Juxtaposition enfantine de propositions coordonnées par « mais », absence d'articulateurs logiques complexes et registre familier relâché (*« il n'a pas d'amis »*).
+  - **Reformulation académique homogénéisée :**
+    > *« Isolé au cœur des clameurs et des tensions triviales de Dar Chouafa, le jeune narrateur d'Ahmed Sefrioui transmute sa douloureuse solitude en une féerie intérieure grâce aux trésors minuscules et secrets de son coffret magique. »*
+
+---
+
+- **Phrase de l'élève n°2 (rupture modale et syntaxe défaillante) :**
+  > *« Malgré qu'il soit entouré de tensions domestiques... »*
+  - **Diagnostic didactique :** Tournure fautive (*malgré que* suivi du subjonctif). Rupture d'homogénéité avec le registre soutenu attendu à l'épreuve régionale.
+  - **Reformulation académique homogénéisée :**
+    > *« Bien qu'il évolue au sein d'un univers familial saturé de querelles de voisinage, l'enfant préserve l'inviolable pureté de son imaginaire. »*
+
+---
+
+### B. Texte Intégral Réécrit & Homogénéisé (Version Continue d'Excellence)
+
+> **Quand on plonge dans la lecture attentive du roman autobiographique** *La Boîte à Merveilles* d'Ahmed Sefrioui, on se rend compte que la solitude occupe une place centrale dans l'univers du narrateur enfant. Loin de représenter un simple isolement stérile, cette situation suscite des sentiments contrastés : si elle engendre parfois la tristesse face à l'incompréhension du monde des adultes, elle constitue également pour le jeune Sidi Mohammed un refuge protecteur qui nourrit son imaginaire poétique. Dès lors, il convient de se demander si la solitude doit être appréhendée comme une douloureuse fatalité subie ou comme un espace salutaire d'épanouissement personnel. Pour répondre à cette question, nous analyserons d'abord les souffrances nées du sentiment d'exclusion, avant de mettre en lumière les richesses spirituelles offertes par le recueillement intérieur.
+
+> **En premier lieu**, l'éloignement volontaire permet à l'esprit de s'affranchir de la superficialité du quotidien. Les objets hétéroclites du narrateur — clous, boutons, billes de verre — prennent vie dès que le silence protecteur se referme sur lui. L'enfant métamorphose ainsi la précarité du monde extérieur en une féerie intérieure souveraine.
+
+> **En second lieu**, l'épreuve de la solitude fortifie le discernement moral face aux errements collectifs. En refusant de s'associer aux commérages quotidiens de la voyante ou aux querelles triviales qui agitent le patio de Dar Chouafa, le jeune Sidi Mohammed s'érige en observateur lucide de la condition humaine, préservant l'inviolable pureté de son âme.
+
+> **Toutefois**, la frontière demeure ténue entre le recueillement philosophique fécond et l'enfermement mélancolique. C'est précisément cet écueil de l'amertume que l'écriture autobiographique d'Ahmed Sefrioui conjure magnifiquement en transformant le silence de l'enfance en un chant rédempteur d'amour et de mémoire.
+
+> **En définitive**, la solitude apprivoisée n'est point un renoncement, mais une conquête spirituelle indispensable à la maturation de l'individu.`);
+
+        planA = `<div class="model-intro"><span class="text-xs uppercase font-extrabold tracking-widest text-amber-700 block mb-1">Introduction (Méthodologie en Entonnoir)</span><strong>Quand on plonge dans la lecture attentive du roman autobiographique</strong> <i>La Boîte à Merveilles</i> d'Ahmed Sefrioui, on se rend compte que la solitude occupe une place centrale dans l'univers du narrateur enfant. Loin de constituer un simple isolement stérile, cette situation suscite des sentiments contrastés : si elle engendre parfois la tristesse face à l'incompréhension des adultes, elle représente aussi pour Sidi Mohammed un refuge protecteur qui féconde son imaginaire. <b class="conn-model">Dès lors</b>, il convient de se demander si la solitude doit être appréhendée comme une douloureuse fatalité subie ou comme un espace salutaire d'épanouissement. <b class="conn-model">Pour répondre à cette interrogation</b>, il conviendra d'examiner dans un premier temps les épreuves et l'incommunicabilité inhérentes à l'isolement, <b class="conn-model">avant de démontrer</b> dans un second temps que le recueillement demeure le creuset de la liberté intérieure.</div><div class="model-body space-y-4"><span class="text-xs uppercase font-extrabold tracking-widest text-emerald-800 block mb-1">Développement (Structure en Paragraphes Distincts)</span><p><b class="conn-model">En premier lieu</b>, l'éloignement volontaire permet à l'esprit de s'affranchir de la superficialité du quotidien. Les objets minuscules du jeune narrateur — clous, boutons, billes de verre — prennent vie dès que le silence protecteur se referme sur lui. L'enfant transmute ainsi la pauvreté du réel en une féerie imaginaire inaltérable.</p><p><b class="conn-model">En second lieu</b>, l'épreuve de la solitude fortifie le discernement moral de l'individu face aux égarements de son entourage. En refusant de s'associer aux commérages de la voyante ou aux disputes du patio de Dar Chouafa, l'enfant s'érige en observateur lucide et pudique de la comédie humaine.</p><p><b class="conn-model">Toutefois</b>, la frontière demeure ténue entre le recueillement philosophique fécond et l'enfermement mélancolique pathologique, écueil que l'écriture autobiographique conjurera par le pouvoir rédempteur de la remémoration poétique.</p></div><div class="model-concl mt-4"><span class="text-xs uppercase font-extrabold tracking-widest text-indigo-700 block mb-1">Conclusion</span><b class="conn-model">En définitive</b>, la solitude apprivoisée n'est point un renoncement, mais une haute conquête spirituelle indispensable à la maturation de l'individu.</div>`;
+
+        planB = `<div class="model-intro"><span class="text-xs uppercase font-extrabold tracking-widest text-amber-700 block mb-1">Introduction</span><strong>Quand on plonge dans la lecture attentive des œuvres littéraires au programme</strong>, on se rend compte que la solitude occupe une telle place qu'elle partage les esprits entre repli mélancolique et recueillement fécond. Doit-on alors concevoir l'isolement comme une anomalie destructrice ou comme le sanctuaire de l'authenticité personnelle ?</div><div class="model-body space-y-4"><span class="text-xs uppercase font-extrabold tracking-widest text-emerald-800 block mb-1">Développement (Plan Dialectique en 3 Mouvements)</span><p><strong>I. Thèse : La solitude comme menace et aliénation</strong><br><b class="conn-model">D'une part</b>, l'absence prolongée d'altérité risque d'atrophier les facultés empathiques et d'enfermer le sujet dans des chimères morbides, à l'image du condamné de Victor Hugo muré dans la terreur de son cachot.</p><p><strong>II. Antithèse : La solitude comme berceau de la lucidité intérieure</strong><br><b class="conn-model">D'autre part</b>, le silence et l'éloignement sont les conditions indispensables de l'introspection et de la fidélité à soi-même, comme l'illustre l'intransigeance solitaire d'Antigone face aux compromissions politiques.</p><p><strong>III. Synthèse : La solitude dialectique et maîtrisée</strong><br><b class="conn-model">Par conséquent</b>, la sagesse réside dans l'art d'alterner harmonieusement le commerce enrichissant de ses semblables et le refuge inviolable de son for intérieur.</p></div><div class="model-concl mt-4"><span class="text-xs uppercase font-extrabold tracking-widest text-indigo-700 block mb-1">Conclusion</span><b class="conn-model">En somme</b>, la solitude choisie est une grâce régénératrice, tandis que la solitude subie demeure un supplice.</div>`;
+
+        document.getElementById('planIndicator').style.display = "flex";
+        document.getElementById('tabSelectors').style.display = "flex";
+        displayM('A');
+
+        rep.style.display = 'block';
+        window.scrollTo({ top: rep.offsetTop - 20, behavior: 'smooth' });
+      } else {
+        isPreviewOpen = false;
+        rep.style.display = 'none';
+      }
     }
   </script>
 </body>
