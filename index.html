@@ -2,79 +2,84 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Expertise Académique | Centre Al Akhawayn</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@300;600;800&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
   <style>
-    :root { --navy: #0b1528; --crimson: #c5221f; --gold: #b45309; --emerald: #059669; --indigo: #312e81; --bg: #f8fafc; }
+    :root { --navy: #0b1528; --crimson: #c5221f; --gold: #b45309; --emerald: #065f46; --indigo: #312e81; --bg: #f8fafc; }
+    
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px 20px; color: #0f172a; }
+    body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px 10px; color: #0f172a; overflow-x: hidden; }
     
-    .master-container { max-width: 1100px; margin: 0 auto; background: white; border-radius: 16px; padding: 60px; box-shadow: 0 50px 100px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; position: relative; }
-    .master-container::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: linear-gradient(90deg, var(--navy), var(--crimson), var(--gold)); border-radius: 16px 16px 0 0; }
+    .master-container { max-width: 1100px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; position: relative; }
+    .master-container::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: linear-gradient(90deg, var(--navy), var(--crimson), var(--gold)); border-radius: 12px 12px 0 0; }
 
-    /* --- TITRAGE PRESTIGE --- */
-    .header-akh { text-align: center; border-bottom: 2px solid var(--navy); padding-bottom: 30px; margin-bottom: 50px; }
-    .header-akh h1 { font-family: 'Cinzel', serif; font-size: 40px; color: var(--navy); }
+    /* --- HEADER --- */
+    .header-akh { text-align: center; border-bottom: 2px solid var(--navy); padding-bottom: 20px; margin-bottom: 30px; }
+    .header-akh h1 { font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 5vw, 2.5rem); color: var(--navy); }
     .header-akh h1 span { color: var(--crimson); }
-    .header-akh p { text-transform: uppercase; font-weight: 800; font-size: 14px; color: var(--gold); letter-spacing: 5px; margin-top: 10px; }
+    .header-akh p { text-transform: uppercase; font-weight: 800; font-size: clamp(0.7rem, 2vw, 0.9rem); color: var(--gold); letter-spacing: 3px; margin-top: 5px; }
 
-    /* --- SAISIE --- */
-    .expert-panel { background: #fcfcfc; border: 1px solid #e5e7eb; padding: 35px; border-radius: 20px; margin-bottom: 40px; }
-    h2 { font-family: 'Outfit'; font-size: 18px; color: var(--navy); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
-    h2::before { content: ''; width: 6px; height: 20px; background: var(--crimson); border-radius: 10px; }
+    /* --- LAYOUT GRIDS --- */
+    .expert-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .expert-panel { background: #fcfcfc; border: 1.5px solid #e5e7eb; padding: clamp(15px, 4vw, 30px); border-radius: 15px; }
 
-    input, textarea, select { width: 100%; padding: 20px; border: 1.5px solid #d1d5db; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; }
-    input:focus, textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 5px rgba(11, 21, 40, 0.05); }
+    h2 { font-family: 'Outfit'; font-size: 16px; color: var(--navy); margin-bottom: 15px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+    h2::before { content: ''; width: 4px; height: 18px; background: var(--crimson); border-radius: 10px; }
 
-    .bar-pill { display: inline-block; background: white; border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 30px; font-size: 11px; font-weight: 800; color: #64748b; margin: 5px; text-transform: uppercase; }
-    .bar-pill b { color: var(--crimson); }
+    input, textarea, select { width: 100%; padding: 15px; border: 1.5px solid #d1d5db; border-radius: 10px; font-size: 16px; outline: none; transition: 0.3s; background: white; -webkit-appearance: none; }
+    input:focus, textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 4px rgba(11, 21, 40, 0.05); }
 
-    .writing-zone { min-height: 450px; line-height: 35px; background-attachment: local; background-image: linear-gradient(#e5e7eb 1px, transparent 1px); background-size: 100% 35px; border: 2px solid var(--navy); font-family: 'Georgia', serif; font-size: 19px; padding: 20px 40px; }
+    .bar-pill { display: inline-block; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; color: #475569; margin: 3px; text-transform: uppercase; }
 
-    .btn-gold { width: 100%; padding: 25px; background: var(--navy); color: white; border: none; border-radius: 15px; font-size: 22px; font-weight: 900; font-family: 'Cinzel'; cursor: pointer; transition: 0.4s; letter-spacing: 2px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-    .btn-gold:hover { background: var(--crimson); transform: translateY(-3px); }
+    .writing-zone { min-height: 350px; line-height: 30px; background-attachment: local; background-image: linear-gradient(#e5e7eb 1px, transparent 1px); background-size: 100% 30px; border: 2px solid var(--navy); font-family: 'Georgia', serif; font-size: 18px; padding: 15px; }
 
-    /* --- RAPPORT CERTIFIÉ --- */
-    #reportSection { display: none; margin-top: 100px; border: 4px double #000; padding: 60px; background: #fff; position: relative; }
-    .title-cert { text-align: center; font-family: 'Cinzel'; font-size: 30px; text-decoration: underline; margin-bottom: 50px; color: var(--navy); }
+    .btn-gold { width: 100%; padding: 20px; background: var(--navy); color: white; border: none; border-radius: 12px; font-size: clamp(1rem, 4vw, 1.3rem); font-weight: 900; font-family: 'Cinzel'; cursor: pointer; transition: 0.4s; letter-spacing: 1px; }
+
+    /* --- RAPPORT RESPONSIVE --- */
+    #reportSection { display: none; margin-top: 50px; border: 3px double #000; padding: clamp(15px, 5vw, 50px); background: #fff; }
+    .title-cert { text-align: center; font-family: 'Cinzel'; font-size: clamp(1.2rem, 4vw, 1.8rem); text-decoration: underline; margin-bottom: 30px; }
     
-    .id-banner { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 40px; font-weight: 800; text-transform: uppercase; font-size: 14px; }
+    .id-banner { display: flex; flex-direction: column; gap: 10px; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 30px; font-weight: 800; text-transform: uppercase; font-size: 12px; }
 
-    /* Score Dashboard */
-    .dashboard-scores { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 50px; }
-    .score-item { border: 1.5px solid #000; padding: 20px; text-align: center; }
-    .score-item label { display: block; font-size: 9px; font-weight: 900; color: #666; margin-bottom: 10px; }
-    .score-item span { font-size: 26px; font-weight: 900; font-family: 'Outfit'; color: var(--navy); }
+    .dashboard-scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 30px; }
+    .score-item { border: 1px solid #000; padding: 10px; text-align: center; }
+    .score-item span { font-size: 20px; font-weight: 900; font-family: 'Outfit'; }
 
-    .banner-final { background: #000; color: #fff; padding: 25px 40px; display: flex; justify-content: space-between; font-weight: 900; font-size: 30px; font-family: 'Cinzel'; margin-bottom: 60px; }
+    .banner-final { background: #000; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; font-weight: 900; font-size: 22px; font-family: 'Cinzel'; margin-bottom: 40px; }
 
-    /* IA Decoration */
+    /* Styles IA */
     .err-highlight { color: #e11d48; font-weight: 800; text-decoration: underline wavy #fda4af; }
-    .conn-student { color: var(--royal-blue); font-weight: 800; border-bottom: 2px solid #bfdbfe; color: #2563eb; }
-    .conn-model { color: #ea580c; font-weight: 900; text-transform: uppercase; font-size: 0.9em; }
+    .conn-student { color: #2563eb; font-weight: 800; border-bottom: 2px solid #bfdbfe; }
+    .conn-model { color: #ea580c; font-weight: 900; }
 
-    /* Coloration Structurelle */
-    .model-intro { background: #fffbeb; padding: 35px; border: 2px solid var(--gold); border-radius: 8px; margin-bottom: 20px; position: relative; }
-    .model-intro::after { content: "INTRODUCTION"; position: absolute; top: 10px; right: 15px; font-size: 10px; font-weight: 900; color: var(--gold); }
-    .model-body { background: #f0fdf4; padding: 35px; border: 2px solid var(--emerald); border-radius: 8px; margin-bottom: 20px; position: relative; }
-    .model-body::after { content: "DÉVELOPPEMENT"; position: absolute; top: 10px; right: 15px; font-size: 10px; font-weight: 900; color: var(--emerald); }
-    .model-concl { background: #eef2ff; padding: 35px; border: 2px solid var(--indigo); border-radius: 8px; position: relative; }
-    .model-concl::after { content: "CONCLUSION"; position: absolute; top: 10px; right: 15px; font-size: 10px; font-weight: 900; color: var(--indigo); }
+    .model-intro { background: #fffbeb; padding: 20px; border: 2px solid var(--gold); margin-bottom: 15px; border-radius: 8px; }
+    .model-body { background: #f0fdf4; padding: 20px; border: 2px solid var(--emerald); margin-bottom: 15px; border-radius: 8px; }
+    .model-concl { background: #eef2ff; padding: 20px; border: 2px solid var(--indigo); border-radius: 8px; }
 
-    /* Tabs Model Choice */
-    .tabs-choice { display: flex; gap: 10px; margin-bottom: 30px; }
-    .tab-trigger { flex: 1; padding: 20px; border: 2px solid #000; font-weight: 900; font-family: 'Cinzel'; cursor: pointer; background: #eee; transition: 0.3s; }
+    .tabs-choice { display: flex; flex-direction: column; gap: 5px; margin-bottom: 20px; }
+    .tab-trigger { padding: 15px; border: 1px solid #000; font-weight: 800; font-family: 'Cinzel'; background: #eee; }
     .tab-trigger.active { background: #000; color: #fff; }
 
-    .seal-footer { margin-top: 100px; display: flex; justify-content: space-between; align-items: flex-end; padding-top: 40px; border-top: 1px solid #000; }
-    .official-seal { width: 180px; height: 180px; border: 5px double var(--gold); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-12deg); color: var(--gold); text-align: center; box-shadow: 0 0 20px rgba(180, 83, 9, 0.1); }
-    .official-seal b { font-family: 'Cinzel'; font-size: 18px; line-height: 1; }
+    .seal-footer { margin-top: 50px; display: flex; flex-direction: column; gap: 30px; align-items: center; text-align: center; padding-top: 30px; border-top: 1px solid #000; }
+    .official-seal { width: 150px; height: 150px; border: 5px double var(--gold); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-5deg); color: var(--gold); }
 
-    table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-    th { border: 1px solid #000; background: #f8fafc; padding: 18px; text-align: left; font-size: 13px; font-weight: 900; }
-    td { border: 1px solid #000; padding: 18px; font-size: 16px; }
+    /* Table responsive */
+    .table-wrapper { overflow-x: auto; margin: 20px 0; }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    th, td { border: 1px solid #000; padding: 12px; font-size: 14px; }
+
+    /* --- MEDIA QUERIES ANDROID / IPHONE --- */
+    @media (min-width: 768px) {
+        body { padding: 40px 20px; }
+        .master-container { padding: 50px; }
+        .expert-grid { grid-template-columns: 1.5fr 1fr; }
+        .id-banner { flex-direction: row; justify-content: space-between; }
+        .banner-final { flex-direction: row; justify-content: space-between; padding: 25px 40px; }
+        .tabs-choice { flex-direction: row; }
+        .seal-footer { flex-direction: row; justify-content: space-between; text-align: left; align-items: flex-end; }
+    }
   </style>
 </head>
 <body>
@@ -82,16 +87,16 @@
 <div class="master-container">
   <header class="header-akh">
     <h1>CENTRE <span>AL AKHAWAYN</span></h1>
-    <p>Expertise Didactique & Ingénierie Pédagogique</p>
+    <p>Expertise & Ingénierie Pédagogique</p>
   </header>
 
-  <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; margin-bottom: 30px;">
+  <div class="expert-grid">
     <div class="expert-panel">
-        <h2>Identité du Candidat</h2>
-        <input type="text" id="studentName" placeholder="NOM ET PRÉNOM COMPLET">
+        <h2>Candidat</h2>
+        <input type="text" id="studentName" placeholder="NOM COMPLET">
     </div>
     <div class="expert-panel">
-        <h2>Filière Académique</h2>
+        <h2>Filière</h2>
         <select id="filiere">
             <option>1ère BAC - Sciences Mathématiques</option>
             <option>1ère BAC - Sciences Expérimentales</option>
@@ -101,83 +106,74 @@
     </div>
   </div>
 
-  <div class="expert-panel">
-    <h2>Consigne Officielle du Sujet</h2>
-    <textarea id="sujet" rows="4" placeholder="Copiez ici l'intégralité du sujet d'examen..."></textarea>
-    <div class="bareme-grid-ui" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-        <span style="font-size: 10px; font-weight: 900; color: #94a3b8; display: block; margin-bottom: 10px;">BARÈME DE RÉFÉRENCE :</span>
-        <div class="bar-pill">Consigne : <b>2pt</b></div>
-        <div class="bar-pill">Structure : <b>2pt</b></div>
-        <div class="bar-pill">Arguments : <b>2pt</b></div>
-        <div class="bar-pill">Langue : <b>2.5pt</b></div>
-        <div class="bar-pill">Lexique : <b>1.5pt</b></div>
+  <div class="expert-panel" style="margin-bottom: 20px;">
+    <h2>Consigne du Sujet</h2>
+    <textarea id="sujet" rows="3" placeholder="Texte du sujet..."></textarea>
+    <div class="bareme-grid-ui" style="margin-top: 10px;">
+        <div class="bar-pill">Consigne <b>2pt</b></div>
+        <div class="bar-pill">Structure <b>2pt</b></div>
+        <div class="bar-pill">Arguments <b>2pt</b></div>
+        <div class="bar-pill">Langue <b>2.5pt</b></div>
+        <div class="bar-pill">Lexique <b>1.5pt</b></div>
     </div>
   </div>
 
-  <div class="expert-panel" style="border: 2px solid var(--navy);">
-    <h2>Manuscrit du Candidat (Max 25 lignes)</h2>
-    <textarea id="texte" class="writing-zone" placeholder="Rédigez votre production ici..."></textarea>
+  <div class="expert-panel" style="border: 2px solid var(--navy); margin-bottom: 20px;">
+    <h2>Manuscrit</h2>
+    <textarea id="texte" class="writing-zone" placeholder="Rédigez ici..."></textarea>
   </div>
 
-  <button class="btn-gold" id="btnRun" onclick="processExpertise()">Valider et Générer le Certificat d'Expertise</button>
+  <button class="btn-gold" id="btnRun" onclick="processExpertise()">Générer l'Expertise Certifiée</button>
 
-  <!-- RAPPORT DE PRESTIGE -->
   <section id="reportSection">
-    <div class="title-cert">CERTIFICAT D'EXPERTISE ET DE VALIDATION DIDACTIQUE</div>
+    <div class="title-cert">CERTIFICAT D'EXPERTISE ET DE VALIDATION</div>
     
     <div class="id-banner">
         <div>CANDIDAT : <span id="rNom">...</span></div>
         <div>FILIÈRE : <span id="rFil">...</span></div>
-        <div>RÉF : #AKH-2024</div>
     </div>
 
-    <div class="score-container">
-        <div style="font-size: 11px; font-weight: 900; margin-bottom: 20px; letter-spacing: 2px; color: #666;">DÉTAIL DE LA NOTATION ACADÉMIQUE :</div>
-        <div class="dashboard-scores">
-            <div class="score-item"><label>Consigne</label><span id="v1">0</span></div>
-            <div class="score-item"><label>Structure</label><span id="v2">0</span></div>
-            <div class="score-item"><label>Arguments</label><span id="v3">0</span></div>
-            <div class="score-item"><label>Langue</label><span id="v4">0</span></div>
-            <div class="score-item"><label>Lexique</label><span id="v5">0</span></div>
-        </div>
+    <div class="dashboard-scores">
+        <div class="score-item"><label>Consigne</label><br><span id="v1">0</span></div>
+        <div class="score-item"><label>Structure</label><br><span id="v2">0</span></div>
+        <div class="score-item"><label>Arguments</label><br><span id="v3">0</span></div>
+        <div class="score-item"><label>Langue</label><br><span id="v4">0</span></div>
+        <div class="score-item"><label>Lexique</label><br><span id="v5">0</span></div>
     </div>
 
     <div class="banner-final">
-        <span>RÉSULTAT DE L'EXPERTISE :</span>
+        <span>RÉSULTAT GLOBAL :</span>
         <span id="rTotal">--/10</span>
     </div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">I. Transcription & Analyse Annotée</h2>
-    <div id="outTrans" style="line-height: 3; font-size: 20px; padding: 45px; background: #fff; border: 1px solid #000; margin-bottom: 60px; font-family: 'Georgia', serif;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">I. Transcription Annotée</h2>
+    <div id="outTrans" style="line-height: 2.5; font-size: 18px; padding: 20px; background: #fafafa; border: 1px solid #eee; margin-bottom: 30px; font-family: serif; word-wrap: break-word;"></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">II. Audit de Cohérence & Organisation</h2>
-    <div id="outBilan" style="margin-bottom: 60px; font-size: 17px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">II. Audit de Structure</h2>
+    <div id="outBilan" style="margin-bottom: 30px;"></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">III. Inventaire des Anomalies de Langue</h2>
-    <div id="outTable" style="margin-bottom: 60px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">III. Inventaire des Erreurs</h2>
+    <div class="table-wrapper"><div id="outTable"></div></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">IV. Optimisation Stylistique</h2>
-    <div id="outReform" style="margin-bottom: 60px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">IV. Optimisation</h2>
+    <div id="outReform" style="margin-bottom: 30px;"></div>
 
-    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px;">V. Modèle de Référence (Haut Niveau)</h2>
-    <div id="modelNavZone">
-        <div id="tabSelectors" class="tabs-choice" style="display:none;">
-            <button class="tab-trigger active" id="ts" onclick="displayM('A')">OPTION A : PLAN SIMPLE</button>
-            <button class="tab-trigger" id="td" onclick="displayM('B')">OPTION B : PLAN DIALECTIQUE</button>
-        </div>
-        <div id="outModel" style="font-size: 18px;"></div>
+    <h2 style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">V. Modèle de Référence</h2>
+    <div id="tabSelectors" class="tabs-choice" style="display:none;">
+        <button class="tab-trigger active" id="ts" onclick="displayM('A')">PLAN SIMPLE</button>
+        <button class="tab-trigger" id="td" onclick="displayM('B')">PLAN DIALECTIQUE</button>
     </div>
+    <div id="outModel" style="font-size: 17px;"></div>
 
     <footer class="seal-footer">
-        <div style="font-size: 14px; max-width: 65%;">
-            <strong>Rapport Pédagogique Certifié Conforme</strong><br>
-            Expertise pédagogique, conception didactique et barèmes académiques officiels.<br><br>
-            Centre Al Akhawayn • Centre Pro-Langues & Préparation aux Concours d'Excellence.
+        <div style="font-size: 12px;">
+            <strong>Rapport Certifié Conforme</strong><br>
+            Expertise pédagogique et barèmes officiels.<br>
+            Centre Al Akhawayn • Excellence Académique.
         </div>
         <div class="official-seal">
-            <span style="font-size: 10px; font-weight: 900;">DIRECTION DES ÉTUDES</span>
-            <b style="margin: 8px 0;">C. AL AKHAWAYN</b>
-            <span style="font-size: 9px; font-weight: 900; letter-spacing: 1px;">SCEAU D'AUTHENTICITÉ</span>
+            <b style="font-size: 14px;">C. AL AKHAWAYN</b>
+            <span style="font-size: 8px; font-weight: 900; margin-top: 5px;">SCEAU D'AUTHENTICITÉ</span>
         </div>
     </footer>
   </section>
@@ -185,7 +181,6 @@
 
 <script>
   let planA = "", planB = "";
-
   function displayM(type) {
     document.getElementById('ts')?.classList.toggle('active', type === 'A');
     document.getElementById('td')?.classList.toggle('active', type === 'B');
@@ -197,10 +192,10 @@
     const filiere = document.getElementById('filiere').value;
     const sujet = document.getElementById('sujet').value;
     const texte = document.getElementById('texte').value;
-    if(!sujet || !texte) return alert("Procédure impossible : Saisie manquante.");
+    if(!sujet || !texte) return alert("Saisie manquante.");
 
     const btn = document.getElementById('btnRun');
-    btn.innerText = "GÉNÉRATION DU CERTIFICAT EN COURS...";
+    btn.innerText = "GÉNÉRATION DU RAPPORT...";
     btn.disabled = true;
 
     try {
@@ -212,26 +207,19 @@
       const data = await res.json();
       const raw = data.result;
 
-      if(raw.includes("HORS_SUJET")) {
-          alert("ALERTE : PRODUCTION DISQUALIFIÉE (HORS-SUJET).");
-      }
-
       document.getElementById('rNom').innerText = nom.toUpperCase();
       document.getElementById('rFil').innerText = filiere;
 
-      // Score Parsing
       const pts = raw.match(/Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
       if(pts) {
-          document.getElementById('v1').innerText = pts[1] + "/2";
-          document.getElementById('v2').innerText = pts[2] + "/2";
-          document.getElementById('v3').innerText = pts[3] + "/2";
-          document.getElementById('v4').innerText = pts[4] + "/2.5";
-          document.getElementById('v5').innerText = pts[5] + "/1.5";
-          let total = (parseFloat(pts[1])+parseFloat(pts[2])+parseFloat(pts[3])+parseFloat(pts[4])+parseFloat(pts[5])).toFixed(1);
-          document.getElementById('rTotal').innerText = total;
+          document.getElementById('v1').innerText = pts[1];
+          document.getElementById('v2').innerText = pts[2];
+          document.getElementById('v3').innerText = pts[3];
+          document.getElementById('v4').innerText = pts[4];
+          document.getElementById('v5').innerText = pts[5];
+          document.getElementById('rTotal').innerText = (parseFloat(pts[1])+parseFloat(pts[2])+parseFloat(pts[3])+parseFloat(pts[4])+parseFloat(pts[5])).toFixed(1);
       }
 
-      // Extraction Robuste
       const extract = (tag) => {
           const parts = raw.split("[["+tag+"]]");
           return parts.length > 1 ? parts[1].split("[[")[0].trim() : "";
@@ -242,7 +230,6 @@
       document.getElementById('outTable').innerHTML = marked.parse(extract("TABLEAU"));
       document.getElementById('outReform').innerHTML = marked.parse(extract("REFORMULATION"));
 
-      // Modèles
       const mode = extract("TYPE");
       if(mode.includes("ANALYTIQUE")) {
           document.getElementById('tabSelectors').style.display = "none";
@@ -257,9 +244,9 @@
 
       document.getElementById('reportSection').style.display = "block";
       window.scrollTo({ top: document.getElementById('reportSection').offsetTop - 20, behavior: 'smooth' });
-    } catch (e) { alert("Erreur critique de connexion."); }
+    } catch (e) { alert("Erreur réseau."); }
     btn.disabled = false;
-    btn.innerText = "Valider et Générer le Certificat d'Expertise";
+    btn.innerText = "Générer l'Expertise Certifiée";
   }
 </script>
 </body>
