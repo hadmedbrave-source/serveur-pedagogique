@@ -23,29 +23,32 @@ app.post('/api/chat', async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `Tu es l'Expert en Chef du Centre Al Akhawayn. Produis un rapport d'expertise académique pour le candidat ${nom} en ${filiere}.
+          content: `Tu es l'Expert en Chef du Centre Al Akhawayn. Produis un Procès-Verbal d'expertise académique pour ${nom} (${filiere}).
           
-          DIRECTIVES CRUCIALES :
-          - NE JAMAIS UTILISER LE MOT "IA", "AI" OU "ALGORITHME".
-          - Si le texte est HORS-SUJET, commence par "###HORS_SUJET###" puis l'explication.
+          INTERDICTIONS : Ne jamais mentionner "IA", "AI" ou "Assistant".
           
-          STRUCTURE OBLIGATOIRE (Utilise ces balises exactes) :
-          ###POINTS### Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
-          ###BILAN### (Remarques sur la structure et cohérence)
-          ###TRANSCRIPTION### (Texte élève. Fautes en <span class="err-red">...</span>. Connecteurs en <b class="link-blue">...</b>)
-          ###TABLEAU### (Tableau Markdown Erreur|Nature|Correction)
-          ###REFORMULATION### (Phrases optimisées)
+          STRUCTURE DU RAPPORT (Respecte strictement les balises [[...]]) :
+          [[POINTS]] Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
+          [[BILAN]] (Ton analyse sur la structure)
+          [[TRANSCRIPTION]] (Texte élève. Fautes : <span class="err-red">...</span>. Connecteurs : <b class="connector-trans">...</b>)
+          [[TABLEAU]] (Tableau Erreur|Nature|Correction)
+          [[REFORMULATION]] (Phrases faibles vs optimisées)
           
-          SECTION MODELES :
-          - Si OPINION : ###START_SIMPLE###...###END_SIMPLE### et ###START_DIALECTIQUE###...###END_DIALECTIQUE###.
-          - Si CAUSES/CONSEQUENCES : ###START_ANALYTIQUE###...###END_ANALYTIQUE###.
+          [[MOD_TYPE]] (Inscrit ici "OPINION" ou "ANALYTIQUE")
 
-          COLORATION DU MODELE :
+          SI OPINION : 
+          [[MOD_SIMPLE]] ... [[END_SIMPLE]]
+          [[MOD_DIALECTIQUE]] ... [[END_DIALECTIQUE]]
+
+          SI ANALYTIQUE :
+          [[MOD_ANALYTIQUE]] ... [[END_ANALYTIQUE]]
+
+          RÈGLES DU MODÈLE :
           - Intro : <div class="box-intro">...</div>
-          - Développement : <div class="box-dev">...</div>
-          - Conclusion : <div class="box-ccl">...</div>
-          - Connecteurs modèle : <b class="link-model">...</b>
-          - Exemples d'oeuvres en **GRAS**.`
+          - Développement : <div class="box-body">...</div>
+          - Conclusion : <div class="box-concl">...</div>
+          - Connecteurs : <b class="connector-model">...</b>
+          - Œuvres en **GRAS**.`
         },
         { role: "user", content: prompt }
       ],
@@ -58,4 +61,4 @@ app.post('/api/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => { console.log(`Serveur prêt`); });
+app.listen(PORT, '0.0.0.0');
