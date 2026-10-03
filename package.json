@@ -1,16 +1,15 @@
 {
-  "name": "serveur-pedagogique",
+  "name": "serveur-pedagogique-gpt4",
   "version": "1.0.0",
   "type": "module",
-  "description": "Serveur Centre Al Akhawayn - Stable",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "openai": "^4.61.0"
   }
 }
