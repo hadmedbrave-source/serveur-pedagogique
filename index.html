@@ -1,103 +1,37 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Expertise Production Écrite | Centre Al Akhawayn</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
-  <style>
-    :root { --primary: #c5221f; --navy: #0b1528; --bg: #f8fafc; }
-    body { background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; display: flex; justify-content: center; }
-    .main-wrapper { max-width: 900px; width: 100%; background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-    .header { border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-    .brand { font-family: 'Outfit'; font-size: 24px; font-weight: 800; color: var(--primary); }
-    .brand span { color: var(--navy); }
-    .zone-card { border: 1.5px solid #e2e8f0; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
-    .zone-head { background: #f8fafc; padding: 10px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; color: var(--navy); border-bottom: 1px solid #e2e8f0; }
-    .zone-body { padding: 20px; }
-    input, select, textarea { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-    .writing-area { min-height: 400px; line-height: 28px; background-image: linear-gradient(#f8fafc 1px, transparent 1px); background-size: 100% 28px; border: none; }
-    .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 20px; border-radius: 12px; font-family: 'Outfit'; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; }
-    .btn:hover { background: #a01a18; transform: translateY(-2px); }
-    #reportSection { display: none; margin-top: 30px; }
-    .report-box { border: 2px solid var(--navy); border-radius: 12px; padding: 30px; line-height: 1.8; }
-    /* Styles IA */
-    .error-highlight { color: #dc2626; font-weight: 800; text-decoration: underline; }
-    .connector-bold { color: #000; font-weight: 800; background: #f1f5f9; padding: 2px 4px; border-radius: 4px; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #e2e8f0; padding: 12px; font-size: 14px; }
-    th { background: var(--navy); color: white; }
-  </style>
-</head>
-<body>
-  <div class="main-wrapper">
-    <div class="header">
-      <div class="brand">CENTRE <span>AL AKHAWAYN</span></div>
-      <div style="font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase;">Expertise Pédagogique IA</div>
-    </div>
+async function analyser() {
+  const btn = document.getElementById('btnValider');
+  const out = document.getElementById('resultat');
+  const sujet = document.getElementById('sujetInput').value;
+  const texte = document.getElementById('studentText').value;
 
-    <div class="zone-card">
-      <div class="zone-head">1) Informations</div>
-      <div class="zone-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <input type="text" id="studentName" placeholder="Nom de l'élève">
-        <select id="studentLevel">
-          <option>1ère BAC - Sciences</option>
-          <option>Prépa Concours</option>
-        </select>
-      </div>
-    </div>
+  if(!sujet || !texte) return alert("Veuillez remplir les champs.");
 
-    <div class="zone-card">
-      <div class="zone-head">2) Sujet</div>
-      <div class="zone-body">
-        <textarea id="sujetInput" rows="3" placeholder="Collez le sujet ici..."></textarea>
-      </div>
-    </div>
+  btn.disabled = true;
+  btn.innerText = "ANALYSE EN COURS...";
+  document.getElementById('reportSection').style.display = "block";
+  out.innerHTML = "L'IA analyse votre copie...";
 
-    <div class="zone-card" style="border-color: var(--navy);">
-      <div class="zone-head" style="background: var(--navy); color: white;">3) Production Écrite</div>
-      <div class="zone-body" style="padding:0">
-        <textarea id="studentText" class="writing-area" placeholder="Rédigez ici..."></textarea>
-      </div>
-    </div>
-
-    <button class="btn" id="btnValider" onclick="analyser()">GÉNÉRER LE RAPPORT D'EXPERTISE</button>
-
-    <div id="reportSection">
-      <div class="report-box" id="resultat"></div>
-    </div>
-  </div>
-
-  <script>
-    async function analyser() {
-      const btn = document.getElementById('btnValider');
-      const out = document.getElementById('resultat');
-      const sujet = document.getElementById('sujetInput').value;
-      const texte = document.getElementById('studentText').value;
-
-      if(!sujet || !texte) return alert("Veuillez remplir les champs.");
-
-      btn.disabled = true;
-      btn.innerText = "ANALYSE EN COURS...";
-      document.getElementById('reportSection').style.display = "block";
-      out.innerHTML = "L'IA analyse votre copie...";
-
-      try {
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: `Sujet: ${sujet}\n\nTexte: ${texte}` })
-        });
-        const data = await response.json();
-        out.innerHTML = marked.parse(data.result);
-      } catch (e) {
-        out.innerHTML = "Erreur de connexion au serveur.";
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "GÉNÉRER LE RAPPORT D'EXPERTISE";
-      }
+  try {
+    // REMPLACEZ "/api/chat" par l'URL complète de votre serveur Railway
+    const response = await fetch("https://serveur-pedagogique-production.up.railway.app/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: `Sujet: ${sujet}\n\nTexte: ${texte}` })
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || "Erreur serveur");
     }
-  </script>
-</body>
-</html>
+
+    const data = await response.json();
+    out.innerHTML = marked.parse(data.result);
+  } catch (e) {
+    // Affiche l'erreur réelle pour vous aider
+    out.innerHTML = "Erreur : " + e.message; 
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "GÉNÉRER LE RAPPORT D'EXPERTISE";
+  }
+}
