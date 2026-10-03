@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Expertise Production Écrite | Centre Al Akhawayn</title>
   
-  <!-- Polices et Bibliothèques -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
+  
+  <!-- LIEN CORRIGÉ : Plus stable pour éviter "marked is not defined" -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 
   <style>
     :root {
@@ -42,7 +43,6 @@
       border: 1px solid #e2e8f0;
     }
 
-    /* --- HEADER --- */
     .header-banner {
       display: flex;
       justify-content: space-between;
@@ -55,7 +55,6 @@
     .brand-title span { color: var(--navy); }
     .badge-status { background: var(--navy); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-top: 5px; display: inline-block; }
 
-    /* --- FORMULAIRE --- */
     .zone-card { border-radius: 14px; margin-bottom: 24px; border: 1.5px solid #e2e8f0; overflow: hidden; background: white; }
     .zone-head { padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: var(--navy); }
     .zone-body { padding: 20px; }
@@ -66,7 +65,6 @@
       width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 14px; outline: none; transition: 0.2s;
     }
 
-    /* --- ZONE RÉDACTION STYLE PAPIER --- */
     .writing-area {
       width: 100%; min-height: 450px; line-height: var(--line-height); font-size: 16px; padding: 0 15px; border: none; outline: none; resize: vertical;
       background-attachment: local;
@@ -75,34 +73,30 @@
     }
     .stats-bar { padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #64748b; }
 
-    /* --- BOUTON D'ACTION --- */
     .btn-evaluate {
       width: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white; border: none; padding: 20px; font-size: 17px; font-weight: 800;
       font-family: 'Outfit'; border-radius: 12px; cursor: pointer; transition: 0.3s; text-transform: uppercase;
-      box-shadow: 0 10px 20px rgba(197, 34, 31, 0.2);
     }
     .btn-evaluate:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(197, 34, 31, 0.3); }
     .btn-evaluate:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    /* --- RAPPORT D'EXPERTISE --- */
     #reportSection { display: none; margin-top: 40px; }
-    .report-container { border: 2px solid var(--navy); border-radius: 12px; padding: 35px; background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .report-container { border: 2px solid var(--navy); border-radius: 12px; padding: 35px; background: white; line-height: 1.8; }
     
-    /* Styles injectés par l'IA dans le rapport */
     .hors-sujet-alert {
       background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 25px;
-      border-radius: 12px; text-align: center; font-weight: 800; font-size: 20px; margin-bottom: 25px;
+      border-radius: 12px; text-align: center; font-weight: 800; font-size: 18px; margin-bottom: 25px;
     }
     .error-highlight { color: #dc2626; font-weight: 800; text-decoration: underline; }
     .connector-bold { color: #000; font-weight: 800; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
     
     table { width: 100%; border-collapse: collapse; margin: 25px 0; }
-    th { background: var(--navy); color: white; padding: 14px; text-align: left; font-size: 13px; }
+    th { background: var(--navy); color: white; padding: 14px; text-align: left; }
     td { border: 1px solid #e2e8f0; padding: 14px; font-size: 14px; }
     tr:nth-child(even) { background: #f8fafc; }
 
-    @media (max-width: 768px) { .student-grid { grid-template-columns: 1fr; } .main-wrapper { padding: 20px; } }
+    @media (max-width: 768px) { .student-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -111,30 +105,24 @@
   <div class="header-banner">
     <div>
       <div class="brand-title">CENTRE <span>AL AKHAWAYN</span></div>
-      <div class="badge-status">Plateforme Pédagogique d'Excellence</div>
+      <div class="badge-status">Expertise Pédagogique GPT-4o-mini</div>
     </div>
-    <div style="text-align: right; font-weight: 700; font-size: 14px; color: var(--navy);">
-      EXPERTISE PRODUCTION ÉCRITE<br><span style="color: var(--primary); font-size: 11px;">Propulsé par GPT-4o-mini</span>
+    <div style="text-align: right; font-weight: 700; font-size: 13px; color: var(--navy);">
+      EXPERTISE ÉCRITE<br><span style="color: var(--primary); font-size: 11px;">Propulsé par OpenAI Excellence</span>
     </div>
   </div>
 
   <div class="zone-card">
-    <div class="zone-head">1) Informations du candidat</div>
+    <div class="zone-head">1) Identification</div>
     <div class="zone-body">
       <div class="student-grid">
-        <div>
-          <label>Nom de l'élève</label>
-          <input type="text" id="studentName" placeholder="Ex: Karim Benjelloun">
-        </div>
-        <div>
-          <label>Niveau / Option</label>
-          <select id="studentLevel">
-            <option>1ère BAC - Sciences Expérimentales</option>
-            <option>1ère BAC - Sciences Mathématiques</option>
-            <option>1ère BAC - Lettres & Humaines</option>
-            <option>Préparation Concours (CRMEF / ENS)</option>
-          </select>
-        </div>
+        <input type="text" id="studentName" placeholder="Nom et Prénom de l'élève">
+        <select id="studentLevel">
+          <option>1ère BAC - Sciences Expérimentales</option>
+          <option>1ère BAC - Sciences Mathématiques</option>
+          <option>1ère BAC - Lettres & Sc. Humaines</option>
+          <option>Préparation Concours (CRMEF / ENS)</option>
+        </select>
       </div>
     </div>
   </div>
@@ -142,12 +130,12 @@
   <div class="zone-card" style="border-left: 5px solid #f59e0b;">
     <div class="zone-head">2) Sujet d'expression écrite</div>
     <div class="zone-body">
-      <textarea id="sujetInput" rows="3" placeholder="Collez ici la consigne complète du sujet..."></textarea>
+      <textarea id="sujetInput" rows="3" placeholder="Saisissez ici la consigne complète..."></textarea>
     </div>
   </div>
 
   <div class="zone-card" style="border-color: var(--navy);">
-    <div class="zone-head" style="background: var(--navy); color: white;">3) Zone de production écrite (Max 25 lignes)</div>
+    <div class="zone-head" style="background: var(--navy); color: white;">3) Production de l'élève (Max 25 lignes)</div>
     <div class="zone-body" style="padding: 0;">
       <textarea id="studentText" class="writing-area" oninput="actualiserCompteurs()" placeholder="Rédigez votre texte ici..."></textarea>
       <div class="stats-bar">
@@ -162,22 +150,18 @@
   <div id="reportSection">
     <div class="report-container" id="resultatIA"></div>
   </div>
-
 </div>
 
 <script>
-  // CONFIGURATION : Utilisez l'URL complète de votre serveur Railway
+  // UTILISEZ L'URL COMPLÈTE DE RAILWAY ICI
   const RAILWAY_BACKEND = "https://serveur-pedagogique-production.up.railway.app/api/chat";
 
   function actualiserCompteurs() {
     const text = document.getElementById('studentText').value;
     const lines = text.split('\n').length;
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    
     const lineInfo = document.getElementById('lineInfo');
     lineInfo.textContent = `Lignes utilisées : ${lines} / 25`;
-    lineInfo.style.color = lines > 25 ? "var(--primary)" : "#64748b";
-    
     document.getElementById('wordInfo').textContent = `Nombre de mots : ${words}`;
   }
 
@@ -189,15 +173,12 @@
     const output = document.getElementById('resultatIA');
     const reportSection = document.getElementById('reportSection');
 
-    if (!sujet || !texte) {
-      alert("Erreur : Le sujet et votre texte sont obligatoires.");
-      return;
-    }
+    if (!sujet || !texte) return alert("Veuillez remplir le sujet et la rédaction.");
 
     btn.disabled = true;
-    btn.textContent = "Expertise en cours par GPT-4o-mini...";
+    btn.textContent = "Analyse en cours par GPT-4o-mini...";
     reportSection.style.display = 'block';
-    output.innerHTML = "<div style='text-align:center; padding: 50px;'>Le serveur analyse votre copie. Veuillez patienter quelques secondes...</div>";
+    output.innerHTML = "<div style='text-align:center; padding: 40px;'>L'IA examine votre copie. Veuillez patienter...</div>";
 
     try {
       const response = await fetch(RAILWAY_BACKEND, {
@@ -206,22 +187,20 @@
         body: JSON.stringify({ prompt: `ÉLÈVE: ${nom}\nSUJET: ${sujet}\nTEXTE: ${texte}` })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || "Erreur interne du serveur");
-      }
-
       const data = await response.json();
-      output.innerHTML = marked.parse(data.result);
-      window.scrollTo({ top: reportSection.offsetTop - 20, behavior: 'smooth' });
-
+      
+      if (response.ok) {
+        // CORRECTION ICI : Utilisation de marked.parse() qui est plus robuste
+        output.innerHTML = marked.parse(data.result);
+        window.scrollTo({ top: reportSection.offsetTop - 20, behavior: 'smooth' });
+      } else {
+        output.innerHTML = `<p style="color:red; text-align:center;">Erreur IA : ${data.error}</p>`;
+      }
     } catch (error) {
-      output.innerHTML = `
-        <div style="color:red; text-align:center; padding: 30px; border: 2px solid red; border-radius: 10px;">
-          <b>Erreur de connexion au serveur Railway.</b><br><br>
-          Détails : ${error.message}<br><br>
-          <i>Assurez-vous que votre crédit OpenAI est actif et que le serveur Railway est en ligne.</i>
-        </div>`;
+      output.innerHTML = `<p style="color:red; text-align:center; padding: 20px;">
+        <b>Erreur de traitement :</b> ${error.message}<br><br>
+        <i>Vérifiez que vous utilisez bien l'URL https://centrealakhawayn.com</i>
+      </p>`;
     } finally {
       btn.disabled = false;
       btn.textContent = "Valider et générer le rapport d'expertise";
