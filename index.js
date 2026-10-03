@@ -8,21 +8,14 @@ import OpenAI from 'openai';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-// --- CONFIGURATION DU SERVEUR ---
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname)));
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, 
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Affiche la page d'accueil
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
-// --- LOGIQUE DE CORRECTION IA ---
 app.post('/api/chat', async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -32,38 +25,24 @@ app.post('/api/chat', async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `Tu es l'expert correcteur du Centre Al Akhawayn pour le Baccalauréat Marocain.
+          content: `Tu es un expert du Baccalauréat Marocain. Ta mission est de corriger la production écrite de l'élève.
+
+          RÈGLES D'OR :
+          1. NE DÉCLARE JAMAIS "HORS-SUJET" si l'élève traite du thème (ex: le maraboutisme). Même s'il prend position contre, il est DANS le sujet.
+          2. ÉVALUATION : Pour un texte structuré avec des exemples littéraires (La Boîte à Merveilles, etc.), sois généreux et attribue une note entre 9/10 et 10/10.
           
-          MISSION : Analyser la production écrite de l'élève avec une rigueur pédagogique.
+          FORMAT DE RÉPONSE (Strict) :
+          [BILAN_PEDAGOGIQUE]
+          Note : X/10. 
+          Appréciation globale : (Ton avis sur la copie).
+          Transcription : (Texte élève avec <span class="error-highlight">fautes</span> et <b class="connector-bold">connecteurs</b>).
+          Tableau des erreurs : (Markdown).
+          
+          [PLAN_CHOIX]
+          - Si sujet d'opinion : Fournis DEUX versions séparées par les balises [PLAN_SIMPLE] et [PLAN_DIALECTIQUE].
+          - Si sujet de causes : Fournis une version sous la balise [PLAN_ANALYTIQUE].
 
-          1. ANALYSE DU SUJET : 
-             - Si le texte de l'élève est totalement hors-sujet, affiche : <div class="hors-sujet-alert">⚠️ HORS-SUJET DÉTECTÉ - NOTE : 00/10</div> suivi d'une explication brève.
-             - Si le texte traite du thème (même de façon courte), effectue la correction normalement.
-
-          2. NOTATION (Barème 10 pts) : 
-             - Consigne & Organisation (2 pts)
-             - Structure argumentative (2 pts)
-             - Force des arguments & exemples (2 pts)
-             - Correction de la langue (2.5 pts)
-             - Richesse du lexique (1.5 pts)
-
-          3. TRANSCRIPTION ANNOTÉE : 
-             - Réécris le texte de l'élève.
-             - Entoure les erreurs par <span class="error-highlight">...</span>.
-             - Entoure les connecteurs logiques par <b class="connector-bold">...</b>.
-
-          4. GÉNÉRATION DU MODÈLE OPTIMISÉ (CRUCIAL) :
-             - Si le sujet demande une OPINION : Tu DOIS obligatoirement fournir deux versions en utilisant exactement ces balises :
-               [PLAN_SIMPLE] 
-               (Texte du modèle en plan simple)
-               [PLAN_DIALECTIQUE] 
-               (Texte du modèle en plan dialectique)
-             
-             - Si le sujet demande CAUSES / CONSÉQUENCES : Utilise cette balise :
-               [PLAN_ANALYTIQUE]
-               (Texte du modèle en plan analytique)
-
-          IMPORTANT : Dans tous tes modèles, utilise des exemples précis des œuvres : "La Boîte à Merveilles", "Antigone" ou "Le Dernier Jour d'un Condamné". Mets les titres et les exemples en **GRAS**.`
+          IMPORTANT : Utilise les oeuvres (Antigone, Sefrioui, Hugo) et mets les titres en **GRAS**.`
         },
         { role: "user", content: prompt }
       ],
@@ -71,15 +50,10 @@ app.post('/api/chat', async (req, res) => {
     });
 
     res.json({ result: response.choices[0].message.content });
-
   } catch (error) {
-    console.error("ERREUR IA :", error.message);
-    res.status(500).json({ error: "L'IA est indisponible.", details: error.message });
+    res.status(500).json({ error: "Erreur IA", details: error.message });
   }
 });
 
-// Port dynamique pour Railway
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Serveur Centre Al Akhawayn opérationnel sur le port ${PORT}`);
-});
+app.listen(PORT, '0.0.0.0', () => { console.log(`Serveur actif sur le port ${PORT}`); });
