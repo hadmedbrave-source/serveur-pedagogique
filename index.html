@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Centre Al Akhawayn | Plateforme d'Audit Stylistique</title>
+  <title>Centre Al Akhawayn | Expertise Académique & Didactique</title>
   
-  <!-- Tailwind CSS via CDN pour hébergement statique et GitHub Pages -->
+  <!-- Tailwind CSS via CDN pour hébergement Railway ou GitHub -->
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Polices académiques Google Fonts -->
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
-  <!-- Marked.js pour le rendu Markdown didactique -->
+  <!-- Marked.js pour le rendu du Markdown -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 
   <style>
@@ -31,7 +31,7 @@
     .font-newsreader { font-family: 'Newsreader', Georgia, serif; }
     .font-mono-code { font-family: 'JetBrains Mono', monospace; }
 
-    /* Zone de rédaction réglée façon copie d'examen */
+    /* Zone de rédaction façon copie d'examen */
     .writing-zone {
       min-height: 360px;
       line-height: 32px;
@@ -42,7 +42,7 @@
       font-size: 18px;
     }
 
-    /* Styles pour les annotations */
+    /* Balisages didactiques */
     .struct-missing {
       display: block;
       margin: 8px 0;
@@ -59,418 +59,522 @@
     }
 
     .err-highlight {
-      color: #be123c;
-      background-color: #ffe4e6;
-      padding: 2px 6px;
-      border-radius: 4px;
+      background-color: #fee2e2;
+      color: #991b1b;
       font-weight: 700;
-      text-decoration: underline wavy #f43f5e;
-      text-underline-offset: 4px;
-      display: inline-block;
-      margin: 1px 2px;
-      border: 1px solid #fecdd3;
+      padding: 1px 4px;
+      border-radius: 4px;
+      border-bottom: 2px solid #ef4444;
     }
 
     .conn-student {
       color: #1d4ed8;
+      font-weight: 800;
       background-color: #eff6ff;
-      padding: 1px 6px;
+      padding: 1px 5px;
       border-radius: 4px;
-      font-weight: 700;
-      border-bottom: 2px solid #60a5fa;
-      display: inline-block;
-      margin: 1px 2px;
+      border: 1px solid #bfdbfe;
     }
 
     .conn-model {
       color: #c2410c;
-      background-color: #fff7ed;
-      padding: 1px 6px;
-      border-radius: 4px;
       font-weight: 800;
-      border: 1px dashed #fb923c;
-      display: inline-block;
-      margin: 1px 2px;
+      background-color: #fff7ed;
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid #fed7aa;
     }
 
-    /* Modèles de référence */
-    .model-intro {
-      background: #fffbeb;
-      padding: 24px;
-      border-left: 4px solid var(--gold);
-      border-top: 1px solid #fef3c7;
-      border-right: 1px solid #fef3c7;
-      border-bottom: 1px solid #fef3c7;
-      margin-bottom: 20px;
-      border-radius: 12px;
-    }
-    .model-intro p {
-      line-height: 1.85;
-      text-indent: 1.5rem;
-    }
-
-    .model-body {
-      background: #f0fdf4;
-      padding: 24px;
-      border-left: 4px solid var(--emerald);
-      border-top: 1px solid #dcfce7;
-      border-right: 1px solid #dcfce7;
-      border-bottom: 1px solid #dcfce7;
-      margin-bottom: 20px;
-      border-radius: 12px;
-    }
-    .model-body p {
-      margin-bottom: 1.25rem;
-      line-height: 1.85;
-      text-indent: 1.75rem;
-    }
-    .model-body p:last-child {
-      margin-bottom: 0;
-    }
-
-    .model-concl {
-      background: #eef2ff;
-      padding: 24px;
-      border-left: 4px solid var(--indigo);
-      border-top: 1px solid #e0e7ff;
-      border-right: 1px solid #e0e7ff;
-      border-bottom: 1px solid #e0e7ff;
-      border-radius: 12px;
-    }
-    .model-concl p {
-      line-height: 1.85;
-      text-indent: 1.5rem;
-    }
-
-    #outReform blockquote {
-      margin-bottom: 1.25rem;
-      padding: 1rem 1.25rem;
-      border-left: 3.5px solid var(--gold);
-      background-color: #ffffff;
-      border-radius: 0.5rem;
-      line-height: 1.85;
-      font-family: 'Newsreader', Georgia, serif;
-      font-size: 1.05rem;
-      color: #1e293b;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .tab-trigger.active {
-      background: #0b1528 !important;
+    .tab-btn.active {
+      background-color: #0b1528 !important;
       color: #ffffff !important;
       border-color: #0b1528 !important;
-      box-shadow: 0 4px 12px rgba(11, 21, 40, 0.2);
     }
 
-    #outTable table {
+    /* Boîte de modèle littéraire */
+    .model-intro {
+      background: #fdfaf0;
+      border-left: 4px solid #b45309;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+    }
+    .model-body {
+      background: #f0fdf4;
+      border-left: 4px solid #059669;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 16px;
+    }
+    .model-concl {
+      background: #eef2ff;
+      border-left: 4px solid #4338ca;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* Rendu des tableaux Markdown */
+    .markdown-body table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      border-radius: 10px;
-      overflow: hidden;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.95rem;
+    }
+    .markdown-body th, .markdown-body td {
       border: 1px solid #cbd5e1;
-      background-color: #ffffff;
-      font-size: 0.875rem;
-    }
-    #outTable th {
-      background: #0f172a;
-      color: #ffffff;
-      font-family: 'Outfit', sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 700;
-      padding: 12px 16px;
+      padding: 10px 14px;
       text-align: left;
-      font-size: 0.75rem;
     }
-    #outTable td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #f1f5f9;
-      color: #1e293b;
-      line-height: 1.5;
+    .markdown-body th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .markdown-body tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    .markdown-body blockquote {
+      border-left: 4px solid #b45309;
+      padding-left: 1rem;
+      color: #334155;
+      font-style: italic;
+      margin: 1rem 0;
+      background: #fffbeb;
+      padding: 12px;
+      border-radius: 0 6px 6px 0;
     }
 
-    .official-seal {
-      width: 130px;
-      height: 130px;
-      border: 3px double #0b1528;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 8px;
-      background: radial-gradient(circle, #fffbeb 40%, #fef3c7 100%);
-      box-shadow: 0 0 0 4px rgba(180, 83, 9, 0.15);
+    @media print {
+      body * { visibility: hidden; }
+      #printableArea, #printableArea * { visibility: visible; }
+      #printableArea { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen py-8 px-3 sm:px-6 font-sans">
 
-  <!-- Modal de Protection d'Accès Enseignant -->
-  <div id="lockModal" style="display:none;" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200">
-      <div class="text-center mb-6">
-        <div class="w-14 h-14 bg-amber-100 text-amber-900 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner">
-          🔒
-        </div>
-        <h3 class="font-cinzel text-xl font-black text-slate-950">Accès Enseignant Sécurisé</h3>
-        <p class="text-xs text-slate-500 mt-1 font-medium">Saisissez le mot de passe pour générer l'expertise officielle.</p>
+<body class="bg-slate-50 text-slate-900 font-outfit min-h-screen flex flex-col antialiased">
+
+  <!-- MODAL DE VERROUILLAGE PROFESSEUR -->
+  <div id="lockModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-200 text-center animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-amber-200 shadow-inner">
+        <span class="text-3xl">🏛️</span>
       </div>
+      <h2 class="font-cinzel text-xl font-black text-slate-950 tracking-wider mb-2">CENTRE AL AKHAWAYN</h2>
+      <p class="text-xs uppercase font-extrabold tracking-widest text-amber-700 mb-6">Expertise Didactique Certifiée</p>
+      
+      <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+        Espace réservé au corps enseignant pour l'évaluation et l'audit certifié des écrits académiques.
+      </p>
 
-      <form onsubmit="handleUnlockSubmit(event)" class="space-y-4">
+      <div class="space-y-4">
         <div>
-          <label class="block text-xs uppercase font-extrabold tracking-wider text-slate-600 mb-1.5">Mot de passe de session</label>
-          <input 
-            type="password" 
-            id="serverPassInput" 
-            placeholder="••••••••••••" 
-            class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold tracking-wider text-slate-900 focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 outline-none transition"
-          >
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 text-left">Code d'accès enseignant</label>
+          <input type="password" id="inputPassword" placeholder="Saisir votre mot de passe..." 
+            class="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 font-mono text-center tracking-widest text-lg outline-none transition-all">
+          <p id="lockError" class="text-xs font-bold text-rose-600 mt-2 hidden"></p>
         </div>
 
-        <div id="lockError" style="display:none;" class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs font-semibold text-rose-800"></div>
-
-        <button 
-          type="submit" 
-          id="btnUnlock"
-          class="w-full py-3.5 bg-slate-950 hover:bg-slate-800 text-amber-400 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-md cursor-pointer"
-        >
-          Déverrouiller l'Interface
+        <button onclick="unlockSystem()" id="btnUnlock" 
+          class="w-full py-4 bg-slate-950 hover:bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+          <span>Déverrouiller l'Interface</span>
+          <span>→</span>
         </button>
-      </form>
+
+        <p class="text-xs text-slate-400 font-medium">Mot de passe de référence : <strong class="text-slate-600">AKHAWAYN2026</strong></p>
+      </div>
     </div>
   </div>
 
-  <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-10 md:p-12 relative overflow-hidden">
-    <!-- Ruban aux couleurs officielles en haut de la carte -->
-    <div class="h-2.5 w-full absolute top-0 left-0 bg-gradient-to-r from-[#0b1528] via-[#c5221f] to-[#b45309]"></div>
-
-    <!-- En-tête officiel -->
-    <header class="text-center border-b-2 border-slate-900 pb-7 mb-8 mt-2">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full mb-3">
-        <span class="text-[11px] font-bold tracking-widest uppercase text-amber-800">
-          Système Officiel d'Évaluation Pédagogique
-        </span>
-      </div>
-      <h1 class="font-cinzel text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-        CENTRE <span class="text-[#c5221f]">AL AKHAWAYN</span>
-      </h1>
-      <p class="font-outfit uppercase font-extrabold text-xs sm:text-sm text-[#b45309] tracking-[0.25em] mt-2">
-        Expertise & Ingénierie Pédagogique • Excellence Académique
-      </p>
-    </header>
-
-    <!-- Grille Candidat & Filière -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-      <div class="bg-slate-50/80 border border-slate-200 p-5 rounded-xl md:col-span-2 shadow-xs">
-        <h2 class="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
-          <span class="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Candidat
-        </h2>
-        <input 
-          type="text" 
-          id="studentName" 
-          placeholder="NOM COMPLET DU CANDIDAT" 
-          class="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-base font-semibold uppercase tracking-wider text-slate-900 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition"
-        >
-      </div>
-
-      <div class="bg-slate-50/80 border border-slate-200 p-5 rounded-xl shadow-xs">
-        <h2 class="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
-          <span class="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Filière
-        </h2>
-        <select 
-          id="filiere" 
-          class="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition cursor-pointer"
-        >
-          <option>1ère BAC - Sciences Mathématiques</option>
-          <option>1ère BAC - Sciences Expérimentales</option>
-          <option>1ère BAC - Lettres & Sc. Humaines</option>
-          <option>Prépa Concours d'Excellence</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Consigne du Sujet -->
-    <div class="bg-slate-50/80 border border-slate-200 p-5 rounded-xl mb-6 shadow-xs">
-      <h2 class="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
-        <span class="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Consigne du Sujet
-      </h2>
-      <textarea 
-        id="sujet" 
-        rows="3" 
-        placeholder="Saisissez ou collez ici la consigne du sujet de réflexion..." 
-        class="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-sm leading-relaxed text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition"
-      ></textarea>
-      
-      <!-- Barème officiel en pilules -->
-      <div class="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-200">
-        <span class="text-xs uppercase font-bold text-slate-600 mr-1">Barème Officiel :</span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Consigne <b class="ml-1 text-slate-950 font-bold">2pt</b></span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Structure <b class="ml-1 text-slate-950 font-bold">2pt</b></span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Arguments <b class="ml-1 text-slate-950 font-bold">2pt</b></span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-[#c5221f] shadow-2xs">Langue <b class="ml-1 font-bold">2.5pt</b></span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Lexique <b class="ml-1 text-slate-950 font-bold">1.5pt</b></span>
-      </div>
-    </div>
-
-    <!-- Zone de rédaction manuscrite -->
-    <div class="border-2 border-slate-900 rounded-xl p-5 mb-8 bg-white shadow-sm">
-      <h2 class="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
-        <span class="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Manuscrit Rédactionnel du Candidat
-      </h2>
-      <textarea 
-        id="texte" 
-        class="writing-zone w-full p-4 border border-slate-300/80 rounded-lg outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition text-slate-900" 
-        placeholder="Rédigez ou collez votre production écrite ici..."
-      ></textarea>
-    </div>
-
-    <!-- Boutons d'action -->
-    <div class="space-y-3 mb-10">
-      <button 
-        id="btnRun" 
-        onclick="processExpertise()" 
-        class="w-full py-5 px-8 bg-gradient-to-r from-[#0b1528] via-[#162544] to-[#0b1528] text-white rounded-xl font-cinzel font-bold text-lg sm:text-xl tracking-wider shadow-lg hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition duration-200 cursor-pointer border border-amber-600/30"
-      >
-        Générer l'Expertise Certifiée
-      </button>
-
-      <button
-        type="button"
-        onclick="toggleSamplePreview()"
-        class="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer border border-slate-300 flex items-center justify-center gap-2"
-      >
-        <span>👁️ Voir la mise en page du rapport (Aperçu didactique)</span>
-      </button>
-    </div>
-
-    <!-- SECTION RAPPORT CERTIFIÉ (RÉVÉLÉE APRÈS TRAITEMENT OU CLIC APERÇU) -->
-    <section id="reportSection" style="display:none;" class="mt-8 border-4 border-double border-slate-950 p-6 sm:p-10 md:p-14 bg-white rounded-xl shadow-2xl">
-      <div class="text-center font-cinzel text-2xl sm:text-3xl font-black text-slate-950 underline underline-offset-8 decoration-amber-600 mb-8 tracking-tight">
-        CERTIFICAT D'EXPERTISE ET DE VALIDATION
-      </div>
-
-      <!-- Alerte Hors-Sujet conditionnelle -->
-      <div id="alertHorsSujet" style="display:none;" class="bg-rose-50 border-2 border-rose-600 text-rose-950 p-4 sm:p-5 rounded-xl mb-8 flex items-center gap-3">
-        <span class="text-2xl">⚠️</span>
+  <!-- EN-TÊTE DU SITE -->
+  <header class="bg-slate-950 border-b border-amber-600/30 text-white py-4 px-4 sm:px-8 shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl shadow-inner">
+          🏛️
+        </div>
         <div>
-          <h4 class="font-outfit font-extrabold uppercase text-sm tracking-wider text-rose-900">
-            Avertissement Didactique : Production Déclarée Hors-Sujet
-          </h4>
-          <p class="text-xs sm:text-sm text-rose-800 mt-0.5">
-            L'expertise relève une déviation par rapport à la problématique ou à la consigne imposée par le sujet. Consultez le bilan critique ci-dessous.
+          <h1 class="font-cinzel font-black tracking-wider text-base sm:text-lg text-white">CENTRE AL AKHAWAYN</h1>
+          <p class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-amber-400">Direction de l'Expertise Didactique • Baccalauréat</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="openArchivesModal()" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-bold tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+          <span>🗂️</span>
+          <span class="hidden sm:inline">Boîtes d'Archives</span>
+        </button>
+        <button onclick="togglePasswordModal()" class="p-2 text-slate-400 hover:text-white transition-colors" title="Paramètres d'accès">
+          🔑
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="max-w-7xl mx-auto w-full px-4 sm:px-8 py-8 flex-1">
+    
+    <!-- BANDEAU D'ACCUEIL -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs mb-8">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-black tracking-wider uppercase">
+            <span>⚖️</span>
+            <span>Protocole d'Évaluation Didactique</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Audit Chirurgical des Écrits Académiques</h2>
+          <p class="text-sm text-slate-600 max-w-2xl leading-relaxed">
+            Évaluation continue, diagnostic de structure en entonnoir, détection automatique des plans (Analytique / Opinion) et modèles réécrits conformes au barème régional officiel (10 Points).
           </p>
         </div>
-      </div>
 
-      <div class="flex flex-col md:flex-row justify-between border-b-2 border-slate-950 pb-4 mb-8 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800 gap-3 bg-slate-50/70 p-4 rounded-lg border border-slate-200">
-        <div>CANDIDAT : <span id="rNom" class="text-[#c5221f] font-black text-base ml-1">...</span></div>
-        <div>FILIÈRE : <span id="rFil" class="text-slate-900 ml-1">...</span></div>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
-        <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50">
-          <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Consigne</label>
-          <div class="text-2xl font-black text-slate-950"><span id="v1">0</span><span class="text-xs font-bold text-slate-500">/2</span></div>
-        </div>
-        <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50">
-          <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Structure</label>
-          <div class="text-2xl font-black text-slate-950"><span id="v2">0</span><span class="text-xs font-bold text-slate-500">/2</span></div>
-        </div>
-        <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50">
-          <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Arguments</label>
-          <div class="text-2xl font-black text-slate-950"><span id="v3">0</span><span class="text-xs font-bold text-slate-500">/2</span></div>
-        </div>
-        <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-rose-50 border-rose-900">
-          <label class="text-xs uppercase font-extrabold text-rose-900 block mb-1">Langue</label>
-          <div class="text-2xl font-black text-rose-950"><span id="v4">0</span><span class="text-xs font-bold text-rose-700">/2.5</span></div>
-        </div>
-        <div class="border-2 border-slate-900 p-4 text-center rounded-xl bg-slate-50 col-span-2 sm:col-span-1">
-          <label class="text-xs uppercase font-extrabold text-slate-600 block mb-1">Lexique</label>
-          <div class="text-2xl font-black text-slate-950"><span id="v5">0</span><span class="text-xs font-bold text-slate-500">/1.5</span></div>
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="toggleSamplePreview()" id="btnPreviewToggle" 
+            class="px-5 py-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shadow-xs">
+            <span>👁️</span>
+            <span>Aperçu didactique (Exemple Certifié)</span>
+          </button>
         </div>
       </div>
+    </div>
 
-      <div class="p-6 bg-slate-950 text-white rounded-xl mb-10 flex flex-col sm:flex-row justify-between items-center gap-4 border border-amber-600/40">
+    <!-- FORMULAIRE DE SAISIE -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+      
+      <!-- Colonne Saisie Élève -->
+      <div class="lg:col-span-8 space-y-6">
+        
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Nom & Prénom de l'Élève</label>
+              <input type="text" id="studentName" placeholder="Ex: Youssef El Mansouri" 
+                class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 font-medium text-sm outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Filière / Niveau</label>
+              <select id="filiere" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 font-medium text-sm outline-none transition-all bg-white">
+                <option value="1ère BAC - Sciences Expérimentales">1ère BAC - Sciences Expérimentales</option>
+                <option value="1ère BAC - Sciences Mathématiques">1ère BAC - Sciences Mathématiques</option>
+                <option value="1ère BAC - Sciences Économiques">1ère BAC - Sciences Économiques</option>
+                <option value="1ère BAC - Lettres et Sciences Humaines">1ère BAC - Lettres & Sciences Humaines</option>
+                <option value="Concours d'Excellence & CPGE">Concours d'Excellence & CPGE</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-700">Sujet de Production Écrite (Consigne Officielle)</label>
+              <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">Barème officiel /10</span>
+            </div>
+            <textarea id="sujet" rows="3" placeholder="Collez ici la consigne officielle ou l'intitulé de l'examen régional..." 
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 text-sm font-medium outline-none transition-all resize-y"></textarea>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-700">Copie Rédigée par le Candidat</label>
+              <span class="text-xs text-slate-500">Maintien scrupuleux des alinéas et paragraphes</span>
+            </div>
+            <textarea id="texte" placeholder="Saisissez ou collez ici la production écrite intégrale de l'élève..." 
+              class="writing-zone w-full p-6 rounded-2xl border border-slate-300 focus:border-amber-600 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all resize-y"></textarea>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+            <button onclick="fillExampleText()" class="text-xs font-bold text-slate-600 hover:text-amber-800 transition-colors flex items-center gap-1.5 cursor-pointer">
+              <span>📝</span>
+              <span>Charger un texte type (La Boîte à Merveilles)</span>
+            </button>
+
+            <button onclick="processExpertise()" id="btnRun" 
+              class="w-full sm:w-auto px-8 py-4 bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-sm uppercase tracking-wider rounded-xl shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center justify-center gap-3">
+              <span>Générer l'Expertise Certifiée</span>
+              <span>⚡</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Colonne Guides & Boîtes -->
+      <div class="lg:col-span-4 space-y-6">
+        
+        <!-- Boîtes d'œuvres -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">
+          <h3 class="font-cinzel font-bold text-sm text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span>📚</span>
+            <span>Boîtes d'Archives par Œuvre</span>
+          </h3>
+
+          <div class="space-y-3">
+            <div onclick="openArchivesModal('boite')" class="p-3.5 rounded-2xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/60 transition-all cursor-pointer flex items-center justify-between">
+              <div>
+                <h4 class="text-xs font-black text-amber-950 uppercase tracking-wider">La Boîte à Merveilles</h4>
+                <p class="text-[11px] text-amber-800 font-medium">Ahmed Sefrioui • Autobiographie</p>
+              </div>
+              <span id="countBoite" class="px-2.5 py-1 rounded-full bg-amber-200/70 text-amber-950 text-xs font-black">0</span>
+            </div>
+
+            <div onclick="openArchivesModal('antigone')" class="p-3.5 rounded-2xl border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100/60 transition-all cursor-pointer flex items-center justify-between">
+              <div>
+                <h4 class="text-xs font-black text-indigo-950 uppercase tracking-wider">Antigone</h4>
+                <p class="text-[11px] text-indigo-800 font-medium">Jean Anouilh • Tragédie moderne</p>
+              </div>
+              <span id="countAntigone" class="px-2.5 py-1 rounded-full bg-indigo-200/70 text-indigo-950 text-xs font-black">0</span>
+            </div>
+
+            <div onclick="openArchivesModal('condamne')" class="p-3.5 rounded-2xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/60 transition-all cursor-pointer flex items-center justify-between">
+              <div>
+                <h4 class="text-xs font-black text-emerald-950 uppercase tracking-wider">Le Dernier Jour d'un Condamné</h4>
+                <p class="text-[11px] text-emerald-800 font-medium">Victor Hugo • Roman à thèse</p>
+              </div>
+              <span id="countCondamne" class="px-2.5 py-1 rounded-full bg-emerald-200/70 text-emerald-950 text-xs font-black">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barème Officiel -->
+        <div class="bg-slate-950 rounded-3xl p-6 text-white border border-slate-800 shadow-md">
+          <h3 class="font-cinzel font-bold text-sm text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span>📋</span>
+            <span>Barème Régional Officiel (10 Pts)</span>
+          </h3>
+
+          <div class="space-y-3 text-xs">
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span class="text-slate-300">1. Respect de la consigne & sujet</span>
+              <span class="font-bold text-amber-400 font-mono">/ 2.0 Pts</span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span class="text-slate-300">2. Structure & cohérence (Entonnoir)</span>
+              <span class="font-bold text-amber-400 font-mono">/ 2.0 Pts</span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span class="text-slate-300">3. Pertinence des arguments & exemples</span>
+              <span class="font-bold text-amber-400 font-mono">/ 2.0 Pts</span>
+            </div>
+            <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span class="text-slate-300">4. Correction de la langue & syntaxe</span>
+              <span class="font-bold text-amber-400 font-mono">/ 2.5 Pts</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-300">5. Richesse du lexique & précision</span>
+              <span class="font-bold text-amber-400 font-mono">/ 1.5 Pts</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RAPPORT D'EXPERTISE CERTIFIÉE -->
+    <section id="reportSection" class="hidden space-y-8 animate-in fade-in duration-300">
+      
+      <!-- ALERTE HORS SUJET -->
+      <div id="alertHorsSujet" class="hidden p-6 rounded-3xl bg-rose-50 border-2 border-rose-500 text-rose-950 flex items-center gap-4 shadow-sm">
+        <span class="text-4xl">⚠️</span>
         <div>
-          <span class="text-xs uppercase font-bold text-amber-400 tracking-widest block">Note Globale d'Évaluation</span>
-          <span class="text-xs text-slate-400">Total barème officiel marocain</span>
+          <h4 class="font-black text-rose-900 text-base uppercase tracking-wider">Alerte Didactique : Production Hors-Sujet</h4>
+          <p class="text-xs text-rose-800 mt-1 font-medium">La copie ne répond pas à la consigne régionale officielle. Une note éliminatoire sur les critères 1 et 3 s'applique.</p>
         </div>
-        <span id="rTotal" class="text-amber-400 font-black text-4xl sm:text-5xl font-outfit tracking-wider">--/10</span>
       </div>
 
-      <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> I. Transcription Annotée du Manuscrit
-      </h2>
-      <div id="outTrans" class="leading-loose text-base sm:text-lg p-6 bg-slate-50/80 border border-slate-200 rounded-xl mb-8 font-newsreader break-words shadow-inner"></div>
+      <!-- ZONE IMPRIMABLE DU RAPPORT -->
+      <div id="printableArea" class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-sm space-y-8">
+        
+        <!-- En-tête du Rapport -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-900 text-amber-300 text-xs font-black tracking-widest uppercase mb-2">
+              Rapport d'Expertise Certifiée
+            </div>
+            <h3 id="rNom" class="text-2xl sm:text-3xl font-black text-slate-950 font-cinzel">MOHAMMED BENALI</h3>
+            <p id="rFil" class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">1ère Année Baccalauréat - Sciences Expérimentales</p>
+          </div>
 
-      <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> II. Audit de Structure
-      </h2>
-      <div id="outBilan" class="mb-8 prose max-w-none text-slate-800 leading-relaxed"></div>
+          <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 block">Note Didactique Globale</span>
+              <span id="rTotal" class="text-3xl font-black text-slate-950 font-mono">8.8/10</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xl shadow-inner">
+              ✓
+            </div>
+          </div>
+        </div>
 
-      <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> III. Inventaire des Erreurs
-      </h2>
-      <div class="overflow-x-auto mb-8 shadow-xs rounded-xl border border-slate-200"><div id="outTable"></div></div>
-
-      <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> IV. Optimisation Stylistique & Registre de Langue
-      </h2>
-      <div id="outReform" class="mb-8 bg-amber-50/50 p-6 border border-amber-200/70 rounded-xl text-slate-800 leading-relaxed shadow-xs"></div>
-
-      <h2 class="font-outfit text-base font-bold uppercase text-slate-950 border-b-2 border-slate-950 pb-2 mb-4 flex items-center gap-2">
-        <span class="w-2 h-4 bg-[#c5221f] rounded-full inline-block"></span> V. Modèle de Référence Didactique
-      </h2>
-
-      <!-- Indicateur de Plan Détecté -->
-      <div id="planIndicator" style="display:none;" class="p-4 rounded-xl mb-4 border flex items-center gap-3 shadow-xs">
-        <div id="planIcon" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-base bg-white shrink-0 shadow-xs border border-slate-200">⚖️</div>
+        <!-- GRILLE DE NOTATION OFFICIELLE (10 POINTS) -->
         <div>
-          <div id="planTitle" class="font-outfit font-black text-sm uppercase tracking-wider">Plan Détecté</div>
-          <div id="planDesc" class="text-xs opacity-90 mt-0.5 font-medium">Description</div>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-3">1. Détail de la Grille Officielle d'Évaluation (10 Points)</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Consigne</span>
+              <span id="v1" class="text-lg font-black text-slate-900 font-mono">1.8</span>
+              <span class="text-[10px] text-slate-400 font-bold block">/ 2.0</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Structure</span>
+              <span id="v2" class="text-lg font-black text-slate-900 font-mono">1.7</span>
+              <span class="text-[10px] text-slate-400 font-bold block">/ 2.0</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Arguments</span>
+              <span id="v3" class="text-lg font-black text-slate-900 font-mono">1.8</span>
+              <span class="text-[10px] text-slate-400 font-bold block">/ 2.0</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Langue</span>
+              <span id="v4" class="text-lg font-black text-slate-900 font-mono">2.2</span>
+              <span class="text-[10px] text-slate-400 font-bold block">/ 2.5</span>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center col-span-2 sm:col-span-1">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Lexique</span>
+              <span id="v5" class="text-lg font-black text-slate-900 font-mono">1.3</span>
+              <span class="text-[10px] text-slate-400 font-bold block">/ 1.5</span>
+            </div>
+          </div>
         </div>
+
+        <!-- TRANSCRIPTION ANNOTÉE -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">2. Transcription Analytique & Balisage Chirurgical de la Copie</h4>
+            <div class="flex items-center gap-3 text-[11px] font-bold">
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Erreur</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-blue-100 border border-blue-400 inline-block"></span> Connecteur élève</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-orange-100 border border-orange-400 inline-block"></span> Recommandé</span>
+            </div>
+          </div>
+          <div id="outTrans" class="writing-zone p-6 rounded-2xl border border-slate-200 bg-white leading-relaxed"></div>
+        </div>
+
+        <!-- TABLEAU DE CHIRURGIE DES ERREURS -->
+        <div>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-3">3. Diagnostic Chirurgical des Fautes (Classification Didactique)</h4>
+          <div id="outTable" class="markdown-body overflow-x-auto"></div>
+        </div>
+
+        <!-- BILAN DIDACTIQUE -->
+        <div>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-3">4. Audit Méthodologique & Progression Pédagogique</h4>
+          <div id="outBilan" class="markdown-body p-6 rounded-2xl bg-slate-50 border border-slate-200"></div>
+        </div>
+
+        <!-- REFORMULATION & HOMOGÉNÉITÉ SYNTAXIQUE -->
+        <div>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-3">5. Optimisation Stylistique & Version Continue d'Excellence</h4>
+          <div id="outReform" class="markdown-body p-6 rounded-2xl bg-amber-50/40 border border-amber-200"></div>
+        </div>
+
+        <!-- MODÈLES DE RÉFÉRENCE CERTIFIÉS -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">6. Modèle de Production d'Excellence (Norme Centre Al Akhawayn)</h4>
+            
+            <div id="tabSelectors" class="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl">
+              <button onclick="displayM('A')" id="ts" class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                Plan Thématique (Simple)
+              </button>
+              <button onclick="displayM('B')" id="td" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                Plan Dialectique
+              </button>
+            </div>
+          </div>
+
+          <!-- Indicateur de plan -->
+          <div id="planIndicator" class="p-4 rounded-xl mb-4 border flex items-center gap-3 shadow-xs bg-amber-50/90 border-amber-300 text-amber-950">
+            <span id="planIcon" class="text-2xl">⚖️</span>
+            <div>
+              <strong id="planTitle" class="block text-xs uppercase tracking-wider font-extrabold">PLAN DÉTECTÉ : PLAN D'OPINION</strong>
+              <p id="planDesc" class="text-xs mt-0.5 font-medium">Choix libre d'orientation : plan thématique à deux ou trois axes symétriques ou plan dialectique (thèse, antithèse, synthèse).</p>
+            </div>
+          </div>
+
+          <div id="outModel" class="font-newsreader text-base leading-relaxed p-6 rounded-2xl bg-white border border-slate-200 space-y-4"></div>
+        </div>
+
+        <!-- ACTIONS & ARCHIVAGE -->
+        <div class="pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 no-print">
+          <div class="flex items-center gap-3">
+            <button onclick="window.print()" class="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2">
+              <span>🖨️</span>
+              <span>Imprimer le Rapport Officiel</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <select id="archiveSelectWork" class="px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white outline-none">
+              <option value="boite">La Boîte à Merveilles</option>
+              <option value="antigone">Antigone</option>
+              <option value="condamne">Le Dernier Jour d'un Condamné</option>
+            </select>
+            <button onclick="saveCurrentToArchives()" class="px-5 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shadow-xs">
+              <span>💾</span>
+              <span>Enregistrer dans la boîte</span>
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      <div id="tabSelectors" class="flex flex-col sm:flex-row gap-3 mb-6" style="display:none;">
-        <button id="ts" onclick="displayM('A')" class="tab-trigger active flex-1 py-3.5 px-6 border-2 border-slate-950 font-cinzel font-bold text-sm uppercase rounded-xl transition cursor-pointer">PLAN SIMPLE (THÉMATIQUE)</button>
-        <button id="td" onclick="displayM('B')" class="tab-trigger flex-1 py-3.5 px-6 border-2 border-slate-950 font-cinzel font-bold text-sm uppercase rounded-xl transition bg-slate-100 cursor-pointer">PLAN DIALECTIQUE</button>
-      </div>
-      <div id="outModel" class="font-newsreader text-base sm:text-lg mb-10 leading-relaxed text-slate-900"></div>
-
-      <footer class="mt-14 pt-8 border-t-2 border-slate-950 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="text-xs text-slate-600 text-center md:text-left leading-relaxed">
-          <strong class="text-slate-900 font-bold block font-cinzel text-sm">Rapport Certifié Conforme</strong>
-          Expertise pédagogique et barèmes officiels marocains.<br>
-          Centre Al Akhawayn • Excellence Académique.
-        </div>
-        <div class="official-seal">
-          <b class="text-sm font-cinzel text-slate-950 font-bold">C. AL AKHAWAYN</b>
-          <span class="text-[9px] font-black uppercase tracking-wider text-[#b45309] mt-1">SCEAU D'AUTHENTICITÉ</span>
-        </div>
-      </footer>
     </section>
+
+  </main>
+
+  <!-- MODAL DE GESTION DES ARCHIVES -->
+  <div id="archivesModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+        <div>
+          <h3 class="font-cinzel text-xl font-black text-slate-950">Boîtes d'Archives Pédagogiques</h3>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">Consultation & Relecture des Copies Traitées</p>
+        </div>
+        <button onclick="closeArchivesModal()" class="p-2 text-slate-400 hover:text-slate-800 text-lg cursor-pointer">✕</button>
+      </div>
+
+      <div class="flex items-center gap-2 mb-4 border-b border-slate-200 pb-3">
+        <button onclick="switchArchiveTab('boite')" id="tabArchBoite" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-950 border border-amber-300 cursor-pointer">
+          La Boîte à Merveilles
+        </button>
+        <button onclick="switchArchiveTab('antigone')" id="tabArchAntigone" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+          Antigone
+        </button>
+        <button onclick="switchArchiveTab('condamne')" id="tabArchCondamne" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+          Le Condamné
+        </button>
+      </div>
+
+      <div id="archivesContentList" class="flex-1 overflow-y-auto space-y-3 pr-2"></div>
+    </div>
   </div>
 
-  <script>
-    let planA = "", planB = "";
-    let sessionPassword = "";
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 font-medium">
+    <p>© 2026 Centre Al Akhawayn • Tous droits réservés. Évaluation et didactique certifiées pour le Baccalauréat.</p>
+  </footer>
 
-    async function handleUnlockSubmit(e) {
-      if (e) e.preventDefault();
-      const pass = document.getElementById('serverPassInput').value;
+  <!-- SCRIPT DU SYSTÈME DIDACTIQUE -->
+  <script>
+    let sessionPassword = "";
+    let planA = "";
+    let planB = "";
+    let currentArchiveTab = "boite";
+    let loadedArchivesData = { boite: [], antigone: [], condamne: [] };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchArchivesCounts();
+    });
+
+    async function unlockSystem() {
+      const pass = document.getElementById('inputPassword').value;
       const err = document.getElementById('lockError');
       const btn = document.getElementById('btnUnlock');
+      if (!pass) return;
 
-      if (!pass) {
-        if (err) { err.style.display = 'block'; err.innerText = 'Veuillez saisir le mot de passe.'; }
-        return;
-      }
-
-      btn.innerText = "Vérification...";
       btn.disabled = true;
+      btn.innerText = "Vérification...";
 
       try {
         const res = await fetch('/api/verify-password', {
@@ -486,10 +590,19 @@
           if (err) { err.style.display = 'block'; err.innerText = data.message || 'Mot de passe incorrect.'; }
         }
       } catch (e) {
-        if (err) { err.style.display = 'block'; err.innerText = 'Erreur serveur.'; }
+        if (pass.trim() === 'AKHAWAYN2026') {
+          sessionPassword = pass.trim();
+          document.getElementById('lockModal').style.display = 'none';
+        } else {
+          if (err) { err.style.display = 'block'; err.innerText = 'Mot de passe incorrect (AKHAWAYN2026).'; }
+        }
       }
       btn.disabled = false;
       btn.innerText = "Déverrouiller l'Interface";
+    }
+
+    function togglePasswordModal() {
+      document.getElementById('lockModal').style.display = 'flex';
     }
 
     function displayM(type) {
@@ -503,10 +616,10 @@
       const filiere = document.getElementById('filiere').value;
       const sujet = document.getElementById('sujet').value;
       const texte = document.getElementById('texte').value;
-      if(!sujet || !texte) return alert("Veuillez renseigner le sujet et votre manuscrit.");
+      if (!sujet || !texte) return alert("Veuillez renseigner le sujet et le texte de l'élève.");
 
       const btn = document.getElementById('btnRun');
-      btn.innerText = "GÉNÉRATION DU RAPPORT...";
+      btn.innerText = "GÉNÉRATION DU RAPPORT DIDACTIQUE...";
       btn.disabled = true;
 
       try {
@@ -526,7 +639,7 @@
 
         if (res.status === 401) {
           document.getElementById('lockModal').style.display = 'flex';
-          alert('Mot de passe enseignant requis ou modifié.');
+          alert('Mot de passe enseignant requis.');
           btn.disabled = false;
           btn.innerText = "Générer l'Expertise Certifiée";
           return;
@@ -543,18 +656,18 @@
         document.getElementById('rFil').innerText = filiere;
 
         const pts = raw.match(/Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
-        if(pts) {
-            document.getElementById('v1').innerText = pts[1];
-            document.getElementById('v2').innerText = pts[2];
-            document.getElementById('v3').innerText = pts[3];
-            document.getElementById('v4').innerText = pts[4];
-            document.getElementById('v5').innerText = pts[5];
-            document.getElementById('rTotal').innerText = (parseFloat(pts[1])+parseFloat(pts[2])+parseFloat(pts[3])+parseFloat(pts[4])+parseFloat(pts[5])).toFixed(1) + "/10";
+        if (pts) {
+          document.getElementById('v1').innerText = pts[1];
+          document.getElementById('v2').innerText = pts[2];
+          document.getElementById('v3').innerText = pts[3];
+          document.getElementById('v4').innerText = pts[4];
+          document.getElementById('v5').innerText = pts[5];
+          document.getElementById('rTotal').innerText = (parseFloat(pts[1]) + parseFloat(pts[2]) + parseFloat(pts[3]) + parseFloat(pts[4]) + parseFloat(pts[5])).toFixed(1) + "/10";
         }
 
         const extract = (tag) => {
-            const parts = raw.split("[["+tag+"]]");
-            return parts.length > 1 ? parts[1].split("[[")[0].trim() : "";
+          const parts = raw.split("[[" + tag + "]]");
+          return parts.length > 1 ? parts[1].split("[[")[0].trim() : "";
         };
 
         document.getElementById('outTrans').innerHTML = extract("TRANSCRIPTION");
@@ -580,24 +693,27 @@
             planInd.className = "p-4 rounded-xl mb-4 border flex items-center gap-3 shadow-xs bg-amber-50/90 border-amber-300 text-amber-950";
             if (planIcon) planIcon.innerText = "⚖️";
             if (planTitle) planTitle.innerText = "PLAN DÉTECTÉ : PLAN D'OPINION (POINT DE VUE / CHOIX D'ORIENTATION)";
-            if (planDesc) planDesc.innerText = "Le sujet demande d'exprimer et défendre une position personnelle : choix libre entre Plan Simple (Thématique) et Plan Dialectique.";
+            if (planDesc) planDesc.innerText = "Le sujet demande d'exprimer et défendre une position personnelle : choix libre entre Plan Thématique (Simple) et Plan Dialectique.";
           }
         }
 
-        if(isAnalytic) {
-            document.getElementById('tabSelectors').style.display = "none";
-            planA = extract("PLAN_A");
-            displayM('A');
+        if (isAnalytic) {
+          document.getElementById('tabSelectors').style.display = "none";
+          planA = extract("PLAN_A");
+          displayM('A');
         } else {
-            document.getElementById('tabSelectors').style.display = "flex";
-            planA = extract("PLAN_A");
-            planB = extract("PLAN_B");
-            displayM('A');
+          document.getElementById('tabSelectors').style.display = "flex";
+          planA = extract("PLAN_A");
+          planB = extract("PLAN_B");
+          displayM('A');
         }
 
         document.getElementById('reportSection').style.display = "block";
         window.scrollTo({ top: document.getElementById('reportSection').offsetTop - 20, behavior: 'smooth' });
-      } catch (e) { alert("Erreur réseau ou communication."); }
+
+      } catch (e) {
+        alert("Erreur de connexion au serveur.");
+      }
       btn.disabled = false;
       btn.innerText = "Générer l'Expertise Certifiée";
     }
@@ -620,8 +736,8 @@
         document.getElementById('outTrans').innerHTML = `<p>La solitude est un sentiment <span class="err-highlight">partager [partagé]</span> par plusieurs personnes. <span class="struct-missing">[⚠️ Rupture : Alinéa / Connecteur d'attaque manquant]</span> Dans La Boite à Merveilles, Sidi Mohammed est souvent seul à Dar Chouafa. <b class="conn-student">Cependant</b>, cette solitude lui <span class="err-highlight">permet [permettait / permet]</span> de développer son imagination avec sa boîte. <b class="conn-model">En premier lieu</b>, les objets minuscules deviennent pour lui des amis fidèles. <span class="struct-missing">[⚠️ Rupture : Alinéa / Transition manquante]</span> <span class="err-highlight">Malgré qu'il soit [Bien qu'il soit]</span> entouré de tensions, il préfère son monde imaginaire. <b class="conn-model">En définitive</b>, la solitude n'est pas toujours <span class="err-highlight">une tare [un défaut]</span>, mais un sanctuaire personnel.</p>`;
 
         document.getElementById('outBilan').innerHTML = marked.parse(`### 1. Diagnostic de l'Introduction
-- **Phrase d'amorce :** Présente mais banale. L'amorce littéraire tripartite attentive est recommandée.
-- **Problématique & Annonce :** Posées de manière succincte ; la tension dialectique mérite d'être davantage approfondie.
+- **Phrase d'amorce :** Présente mais convenue. L'amorce littéraire tripartite attentive est recommandée.
+- **Problématique & Annonce :** Posées succinctement ; la tension dialectique mérite d'être davantage approfondie.
 
 ### 2. Diagnostic du Développement
 - **Structure :** Deux arguments pertinents mais un alinéa manquant entre les paragraphes.
@@ -639,15 +755,15 @@
 
 - **Phrase de l'élève n°1 (relâchée et juxtaposée) :**
   > *« Dans La Boite à Merveilles, Sidi Mohammed est souvent seul à Dar Chouafa. Parfois il pleure parce qu'il n'a pas d'amis mais il a sa boîte magique. »*
-  - **Diagnostic didactique :** Juxtaposition enfantine de propositions coordonnées par « mais », absence d'articulateurs logiques complexes et registre familier relâché (*« il n'a pas d'amis »*).
+  - **Diagnostic didactique :** Juxtaposition de propositions coordonnées par « mais », absence d'articulateurs logiques complexes et registre relâché.
   - **Reformulation académique homogénéisée :**
     > *« Isolé au cœur des clameurs et des tensions triviales de Dar Chouafa, le jeune narrateur d'Ahmed Sefrioui transmute sa douloureuse solitude en une féerie intérieure grâce aux trésors minuscules et secrets de son coffret magique. »*
 
 ---
 
-- **Phrase de l'élève n°2 (rupture modale et syntaxe défaillante) :**
+- **Phrase de l'élève n°2 (rupture modale) :**
   > *« Malgré qu'il soit entouré de tensions domestiques... »*
-  - **Diagnostic didactique :** Tournure fautive (*malgré que* suivi du subjonctif). Rupture d'homogénéité avec le registre soutenu attendu à l'épreuve régionale.
+  - **Diagnostic didactique :** Tournure fautive (*malgré que* au subjonctif) contraire au registre soutenu.
   - **Reformulation académique homogénéisée :**
     > *« Bien qu'il évolue au sein d'un univers familial saturé de querelles de voisinage, l'enfant préserve l'inviolable pureté de son imaginaire. »*
 
@@ -678,6 +794,124 @@
       } else {
         isPreviewOpen = false;
         rep.style.display = 'none';
+      }
+    }
+
+    function fillExampleText() {
+      document.getElementById('studentName').value = "Youssef El Mansouri";
+      document.getElementById('filiere').value = "1ère BAC - Sciences Expérimentales";
+      document.getElementById('sujet').value = "Certains pensent que la solitude est une source de souffrance et d'isolement, tandis que d'autres estiment qu'elle est nécessaire pour mieux se comprendre soi-même. En vous appuyant sur vos lectures, notamment La Boîte à Merveilles d'Ahmed Sefrioui, exprimez votre point de vue dans un texte argumenté.";
+      document.getElementById('texte').value = `La solitude est un sentiment partager par plusieurs personnes. Dans La Boite à Merveilles, Sidi Mohammed est souvent seul à Dar Chouafa. Cependant, cette solitude lui permet de développer son imagination avec sa boîte.\n\nEn premier lieu, les objets minuscules deviennent pour lui des amis fidèles. Malgré qu'il soit entouré de tensions, il préfère son monde imaginaire.\n\nEn définitive, la solitude n'est pas toujours une tare, mais un sanctuaire personnel.`;
+    }
+
+    async function fetchArchivesCounts() {
+      try {
+        const res = await fetch('/api/archives');
+        if (res.ok) {
+          const data = await res.json();
+          loadedArchivesData = data;
+          document.getElementById('countBoite').innerText = (data.boite || []).length;
+          document.getElementById('countAntigone').innerText = (data.antigone || []).length;
+          document.getElementById('countCondamne').innerText = (data.condamne || []).length;
+        }
+      } catch (e) {
+        // Mode statique si serveur non joint
+      }
+    }
+
+    async function saveCurrentToArchives() {
+      const work = document.getElementById('archiveSelectWork').value;
+      const nom = document.getElementById('rNom').innerText;
+      const filiere = document.getElementById('rFil').innerText;
+      const score = document.getElementById('rTotal').innerText;
+      const sujet = document.getElementById('sujet').value;
+      const texte = document.getElementById('texte').value;
+      const reformulations = document.getElementById('outReform').innerHTML;
+      const modelText = document.getElementById('outModel').innerHTML;
+
+      try {
+        const res = await fetch('/api/archives', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            work,
+            candidateName: nom,
+            filiere,
+            score,
+            sujet,
+            texte,
+            reformulations,
+            modelText
+          })
+        });
+        if (res.ok) {
+          alert('Copie archivée avec succès dans la boîte choisie !');
+          fetchArchivesCounts();
+        } else {
+          alert('Erreur lors de l’archivage.');
+        }
+      } catch (e) {
+        alert('Impossible de contacter le serveur d’archives.');
+      }
+    }
+
+    function openArchivesModal(tab) {
+      if (tab) currentArchiveTab = tab;
+      switchArchiveTab(currentArchiveTab);
+      document.getElementById('archivesModal').style.display = 'flex';
+    }
+
+    function closeArchivesModal() {
+      document.getElementById('archivesModal').style.display = 'none';
+    }
+
+    function switchArchiveTab(tab) {
+      currentArchiveTab = tab;
+      const btnB = document.getElementById('tabArchBoite');
+      const btnA = document.getElementById('tabArchAntigone');
+      const btnC = document.getElementById('tabArchCondamne');
+
+      btnB.className = tab === 'boite' ? 'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-950 border border-amber-300 cursor-pointer' : 'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer';
+      btnA.className = tab === 'antigone' ? 'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-indigo-100 text-indigo-950 border border-indigo-300 cursor-pointer' : 'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer';
+      btnC.className = tab === 'condamne' ? 'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-950 border border-emerald-300 cursor-pointer' : 'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer';
+
+      renderArchivesList(tab);
+    }
+
+    function renderArchivesList(tab) {
+      const container = document.getElementById('archivesContentList');
+      const list = loadedArchivesData[tab] || [];
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm font-medium">Aucune copie enregistrée pour le moment dans cette boîte d'œuvre.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(item => `
+        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white transition-all space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-900 text-sm">${item.candidateName}</h4>
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-800 font-mono font-bold text-xs">${item.score}</span>
+          </div>
+          <p class="text-xs text-slate-500 line-clamp-1 italic">${item.sujet || 'Sujet non renseigné'}</p>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+            <span>📅 ${item.date || 'Date non renseignée'} • ${item.filiere}</span>
+            <button onclick="deleteArchive('${item.id}')" class="text-rose-600 hover:text-rose-800 font-bold cursor-pointer">Supprimer</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function deleteArchive(id) {
+      if (!confirm('Voulez-vous vraiment supprimer cette archive ?')) return;
+      try {
+        const res = await fetch('/api/archives/' + id, { method: 'DELETE' });
+        if (res.ok) {
+          fetchArchivesCounts();
+          setTimeout(() => switchArchiveTab(currentArchiveTab), 300);
+        }
+      } catch (e) {
+        alert('Erreur lors de la suppression.');
       }
     }
   </script>
