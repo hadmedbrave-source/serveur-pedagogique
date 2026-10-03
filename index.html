@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Bibliothèque indispensable pour afficher le rapport de l'IA proprement -->
+  <!-- Bibliothèque indispensable pour transformer la réponse IA en texte structuré -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.js"></script>
 
   <style>
@@ -43,7 +43,6 @@
       border: 1px solid #e2e8f0;
     }
 
-    /* --- HEADER --- */
     .header-banner {
       display: flex;
       justify-content: space-between;
@@ -56,7 +55,6 @@
     .brand-title span { color: var(--navy); }
     .badge-status { background: var(--navy); color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-top: 5px; display: inline-block; }
 
-    /* --- CARDS --- */
     .zone-card { border-radius: 14px; margin-bottom: 24px; border: 1.5px solid #e2e8f0; overflow: hidden; background: white; }
     .zone-head { padding: 12px 20px; font-weight: 700; font-size: 13px; text-transform: uppercase; background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: var(--navy); }
     .zone-body { padding: 20px; }
@@ -66,9 +64,7 @@
     input, select, textarea {
       width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 14px; outline: none; transition: 0.2s;
     }
-    input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(197, 34, 31, 0.1); }
 
-    /* --- ZONE RÉDACTION PAPIER --- */
     .writing-area {
       width: 100%; min-height: 450px; line-height: var(--line-height); font-size: 16px; padding: 0 15px; border: none; outline: none; resize: vertical;
       background-attachment: local;
@@ -77,20 +73,19 @@
     }
     .stats-bar { padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #64748b; }
 
-    /* --- BOUTON --- */
     .btn-evaluate {
       width: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white; border: none; padding: 20px; font-size: 17px; font-weight: 800;
       font-family: 'Outfit'; border-radius: 12px; cursor: pointer; transition: 0.3s; text-transform: uppercase;
+      box-shadow: 0 10px 20px rgba(197, 34, 31, 0.2);
     }
-    .btn-evaluate:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(197, 34, 31, 0.3); }
+    .btn-evaluate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(197, 34, 31, 0.3); }
     .btn-evaluate:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    /* --- RAPPORT IA --- */
     #reportSection { display: none; margin-top: 40px; }
     .report-container { border: 2px solid var(--navy); border-radius: 12px; padding: 35px; background: white; line-height: 1.8; }
     
-    /* Styles pour l'IA GPT-4 */
+    /* Styles pour l'affichage des erreurs par l'IA */
     .hors-sujet-alert {
       background: #fee2e2; border: 2px solid #ef4444; color: #991b1b; padding: 25px;
       border-radius: 12px; text-align: center; font-weight: 800; font-size: 18px; margin-bottom: 25px;
@@ -99,7 +94,7 @@
     .connector-bold { color: #000; font-weight: 800; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
     
     table { width: 100%; border-collapse: collapse; margin: 25px 0; }
-    th { background: var(--navy); color: white; padding: 14px; text-align: left; font-size: 13px; }
+    th { background: var(--navy); color: white; padding: 14px; text-align: left; }
     td { border: 1px solid #e2e8f0; padding: 14px; font-size: 14px; }
     tr:nth-child(even) { background: #f8fafc; }
 
@@ -112,24 +107,23 @@
   <div class="header-banner">
     <div>
       <div class="brand-title">CENTRE <span>AL AKHAWAYN</span></div>
-      <div class="badge-status">Expertise Pédagogique Certifiée</div>
+      <div class="badge-status">Expertise Pédagogique GPT-4o-mini</div>
     </div>
-    <div style="text-align: right; font-weight: 700; font-size: 13px; color: var(--navy);">
-      MOTEUR D'INTELLIGENCE ARTIFICIELLE<br><span style="color: var(--primary); font-size: 10px;">Analyse Rigoureuse & Anti-Hors-Sujet</span>
+    <div style="text-align: right; font-weight: 700; font-size: 14px; color: var(--navy);">
+      EXPERTISE ÉCRITE<br><span style="color: var(--primary); font-size: 11px;">Moteur de correction d'excellence</span>
     </div>
   </div>
 
-  <!-- Identification -->
   <div class="zone-card">
-    <div class="zone-head">1) Identification du candidat</div>
+    <div class="zone-head">1) Identification</div>
     <div class="zone-body">
       <div class="student-grid">
         <div>
-          <label>Nom et Prénom</label>
-          <input type="text" id="studentName" placeholder="Ex: Karim Benjelloun">
+          <label>Candidat</label>
+          <input type="text" id="studentName" placeholder="Prénom et Nom">
         </div>
         <div>
-          <label>Niveau / Option</label>
+          <label>Niveau / Concours</label>
           <select id="studentLevel">
             <option>1ère BAC - Sciences Expérimentales</option>
             <option>1ère BAC - Sciences Mathématiques</option>
@@ -141,17 +135,15 @@
     </div>
   </div>
 
-  <!-- Sujet -->
   <div class="zone-card" style="border-left: 5px solid #f59e0b;">
     <div class="zone-head">2) Sujet d'expression écrite</div>
     <div class="zone-body">
-      <textarea id="sujetInput" rows="3" placeholder="Saisissez ou collez ici la consigne complète du sujet..."></textarea>
+      <textarea id="sujetInput" rows="3" placeholder="Collez ici la consigne complète du sujet..."></textarea>
     </div>
   </div>
 
-  <!-- Rédaction -->
   <div class="zone-card" style="border-color: var(--navy);">
-    <div class="zone-head" style="background: var(--navy); color: white;">3) Zone de production de l'élève (Max 25 lignes)</div>
+    <div class="zone-head" style="background: var(--navy); color: white;">3) Production de l'élève (Max 25 lignes)</div>
     <div class="zone-body" style="padding: 0;">
       <textarea id="studentText" class="writing-area" oninput="actualiserCompteurs()" placeholder="Rédigez votre texte ici..."></textarea>
       <div class="stats-bar">
@@ -161,21 +153,17 @@
     </div>
   </div>
 
-  <button class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Générer le rapport d'expertise pédagogique</button>
+  <button class="btn-evaluate" id="btnValider" onclick="lancerEvaluationIA()">Générer le rapport d'expertise</button>
 
-  <!-- Rapport final -->
   <div id="reportSection">
     <div class="report-container" id="resultatIA"></div>
-    <div style="margin-top: 15px; text-align: center; font-size: 10px; color: #94a3b8; text-transform: uppercase;">
-      Document d'expertise généré par GPT-4o-mini • Centre Al Akhawayn
-    </div>
   </div>
 </div>
 
 <script>
-  // --- CONFIGURATION DE L'ADRESSE DU SERVEUR ---
-  // J'ai mis l'URL complète pour garantir la connexion
-  const RAILWAY_BACKEND = "https://serveur-pedagogique-production.up.railway.app/api/chat";
+  // --- CONFIGURATION CRUCIALE ---
+  // On utilise une route relative pour éviter toute erreur de connexion (CORS)
+  const RAILWAY_BACKEND = "/api/chat";
 
   function actualiserCompteurs() {
     const text = document.getElementById('studentText').value;
@@ -184,9 +172,7 @@
     const lineInfo = document.getElementById('lineInfo');
     
     lineInfo.textContent = `Lignes utilisées : ${lines} / 25`;
-    if(lines > 25) lineInfo.style.color = "var(--primary)";
-    else lineInfo.style.color = "#64748b";
-    
+    lineInfo.style.color = lines > 25 ? "var(--primary)" : "#64748b";
     document.getElementById('wordInfo').textContent = `Nombre de mots : ${words}`;
   }
 
@@ -198,15 +184,12 @@
     const output = document.getElementById('resultatIA');
     const reportSection = document.getElementById('reportSection');
 
-    if (!sujet || !texte) {
-      alert("Veuillez saisir le sujet et votre rédaction.");
-      return;
-    }
+    if (!sujet || !texte) return alert("Sujet et rédaction obligatoires.");
 
     btn.disabled = true;
-    btn.textContent = "Analyse en cours par GPT-4o...";
+    btn.textContent = "Expertise en cours par GPT-4o-mini...";
     reportSection.style.display = 'block';
-    output.innerHTML = "<div style='text-align:center; padding: 40px;'>L'IA examine votre copie (vérification du sujet, correction de la langue et structure argumentative)...</div>";
+    output.innerHTML = "<div style='text-align:center; padding: 40px;'>L'IA analyse votre copie (Vérification du sujet, correction de la langue et structure du plan)...</div>";
 
     try {
       const response = await fetch(RAILWAY_BACKEND, {
@@ -221,20 +204,13 @@
         output.innerHTML = marked.parse(data.result);
         window.scrollTo({ top: reportSection.offsetTop - 20, behavior: 'smooth' });
       } else {
-        // En cas d'erreur API (ex: crédit insuffisant)
-        output.innerHTML = `<div style="color:red; text-align:center; padding: 20px;">
-          <b>Erreur de l'IA :</b> ${data.error}<br>
-          <small>${data.message || ""}</small>
-        </div>`;
+        output.innerHTML = `<p style="color:red; text-align:center; padding: 20px;">Erreur de l'IA : ${data.error}<br><small>${data.details || ""}</small></p>`;
       }
     } catch (error) {
-      output.innerHTML = `<div style="color:red; text-align:center; padding: 20px;">
-        <b>Erreur de connexion :</b> Impossible de contacter le serveur Railway.<br>
-        <small>Vérifiez que votre connexion internet est active et que le serveur est en ligne.</small>
-      </div>`;
+      output.innerHTML = "<p style='color:red; text-align:center; padding: 20px;'>Erreur de connexion. Vérifiez que vous avez bien ouvert le site via son URL (https://...) et non localement.</p>";
     } finally {
       btn.disabled = false;
-      btn.textContent = "Générer le rapport d'expertise pédagogique";
+      btn.textContent = "Générer le rapport d'expertise";
     }
   }
 </script>
