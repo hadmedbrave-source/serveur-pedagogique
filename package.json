@@ -2,6 +2,7 @@
   "name": "serveur-pedagogique-centre-al-akhawayn",
   "version": "1.0.0",
   "type": "module",
+  "description": "Plateforme d'expertise en production écrite - GPT-4o-mini",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
