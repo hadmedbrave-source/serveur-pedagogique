@@ -2,20 +2,10 @@
   "name": "serveur-pedagogique-centre-al-akhawayn",
   "version": "1.0.0",
   "type": "module",
-  "description": "Plateforme d'expertise en production écrite - Modèle GPT-4o-mini",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": [
-    "education",
-    "bac",
-    "maroc",
-    "openai",
-    "gpt4"
-  ],
-  "author": "Centre Al Akhawayn",
-  "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
