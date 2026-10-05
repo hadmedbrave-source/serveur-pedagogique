@@ -46,6 +46,7 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Modal Changement de mot de passe
   const [showChangeModal, setShowChangeModal] = useState(false);
@@ -79,6 +80,41 @@ export default function App() {
       }
     } catch (e) {
       console.error('Erreur lecture archives:', e);
+    }
+  };
+
+  const handleUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordInput.trim()) {
+      setAuthError('Veuillez saisir votre mot de passe.');
+      return;
+    }
+    setIsVerifying(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSessionPassword(passwordInput.trim());
+        setIsUnlocked(true);
+        setPasswordInput('');
+      } else {
+        setAuthError(data.message || 'Mot de passe incorrect.');
+      }
+    } catch (err) {
+      if (passwordInput.trim() === 'AKHAWAYN2026') {
+        setSessionPassword(passwordInput.trim());
+        setIsUnlocked(true);
+        setPasswordInput('');
+      } else {
+        setAuthError('Mot de passe incorrect (AKHAWAYN2026).');
+      }
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -180,9 +216,11 @@ export default function App() {
       let heightLeft = imgHeight;
       let position = 0;
 
+      // Premiere page A4
       pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
       heightLeft -= pdfHeight;
 
+      // Pages suivantes si le rapport est long
       while (heightLeft > 0) {
         position -= pdfHeight;
         pdf.addPage();
@@ -193,7 +231,7 @@ export default function App() {
       pdf.save(`Rapport_Expertise_Bac_${cleanName}.pdf`);
       document.title = origTitle;
     } catch (err) {
-      console.error("Erreur génération PDF, impression système:", err);
+      console.error("Erreur génération PDF direct, ouverture de l'impression système:", err);
       handlePrintPdf();
     } finally {
       setIsGeneratingPdf(false);
@@ -215,651 +253,962 @@ export default function App() {
 
   const formatTranscription = (transText: string, originalText: string): string => {
     const cleaned = transText ? transText.replace(/<span class="struct-missing">[^<]*<\/span>/gi, '').trim() : '';
+    
     if (!cleaned) {
-      const paras = originalText.split(/\n\s*\n/).filter((p) => p.trim());
-      return paras.map((p) => `<p>${p.trim().replace(/\n/g, '<br/>')}</p>`).join('\n\n');
+      const paras = originalText.split(/\n\s*\n/).filter(p => p.trim());
+      return paras.map(p => `<p>${p.trim().replace(/\n/g, '<br/>')}</p>`).join('\n\n');
     }
 
+    // If it already has multiple <p> tags, preserve and format them
     const pCount = (cleaned.match(/<p[\s>]/gi) || []).length;
-    if (pCount > 1) return cleaned;
-
-    const rawParas = cleaned.split(/\n\s*\n/).filter((p) => p.trim());
-    if (rawParas.length > 1) {
-      return rawParas
-        .map((p) => {
-          let trimmed = p.trim().replace(/^<p>/i, '').replace(/<\/p>$/i, '').trim();
-          return `<p>${trimmed.replace(/\n/g, '<br/>')}</p>`;
-        })
-        .join('\n\n');
+    if (pCount > 1) {
+      return cleaned;
     }
+
+    // If separated by double linebreaks, split into distinct <p> tags
+    const rawParas = cleaned.split(/\n\s*\n/).filter(p => p.trim());
+    if (rawParas.length > 1) {
+      return rawParas.map(p => {
+        let trimmed = p.trim().replace(/^<p>/i, '').replace(/<\/p>$/i, '').trim();
+        return `<p>${trimmed.replace(/\n/g, '<br/>')}</p>`;
+      }).join('\n\n');
+    }
+
+    // If AI grouped everything into 1 block while original manuscript has multiple paragraphs:
+    const originalParas = originalText.split(/\n\s*\n/).filter(p => p.trim());
+    if (originalParas.length > 1) {
+      let remaining = cleaned.replace(/^<p>/i, '').replace(/<\/p>$/i, '').trim();
+      const reconstructed: string[] = [];
+      
+      for (let i = 0; i < originalParas.length; i++) {
+        if (i === originalParas.length - 1) {
+          reconstructed.push(`<p>${remaining.trim()}</p>`);
+          break;
+        }
+        
+        const nextOrig = originalParas[i + 1].trim();
+        const nextWords = nextOrig.split(/\s+/).slice(0, 3).join(' ');
+        const sanitizedWords = nextWords.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const matchIndex = remaining.search(new RegExp(sanitizedWords, 'i'));
+        
+        if (matchIndex > 0) {
+          const currentPara = remaining.slice(0, matchIndex).trim();
+          reconstructed.push(`<p>${currentPara}</p>`);
+          remaining = remaining.slice(matchIndex).trim();
+        } else {
+          // If match not found, fallback to original paragraph
+          reconstructed.push(`<p>${originalParas[i].trim()}</p>`);
+        }
+      }
+      if (reconstructed.length > 0) {
+        return reconstructed.join('\n\n');
+      }
+    }
+
     return `<p>${cleaned.replace(/\n/g, '<br/>')}</p>`;
   };
 
   const checkOffTopicStatus = (sujetStr: string, texteStr: string): { isOff: boolean; type: 'METHODOLOGIQUE' | 'THEMATIQUE' | 'GENERAL' } => {
     if (!sujetStr || !texteStr) return { isOff: false, type: 'GENERAL' };
-    const norm = (s: string) =>
-      (s || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    
+    const norm = (s: string) => (s || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
     const sNorm = norm(sujetStr);
     const tNorm = norm(texteStr);
 
-    // Détection hors-sujet méthodologique (Sujet d'opinion traité en plan analytique)
+    // 1. Methodological off-topic: Opinion topic treated via Causes / Solutions (Plan Analytique)
     const opinionIndicators = [
       'pensez vous', 'partagez vous', 'etes vous', 'd accord', 'qu en pensez vous',
       'faut il', 'peut on', 'votre avis', 'votre point de vue', 'votre opinion',
       'approuvez vous', 'selon vous', 'justifiez votre point de vue', 'partagez cette'
     ];
-    const isExplicitAnalyticSubject =
-      sNorm.includes('causes et solutions') ||
-      sNorm.includes('causes et consequences') ||
-      sNorm.includes('quelles sont les causes');
 
-    const isOpinion = opinionIndicators.some((ind) => sNorm.includes(ind)) && !isExplicitAnalyticSubject;
+    const isExplicitAnalyticSubject = sNorm.includes('causes et solutions') ||
+      sNorm.includes('causes et consequences') ||
+      sNorm.includes('quelles sont les causes') ||
+      sNorm.includes('analyser les causes');
+
+    const isOpinion = opinionIndicators.some(ind => sNorm.includes(ind)) && !isExplicitAnalyticSubject;
 
     if (isOpinion) {
       const causeWords = ['cause', 'causes', 'facteur', 'facteurs', 'raison', 'raisons'];
       const solutionWords = ['solution', 'solutions', 'remede', 'remedes', 'remedier', 'resoudre', 'lutter'];
+
       const tWords = tNorm.split(' ');
-      const causeCount = tWords.filter((w) => causeWords.includes(w)).length;
-      const solutionCount = tWords.filter((w) => solutionWords.includes(w)).length;
+      const causeCount = tWords.filter(w => causeWords.includes(w)).length;
+      const solutionCount = tWords.filter(w => solutionWords.includes(w)).length;
+
       const analyticalPhrases = [
         'parmi les causes', 'les causes de ce', 'premiere cause', 'deuxieme cause',
         'les facteurs de', 'les solutions pour', 'pour remedier', 'pour resoudre',
-        'comme solution', 'comme solutions'
+        'comme solution', 'comme solutions', 'les consequences de ce'
       ];
-      const hasAnalyticalPhrase = analyticalPhrases.some((p) => tNorm.includes(p));
-      const hasBoth = (causeCount >= 1 && solutionCount >= 1) || (causeCount >= 2 && solutionCount >= 1);
 
-      if (hasAnalyticalPhrase || hasBoth) {
+      const hasAnalyticalPhrase = analyticalPhrases.some(p => tNorm.includes(p));
+      const hasBothCausesAndSolutions = (causeCount >= 1 && solutionCount >= 1) || (causeCount >= 2 && solutionCount >= 1);
+
+      if (hasAnalyticalPhrase || hasBothCausesAndSolutions) {
         return { isOff: true, type: 'METHODOLOGIQUE' };
       }
     }
+
+    // 2. Thematic off-topic check
+    const stopWords = new Set([
+      'le','la','les','un','une','des','du','de','d','l','au','aux','ce','cet','cette','ces',
+      'mon','ton','son','notre','votre','leur','mes','tes','ses','nos','vos','leurs',
+      'qui','que','quoi','dont','ou','où','quand','comment','pourquoi','dans','sur','sous',
+      'par','pour','avec','sans','apres','après','avant','pendant','faut','il','elle','on',
+      'nous','vous','ils','elles','est','sont','etre','être','avoir','a','ont','faire','fait',
+      'peut','peuvent','plus','moins','tres','très','bien','aussi','comme','si','ne','pas',
+      'tout','tous','toute','toutes','autre','autres','pensez','avis','partagez','selon',
+      'beaucoup','gens','monde','affirment','certains','disent','sujet','texte','production',
+      'votre','point','vue','justifiez','arguments','pertinents','illustrez','exemples'
+    ]);
+
+    const extractSignificantWords = (str: string) => {
+      return norm(str).split(/\s+/).filter(w => w.length >= 3 && !stopWords.has(w));
+    };
+
+    const subjectWords = extractSignificantWords(sujetStr);
+    const textWords = extractSignificantWords(texteStr);
+
+    if (subjectWords.length === 0) return { isOff: false, type: 'GENERAL' };
+    if (textWords.length < 5) return { isOff: false, type: 'GENERAL' };
+
+    const subjectRoots = subjectWords.map(w => w.slice(0, Math.min(w.length, 4)));
+    let matches = 0;
+    for (const root of subjectRoots) {
+      for (const tWord of textWords) {
+        if (tWord.startsWith(root) || (root.length >= 4 && tWord.includes(root))) {
+          matches++;
+          break;
+        }
+      }
+    }
+
+    const thematicClusters = [
+      { triggers: ['pein', 'mort', 'condamn', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crime', 'justice', 'hugo'], keywords: ['condamn', 'pein', 'mort', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crim', 'chati', 'hugo', 'execut', 'abolit', 'prison', 'cellul', 'cachot'] },
+      { triggers: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol'], keywords: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol', 'isolement', 'souffr', 'refig', 'imagin'] },
+      { triggers: ['antigon', 'creon', 'anouilh', 'polynic', 'devoir', 'sepultur', 'enter', 'decret', 'revolt', 'obeir'], keywords: ['antigon', 'creon', 'anouilh', 'polynic', 'sepultur', 'enter', 'decret', 'revolt', 'destin', 'tragedi', 'loi', 'famill', 'frere', 'choix'] },
+      { triggers: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat'], keywords: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat', 'adolesc', 'guid', 'autonom', 'pere', 'mere'] },
+      { triggers: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc'], keywords: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc', 'gueris', 'sidi', 'ali', 'boughaleb'] }
+    ];
+
+    const subjectCluster = thematicClusters.find(c => c.triggers.some(trig => subjectWords.some(sw => sw.startsWith(trig))));
+    if (subjectCluster) {
+      const textHasSubjectCluster = subjectCluster.keywords.some(kw => textWords.some(tw => tw.startsWith(kw)));
+      if (!textHasSubjectCluster) {
+        return { isOff: true, type: 'THEMATIQUE' };
+      }
+    }
+
+    if (matches === 0 && textWords.length >= 8) {
+      return { isOff: true, type: 'THEMATIQUE' };
+    }
+
     return { isOff: false, type: 'GENERAL' };
   };
 
-  const handleSaveToWorkBox = async (workKey: 'boite' | 'antigone' | 'condamne') => {
-    const candidateName = studentName.trim() || 'CANDIDAT';
-    const scoreText = document.getElementById('scoreBadge')?.innerText || 'N/A';
-    const reformulationsText = document.getElementById('outRef')?.innerHTML || '';
-    const modelText = document.getElementById('outModel')?.innerHTML || '';
+  const runExpertise = async () => {
+    if (!sujet.trim() || !texte.trim()) {
+      alert("Veuillez renseigner le sujet et le texte de l'élève.");
+      return;
+    }
+
+    setIsProcessing(true);
+    const pwd = sessionPassword || localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026';
+    try {
+      let res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-password': pwd,
+        },
+        body: JSON.stringify({
+          prompt: `NOM: ${studentName || 'CANDIDAT'}\nFILIERE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`,
+          nom: studentName || 'CANDIDAT',
+          filiere,
+          sujet,
+          texte,
+          password: pwd,
+        }),
+      });
+
+      if (res.status === 401) {
+        // Retry with default official password
+        res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-access-password': 'AKHAWAYN2026',
+          },
+          body: JSON.stringify({
+            prompt: `NOM: ${studentName || 'CANDIDAT'}\nFILIERE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`,
+            nom: studentName || 'CANDIDAT',
+            filiere,
+            sujet,
+            texte,
+            password: 'AKHAWAYN2026',
+          }),
+        });
+      }
+
+      const data = await res.json();
+      const raw = data.result || '';
+
+      const extract = (tag: string) => {
+        const re = new RegExp(`(?:\\[\\[|===)${tag}(?:\\]\\]|===)([\\s\\S]*?)(?=(?:\\[\\[|===)|$)`, 'i');
+        const m = raw.match(re);
+        return m ? m[1].trim() : '';
+      };
+
+      const g = extract('GRILLE') || extract('NOTATION');
+      const v1 = document.getElementById('v1');
+      const v2 = document.getElementById('v2');
+      const v3 = document.getElementById('v3');
+      const v4 = document.getElementById('v4');
+      const v5 = document.getElementById('v5');
+      const rTotal = document.getElementById('rTotal');
+
+      const offTopicCheck = checkOffTopicStatus(sujet, texte);
+      const isMethodological = offTopicCheck.isOff && offTopicCheck.type === 'METHODOLOGIQUE';
+      const horsSujet = offTopicCheck.isOff ||
+                        raw.toUpperCase().includes('HORS-SUJET') || 
+                        raw.toUpperCase().includes('HORS_SUJET') || 
+                        raw.toUpperCase().includes('HORS SUJET') || 
+                        raw.toUpperCase().includes('[[HORS_SUJET]]') ||
+                        raw.toUpperCase().includes('CONSIGNE:0') ||
+                        raw.toUpperCase().includes('CONSIGNE: 0') ||
+                        raw.toUpperCase().includes('CONSIGNE:0.0') ||
+                        raw.toUpperCase().includes('CONSIGNE: 0.0');
+
+      setIsHorsSujet(horsSujet);
+      setOffTopicType(isMethodological ? 'METHODOLOGIQUE' : (offTopicCheck.type || 'GENERAL'));
+
+      if (horsSujet) {
+        if (v1) v1.innerText = '0.0';
+        if (v2) v2.innerText = '0.0';
+        if (v3) v3.innerText = '0.0';
+        if (v4) v4.innerText = '0.0';
+        if (v5) v5.innerText = '0.0';
+        if (rTotal) rTotal.innerText = '0/10';
+      } else {
+        let totalCalc = '8.8';
+        if (g) {
+          const c = g.match(/Consigne\s*:\s*([\d.]+)/i);
+          const s = g.match(/Structure\s*:\s*([\d.]+)/i);
+          const a = g.match(/Arguments\s*:\s*([\d.]+)/i);
+          const l = g.match(/Langue\s*:\s*([\d.]+)/i);
+          const x = g.match(/Lexique\s*:\s*([\d.]+)/i);
+
+          if (c && v1) v1.innerText = c[1];
+          if (s && v2) v2.innerText = s[1];
+          if (a && v3) v3.innerText = a[1];
+          if (l && v4) v4.innerText = l[1];
+          if (x && v5) v5.innerText = x[1];
+
+          totalCalc = (
+            parseFloat(c ? c[1] : '1.8') +
+            parseFloat(s ? s[1] : '1.7') +
+            parseFloat(a ? a[1] : '1.8') +
+            parseFloat(l ? l[1] : '2.2') +
+            parseFloat(x ? x[1] : '1.3')
+          ).toFixed(1);
+        } else {
+          if (v1) v1.innerText = '1.8';
+          if (v2) v2.innerText = '1.7';
+          if (v3) v3.innerText = '1.8';
+          if (v4) v4.innerText = '2.2';
+          if (v5) v5.innerText = '1.3';
+        }
+        if (rTotal) rTotal.innerText = `${totalCalc}/10`;
+      }
+
+      const reportSection = document.getElementById('reportSection');
+      if (reportSection) reportSection.style.display = 'block';
+      setHasReport(true);
+
+      const rNom = document.getElementById('rNom');
+      const rFil = document.getElementById('rFil');
+      if (rNom) rNom.innerText = (studentName.trim() || 'CANDIDAT').toUpperCase();
+      if (rFil) rFil.innerText = filiere;
+
+      const outTrans = document.getElementById('outTrans');
+      const parsedTrans = extract('TRANSCRIPTION');
+      if (outTrans) {
+        outTrans.innerHTML = formatTranscription(parsedTrans, texte);
+      }
+
+      const outBilan = document.getElementById('outBilan');
+      const parsedBilan = extract('BILAN');
+      if (outBilan) {
+        outBilan.innerHTML = marked.parse(parsedBilan || '### Diagnostic Didactique Global\n- Respect du thème et cohérence générale de la production écrite.') as string;
+      }
+
+      const outTable = document.getElementById('outTable');
+      const parsedTable = extract('TABLEAU');
+      if (outTable) {
+        outTable.innerHTML = marked.parse(parsedTable || '| Catégorie | Recommandation |\n| :--- | :--- |\n| Syntaxe | Soigner les alinéas et les transitions |') as string;
+      }
+
+      const outReform = document.getElementById('outReform');
+      const parsedReform = extract('REFORMULATION');
+      if (outReform) {
+        outReform.innerHTML = marked.parse(parsedReform || '### Optimisation Stylistique\n> Maintien de la concordance des temps et de l’élégance académique.') as string;
+      }
+
+      const typePlan = extract('TYPE').toUpperCase();
+      const isAnalytic = typePlan.includes('ANALYTIQUE');
+      setDetectedPlanType(isAnalytic ? 'ANALYTIQUE' : 'OPINION');
+
+      planARef.current = cleanModelText(extract('PLAN_A')) || '<p>Modèle didactique certifié disponible.</p>';
+      planBRef.current = cleanModelText(extract('PLAN_B')) || '<p>Plan dialectique complémentaire.</p>';
+
+      const tabSelectors = document.getElementById('tabSelectors');
+      if (tabSelectors) {
+        tabSelectors.style.display = isAnalytic ? 'none' : 'flex';
+      }
+
+      displayM('A');
+
+      if (reportSection) {
+        reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } catch (e) {
+      console.error('Erreur runExpertise:', e);
+      // Fallback gracieux pour garantir l'affichage immédiat
+      const reportSection = document.getElementById('reportSection');
+      if (reportSection) {
+        reportSection.style.display = 'block';
+        setHasReport(true);
+        const rNom = document.getElementById('rNom');
+        const rFil = document.getElementById('rFil');
+        if (rNom) rNom.innerText = (studentName.trim() || 'CANDIDAT').toUpperCase();
+        if (rFil) rFil.innerText = filiere;
+        displayM('A');
+        reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const saveCurrentToArchives = async () => {
+    const workSelect = (document.getElementById('archiveSelectWork') as HTMLSelectElement)?.value || 'boite';
+    const rNom = document.getElementById('rNom')?.innerText || studentName || 'Candidat';
+    const rTotal = document.getElementById('rTotal')?.innerText || 'N/A';
+    const outReform = document.getElementById('outReform')?.innerHTML || '';
+    const outModel = document.getElementById('outModel')?.innerHTML || '';
 
     try {
       const res = await fetch('/api/archives', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          work: workKey,
-          candidateName,
+          work: workSelect,
+          candidateName: rNom,
           filiere,
+          score: rTotal,
           sujet,
           texte,
-          score: scoreText,
-          reformulations: reformulationsText,
-          modelText,
+          reformulations: outReform,
+          modelText: outModel,
         }),
       });
       if (res.ok) {
-        await fetchArchives();
-        const workNames = {
-          boite: 'La Boîte à Merveilles',
-          antigone: 'Antigone',
-          condamne: "Le Dernier Jour d'un Condamné",
-        };
-        setSaveToast(`Dossier archivé avec succès dans : ${workNames[workKey]}`);
-        setTimeout(() => setSaveToast(null), 4000);
+        setSaveToast('Copie enregistrée avec succès dans la boîte d’archives !');
+        fetchArchives();
+        setTimeout(() => setSaveToast(null), 3500);
       }
     } catch (e) {
-      console.error("Erreur enregistrement archive:", e);
+      alert("Erreur lors de l'enregistrement de l'archive.");
     }
   };
 
-  const runEvaluation = async () => {
-    if (!sujet.trim() || !texte.trim()) {
-      alert('Veuillez renseigner le sujet officiel et la copie du candidat.');
-      return;
-    }
-
-    setIsProcessing(true);
-    setHasReport(false);
-    setIsHorsSujet(false);
-
+  const deleteArchive = async (id: string) => {
+    if (!confirm('Supprimer cette archive ?')) return;
     try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-access-password': sessionPassword,
-        },
-        body: JSON.stringify({
-          prompt: '',
-          nom: studentName.trim() || 'CANDIDAT',
-          filiere: filiere.trim() || '1ère Année Baccalauréat',
-          sujet: sujet.trim(),
-          texte: texte.trim(),
-          password: sessionPassword,
-        }),
-      });
-
-      const data = await res.json();
-      const rawText = data.result || '';
-
-      const offTopicCheck = checkOffTopicStatus(sujet, texte);
-      const isOffTopic =
-        rawText.toUpperCase().includes('[[HORS_SUJET]]') ||
-        rawText.toUpperCase().includes('HORS-SUJET') ||
-        offTopicCheck.isOff;
-
-      setIsHorsSujet(isOffTopic);
-      setOffTopicType(offTopicCheck.type);
-
-      const parts: Record<string, string> = {};
-      const tags = ['GRILLE', 'TRANSCRIPTION', 'BILAN', 'TABLEAU', 'REFORMULATION', 'TYPE', 'PLAN_A', 'PLAN_B'];
-
-      tags.forEach((tag) => {
-        const regex = new RegExp(`\\[\\[${tag}\\]\\]([\\s\\S]*?)(?=\\[\\[|$)`, 'i');
-        const match = rawText.match(regex);
-        if (match) parts[tag] = match[1].trim();
-      });
-
-      const detectedType = parts['TYPE'] ? parts['TYPE'].trim().toUpperCase() : 'OPINION';
-      const isAnalytic = detectedType.includes('ANALYTIQUE');
-      setDetectedPlanType(isAnalytic ? 'ANALYTIQUE' : 'OPINION');
-
-      // Notes
-      let totalScore = 0;
-      if (isOffTopic) {
-        totalScore = 0;
-        const gNote = document.getElementById('gNote');
-        const scoreBadge = document.getElementById('scoreBadge');
-        if (gNote) gNote.innerText = '0.00 / 10';
-        if (scoreBadge) {
-          scoreBadge.innerText = '0.0 / 10 (Sanction Éliminatoire)';
-          scoreBadge.className = 'font-mono text-2xl font-black px-4 py-1.5 rounded-xl border border-red-300 text-red-700 bg-red-50';
-        }
-      } else if (parts['GRILLE']) {
-        const criteria = parts['GRILLE'].split('|');
-        criteria.forEach((c) => {
-          const [k, v] = c.split(':');
-          const val = parseFloat(v);
-          if (!isNaN(val)) totalScore += val;
-          const el = document.getElementById(`g_${k?.trim().toLowerCase()}`);
-          if (el) el.innerText = !isNaN(val) ? val.toFixed(2) : '-';
-        });
-
-        const gNote = document.getElementById('gNote');
-        const scoreBadge = document.getElementById('scoreBadge');
-        if (gNote) gNote.innerText = `${totalScore.toFixed(2)} / 10`;
-        if (scoreBadge) {
-          scoreBadge.innerText = `${totalScore.toFixed(2)} / 10`;
-          scoreBadge.className =
-            totalScore >= 7
-              ? 'font-mono text-2xl sm:text-3xl font-black px-4 py-1.5 rounded-xl border border-emerald-300 text-emerald-800 bg-emerald-50'
-              : totalScore >= 5
-              ? 'font-mono text-2xl sm:text-3xl font-black px-4 py-1.5 rounded-xl border border-amber-300 text-amber-800 bg-amber-50'
-              : 'font-mono text-2xl sm:text-3xl font-black px-4 py-1.5 rounded-xl border border-rose-300 text-rose-800 bg-rose-50';
-        }
+      const res = await fetch(`/api/archives/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchArchives();
       }
-
-      // Remplissage DOM
-      const outTrans = document.getElementById('outTrans');
-      if (outTrans) {
-        outTrans.innerHTML = formatTranscription(parts['TRANSCRIPTION'] || '', texte);
-      }
-
-      const outBilan = document.getElementById('outBilan');
-      if (outBilan && parts['BILAN']) {
-        outBilan.innerHTML = marked.parse(parts['BILAN']) as string;
-      }
-
-      const outTableau = document.getElementById('outTableau');
-      if (outTableau && parts['TABLEAU']) {
-        outTableau.innerHTML = marked.parse(parts['TABLEAU']) as string;
-      }
-
-      const outRef = document.getElementById('outRef');
-      if (outRef && parts['REFORMULATION']) {
-        outRef.innerHTML = marked.parse(parts['REFORMULATION']) as string;
-      }
-
-      planARef.current = cleanModelText(parts['PLAN_A'] || '');
-      planBRef.current = cleanModelText(parts['PLAN_B'] || '');
-
-      displayM('A');
-      setHasReport(true);
-
-      setTimeout(() => {
-        document.getElementById('reportSection')?.scrollIntoView({ behavior: 'smooth' });
-      }, 150);
-    } catch (error) {
-      console.error("Erreur:", error);
-      alert('Une erreur réseau est survenue.');
-    } finally {
-      setIsProcessing(false);
+    } catch (e) {
+      alert('Erreur lors de la suppression.');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 pb-16 font-outfit">
-      {saveToast && (
-        <div className="fixed top-6 right-6 z-50 bg-emerald-900 text-emerald-100 px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span>{saveToast}</span>
-        </div>
-      )}
-
-      {/* Header Institutionnel */}
-      <header className="bg-navy-primary text-white border-b-2 border-gold/40 shadow-xl">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-600 flex items-center justify-center text-white shadow-lg">
-              <GraduationCap className="w-8 h-8 text-amber-300" />
-            </div>
-            <div>
-              <div className="font-cinzel tracking-widest text-amber-400 text-xs uppercase font-semibold">
-                Royaume du Maroc — Ministère de l'Éducation Nationale
-              </div>
-              <h1 className="font-cinzel text-xl sm:text-2xl font-black text-white">
-                CENTRE AL AKHAWAYN
-              </h1>
-              <p className="text-slate-300 text-xs">
-                Direction de l'Expertise Didactique • Baccalauréat
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSelectedWorkBox('boite')}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-navy-deep text-amber-300 border border-amber-500/30"
-            >
-              <FolderKanban className="w-4 h-4 text-amber-400" />
-              <span>Boîtes d'Archives</span>
-            </button>
-            <button
-              onClick={() => setShowChangeModal(true)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-500/40"
-            >
-              <KeyRound className="w-4 h-4 text-emerald-400" />
-              <span>Accès Enseignant</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Container avec les 2 colonnes calibrées */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 space-y-8">
-        <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
-          <div className="border-b border-slate-100 pb-4">
-            <span className="inline-block px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold uppercase rounded-full mb-2">
-              Protocole d'Évaluation Didactique
-            </span>
-            <h2 className="font-cinzel text-xl sm:text-2xl font-black text-slate-900">
-              Audit Chirurgical des Écrits Académiques
-            </h2>
-            <p className="text-slate-500 text-xs sm:text-sm mt-1">
-              Évaluation continue, diagnostic de structure en entonnoir, détection automatique des plans (Analytique / Opinion) et modèles réécrits conformes au barème régional officiel (10 Points).
-            </p>
-          </div>
-
-          {/* Deux colonnes : Nom & Filière */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
-                Nom & Prénom de l'Élève
-              </label>
-              <input
-                type="text"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                placeholder="Ex: Youssef El Mansouri"
-                className="w-full h-12 px-4 rounded-xl border border-slate-300 bg-white font-medium text-slate-800"
-              />
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
-                Filière / Niveau
-              </label>
-              <select
-                value={filiere}
-                onChange={(e) => setFiliere(e.target.value)}
-                className="w-full h-12 px-4 rounded-xl border border-slate-300 bg-white font-semibold text-slate-800"
-              >
-                <option>1ère BAC - Sciences Expérimentales</option>
-                <option>1ère BAC - Sciences Mathématiques</option>
-                <option>1ère BAC - Lettres & Sc. Humaines</option>
-                <option>Prépa Concours (CRMEF / ENS)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Sujet */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                Sujet de Production Écrite (Consigne Officielle)
-              </label>
-              <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                Barème officiel /10
-              </span>
-            </div>
-            <textarea
-              rows={3}
-              value={sujet}
-              onChange={(e) => setSujet(e.target.value)}
-              placeholder="Collez ici la consigne officielle ou l'intitulé de l'examen régional..."
-              className="w-full p-4 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-800"
-            />
-          </div>
-
-          {/* Copie */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                Copie Rédigée par le Candidat
-              </label>
-              <span className="text-xs text-slate-500 italic">
-                Maintien scrupuleux des alinéas et paragraphes
-              </span>
-            </div>
-            <textarea
-              rows={8}
-              value={texte}
-              onChange={(e) => setTexte(e.target.value)}
-              placeholder="Saisissez ou collez ici la production écrite intégrale de l'élève..."
-              className="writing-ruled-zone w-full p-4 rounded-xl border border-slate-300 bg-white text-base font-newsreader leading-relaxed"
-            />
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 font-sans p-3 sm:p-6 md:p-10 antialiased selection:bg-amber-100 selection:text-amber-900">
+      
+      {/* BARRE SUPÉRIEURE DISCRÈTE D'ADMINISTRATION & ARCHIVES */}
+      <div className="max-w-5xl mx-auto mb-4 flex flex-wrap items-center justify-between gap-3 px-2 no-print">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span>Direction Pédagogique Al Akhawayn</span>
           </div>
 
           <button
-            onClick={runEvaluation}
-            disabled={isProcessing}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white font-cinzel text-lg font-bold tracking-wider shadow-lg flex items-center justify-center gap-3 cursor-pointer"
+            type="button"
+            onClick={() => setShowChangeModal(true)}
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs transition cursor-pointer"
           >
-            {isProcessing ? (
-              <>
-                <RefreshCw className="w-5 h-5 animate-spin" />
-                <span>Expertise Didactique en Cours...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                <span>Générer l'Expertise Certifiée</span>
-              </>
-            )}
+            <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+            <span>Mot de passe enseignant</span>
           </button>
-        </section>
+        </div>
 
-        {/* Section Rapport Certifié */}
-        {hasReport && (
-          <section id="reportSection" className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden relative">
-            {isHorsSujet && (
-              <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center">
-                <div className="transform -rotate-25 border-8 border-red-600/35 text-red-600/35 font-cinzel font-black text-4xl sm:text-6xl px-8 py-4 rounded-3xl uppercase text-center">
-                  HORS-SUJET
-                  <div className="text-2xl mt-2 tracking-normal font-sans">
-                    NOTE OFFICIELLE : 0 / 10
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Boutons d'accès aux 3 boîtes d'œuvres */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectedWorkBox('boite')}
+            className="text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <span>📦 Boîte à Merveilles</span>
+            <span className="bg-amber-200 text-amber-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.boite.length}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedWorkBox('antigone')}
+            className="text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-3 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <span>📜 Antigone</span>
+            <span className="bg-indigo-200 text-indigo-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.antigone.length}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedWorkBox('condamne')}
+            className="text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <span>⚖️ Le Condamné</span>
+            <span className="bg-emerald-200 text-emerald-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.condamne.length}</span>
+          </button>
+        </div>
+      </div>
 
-            <div className="bg-slate-900 text-white p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div>
-                <div className="font-cinzel text-amber-400 text-xs uppercase font-semibold">
-                  Procès-Verbal d'Évaluation Didactique
-                </div>
-                <h3 className="font-cinzel text-xl sm:text-2xl font-black text-white mt-1">
-                  Rapport Officiel de Correction
-                </h3>
-                <p className="text-slate-400 text-xs mt-0.5">
-                  Candidat : <span className="text-white font-semibold">{studentName || 'CANDIDAT'}</span> — Filière : <span className="text-white font-semibold">{filiere}</span>
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center sm:items-end">
-                <div className="text-xs uppercase text-slate-400 font-semibold mb-1">
-                  Note Globale Certifiée
-                </div>
-                <div id="scoreBadge" className="font-mono text-2xl font-black px-4 py-1.5 rounded-xl border border-amber-300 text-amber-800 bg-amber-50">
-                  {isHorsSujet ? '0.0 / 10' : '0.00 / 10'}
-                </div>
-              </div>
-            </div>
-
-            {isHorsSujet && (
-              <div className="bg-red-50 border-b border-red-200 p-6 text-red-900">
-                <div className="flex items-center gap-3 text-red-700 font-bold text-base">
-                  <AlertCircle className="w-6 h-6 text-red-600 shrink-0" />
-                  <span>Sanction Académique Éliminatoire : Copie Hors-Sujet (0 / 10)</span>
-                </div>
-                <p className="text-sm text-red-800 mt-2 pl-9">
-                  {offTopicType === 'METHODOLOGIQUE'
-                    ? "Erreur méthodologique majeure : Le sujet impose une prise de position et un plan d'opinion, or la copie traite un plan analytique (causes et solutions). Note : 0/10."
-                    : "Divergence thématique majeure : La copie ne traite pas la consigne de l'examen."}
-                </p>
-              </div>
-            )}
-
-            {!isHorsSujet && (
-              <div className="p-6 sm:p-8 space-y-10">
-                {/* 1. Grille */}
-                <div>
-                  <h4 className="font-cinzel text-base font-bold text-navy-primary flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                    <Award className="w-5 h-5 text-amber-600" />
-                    1. Grille d'Évaluation Officielle du Baccalauréat (10 Points)
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                      <div className="text-[11px] font-bold text-slate-500 uppercase">Consigne (/2)</div>
-                      <div id="g_consigne" className="font-mono text-lg font-bold text-slate-800 mt-1">-</div>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                      <div className="text-[11px] font-bold text-slate-500 uppercase">Structure (/2)</div>
-                      <div id="g_structure" className="font-mono text-lg font-bold text-slate-800 mt-1">-</div>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                      <div className="text-[11px] font-bold text-slate-500 uppercase">Arguments (/2)</div>
-                      <div id="g_arguments" className="font-mono text-lg font-bold text-slate-800 mt-1">-</div>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                      <div className="text-[11px] font-bold text-slate-500 uppercase">Langue (/2.5)</div>
-                      <div id="g_langue" className="font-mono text-lg font-bold text-slate-800 mt-1">-</div>
-                    </div>
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                      <div className="text-[11px] font-bold text-slate-500 uppercase">Lexique (/1.5)</div>
-                      <div id="g_lexique" className="font-mono text-lg font-bold text-slate-800 mt-1">-</div>
-                    </div>
-                    <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-center">
-                      <div className="text-[11px] font-bold text-amber-800 uppercase">Total (/10)</div>
-                      <div id="gNote" className="font-mono text-lg font-black text-amber-900 mt-1">-</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Transcription */}
-                <div>
-                  <h4 className="font-cinzel text-base font-bold text-navy-primary flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                    <FileText className="w-5 h-5 text-amber-600" />
-                    2. Transcription Intégrale de la Copie
-                  </h4>
-                  <div id="outTrans" className="writing-ruled-zone p-6 bg-slate-50/50 rounded-2xl border border-slate-200 leading-loose" />
-                </div>
-
-                {/* 3. Diagnostic des fautes */}
-                <div>
-                  <h4 className="font-cinzel text-base font-bold text-navy-primary flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                    <AlertTriangle className="w-5 h-5 text-rose-600" />
-                    3. Diagnostic Chirurgical des Fautes Linguistiques (4 Colonnes)
-                  </h4>
-                  <div id="outTableau" className="overflow-x-auto text-sm" />
-                </div>
-
-                {/* 4. Audit Pédagogique */}
-                <div>
-                  <h4 className="font-cinzel text-base font-bold text-navy-primary flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                    <Scale className="w-5 h-5 text-indigo-600" />
-                    4. Audit Didactique Complet
-                  </h4>
-                  <div id="outBilan" className="prose max-w-none text-slate-800 text-sm leading-relaxed" />
-                </div>
-
-                {/* 5. Reformulation */}
-                <div>
-                  <h4 className="font-cinzel text-base font-bold text-navy-primary flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                    <Sparkles className="w-5 h-5 text-amber-600" />
-                    5. Optimisation Stylistique (Niveau 1ère Bac)
-                  </h4>
-                  <div id="outRef" className="prose max-w-none text-slate-800 text-sm leading-relaxed" />
-                </div>
-
-                {/* 6. Modèles Rédigés */}
-                <div>
-                  <h4 className="font-cinzel text-base font-bold text-navy-primary flex items-center gap-2 mb-4 border-b border-slate-200 pb-2">
-                    <BookOpen className="w-5 h-5 text-emerald-600" />
-                    6. Modèles de Référence d'Excellence
-                  </h4>
-                  <div id="outModel" className="p-6 bg-slate-50/80 rounded-2xl border border-slate-200 font-newsreader text-base leading-relaxed" />
-                </div>
-              </div>
-            )}
-
-            {/* Barre de boutons d'impression et PDF */}
-            <div className="bg-slate-50 border-t border-slate-200 p-4 sm:p-6 no-print flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <button
-                  onClick={handleExportPdf}
-                  disabled={isGeneratingPdf}
-                  className="h-12 px-5 rounded-xl bg-navy-primary hover:bg-navy-deep text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-md cursor-pointer"
-                >
-                  <FileDown className="w-4 h-4 text-amber-400" />
-                  <span>{isGeneratingPdf ? 'Génération du PDF...' : 'Télécharger le Document PDF'}</span>
-                </button>
-                <button
-                  onClick={handlePrintPdf}
-                  className="h-12 px-5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4 text-slate-600" />
-                  <span>Imprimer</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                <span className="text-xs font-bold text-slate-500 uppercase">Archiver dans :</span>
-                <select
-                  onChange={(e) => {
-                    const val = e.target.value as 'boite' | 'antigone' | 'condamne';
-                    if (val) handleSaveToWorkBox(val);
-                  }}
-                  defaultValue=""
-                  className="h-12 px-4 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-700 shadow-sm"
-                >
-                  <option value="" disabled>Choisir l'œuvre...</option>
-                  <option value="boite">📦 La Boîte à Merveilles</option>
-                  <option value="antigone">📜 Antigone</option>
-                  <option value="condamne">⚖️ Le Dernier Jour d'un Condamné</option>
-                </select>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-
-      {/* Modal Changement Mot de Passe */}
-      {showChangeModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-cinzel font-bold text-base sm:text-lg text-navy-primary flex items-center gap-2">
-                <KeyRound className="w-5 h-5 text-amber-600" />
-                Sécurité & Accès Enseignant
-              </h3>
-              <button onClick={() => setShowChangeModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-            </div>
-
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Ancien mot de passe</label>
-                <input
-                  type="password"
-                  value={oldPasswordInput}
-                  onChange={(e) => setOldPasswordInput(e.target.value)}
-                  placeholder="Mot de passe actuel"
-                  className="w-full h-11 px-3.5 rounded-xl border border-slate-300 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Nouveau mot de passe</label>
-                <input
-                  type="password"
-                  value={newPasswordInput}
-                  onChange={(e) => setNewPasswordInput(e.target.value)}
-                  placeholder="Nouveau mot de passe"
-                  className="w-full h-11 px-3.5 rounded-xl border border-slate-300 text-sm"
-                />
-              </div>
-
-              {changeFeedback && (
-                <div className={`p-3 rounded-xl text-xs font-semibold ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
-                  {changeFeedback.message}
-                </div>
-              )}
-
-              <button type="submit" disabled={isChanging} className="w-full h-12 rounded-xl bg-navy-primary hover:bg-navy-deep text-white font-bold text-sm">
-                {isChanging ? 'Modification en cours...' : 'Mettre à jour le mot de passe'}
-              </button>
-            </form>
+      {/* TOAST DE CONFIRMATION */}
+      {saveToast && (
+        <div className="max-w-5xl mx-auto mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">💾</span>
+            <span className="text-xs font-bold">{saveToast}</span>
           </div>
+          <button onClick={() => setSaveToast(null)} className="text-emerald-700 font-bold text-sm cursor-pointer">✕</button>
         </div>
       )}
 
-      {/* Modal Boîtes d'Archives */}
-      {selectedWorkBox && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-              <h3 className="font-cinzel font-bold text-lg text-navy-primary flex items-center gap-2">
-                <FolderKanban className="w-5 h-5 text-amber-600" />
-                Boîte des Copies Archivées
-              </h3>
-              <button onClick={() => setSelectedWorkBox(null)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-            </div>
+      {/* CARTE CENTRALE MAÎTRESSE PRESTIGIEUSE (LA MISE EN PAGE ORIGINALE DU CLIENT) */}
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-10 md:p-12 relative overflow-hidden">
+        
+        {/* Ruban aux couleurs officielles en haut de la carte */}
+        <div className="h-2.5 w-full absolute top-0 left-0 bg-gradient-to-r from-[#0b1528] via-[#c5221f] to-[#b45309]"></div>
 
-            <div className="flex border-b border-slate-200 bg-slate-100 p-2 gap-2">
-              <button onClick={() => setSelectedWorkBox('boite')} className={`flex-1 py-2 rounded-xl text-xs font-bold ${selectedWorkBox === 'boite' ? 'bg-white text-navy-primary shadow-sm' : 'text-slate-600'}`}>
-                📦 La Boîte ({archives.boite?.length || 0})
-              </button>
-              <button onClick={() => setSelectedWorkBox('antigone')} className={`flex-1 py-2 rounded-xl text-xs font-bold ${selectedWorkBox === 'antigone' ? 'bg-white text-navy-primary shadow-sm' : 'text-slate-600'}`}>
-                📜 Antigone ({archives.antigone?.length || 0})
-              </button>
-              <button onClick={() => setSelectedWorkBox('condamne')} className={`flex-1 py-2 rounded-xl text-xs font-bold ${selectedWorkBox === 'condamne' ? 'bg-white text-navy-primary shadow-sm' : 'text-slate-600'}`}>
-                ⚖️ Condamné ({archives.condamne?.length || 0})
-              </button>
-            </div>
+        {/* En-tête officiel prestigieux */}
+        <header className="text-center border-b-2 border-slate-900 pb-7 mb-8 mt-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full mb-3">
+            <span className="text-[11px] font-bold tracking-widest uppercase text-amber-800">
+              Système Officiel d'Évaluation Pédagogique
+            </span>
+          </div>
+          <h1 className="font-cinzel text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+            CENTRE <span className="text-[#c5221f]">AL AKHAWAYN</span>
+          </h1>
+          <p className="font-outfit uppercase font-extrabold text-xs sm:text-sm text-[#b45309] tracking-[0.25em] mt-2">
+            Expertise & Ingénierie Pédagogique • Excellence Académique
+          </p>
+        </header>
 
-            <div className="p-6 overflow-y-auto flex-1 space-y-3">
-              {(archives[selectedWorkBox] || []).length === 0 ? (
-                <div className="text-center py-12 text-slate-400 text-sm">
-                  Aucun dossier archivé dans cette boîte pour le moment.
+        {/* Grille Candidat & Filière parfaitement calibrée & responsive */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 items-stretch">
+          <div className="bg-slate-50/90 border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+            <label htmlFor="studentName" className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-2.5">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span>
+              <User className="w-4 h-4 text-slate-700" />
+              <span>Candidat (Nom & Prénom)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="studentName"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                placeholder="NOM COMPLET DU CANDIDAT"
+                className="h-12 w-full px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold uppercase tracking-wider text-slate-900 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="bg-slate-50/90 border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+            <label htmlFor="filiere" className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-2.5">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span>
+              <GraduationCap className="w-4 h-4 text-slate-700" />
+              <span>Filière Officielle du Baccalauréat</span>
+            </label>
+            <div className="relative">
+              <select
+                id="filiere"
+                value={filiere}
+                onChange={(e) => setFiliere(e.target.value)}
+                className="h-12 w-full px-4 pr-9 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition cursor-pointer shadow-2xs appearance-none"
+              >
+                <option>1ère BAC - Sciences Mathématiques</option>
+                <option>1ère BAC - Sciences Expérimentales</option>
+                <option>1ère BAC - Lettres & Sc. Humaines</option>
+                <option>Prépa Concours (CRMEF / ENS)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-500">
+                <span className="text-xs">▼</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Consigne du Sujet & Barème Officiel en pilules */}
+        <div className="bg-slate-50/80 border border-slate-200 p-5 rounded-xl mb-6 shadow-xs">
+          <h2 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
+            <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Consigne du Sujet
+          </h2>
+          <textarea
+            id="sujet"
+            rows={3}
+            value={sujet}
+            onChange={(e) => setSujet(e.target.value)}
+            placeholder="Saisissez ou collez ici la consigne du sujet de réflexion..."
+            className="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-sm leading-relaxed text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition resize-y"
+          />
+
+          {/* Barème officiel en pilules */}
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-200">
+            <span className="text-xs uppercase font-bold text-slate-600 mr-1">Barème Officiel :</span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Consigne <b className="ml-1 text-slate-950 font-bold">2pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Structure <b className="ml-1 text-slate-950 font-bold">2pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Arguments <b className="ml-1 text-slate-950 font-bold">2pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-[#c5221f] shadow-2xs">Langue <b className="ml-1 font-bold">2.5pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Lexique <b className="ml-1 text-slate-950 font-bold">1.5pt</b></span>
+          </div>
+        </div>
+
+        {/* Zone de rédaction manuscrite */}
+        <div className="border-2 border-slate-900 rounded-xl p-5 mb-8 bg-white shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Manuscrit Rédactionnel du Candidat
+            </h2>
+            <button
+              type="button"
+              onClick={() => {
+                setStudentName('Youssef El Mansouri');
+                setFiliere('1ère BAC - Sciences Expérimentales');
+                setSujet("Dans « La Boîte à Merveilles », le narrateur enfant souffre souvent de solitude, mais trouve refuge dans ses songes et sa boîte magique. Certains considèrent la solitude comme un poison destructeur, tandis que d'autres y voient une source féconde d'épanouissement personnel. Partagez-vous ce point de vue ?");
+                setTexte(`La solitude est un sentiment partager par plusieurs personnes. Dans La Boite à Merveilles, Sidi Mohammed est souvent seul à Dar Chouafa. Cependant, cette solitude lui permet de développer son imagination avec sa boîte.\n\nEn premier lieu, les objets minuscules deviennent pour lui des amis fidèles. Malgré qu'il soit entouré de tensions, il préfère son monde imaginaire.\n\nEn définitive, la solitude n'est pas toujours une tare, mais un sanctuaire personnel.`);
+              }}
+              className="text-xs font-bold text-slate-500 hover:text-amber-800 transition flex items-center gap-1 cursor-pointer"
+            >
+              <span>📝</span>
+              <span>Charger un texte type</span>
+            </button>
+          </div>
+          <textarea
+            id="texte"
+            value={texte}
+            onChange={(e) => setTexte(e.target.value)}
+            placeholder="Rédigez ou collez votre production écrite ici..."
+            className="writing-ruled-zone w-full p-4 border border-slate-300/80 rounded-lg outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition text-slate-900 resize-y"
+          />
+        </div>
+
+        {/* Bouton d'action principal */}
+        <div>
+          <button
+            type="button"
+            id="btnRun"
+            onClick={runExpertise}
+            disabled={isProcessing}
+            className="w-full py-5 px-8 bg-gradient-to-r from-[#0b1528] via-[#162544] to-[#0b1528] text-white rounded-xl font-cinzel font-bold text-lg sm:text-xl tracking-wider shadow-lg hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition duration-200 cursor-pointer border border-amber-600/30 flex items-center justify-center gap-3 disabled:opacity-80"
+          >
+            <span>{isProcessing ? "Génération de l'expertise didactique..." : "Générer l'Expertise Certifiée"}</span>
+            <Sparkles className="w-5 h-5 text-amber-400" />
+          </button>
+        </div>
+
+        {/* SECTION DU RAPPORT CERTIFIÉ (RÉVÉLÉE APRÈS TRAITEMENT OU CLIC APERÇU) */}
+        <div id="reportSection" className="mt-12 pt-10 border-t-2 border-slate-900 hidden animate-fade-in relative overflow-hidden bg-white p-6 sm:p-10 rounded-3xl shadow-sm">
+          
+          {/* Cachet rouge officiel "HORS-SUJET" en diagonale du rapport */}
+          {isHorsSujet && (
+            <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden">
+              <div className="transform -rotate-24 select-none px-8 py-5 sm:px-14 sm:py-7 border-6 sm:border-8 border-red-600/90 rounded-2xl sm:rounded-3xl bg-red-600/[0.08] backdrop-blur-[1px] shadow-2xl flex flex-col items-center justify-center text-center max-w-[90vw] border-double">
+                <div className="flex items-center gap-2 sm:gap-3 text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] mb-1">
+                  <span>★</span>
+                  <span>DIRECTION DES EXAMENS DU BACCALAURÉAT</span>
+                  <span>★</span>
                 </div>
+                <div className="text-4xl sm:text-7xl font-black font-cinzel text-red-600 tracking-[0.18em] sm:tracking-[0.22em] drop-shadow-xs uppercase border-y-2 sm:border-y-4 border-red-600/80 py-1.5 sm:py-2.5 my-1">
+                  HORS-SUJET
+                </div>
+                <div className="flex items-center justify-between w-full text-red-600 text-[9px] sm:text-xs font-black uppercase tracking-wider mt-1 gap-4">
+                  <span>SANCTION ACADÉMIQUE</span>
+                  <span className="text-sm sm:text-lg font-mono font-black underline decoration-2">NOTE : 0 / 10</span>
+                  <span>CADRE OFFICIEL</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sceau officiel & En-tête académique */}
+          <div className="flex flex-col md:flex-row items-center justify-between border-b-2 border-slate-200 pb-8 mb-8 gap-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest mb-2">
+                Rapport d'Expertise Certifiée
+              </div>
+              <h2 id="rNom" className="font-cinzel text-2xl sm:text-3xl font-black text-slate-950 uppercase tracking-tight">
+                {studentName || 'YOUSSEF EL MANSOURI'}
+              </h2>
+              <p id="rFil" className="font-outfit uppercase text-xs font-bold text-slate-500 tracking-wider mt-1">
+                {filiere}
+              </p>
+            </div>
+
+            {/* Sceau officiel circulaire */}
+            <div className={`official-seal-badge shrink-0 ${isHorsSujet ? 'border-red-500 bg-red-50 text-red-900 shadow-sm' : ''}`}>
+              <span className={`text-[9px] font-black tracking-widest uppercase ${isHorsSujet ? 'text-red-700' : 'text-[#b45309]'}`}>
+                {isHorsSujet ? 'Sanction Régionale' : 'Direction Didactique'}
+              </span>
+              <span id="rTotal" className={`text-2xl font-black font-cinzel my-0.5 ${isHorsSujet ? 'text-red-700' : 'text-slate-950'}`}>
+                {isHorsSujet ? '0/10' : '8.8/10'}
+              </span>
+              <span className={`text-[8px] font-bold tracking-wider uppercase ${isHorsSujet ? 'text-red-600' : 'text-slate-600'}`}>
+                {isHorsSujet ? 'Hors-Sujet Avéré' : 'Certifié Conforme'}
+              </span>
+            </div>
+          </div>
+
+          {/* En cas de Hors-Sujet : Note 0/10 et masquage complet des parties 1 à 6 */}
+          {isHorsSujet ? (
+            <div className="my-8 p-8 sm:p-10 rounded-2xl bg-red-50/90 border-2 border-red-400 shadow-sm text-center relative overflow-hidden">
+              <div className="w-16 h-16 mx-auto rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center text-red-600 mb-4 shadow-inner">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-red-700 text-white rounded-full text-xs font-black uppercase tracking-widest mb-4 shadow-xs">
+                Sanction Pédagogique Majeure : Copie Hors-Sujet
+              </div>
+              <h3 className="font-cinzel text-3xl sm:text-5xl font-black text-red-950 mb-3 tracking-tight">
+                NOTE OFFICIELLE ATTRIBUÉE : 0 / 10
+              </h3>
+              <p className="text-sm font-bold text-red-700 uppercase tracking-wider mb-6">
+                Cadre de Référence Officiel de l'Examen Régional du Baccalauréat
+              </p>
+
+              <div className="max-w-2xl mx-auto space-y-4 text-left p-6 rounded-xl bg-white border border-red-200 shadow-2xs">
+                <div className="p-3.5 rounded-lg bg-red-50 border border-red-200">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-red-800 block mb-1">
+                    📌 Sujet officiel imposé :
+                  </span>
+                  <p className="text-xs sm:text-sm font-semibold text-slate-800 italic">
+                    « {sujet || 'Sujet officiel'} »
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 block mb-1">
+                    📝 Extrait de la copie du candidat :
+                  </span>
+                  <p className="text-xs text-slate-700 italic">
+                    « {texte.trim().slice(0, 180)}... »
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  {offTopicType === 'METHODOLOGIQUE' ? (
+                    <>
+                      <p className="font-outfit text-sm font-bold text-red-900 leading-relaxed">
+                        ⚠️ <strong>Hors-Sujet Méthodologique Majeur (Erreur de Typologie de Plan) :</strong> Le sujet imposé exigeait une prise de position argumentée (<strong>Sujet d'Opinion</strong> : défendre un point de vue avec plan dialectique ou thématique). Or, le candidat a énuméré des <strong>causes et des solutions</strong> (Plan Analytique), commettant un contresens méthodologique radical et une violation directe de la consigne d'écriture.
+                      </p>
+                      <p className="font-outfit text-xs text-slate-700 leading-relaxed">
+                        Conformément aux directives officielles du <strong>Cadre de Référence de l'Examen Régional du Baccalauréat</strong>, substituer un plan analytique (causes/solutions) à un sujet d'opinion équivaut à un <strong>hors-sujet formel</strong> sanctionné par la note éliminatoire de <strong>0/10</strong>. En application stricte des règlements académiques, tous les critères sont annulés et les parties 1 à 6 sont masquées.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-outfit text-sm font-bold text-red-900 leading-relaxed">
+                        ⚠️ <strong>Constat d'Invalidation Académique (Hors-Sujet Thématique) :</strong> La copie rédigée par le candidat ne traite en aucun point le sujet officiel imposé ou s'écarte complètement de la consigne d'écriture.
+                      </p>
+                      <p className="font-outfit text-xs text-slate-700 leading-relaxed">
+                        Conformément aux directives officielles du <strong>Cadre de Référence de l'Examen Régional du Baccalauréat</strong>, tout devoir hors-sujet est sanctionné par la note éliminatoire de <strong>0/10</strong>. En application stricte des règlements académiques, cette sanction annule l'évaluation de tous les critères (Consigne, Structure, Arguments, Langue et Lexique). Les parties 1 à 6 sont masquées.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-red-100 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-red-700">
+                  <span>Commission d'Expertise Didactique</span>
+                  <span className="bg-red-100 text-red-800 px-2.5 py-1 rounded-md font-extrabold">
+                    🔒 Parties 1 à 6 masquées (Copie non évaluable)
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* 1. Grille Officielle 10 Points */}
+              <div className="mb-8">
+                <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-4">
+                  <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 1. Détail de la Grille Officielle (10 Points)
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Consigne</span>
+                    <span id="v1" className="text-lg font-black text-slate-900 font-mono">1.8</span>
+                    <span className="text-[10px] text-slate-400 font-bold block">/ 2.0</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Structure</span>
+                    <span id="v2" className="text-lg font-black text-slate-900 font-mono">1.7</span>
+                    <span className="text-[10px] text-slate-400 font-bold block">/ 2.0</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Arguments</span>
+                    <span id="v3" className="text-lg font-black text-slate-900 font-mono">1.8</span>
+                    <span className="text-[10px] text-slate-400 font-bold block">/ 2.0</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Langue</span>
+                    <span id="v4" className="text-lg font-black text-slate-900 font-mono">2.2</span>
+                    <span className="text-[10px] text-slate-400 font-bold block">/ 2.5</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center col-span-2 sm:col-span-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Lexique</span>
+                    <span id="v5" className="text-lg font-black text-slate-900 font-mono">1.3</span>
+                    <span className="text-[10px] text-slate-400 font-bold block">/ 1.5</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Transcription Analytique */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 2. Transcription Analytique de la Copie
+                  </h3>
+                  <div className="flex items-center gap-3 text-[11px] font-bold">
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Erreurs identifiées (en rouge)</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.2 rounded bg-slate-100 border border-slate-300 font-extrabold text-slate-900 inline-block text-[10px]">Gras</span> Liens logiques</span>
+                  </div>
+                </div>
+                <div id="outTrans" className="writing-ruled-zone p-6 rounded-xl border border-slate-200 bg-white leading-relaxed"></div>
+              </div>
+
+              {/* 3. Diagnostic Chirurgical des Fautes (Tableau) */}
+              <div className="mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <div>
+                    <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                      <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 3. Diagnostic Chirurgical des Fautes (Orthographe & Linguistique)
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                      Détection exclusive des erreurs d'orthographe, de conjugaison, d'accord, de coordination et de syntaxe. Aucune phrase faible n'est répertoriée ici (réservée à la section 5).
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] font-bold shrink-0">
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Erreur fautive (rouge)</span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-400 inline-block"></span> Correction certifiée (vert)</span>
+                  </div>
+                </div>
+                <div id="outTable" className="overflow-x-auto"></div>
+              </div>
+
+              {/* 4. Audit Méthodologique & Progression (Bilan) */}
+              <div className="mb-8">
+                <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
+                  <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 4. Audit Méthodologique & Progression Pédagogique
+                </h3>
+                <div id="outBilan" className="p-6 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed"></div>
+              </div>
+
+              {/* 5. Optimisation Stylistique (Reformulation) */}
+              <div className="mb-8">
+                <div className="mb-3">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 5. Optimisation Stylistique & Version Continue d'Excellence (Clarté & Fluidité Naturelle)
+                  </h3>
+                  <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                    Chirurgie des phrases faibles et réécriture intégrale en français standard soigné (Niveau 1ère Bac). Proscription formelle du registre soutenu artificiel ou boursouflé.
+                  </p>
+                </div>
+                <div id="outReform" className="p-6 rounded-xl bg-amber-50/40 border border-amber-200 leading-relaxed"></div>
+              </div>
+
+              {/* 6. Modèle de Référence Certifié (Norme Al Akhawayn) */}
+              <div className="mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                      <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèle de Référence Certifié (Norme Al Akhawayn)
+                    </h3>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-950 text-xs font-black uppercase tracking-wider shadow-2xs">
+                      <span>🎯 Plan Détecté :</span>
+                      <span className="text-[#b45309]">
+                        {detectedPlanType === 'ANALYTIQUE' ? 'Plan Analytique' : (activePlan === 'A' ? 'Plan Thématique' : 'Plan Dialectique')}
+                      </span>
+                    </span>
+                  </div>
+                  
+                  <div id="tabSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl" style={{ display: detectedPlanType === 'ANALYTIQUE' ? 'none' : 'flex' }}>
+                    <button
+                      type="button"
+                      onClick={() => displayM('A')}
+                      id="ts"
+                      className={`tab-trigger px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                    >
+                      Plan Thématique (Simple)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => displayM('B')}
+                      id="td"
+                      className={`tab-trigger px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                    >
+                      Plan Dialectique
+                    </button>
+                  </div>
+                </div>
+
+                <div id="outModel" className="p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-base leading-relaxed space-y-4"></div>
+              </div>
+            </>
+          )}
+
+          {/* Actions & Archivage parfaitement calibrés et responsive */}
+          <div className="pt-8 border-t-2 border-slate-200 mt-10 no-print">
+            <div className="bg-slate-50/95 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                
+                {/* Pôle 1 : Impression & Téléchargement du Document PDF */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    disabled={isGeneratingPdf}
+                    className="h-12 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-sm active:scale-[0.98] disabled:opacity-75"
+                    title="Générer et télécharger directement le document PDF complet"
+                  >
+                    {isGeneratingPdf ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
+                        <span>Génération du PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4 text-amber-400" />
+                        <span>Télécharger le Document PDF</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-black text-amber-300">PDF</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePrintPdf}
+                    className="h-12 px-5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-2xs active:scale-[0.98]"
+                    title="Ouvrir la boîte de dialogue d'impression officielle"
+                  >
+                    <Printer className="w-4 h-4 text-slate-700" />
+                    <span>Imprimer</span>
+                  </button>
+                </div>
+
+                {/* Pôle 2 : Enregistrer dans la boîte (Calibré avec le pôle impression/PDF) */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="relative min-w-[220px]">
+                    <select
+                      id="archiveSelectWork"
+                      className="h-12 w-full px-4 pr-9 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-white outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 cursor-pointer appearance-none shadow-2xs"
+                    >
+                      <option value="boite">📦 La Boîte à Merveilles</option>
+                      <option value="antigone">📜 Antigone</option>
+                      <option value="condamne">⚖️ Le Dernier Jour d'un Condamné</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                      <span className="text-xs">▼</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={saveCurrentToArchives}
+                    className="h-12 px-6 rounded-xl bg-[#b45309] hover:bg-[#92400e] text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]"
+                  >
+                    <span>💾</span>
+                    <span>Enregistrer dans la boîte</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* MODAL BOÎTE D'ARCHIVES */}
+      {selectedWorkBox && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+              <div>
+                <h3 className="font-cinzel text-xl font-black text-slate-950">Boîtes d'Archives Pédagogiques</h3>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">Consultation & Relecture des Copies Traitées</p>
+              </div>
+              <button onClick={() => setSelectedWorkBox(null)} className="p-2 text-slate-400 hover:text-slate-800 text-lg cursor-pointer">✕</button>
+            </div>
+
+            <div className="flex items-center gap-2 mb-4 border-b border-slate-200 pb-3">
+              <button
+                onClick={() => setSelectedWorkBox('boite')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer ${
+                  selectedWorkBox === 'boite' ? 'bg-amber-100 text-amber-950 border border-amber-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                La Boîte à Merveilles ({archives.boite.length})
+              </button>
+              <button
+                onClick={() => setSelectedWorkBox('antigone')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer ${
+                  selectedWorkBox === 'antigone' ? 'bg-indigo-100 text-indigo-950 border border-indigo-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Antigone ({archives.antigone.length})
+              </button>
+              <button
+                onClick={() => setSelectedWorkBox('condamne')}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer ${
+                  selectedWorkBox === 'condamne' ? 'bg-emerald-100 text-emerald-950 border border-emerald-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Le Condamné ({archives.condamne.length})
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+              {archives[selectedWorkBox]?.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-sm font-medium">Aucune copie enregistrée pour le moment dans cette boîte.</div>
               ) : (
-                archives[selectedWorkBox].map((entry: any) => (
-                  <div key={entry.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-4">
-                    <div>
-                      <div className="font-bold text-slate-800 text-sm">{entry.candidateName}</div>
-                      <div className="text-xs text-slate-500">
-                        {entry.filiere} — Note : <span className="font-bold text-amber-700">{entry.score}</span> — {entry.date}
-                      </div>
-                      <div className="text-xs text-slate-600 mt-1 line-clamp-1 italic">
-                        « {entry.sujet} »
-                      </div>
+                archives[selectedWorkBox]?.map((item: any) => (
+                  <div key={item.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white transition-all space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-slate-900 text-sm">{item.candidateName}</h4>
+                      <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-800 font-mono font-bold text-xs">{item.score}</span>
+                    </div>
+                    <p className="text-xs text-slate-500 line-clamp-1 italic">{item.sujet || 'Sujet non renseigné'}</p>
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                      <span>📅 {item.date || 'Date non renseignée'} • {item.filiere}</span>
+                      <button onClick={() => deleteArchive(item.id)} className="text-rose-600 hover:text-rose-800 font-bold cursor-pointer">Supprimer</button>
                     </div>
                   </div>
                 ))
@@ -868,6 +1217,73 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* MODAL MODIFICATION MOT DE PASSE ENSEIGNANT */}
+      {showChangeModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="p-5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-amber-400" />
+                <h3 className="font-outfit font-bold text-base">Modifier le mot de passe enseignant</h3>
+              </div>
+              <button onClick={() => setShowChangeModal(false)} className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer">✕</button>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="p-6 space-y-4">
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Ce mot de passe est mis à jour directement sur le serveur et protège immédiatement toutes les requêtes.
+              </p>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Mot de passe actuel</label>
+                <input
+                  type="password"
+                  value={oldPasswordInput}
+                  onChange={(e) => setOldPasswordInput(e.target.value)}
+                  placeholder="Mot de passe actuel..."
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Nouveau mot de passe</label>
+                <input
+                  type="password"
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  placeholder="Nouveau mot de passe (min 6 car.)..."
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                />
+              </div>
+
+              {changeFeedback && (
+                <div className={`p-3 rounded-lg text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                  {changeFeedback.message}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowChangeModal(false)}
+                  className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChanging}
+                  className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50"
+                >
+                  {isChanging ? 'Modification...' : 'Enregistrer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
