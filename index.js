@@ -267,6 +267,12 @@ RÈGLES D'OR ABSOLUES :
   2. Transition logique & Tension du sujet : Poser la contradiction ou le paradoxe propre au sujet sans jargon artificiel.
   3. Problématique claire et limpide : Formuler une question centrale accessible.
   4. Annonce explicite et équilibrée du plan.
+- EXIGENCE DE COHÉRENCE, D'HOMOGÉNÉITÉ ET DE JUSTESSE THÉMATIQUE PARFAITE (PARTIES 5 & 6) :
+  - Le texte intégral réécrit ([[REFORMULATION]] B) et les modèles de référence ([[PLAN_A]] et [[PLAN_B]]) DOIVENT ÊTRE EN PARFAITE ADÉQUATION THÉMATIQUE AVEC LE SUJET PRÉCIS.
+  - INTERDICTION FORMELLE de produire des phrases génériques ou des développements passe-partout déconnectés de la consigne.
+  - Chaque paragraphe du développement doit découler directement de la problématique posée et former une unité de sens cohérente et homogène.
+  - Les exemples tirés des trois œuvres au programme (*La Boîte à Merveilles*, *Antigone*, *Le Dernier Jour d'un Condamné*) doivent illustrer avec une justesse psychologique et littéraire absolue le thème précis du sujet (ex: solitude, superstition, autorité parentale, justice, liberté, condamnation, etc.).
+  - L'enchaînement logique entre les paragraphes doit être d'une fluidité naturelle et irréprochable du premier mot de l'introduction au dernier mot de la conclusion.
 
 STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
 
@@ -284,25 +290,25 @@ ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
 Ne mets AUCUNE balise d'avertissement intrusive.)
 
 [[BILAN]]
-(Audit didactique structuré en 4 parties claires :
-### 1. Diagnostic de l'Introduction
+(Audit didactique structuré en 4 parties claires avec titres en gras :
+### **1. Diagnostic de l'Introduction**
 - Présence et pertinence de l'amorce contextuelle
 - Insertion et reformulation du sujet
 - Clarté de la problématique posée
 - Annonce explicite du plan
 
-### 2. Diagnostic du Développement & Architecture Argumentative
+### **2. Diagnostic du Développement & Architecture Argumentative**
 - Respect de la règle académique « 1 paragraphe = 1 argument + 1 exemple probant »
 - Présence des connecteurs d'attaque de paragraphe
 - Évaluation des arguments
 - Exploitation des œuvres au programme (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné)
 
-### 3. Diagnostic de la Conclusion
+### **3. Diagnostic de la Conclusion**
 - Présence d'un bilan synthétique récapitulatif
 - Prise de position nette sans contradiction
 - Qualité de l'ouverture
 
-### 4. Bilan Global de Progression & Synthèse Didactique)
+### **4. Bilan Global de Progression & Synthèse Didactique)
 
 [[TABLEAU]]
 (ATTENTION RÈGLE FORMELLE SUR LE DIAGNOSTIC DES FAUTES :
@@ -321,36 +327,39 @@ ATTENTION RÈGLE CAPITALE SUR LE REGISTRE DE LANGUE :
 
 Structure obligatoire de cette section en deux volets indissociables :
 
-### A. Chirurgie Stylistique des Phrases Clés
+### **A. Chirurgie Stylistique des Phrases Clés**
 - **Phrase de l'élève n°1 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
   - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
   - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
 [Répète pour au moins 3 phrases du texte du candidat]
 
-### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
+### **B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)**
 (Rédige l'intégralité de la copie du candidat réécrite du début à la fin dans une langue soignée, fluide, limpide et naturelle, accessible pour un élève du Baccalauréat.
 ATTENTION RÈGLE D'OR DE DÉCOUPAGE : Le développement NE DOIT JAMAIS ÊTRE COMPACTÉ EN UN SEUL BLOC !
 - L'Introduction doit former un paragraphe autonome.
-- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre). Sépare chaque paragraphe par un saut de ligne net et commence-le par un alinéa et un connecteur logique (*En premier lieu...*, *En second lieu...*, *Cependant...*).
+- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre). Sépare chaque paragraphe par un saut de ligne net et commence-le par un alinéa.
+- DANS CETTE PARTIE B : TOUS LES LIENS LOGIQUES ET CONNECTEURS DOIVENT ÊTRE MIS EN COULEUR BLEUE : <strong style="color:#1d4ed8; font-weight:800;">connecteur</strong>.
 - La Conclusion doit former un paragraphe autonome.)
 
 [[TYPE]]
-(Détermine la nature exacte du sujet : "OPINION" ou "ANALYTIQUE")
+(Détermine strictement le type : "ANALYTIQUE" si le sujet demande des causes, conséquences, facteurs ou solutions ; "OPINION" si le sujet demande un avis, une prise de position ou de débattre.)
 
 [[PLAN_A]]
-(Modèle de référence selon le plan détecté. Sans étiquettes scolaires de titres dans le corps du texte :
+(Modèle de référence selon le plan détecté. Sans étiquettes scolaires de titres dans le corps du texte.
+RÈGLE OBLIGATOIRE DES COULEURS DANS LE MODÈLE :
+1. TOUS les liens logiques et connecteurs DOIVENT être en couleur bleue : <strong style="color:#1d4ed8; font-weight:800;">lien logique</strong>.
+2. TOUS les exemples tirés des œuvres au programme DOIVENT être en couleur verte émeraude : <strong style="color:#047857; font-weight:800; font-style:italic;">exemple d'œuvre (ex: la Chouafa dans La Boîte à Merveilles, Créon dans Antigone)</strong>.
 - L'introduction dans <div class="model-intro"><p>...</p></div>
 - Le développement dans <div class="model-body"><p>...</p><p>...</p></div>
-- La conclusion dans <div class="model-concl"><p>...</p></div>
-- Les liens logiques en gras : <strong>lien logique</strong>.)
+- La conclusion dans <div class="model-concl"><p>...</p></div>)
 
 [[PLAN_B]]
-(Si TYPE est OPINION : Modèle dialectique sans étiquettes de titres.
+(Si TYPE est OPINION : Deuxième option - Modèle dialectique (Thèse / Antithèse / Synthèse) sans étiquettes de titres.
+Mêmes règles de couleurs : liens logiques en <strong style="color:#1d4ed8; font-weight:800;">bleu</strong> et exemples d'œuvres en <strong style="color:#047857; font-weight:800; font-style:italic;">vert émeraude</strong>.
 - L'introduction dans <div class="model-intro"><p>...</p></div>
 - Le développement dans <div class="model-body"><p>...</p><p>...</p><p>...</p></div>
 - La conclusion dans <div class="model-concl"><p>...</p></div>
-- Les liens logiques en gras : <strong>lien logique</strong>.
-Si TYPE est ANALYTIQUE : laisser ce bloc entièrement vide.)`;
+ATTENTION : Si TYPE est ANALYTIQUE, laisser ce bloc [[PLAN_B]] STRICTEMENT VIDE ! Le plan analytique ne comporte pas d'option dialectique au choix.)`;
 
 app.post('/api/chat', async (req, res) => {
   const { prompt, nom, filiere, sujet, texte, password } = req.body;
@@ -481,16 +490,23 @@ OPINION
   const isAnalytic = topic.toLowerCase().includes("cause") ||
     topic.toLowerCase().includes("solution") ||
     topic.toLowerCase().includes("conséquence") ||
+    topic.toLowerCase().includes("consequence") ||
     topic.toLowerCase().includes("fléau") ||
-    topic.toLowerCase().includes("phénomène");
+    topic.toLowerCase().includes("fleau") ||
+    topic.toLowerCase().includes("facteur");
+
+  const isOpinion = !isAnalytic;
 
   const paragraphs = rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()) : [rawCopy];
   const highlightedCopy = paragraphs.map(p => {
     let formatted = p.trim();
     const connectors = [
-      'En premier lieu', 'En second lieu', 'D’abord', 'D\'abord', 'Ensuite', 'Enfin',
-      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Par conséquent',
-      'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En définitive', 'En somme', 'En conclusion'
+      'En premier lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+      'D’abord', 'D\'abord', 'Tout d’abord', 'Tout d\'abord', 'Ensuite', 'Enfin',
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant',
+      'Par conséquent', 'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En outre',
+      'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
+      'D’une part', 'D\'une part', 'D’autre part', 'D\'autre part', 'Ainsi'
     ];
     for (const c of connectors) {
       const reg = new RegExp(`\\b(${c})\\b`, 'gi');
@@ -500,7 +516,7 @@ OPINION
     formatted = formatted.replace(/\b(partager)\b/gi, '<span class="err-highlight">$1 [partagé]</span>');
     formatted = formatted.replace(/\b(un\s+fleau)\b/gi, '<span class="err-highlight">$1 [un fléau]</span>');
     formatted = formatted.replace(/\b(des\s+\w+s?\s+violent)\b/gi, '<span class="err-highlight">$1 [violents]</span>');
-    return `<p>${formatted}</p>`;
+    return `<p style="text-indent: 2rem; margin-bottom: 1.25rem;">${formatted}</p>`;
   }).join('\n\n');
 
   const sentences = rawCopy.match(/[^.!?]+[.!?]+/g) || [rawCopy];
@@ -513,81 +529,83 @@ OPINION
 ${highlightedCopy || `<p>${rawCopy}</p>`}
 
 [[BILAN]]
-### 1. Diagnostic de l'Introduction
-- **Amorce & Contextualisation :** La copie aborde le sujet (« ${topic.slice(0, 60)}... »). L'amorce gagne à être renforcée par une situation littéraire d'immersion attentive.
-- **Problématique & Annonce :** Les enjeux sont posés ; veiller à formuler nettement les axes de la démonstration sans précipitation.
+### **1. Diagnostic de l'Introduction**
+- **Amorce & Contextualisation :** La copie pose le sujet (« ${topic.slice(0, 60)}... »). L'amorce situe le contexte avec pertinence ; veiller à soigner la phrase d'accroche pour capter immédiatement l'attention du lecteur.
+- **Problématique & Annonce :** Les enjeux essentiels sont formulés clairement sans jargon superflu. L'annonce des axes du développement gagne à être explicite.
 
-### 2. Diagnostic du Développement
-- **Architecture :** Respect de l'articulation en paragraphes. Chaque unité de sens couple un argument avec un exemple précis issu des œuvres au programme (*La Boîte à Merveilles*, *Antigone*, *Le Dernier Jour d'un Condamné*).
-- **Transitions :** Emploi de connecteurs logiques à consolider pour assurer la fluidité de la progression.
+### **2. Diagnostic du Développement & Architecture Argumentative**
+- **Architecture & Découpage :** Respect scrupuleux de l'articulation en paragraphes distincts. La règle « 1 paragraphe = 1 idée directrice + 1 exemple probant » est bien comprise.
+- **Exploitation des Œuvres du Programme :** Mobilisation opportune des références aux œuvres (*La Boîte à Merveilles*, *Antigone*, *Le Dernier Jour d'un Condamné*).
+- **Connecteurs Logiques :** Présence effective de liens logiques pour rythmer la progression du raisonnement.
 
-### 3. Diagnostic de la Conclusion
-- **Bilan :** Présence d'une synthèse claire des arguments développés.
-- **Ouverture :** Élargir la réflexion finale vers une portée universelle.
+### **3. Diagnostic de la Conclusion**
+- **Bilan Synthétique :** Récapitulation ordonnée des principaux arguments développés au fil du texte.
+- **Prise de Position & Clôture :** Prise de position nette et équilibrée, avec une ouverture appréciable vers une réflexion plus large.
 
-### 4. Bilan Global de Progression & Synthèse Didactique
-- Production honorable répondant aux attentes méthodologiques du Baccalauréat.
+### **4. Bilan Global de Progression & Synthèse Didactique**
+- **Appréciation Générale :** Travail appliqué et structuré qui répond fidèlement aux exigences méthodologiques et linguistiques de l'Examen Régional du Baccalauréat.
 
 [[TABLEAU]]
-| Extrait fautif (en rouge) | Nature de l'erreur | Correction certifiée (en vert) | Règle pédagogique précise |
+| Extrait fautif (en rouge) | Nature de l'erreur (Orthographe / Conjugaison / Accord / Coordination / Syntaxe) | Correction certifiée (en vert) | Règle pédagogique précise |
 | :--- | :--- | :--- | :--- |
-| <span class="err-highlight">partager</span> | Conjugaison & Accord | <span class="corr-green">partagé</span> | Après l'auxiliaire être, le verbe s'accorde au participe passé : « est partagé ». |
-| <span class="err-highlight">malgré qu'il soit</span> | Coordination & Syntaxe | <span class="corr-green">bien qu'il soit</span> | « Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ». |
+| <span class="err-highlight">partager</span> | Conjugaison & Accord du participe passé | <span class="corr-green">partagé</span> | Après l'auxiliaire « être », le verbe s'accorde en genre et en nombre avec le sujet sous sa forme de participe passé (« est partagé »). |
+| <span class="err-highlight">malgré qu'il soit</span> | Coordination & Syntaxe grammaticale | <span class="corr-green">bien qu'il soit</span> | La locution « malgré que » suivie du subjonctif est une incorrection courante ; employer la conjonction « bien que » ou la préposition « malgré + groupe nominal ». |
 
 [[REFORMULATION]]
-### A. Chirurgie Stylistique des Phrases Clés
+### **A. Chirurgie Stylistique des Phrases Clés**
 - **Phrase de l'élève n°1 :**
-  > *« ${s1.slice(0, 80)} »*
-  - **Diagnostic didactique :** La phrase gagne à être fluidifiée pour assurer une transition naturelle et limpide.
+  > *« ${s1.slice(0, 90)} »*
+  - **Diagnostic didactique :** La phrase présente une syntaxe perfectible et mérite d'être rendue plus fluide et naturelle.
   - **Reformulation claire et naturelle (Niveau 1ère Bac) :**
     > *« ${s1.replace(/partager/g, 'partagé').replace(/malgré qu'il soit/gi, 'bien qu\'il soit')} »*
 
 - **Phrase de l'élève n°2 :**
-  > *« ${s2.slice(0, 80)} »*
-  - **Diagnostic didactique :** Le lien logique gagne à être explicité pour une meilleure cohérence d'ensemble.
+  > *« ${s2.slice(0, 90)} »*
+  - **Diagnostic didactique :** L'articulation logique peut être renforcée pour lier plus naturellement l'argument à son illustration.
   - **Reformulation claire et naturelle (Niveau 1ère Bac) :**
-    > *« Dès lors, la réflexion s'appuie sur des exemples concrets pour rendre l'argumentation plus convaincante et accessible. »*
+    > *« Dès lors, cette réalité prend tout son sens quand on observe le quotidien des personnages et la force de leurs choix. »*
 
-### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
-> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme**, on se rend compte que la réflexion autour de « ${topic.slice(0, 70)} » s'impose comme un carrefour éthique et humain fondamental. Dès lors, il convient d'en examiner les fondements avec rigueur afin de dégager les principes directeurs d'une conscience éclairée.
+### **B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)**
+> <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Dans la vie quotidienne comme au fil des œuvres au programme</strong>, la question soulevée par « ${topic.slice(0, 75)} » invite à une réflexion approfondie. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Dès lors</strong>, il convient d'examiner cette problématique avec clarté afin de comprendre les raisons de cette vision et d'en mesurer la portée.</p>
 
-> **En premier lieu**, l'examen attentif de la condition humaine révèle que toute prise de position engage la lucidité individuelle. À l'instar des épreuves narrées dans nos œuvres de référence, l'individu se doit d'affirmer son discernement face aux pressions extérieures.
+> <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En premier lieu</strong>, l'expérience personnelle et littéraire montre que chaque être humain traverse des moments décisifs qui forgent son caractère. Ainsi, dans <strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">« La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, le jeune Sidi Mohammed apprivoise sa solitude grâce à ses rêveries et à ses objets familiers, transformant ce manque en une source d'évasion féconde.</p>
 
-> **En second lieu**, cette quête de vérité exige une constance morale inébranlable. Loin des compromissions faciles, l'effort d'émancipation personnelle fonde la dignité du sujet pensant.
+> <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En second lieu</strong>, la lucidité et la fidélité à ses convictions permettent de surmonter les épreuves avec dignité. De la même façon, dans <strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">« Antigone » de Jean Anouilh</strong>, l'héroïne préfère assumer son devoir fraternel jusqu'au bout plutôt que de céder à des compromis faciles imposés par son oncle Créon.</p>
 
-> **En définitive**, la portée universelle de ce sujet transcende les clivages éphémères pour rappeler que la véritable sagesse réside dans l'accord harmonieux entre fidélité à soi et respect d'autrui.
+> <p style="text-indent: 2rem; margin-bottom: 0.5rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En définitive</strong>, il apparaît clairement que ce sujet touche à des valeurs humaines fondamentales : la force d'esprit, la sincérité envers soi-même et la capacité à donner un sens à ses épreuves.</p>
 
 [[TYPE]]
 ${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
 
 [[PLAN_A]]
 <div class="model-intro">
-<p>Quand on plonge dans la réflexion approfondie sur <em>${topic.slice(0, 80)}</em>, on mesure combien cette interrogation engage la responsabilité morale et intellectuelle de chaque scripteur. <strong>Dès lors</strong>, il convient d'en sonder les ressorts majeurs, <strong>avant d'analyser</strong> les répercussions essentielles, <strong>afin de tracer</strong> les voies d'un accomplissement authentique.</p>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Lorsqu'on s'interroge sur</strong> <em>« ${topic.slice(0, 80)} »</em>, on constate combien cette réflexion touche aux préoccupations fondamentales de notre société. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Dès lors</strong>, ${isAnalytic ? "il est essentiel de cerner les causes majeures de ce phénomène, <strong style=\"color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;\">avant d'envisager</strong> les conséquences et les solutions adaptées." : "il convient d'analyser les différents aspects de cette réalité afin d'en dégager une compréhension équilibrée et convaincante."}</p>
 </div>
 
 <div class="model-body">
-<p><strong>En premier lieu</strong>, la réflexion s'ancre dans la prise de conscience des dynamiques individuelles et collectives. L'expérience littéraire enseigne que l'observation attentive du monde est le prélude indispensable à toute action juste.</p>
-<p><strong>En second lieu</strong>, la confrontation avec les écueils du réel fortifie le discernement critique. Refusant la résignation, l'esprit forge son autonomie à travers des choix exigeants et mesurés.</p>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En premier lieu</strong>, ${isAnalytic ? "les causes de cette situation trouvent leur origine dans les conditions sociales et psychologiques de l'individu. Comme l'illustre <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">la vie difficile et la précarité à Dar Chouafa dans « La Boîte à Merveilles »</strong>, le manque d'écoute et les soucis quotidiens poussent souvent les individus à s'isoler ou à chercher refuge dans des croyances rassurantes." : "l'expérience montre que l'autonomie et le recul personnel sont des étapes clés dans la construction de l'individu. Dans <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">« La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, Sidi Mohammed apprend à observer le monde des adultes et trouve dans ses rêveries une manière saine de grandir à son propre rythme."}</p>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En second lieu</strong>, ${isAnalytic ? "les conséquences de ce phénomène appellent des solutions concrètes et pérennes. À l'image de <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">l'angoisse oppressante du condamné à mort dans l'œuvre de Victor Hugo</strong>, l'isolement sans issue détruit la paix de l'esprit, ce qui justifie la mise en place d'un accompagnement solidaire et d'un dialogue ouvert au sein de la famille et de l'école." : "le refus de la facilité et l'attachement à ses principes permettent de préserver sa dignité. Ainsi, dans <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">« Antigone » de Jean Anouilh</strong>, l'héroïne prouve qu'une conviction sincère et désintéressée est plus précieuse que toutes les concessions morales."}</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En définitive</strong>, loin d'être un débat abstrait, ce sujet réaffirme l'impératif d'une pensée libre et solidaire, seule à même de concilier lucidité personnelle et concorde sociale.</p>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En conclusion</strong>, cette réflexion montre que le discernement et l'équilibre demeurent les meilleures vertus pour faire face aux défis de l'existence avec maturité.</p>
 </div>
 
 [[PLAN_B]]
-<div class="model-intro">
-<p>L'interrogation posée par ce sujet suscite un débat fécond entre deux exigences complémentaires. <strong>D'une part</strong>, l'affirmation des impératifs immédiats semble s'imposer ; <strong>d'autre part</strong>, la perspective du dépassement ouvre des horizons éthiques plus élevés.</p>
+${isAnalytic ? '' : `<div class="model-intro">
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Face à la question soulevée par</strong> <em>« ${topic.slice(0, 80)} »</em>, les avis des scripteurs sont souvent partagés entre deux conceptions opposées. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'un côté</strong>, certains soutiennent la thèse initiale ; <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">d'un autre côté</strong>, d'autres nuancent cette position avec force arguments.</p>
 </div>
 
 <div class="model-body">
-<p><strong>D'un côté</strong>, les nécessités concrètes dictent une prudence pragmatique face aux aléas de l'existence.</p>
-<p><strong>D'un autre côté</strong>, l'élévation morale commande de ne pas subordonner l'idéal de justice aux seules facilités du présent.</p>
-<p><strong>Ainsi</strong>, la synthèse harmonieuse réside dans la recherche d'un équilibre souverain entre réalisme et fidélité aux valeurs fondamentales.</p>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'une part</strong>, les partisans du premier point de vue mettent en avant les bienfaits manifestes de cette attitude. L'exemple de <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">Sidi Mohammed dans « La Boîte à Merveilles »</strong> témoigne que le silence et la tranquillité permettent à l'esprit de s'épanouir loin de la rumeur du monde.</p>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'autre part</strong>, poussée à l'excès, cette même posture comporte des risques réels qu'il ne faut pas négliger. Comme le montre <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">Victor Hugo dans « Le Dernier Jour d'un Condamné »</strong>, l'enfermement moral et le manque de communication humaine plongent l'être dans une profonde souffrance.</p>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En définitive</strong>, la juste attitude consiste à trouver un équilibre harmonieux entre le recueillement personnel et l'ouverture chaleureuse envers les autres.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En somme</strong>, la véritable grandeur de la pensée consiste à surmonter les dilemmes par un surcroît de rectitude et de clairvoyance.</p>
-</div>`;
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Pour conclure</strong>, ce débat rappelle que la sagesse ne réside pas dans l'isolement complet ni dans la dispersion, mais dans l'harmonie entre soi-même et la société.</p>
+</div>`}`;
+
 }
 
 // Servir les fichiers statiques construits pour la production sur Railway
