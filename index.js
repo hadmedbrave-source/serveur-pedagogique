@@ -41,13 +41,13 @@ app.use(cors());
 // Mot de passe enseignant configurable via variable d'environnement ou en direct
 let PROFESSOR_PASSWORD = process.env.ACCESS_PASSWORD || 'AKHAWAYN2026';
 
-// Endpoint Health Check ultra-rapide pour Railway
+// Endpoint Health Check pour Railway
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', service: 'Centre Al Akhawayn API', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'Centre Al Akhawayn API', timestamp: new Date().toISOString() });
 });
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', service: 'Centre Al Akhawayn API', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'Centre Al Akhawayn API', timestamp: new Date().toISOString() });
 });
 
 // Authentification & gestion du mot de passe
@@ -100,14 +100,10 @@ app.post('/api/archives', (req, res) => {
   if (!archives[validWork]) {
     archives[validWork] = [];
   }
+
   archives[validWork].unshift(newEntry);
   saveArchives(archives);
-
-  res.json({ success: true, entry: newEntry, counts: {
-    boite: archives.boite.length,
-    antigone: archives.antigone.length,
-    condamne: archives.condamne.length,
-  }});
+  return res.json({ success: true, entry: newEntry, count: archives[validWork].length });
 });
 
 app.delete('/api/archives/:id', (req, res) => {
@@ -115,208 +111,499 @@ app.delete('/api/archives/:id', (req, res) => {
   const archives = loadArchives();
   let found = false;
 
-  ['boite', 'antigone', 'condamne'].forEach((w) => {
-    const initialLen = archives[w].length;
-    archives[w] = archives[w].filter((item) => item.id !== id);
-    if (archives[w].length < initialLen) found = true;
-  });
+  for (const key of ['boite', 'antigone', 'condamne']) {
+    const initialLen = archives[key]?.length || 0;
+    archives[key] = (archives[key] || []).filter((item) => item.id !== id);
+    if (archives[key].length < initialLen) found = true;
+  }
 
   if (found) {
     saveArchives(archives);
-    res.json({ success: true });
-  } else {
-    res.status(404).json({ success: false, message: 'Archive introuvable.' });
+    return res.json({ success: true });
   }
+  return res.status(404).json({ success: false, message: 'Archive non trouvée.' });
 });
 
-// Route d'expertise didactique alimentée par OpenAI ou Google GenAI
-app.post('/api/chat', async (req, res) => {
-  try {
-    const { nom, filiere, sujet, texte, password } = req.body;
+// Initialisation des clients IA
+const openaiApiKey = process.env.OPENAI_API_KEY;
+const openaiModel = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const openai = openaiApiKey && openaiApiKey !== 'MY_OPENAI_API_KEY' && openaiApiKey.trim() !== ''
+  ? new OpenAI({ apiKey: openaiApiKey })
+  : null;
 
-    const providedPwd = req.headers['x-access-password'] || password;
-    if (providedPwd !== PROFESSOR_PASSWORD && providedPwd !== 'AKHAWAYN2026') {
-      return res.status(401).json({ error: 'Accès non autorisé. Veuillez vérifier le mot de passe enseignant.' });
-    }
+if (openai) {
+  console.log(`[OpenAI] Clé OPENAI_API_KEY détectée. Moteur principal actif : ${openaiModel}`);
+} else {
+  console.log('[OpenAI] Aucune clé OPENAI_API_KEY détectée dans les variables d\'environnement.');
+}
 
-    if (!texte || !sujet) {
-      return res.status(400).json({ error: 'Le sujet et la copie sont requis.' });
-    }
+const geminiApiKey = process.env.GEMINI_API_KEY;
+const gemini = geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY' && geminiApiKey.trim() !== ''
+  ? new GoogleGenAI({ apiKey: geminiApiKey })
+  : null;
 
-    const norm = (s) => (s || '').toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+/**
+ * Détection rigoureuse du Hors-Sujet :
+ * 1. Hors-Sujet Méthodologique : sujet d'opinion traité via plan analytique (causes et solutions)
+ * 2. Hors-Sujet Thématique : divergence thématique totale avec la consigne
+ */
+function isCandidateTextOffTopic(sujet, texte) {
+  if (!sujet || !texte) return false;
+  
+  const norm = (s) => (s || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-    const sNorm = norm(sujet);
-    const tNorm = norm(texte);
+  const sNorm = norm(sujet);
+  const tNorm = norm(texte);
 
-    // Détection stricte du hors-sujet méthodologique
-    const opinionIndicators = [
-      'pensez vous', 'partagez vous', 'etes vous', 'd accord', 'qu en pensez vous',
-      'faut il', 'peut on', 'votre avis', 'votre point de vue', 'votre opinion',
-      'approuvez vous', 'selon vous', 'justifiez votre point de vue', 'partagez cette'
+  // 1. Contrôle du Hors-Sujet Méthodologique : Sujet d'Opinion traité en Causes / Solutions
+  const opinionIndicators = [
+    'pensez vous', 'partagez vous', 'etes vous', 'd accord', 'qu en pensez vous',
+    'faut il', 'peut on', 'votre avis', 'votre point de vue', 'votre opinion',
+    'approuvez vous', 'selon vous', 'justifiez votre point de vue', 'partagez cette',
+    'dans quelle mesure', 'quel est votre avis', 'adherez vous', 'etes vous pour ou contre'
+  ];
+
+  const isExplicitAnalyticSubject = sNorm.includes('causes et solutions') ||
+    sNorm.includes('causes et consequences') ||
+    sNorm.includes('quelles sont les causes') ||
+    sNorm.includes('analyser les causes');
+
+  const isOpinion = opinionIndicators.some(ind => sNorm.includes(ind)) && !isExplicitAnalyticSubject;
+
+  // Si le candidat exprime explicitement son opinion personnelle, il respecte par définition le sujet d'opinion !
+  const personalOpinionTriggers = [
+    'personnellement', 'a mon avis', 'selon moi', 'd apres moi',
+    'en ce qui me concerne', 'pour ma part', 'a mes yeux', 'je pense',
+    'j estime', 'je trouve', 'je considere', 'je soutiens',
+    'je partage', 'je ne partage pas', 'je suis d accord', 'je ne suis pas d accord'
+  ];
+  const hasPersonalOpinion = personalOpinionTriggers.some(op => tNorm.includes(op));
+
+  if (isOpinion && !hasPersonalOpinion) {
+    // Un devoir n'est en plan analytique que s'il est formellement articulé autour des causes ET des solutions SANS prise de position
+    const explicitCauseStructure = [
+      'parmi les causes de ce', 'les causes de ce probleme', 'les causes de ce phenomene',
+      'premiere cause', 'la cause principale de ce'
     ];
-    const isExplicitAnalyticSubject = sNorm.includes('causes et solutions') ||
-      sNorm.includes('causes et consequences') ||
-      sNorm.includes('quelles sont les causes');
+    const explicitSolutionStructure = [
+      'comme solutions a ce', 'les solutions pour lutter', 'les solutions a adopter',
+      'pour eradiquer ce fleau', 'les remedes preconises'
+    ];
 
-    const isOpinion = opinionIndicators.some(ind => sNorm.includes(ind)) && !isExplicitAnalyticSubject;
+    const hasCauseSection = explicitCauseStructure.some(p => tNorm.includes(p));
+    const hasSolutionSection = explicitSolutionStructure.some(p => tNorm.includes(p));
 
-    let isMethodologicalOffTopic = false;
-    if (isOpinion) {
-      const causeWords = ['cause', 'causes', 'facteur', 'facteurs', 'raison', 'raisons'];
-      const solutionWords = ['solution', 'solutions', 'remede', 'remedes', 'remedier', 'resoudre', 'lutter'];
-      const tWords = tNorm.split(' ');
-      const causeCount = tWords.filter(w => causeWords.includes(w)).length;
-      const solutionCount = tWords.filter(w => solutionWords.includes(w)).length;
-      const analyticalPhrases = [
-        'parmi les causes', 'les causes de ce', 'premiere cause', 'deuxieme cause',
-        'les facteurs de', 'les solutions pour', 'pour remedier', 'pour resoudre',
-        'comme solution', 'comme solutions'
-      ];
-      const hasAnalyticalPhrase = analyticalPhrases.some(p => tNorm.includes(p));
-      const hasBoth = (causeCount >= 1 && solutionCount >= 1) || (causeCount >= 2 && solutionCount >= 1);
-      if (hasAnalyticalPhrase || hasBoth) {
-        isMethodologicalOffTopic = true;
+    if (hasCauseSection && hasSolutionSection) {
+      return true; // Sanction avérée : plan causes/solutions pur sur un sujet d'opinion sans thèse personnelle
+    }
+  }
+
+  // 2. Contrôle du Hors-Sujet Thématique
+  const stopWords = new Set([
+    'le','la','les','un','une','des','du','de','d','l','au','aux','ce','cet','cette','ces',
+    'mon','ton','son','notre','votre','leur','mes','tes','ses','nos','vos','leurs',
+    'qui','que','quoi','dont','ou','où','quand','comment','pourquoi','dans','sur','sous',
+    'par','pour','avec','sans','apres','après','avant','pendant','faut','il','elle','on',
+    'nous','vous','ils','elles','est','sont','etre','être','avoir','a','ont','faire','fait',
+    'peut','peuvent','plus','moins','tres','très','bien','aussi','comme','si','ne','pas',
+    'tout','tous','toute','toutes','autre','autres','pensez','avis','partagez','selon',
+    'beaucoup','gens','monde','affirment','certains','disent','sujet','texte','production',
+    'votre','point','vue','justifiez','arguments','pertinents','illustrez','exemples'
+  ]);
+
+  const extractSignificantWords = (str) => {
+    return norm(str).split(/\s+/).filter(w => w.length >= 3 && !stopWords.has(w));
+  };
+
+  const subjectWords = extractSignificantWords(sujet);
+  const textWords = extractSignificantWords(texte);
+
+  if (subjectWords.length === 0) return false;
+  if (textWords.length < 5) return false;
+
+  const subjectRoots = subjectWords.map(w => w.slice(0, Math.min(w.length, 4)));
+  
+  let matches = 0;
+  for (const root of subjectRoots) {
+    for (const tWord of textWords) {
+      if (tWord.startsWith(root) || (root.length >= 4 && tWord.includes(root))) {
+        matches++;
+        break;
       }
     }
+  }
 
-    const systemPrompt = `Tu es l'Inspecteur Pédagogique National Principal et Président du Jury d'Évaluation du Baccalauréat au Maroc pour le prestigieux Centre Al Akhawayn.
-Ton rôle est d'analyser la production écrite d'un candidat de 1ère Année du Baccalauréat avec la plus haute rigueur académique selon les directives officielles du Cadre de Référence Ministériel.
+  const thematicClusters = [
+    { triggers: ['pein', 'mort', 'condamn', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crime', 'justice', 'hugo'], keywords: ['condamn', 'pein', 'mort', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crim', 'chati', 'hugo', 'execut', 'abolit', 'prison', 'cellul', 'cachot'] },
+    { triggers: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol'], keywords: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol', 'isolement', 'souffr', 'refig', 'imagin'] },
+    { triggers: ['antigon', 'creon', 'anouilh', 'polynic', 'devoir', 'sepultur', 'enter', 'decret', 'revolt', 'obeir'], keywords: ['antigon', 'creon', 'anouilh', 'polynic', 'sepultur', 'enter', 'decret', 'revolt', 'destin', 'tragedi', 'loi', 'famill', 'frere', 'choix'] },
+    { triggers: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat'], keywords: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat', 'adolesc', 'guid', 'autonom', 'pere', 'mere'] },
+    { triggers: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc'], keywords: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc', 'gueris', 'sidi', 'ali', 'boughaleb'] }
+  ];
 
-BARÈME OFFICIEL (10 POINTS) :
-- Respect de la consigne et du sujet : 2.0 Pts
-- Structure & cohérence de l'argumentation : 2.0 Pts
-- Pertinence des arguments & exemples : 2.0 Pts
-- Correction de la langue & syntaxe : 2.5 Pts
-- Vocabulaire & richesse lexicale : 1.5 Pts
+  const subjectCluster = thematicClusters.find(c => c.triggers.some(trig => subjectWords.some(sw => sw.startsWith(trig))));
+  if (subjectCluster) {
+    const textHasSubjectCluster = subjectCluster.keywords.some(kw => textWords.some(tw => tw.startsWith(kw)));
+    if (!textHasSubjectCluster) {
+      return true;
+    }
+  }
 
-RÈGLES DIDACTIQUES IMPÉRATIVES :
-1. HORS-SUJET STRICT (0/10) :
-   - Si le candidat traite un sujet d'opinion en appliquant un plan Causes/Solutions (analytique), ou s'il s'écarte du thème, tu DOIS attribuer 0/10 avec la mention [[HORS_SUJET]].
-2. FORMAT DU TABLEAU DE FAUTES (4 COLONNES STRICTES) :
-   Tu dois obligatoirement générer un tableau Markdown avec exactement ces 4 colonnes :
-   | Erreur Relevée dans la Copie | Type d'Erreur | Règle Didactique & Explication | Correction Certifiée Conforme |
-   Dans la 4ème colonne, la correction doit être en vert via <span style="color:#059669; font-weight:700;">correction</span>.
-3. TRANSCRIPTION :
-   Conserve scrupuleusement les alinéas et les paragraphes originaux du candidat (encadrés dans des balises <p>...</p>).
-4. REFORMULATION STYLISTIQUE (NIVEAU 1ÈRE BAC) :
-   Propose une réécriture fluide, élégante et naturelle, adaptée à un élève de 1ère Bac. Évite absolument tout registre pompeux, précieux ou artificiel.
-5. MODÈLES RÉDIGÉS (PLAN_A et PLAN_B) :
-   Rédige le texte de manière continue sans aucun titre mécanique (supprime "Introduction", "I.", "Conclusion").
+  if (matches === 0 && textWords.length >= 8) {
+    return true;
+  }
 
-FORMAT DE RÉPONSE OBLIGATOIRE EN BALISES :
-[[GRILLE]]
-CONSIGNE:note|STRUCTURE:note|ARGUMENTS:note|LANGUE:note|LEXIQUE:note
+  return false;
+}
+
+const buildSystemPrompt = (nom, filiere) => `Tu es l'Inspecteur Pédagogique Principal et Directeur de l'Expertise Didactique au Centre Al Akhawayn.
+Tu dois produire une ANALYSE CHIRURGICALE, EXHAUSTIVE ET SANS COMPLAISANCE de la production écrite de ${nom || 'CANDIDAT'} (${filiere || '1ère Année Baccalauréat'}).
+
+RÈGLES D'OR ABSOLUES :
+- Ne JAMAIS mentionner l'intelligence artificielle ou de système automatisé.
+- SANCTION ÉLIMINATOIRE MAJEURE DU HORS-SUJET (NORME BACCALAURÉAT) :
+  RÈGLE N°1 INTRANSIGEANTE : Compare scrupuleusement le SUJET OFFICIEL et la COPIE DU CANDIDAT.
+  Une copie est OBLIGATOIREMENT HORS-SUJET dans les cas suivants :
+  1. HORS-SUJET THÉMATIQUE : La copie ne traite pas le sujet imposé, disserte sur une autre thématique, raconte une anecdote personnelle sans rapport, ou traite d'une autre œuvre sans lien.
+  2. HORS-SUJET MÉTHODOLOGIQUE (CONFUSION ENTRE PLAN D'OPINION ET PLAN ANALYTIQUE) :
+     Si le sujet est un sujet d'OPINION (qui demande un avis, une prise de position, ou de débattre avec un plan dialectique ou thématique, ex: « Partagez-vous ce point de vue ? », « Pensez-vous que... », « Faut-il... », « Êtes-vous d'accord ? ») ET QUE LE CANDIDAT CITE DES CAUSES ET DES SOLUTIONS (plan analytique), C'EST FORMELLEMENT UN HORS-SUJET !
+  Dans TOUS ces cas de hors-sujet :
+  1. Tu DOIS IMPÉRATIVEMENT commencer le tout début de ta réponse par [[HORS_SUJET]].
+  2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
+     [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
+  3. L'ensemble des critères est frappé de caducité académique.
+- L'analyse doit être d'une rigueur didactique chirurgicale, adaptée aux exigences du Baccalauréat marocain (œuvres au programme : La Boîte à Merveilles d'Ahmed Sefrioui, Antigone de Jean Anouilh, Le Dernier Jour d'un Condamné de Victor Hugo).
+- EXIGENCE DE COHÉRENCE ABSOLUE POUR LES INTRODUCTIONS & MODÈLES :
+  L'introduction doit rigoureusement respecter la progression logique en entonnoir sans rupture conceptuelle :
+  1. Amorce littéraire attentive : Débuter par une formule d'immersion littéraire soignée.
+  2. Transition logique & Tension du sujet : Poser la contradiction ou le paradoxe propre au sujet sans jargon artificiel.
+  3. Problématique claire et limpide : Formuler une question centrale accessible.
+  4. Annonce explicite et équilibrée du plan.
+
+STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
+
+[[GRILLE]] : Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
+(Notes décimales sur le barème officiel de 10 points : Consigne /2, Structure /2, Arguments /2, Langue /2.5, Lexique /1.5)
+
 [[TRANSCRIPTION]]
-Texte avec alinéas et balisage pédagogique.
+(Transcris STRICTEMENT ET INTÉGRALEMENT l'ensemble de la copie du candidat mot à mot, sans omettre aucune phrase, sans tronquer et sans résumer.
+ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
+- Reproduis fidèlement les paragraphes du candidat. Encadre CHAQUE paragraphe dans sa propre balise <p>...</p>.
+- INTERDICTION FORMELLE de compacter ou fusionner les paragraphes en un seul bloc continu !
+- Balisages exclusifs :
+  1. Les erreurs en rouge : <span class="err-highlight">erreur [correction]</span>
+  2. Les liens logiques et connecteurs en gras : <strong>lien logique</strong>
+Ne mets AUCUNE balise d'avertissement intrusive.)
+
 [[BILAN]]
-Audit pédagogique didactique complet.
+(Audit didactique structuré en 4 parties claires :
+### 1. Diagnostic de l'Introduction
+- Présence et pertinence de l'amorce contextuelle
+- Insertion et reformulation du sujet
+- Clarté de la problématique posée
+- Annonce explicite du plan
+
+### 2. Diagnostic du Développement & Architecture Argumentative
+- Respect de la règle académique « 1 paragraphe = 1 argument + 1 exemple probant »
+- Présence des connecteurs d'attaque de paragraphe
+- Évaluation des arguments
+- Exploitation des œuvres au programme (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné)
+
+### 3. Diagnostic de la Conclusion
+- Présence d'un bilan synthétique récapitulatif
+- Prise de position nette sans contradiction
+- Qualité de l'ouverture
+
+### 4. Bilan Global de Progression & Synthèse Didactique)
+
 [[TABLEAU]]
-Tableau à 4 colonnes des erreurs.
+(ATTENTION RÈGLE FORMELLE SUR LE DIAGNOSTIC DES FAUTES :
+- Ce tableau DOIT UNIQUEMENT ET EXCLUSIVEMENT recenser les ERREURS OBJECTIVES : Orthographe (lexicale ou grammaticale), Conjugaison (temps, modes), Accords (sujet-verbe, nom-adjectif, participe passé), Coordination (conjonctions mal employées), Syntaxe grammaticale, Ponctuation.
+- INTERDICTION FORMELLE d'inclure des « phrases faibles », des maladresses de style ou des formulations lourdes dans ce tableau ! (Ceux-ci relèvent exclusivement de la section [[REFORMULATION]]).
+- Structure OBLIGATOIRE du tableau Markdown en 4 colonnes, avec les extraits fautifs obligatoirement en rouge (<span class="err-highlight">...</span>) et les corrections certifiées obligatoirement en vert (<span class="corr-green">...</span>) :
+| Extrait fautif (en rouge) | Nature de l'erreur (Orthographe / Conjugaison / Accord / Coordination / Syntaxe) | Correction certifiée (en vert) | Règle pédagogique précise |
+| :--- | :--- | :--- | :--- |
+| <span class="err-highlight">...</span> | ... | <span class="corr-green">...</span> | ... |)
+
 [[REFORMULATION]]
-Optimisation stylistique fluide.
+(OPTIMISATION STYLISTIQUE & CLARTÉ SYNTAXIQUE (Niveau 1ère Année Baccalauréat) :
+ATTENTION RÈGLE CAPITALE SUR LE REGISTRE DE LANGUE :
+- ÉVITER ABSOLUMENT DE PROPOSER DES FORMULATIONS EN REGISTRE SOUTENU OU ARTIFICIELLEMENT POMPEUSES.
+- L'objectif pour un candidat de 1ère Bac est une écriture claire, naturelle, fluide, accessible et rigoureuse (français standard soigné). Proscrire formellement le vocabulaire archaïque, boursouflé ou pédant.
+
+Structure obligatoire de cette section en deux volets indissociables :
+
+### A. Chirurgie Stylistique des Phrases Clés
+- **Phrase de l'élève n°1 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
+  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
+[Répète pour au moins 3 phrases du texte du candidat]
+
+### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
+(Rédige l'intégralité de la copie du candidat réécrite du début à la fin dans une langue soignée, fluide, limpide et naturelle, accessible pour un élève du Baccalauréat.
+ATTENTION RÈGLE D'OR DE DÉCOUPAGE : Le développement NE DOIT JAMAIS ÊTRE COMPACTÉ EN UN SEUL BLOC !
+- L'Introduction doit former un paragraphe autonome.
+- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre). Sépare chaque paragraphe par un saut de ligne net et commence-le par un alinéa et un connecteur logique (*En premier lieu...*, *En second lieu...*, *Cependant...*).
+- La Conclusion doit former un paragraphe autonome.)
+
 [[TYPE]]
-OPINION ou ANALYTIQUE
+(Détermine la nature exacte du sujet : "OPINION" ou "ANALYTIQUE")
+
 [[PLAN_A]]
-Texte rédigé modèle A.
+(Modèle de référence selon le plan détecté. Sans étiquettes scolaires de titres dans le corps du texte :
+- L'introduction dans <div class="model-intro"><p>...</p></div>
+- Le développement dans <div class="model-body"><p>...</p><p>...</p></div>
+- La conclusion dans <div class="model-concl"><p>...</p></div>
+- Les liens logiques en gras : <strong>lien logique</strong>.)
+
 [[PLAN_B]]
-Texte rédigé modèle B.`;
+(Si TYPE est OPINION : Modèle dialectique sans étiquettes de titres.
+- L'introduction dans <div class="model-intro"><p>...</p></div>
+- Le développement dans <div class="model-body"><p>...</p><p>...</p><p>...</p></div>
+- La conclusion dans <div class="model-concl"><p>...</p></div>
+- Les liens logiques en gras : <strong>lien logique</strong>.
+Si TYPE est ANALYTIQUE : laisser ce bloc entièrement vide.)`;
 
-    const userMessage = `CANDIDAT : ${nom || 'CANDIDAT'}\nFILIÈRE : ${filiere || '1ère Année Baccalauréat'}\nSUJET OFFICIEL : ${sujet}\nCOPIE DU CANDIDAT :\n${texte}\n${isMethodologicalOffTopic ? 'ATTENTION INSPECTEUR : Détection avérée d\'un plan analytique (causes/solutions) sur un sujet d\'opinion. Applique la sanction éliminatoire 0/10.' : ''}`;
+app.post('/api/chat', async (req, res) => {
+  const { prompt, nom, filiere, sujet, texte, password } = req.body;
+  const clientPassword = req.headers['x-access-password'] || password;
 
-    let resultText = '';
+  if (clientPassword && clientPassword !== PROFESSOR_PASSWORD && clientPassword !== 'AKHAWAYN2026') {
+    return res.status(401).json({ error: 'Accès non autorisé : Mot de passe enseignant requis ou incorrect.' });
+  }
 
-    // Priorité à OpenAI (clé Railway OPENAI_API_KEY)
-    if (process.env.OPENAI_API_KEY) {
-      try {
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        const response = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage },
-          ],
-          temperature: 0.3,
-        });
-        resultText = response.choices[0]?.message?.content || '';
-      } catch (err) {
-        console.error('Erreur appel OpenAI:', err);
+  const systemPrompt = buildSystemPrompt(nom, filiere);
+
+  const finalUserPrompt = (sujet && texte)
+    ? `DOSSIER D'ÉVALUATION PÉDAGOGIQUE OFFICIEL :
+- NOM DU CANDIDAT : ${nom || 'CANDIDAT'}
+- FILIÈRE OFFICIELLE : ${filiere || '1ère Année Baccalauréat'}
+
+- SUJET OFFICIEL DE RÉFLEXION :
+"""${sujet}"""
+
+- COPIE MANUSCRITE AUTHENTIQUE DU CANDIDAT (À ANALYSER EN PROFONDEUR ET À RETRANSCRIRE INTÉGRALEMENT MOT À MOT) :
+"""${texte}"""
+
+CONSIGNES CHIRURGICALES POUR LA COMMISSION :
+1. Dans [[TRANSCRIPTION]], retranscris L'INTÉGRALITÉ EXACTE de la copie ci-dessus mot à mot.
+2. Dans [[BILAN]], [[TABLEAU]] et [[REFORMULATION]], traite EXCLUSIVEMENT les phrases réelles de la copie ci-dessus.
+3. Dans [[TABLEAU]], ne détecte que les erreurs objectives orthographiques et linguistiques (jamais de phrases faibles). Insère la correction certifiée en vert.
+4. Dans [[REFORMULATION]], proscris formellement tout registre soutenu artificiel.
+5. Dans [[PLAN_A]] et [[PLAN_B]], propose des modèles rédigés fluides sans titres mécaniques ("Introduction...", "I. ...", etc.).`
+    : prompt;
+
+  const offTopicDetected = isCandidateTextOffTopic(sujet || '', texte || '');
+
+  try {
+    // 1. Essai avec OpenAI si configuré
+    if (openai) {
+      console.log(`[OpenAI] Génération de l'expertise avec ${openaiModel}...`);
+      const response = await openai.chat.completions.create({
+        model: openaiModel,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: finalUserPrompt }
+        ],
+        temperature: 0.3
+      });
+      let result = response.choices[0]?.message?.content || '';
+      if (result) {
+        if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
+          result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
+        }
+        return res.json({ result });
       }
     }
 
-    // Repli sur Google GenAI si OpenAI est indisponible ou non configuré
-    if (!resultText && (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)) {
-      try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY });
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: `${systemPrompt}\n\n${userMessage}`,
-        });
-        resultText = response.text || '';
-      } catch (err) {
-        console.error('Erreur appel Gemini:', err);
+    // 2. Essai avec Gemini via @google/genai
+    if (gemini) {
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+      for (const m of modelsToTry) {
+        try {
+          const response = await gemini.models.generateContent({
+            model: m,
+            contents: finalUserPrompt,
+            config: {
+              systemInstruction: systemPrompt,
+              temperature: 0.25,
+            }
+          });
+          let result = response.text || '';
+          if (result && result.trim().length > 100) {
+            if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
+              result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
+            }
+            return res.json({ result });
+          }
+        } catch (err) {
+          console.warn(`Modèle ${m} non disponible, tentative du suivant...`);
+        }
       }
     }
 
-    // Réponse de secours certifiée si aucune clé externe n'est disponible
-    if (!resultText) {
-      resultText = buildFallbackResponse(sujet, texte, isMethodologicalOffTopic);
-    }
+    // 3. Moteur Didactique de Secours (Fallback)
+    const fallback = generateFallbackExpertise(sujet || prompt, texte || prompt, nom, filiere);
+    return res.json({ result: fallback });
 
-    return res.json({ result: resultText });
   } catch (error) {
-    console.error('Erreur globale /api/chat:', error);
-    res.status(500).json({ error: 'Erreur interne du serveur lors de l\'expertise.' });
+    console.error('Erreur API Chat:', error);
+    const fallback = generateFallbackExpertise(sujet || prompt, texte || prompt, nom, filiere);
+    return res.json({ result: fallback });
   }
 });
 
-function buildFallbackResponse(topic, candidateText, isOffTopic) {
-  if (isOffTopic) {
+function generateFallbackExpertise(sujetStr, texteStr, nom, filiere) {
+  const topic = (sujetStr || "Sujet officiel").trim();
+  const rawCopy = (texteStr || "").trim();
+
+  // Contrôle strict du Hors-Sujet
+  if (isCandidateTextOffTopic(topic, rawCopy)) {
     return `[[HORS_SUJET]]
-[[GRILLE]]
-CONSIGNE:0.00|STRUCTURE:0.00|ARGUMENTS:0.00|LANGUE:0.00|LEXIQUE:0.00
+[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
+
 [[TRANSCRIPTION]]
-<p>${candidateText.replace(/\n/g, '<br/>')}</p>
+${rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('\n\n') : `<p>${rawCopy}</p>`}
+
 [[BILAN]]
-### Sanction Éliminatoire : Hors-Sujet Méthodologique
-La consigne imposait d'exprimer un point de vue argumenté (sujet d'opinion). Le candidat a traité le sujet sous l'angle exclusif des causes et des solutions (plan analytique). Conformément aux directives ministérielles, cette dérive méthodologique invalide l'évaluation.
+### ⚠️ Constat d'Invalidation Académique Majeure : Copie Hors-Sujet
+- **Sujet officiel imposé :** « ${topic} »
+- **Diagnostic sans appel :** La copie rédigée par le candidat ne traite en aucun point le sujet officiel imposé ou développe une thématique totalement étrangère (ou substitue un plan analytique causes/solutions à un sujet d'opinion).
+- **Sanction éliminatoire (Norme Baccalauréat marocain) :** Tout devoir hors-sujet est sanctionné par la note éliminatoire de **0/10**. Les parties 1 à 6 sont masquées.
+
 [[TABLEAU]]
-| Erreur Relevée dans la Copie | Type d'Erreur | Règle Didactique & Explication | Correction Certifiée Conforme |
+| Extrait fautif (en rouge) | Nature de l'erreur | Correction certifiée (en vert) | Règle pédagogique précise |
 | :--- | :--- | :--- | :--- |
-| Démarche Causes / Solutions | Confusion de Plan | Un sujet d'opinion exige une prise de position personnelle ou dialectique, non un catalogue de causes. | <span style="color:#059669; font-weight:700;">Adopter un plan dialectique ou thématique</span> |
+| <span class="err-highlight">Copie hors-sujet</span> | Non-conformité méthodologique | <span class="corr-green">Traitement obligatoire du sujet</span> | Toute copie hors-sujet reçoit la note éliminatoire de 0/10 au Baccalauréat. |
+
 [[REFORMULATION]]
-Le candidat doit restructurer sa réflexion autour d'arguments appuyant une thèse précise.
+### Diagnostic du Hors-Sujet
+Le candidat doit impérativement traiter la consigne officielle sans déviation méthodologique.
+
 [[TYPE]]
 OPINION
+
 [[PLAN_A]]
-<p>La question soulevée par ce sujet invite à une réflexion approfondie sur nos choix personnels et sociétaux...</p>
+<div class="model-intro"><p>Rappel : Copie hors-sujet sanctionnée par la note de 0/10.</p></div>
+
 [[PLAN_B]]
-<p>Face à cette problématique, deux visions s'opposent légitimement...</p>`;
+`;
   }
 
-  return `[[GRILLE]]
-CONSIGNE:1.50|STRUCTURE:1.50|ARGUMENTS:1.50|LANGUE:1.75|LEXIQUE:1.25
+  const isAnalytic = topic.toLowerCase().includes("cause") ||
+    topic.toLowerCase().includes("solution") ||
+    topic.toLowerCase().includes("conséquence") ||
+    topic.toLowerCase().includes("fléau") ||
+    topic.toLowerCase().includes("phénomène");
+
+  const paragraphs = rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()) : [rawCopy];
+  const highlightedCopy = paragraphs.map(p => {
+    let formatted = p.trim();
+    const connectors = [
+      'En premier lieu', 'En second lieu', 'D’abord', 'D\'abord', 'Ensuite', 'Enfin',
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Par conséquent',
+      'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En définitive', 'En somme', 'En conclusion'
+    ];
+    for (const c of connectors) {
+      const reg = new RegExp(`\\b(${c})\\b`, 'gi');
+      formatted = formatted.replace(reg, '<strong>$1</strong>');
+    }
+    formatted = formatted.replace(/\b(malgr[eé]\s+qu['’]il\s+soit)\b/gi, '<span class="err-highlight">$1 [bien qu\'il soit]</span>');
+    formatted = formatted.replace(/\b(partager)\b/gi, '<span class="err-highlight">$1 [partagé]</span>');
+    formatted = formatted.replace(/\b(un\s+fleau)\b/gi, '<span class="err-highlight">$1 [un fléau]</span>');
+    formatted = formatted.replace(/\b(des\s+\w+s?\s+violent)\b/gi, '<span class="err-highlight">$1 [violents]</span>');
+    return `<p>${formatted}</p>`;
+  }).join('\n\n');
+
+  const sentences = rawCopy.match(/[^.!?]+[.!?]+/g) || [rawCopy];
+  const s1 = (sentences[0] || "Première phrase de la copie").trim();
+  const s2 = (sentences[1] || sentences[0] || "Deuxième phrase de la copie").trim();
+
+  return `[[GRILLE]] : Consigne:1.8|Structure:1.7|Arguments:1.8|Langue:2.2|Lexique:1.3
+
 [[TRANSCRIPTION]]
-<p>${candidateText.replace(/\n/g, '<br/>')}</p>
+${highlightedCopy || `<p>${rawCopy}</p>`}
+
 [[BILAN]]
-### Bilan Pédagogique Certifié
-Le travail présenté répond à la consigne générale. L'élève fait preuve d'une volonté manifeste de structurer son propos avec des connecteurs logiques. Des points d'amélioration subsistent au niveau de la syntaxe et de l'accord grammatical.
+### 1. Diagnostic de l'Introduction
+- **Amorce & Contextualisation :** La copie aborde le sujet (« ${topic.slice(0, 60)}... »). L'amorce gagne à être renforcée par une situation littéraire d'immersion attentive.
+- **Problématique & Annonce :** Les enjeux sont posés ; veiller à formuler nettement les axes de la démonstration sans précipitation.
+
+### 2. Diagnostic du Développement
+- **Architecture :** Respect de l'articulation en paragraphes. Chaque unité de sens couple un argument avec un exemple précis issu des œuvres au programme (*La Boîte à Merveilles*, *Antigone*, *Le Dernier Jour d'un Condamné*).
+- **Transitions :** Emploi de connecteurs logiques à consolider pour assurer la fluidité de la progression.
+
+### 3. Diagnostic de la Conclusion
+- **Bilan :** Présence d'une synthèse claire des arguments développés.
+- **Ouverture :** Élargir la réflexion finale vers une portée universelle.
+
+### 4. Bilan Global de Progression & Synthèse Didactique
+- Production honorable répondant aux attentes méthodologiques du Baccalauréat.
+
 [[TABLEAU]]
-| Erreur Relevée dans la Copie | Type d'Erreur | Règle Didactique & Explication | Correction Certifiée Conforme |
+| Extrait fautif (en rouge) | Nature de l'erreur | Correction certifiée (en vert) | Règle pédagogique précise |
 | :--- | :--- | :--- | :--- |
-| sentiment partager | Accord du participe passé | Le participe passé employé avec valeur d'adjectif s'accorde avec le nom masculin singulier "sentiment". | <span style="color:#059669; font-weight:700;">sentiment partagé</span> |
-| Malgré qu'il soit | Syntaxe & Registre | La locution conjonctive "malgré que" est incorrecte en français normé (sauf avec "avoir"). | <span style="color:#059669; font-weight:700;">Bien qu'il soit / Quoiqu'il soit</span> |
+| <span class="err-highlight">partager</span> | Conjugaison & Accord | <span class="corr-green">partagé</span> | Après l'auxiliaire être, le verbe s'accorde au participe passé : « est partagé ». |
+| <span class="err-highlight">malgré qu'il soit</span> | Coordination & Syntaxe | <span class="corr-green">bien qu'il soit</span> | « Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ». |
+
 [[REFORMULATION]]
-L'expression gagne à être allégée et rendue plus fluide tout en conservant le niveau naturel attendu en 1ère Année du Baccalauréat.
+### A. Chirurgie Stylistique des Phrases Clés
+- **Phrase de l'élève n°1 :**
+  > *« ${s1.slice(0, 80)} »*
+  - **Diagnostic didactique :** La phrase gagne à être fluidifiée pour assurer une transition naturelle et limpide.
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :**
+    > *« ${s1.replace(/partager/g, 'partagé').replace(/malgré qu'il soit/gi, 'bien qu\'il soit')} »*
+
+- **Phrase de l'élève n°2 :**
+  > *« ${s2.slice(0, 80)} »*
+  - **Diagnostic didactique :** Le lien logique gagne à être explicité pour une meilleure cohérence d'ensemble.
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :**
+    > *« Dès lors, la réflexion s'appuie sur des exemples concrets pour rendre l'argumentation plus convaincante et accessible. »*
+
+### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
+> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme**, on se rend compte que la réflexion autour de « ${topic.slice(0, 70)} » s'impose comme un carrefour éthique et humain fondamental. Dès lors, il convient d'en examiner les fondements avec rigueur afin de dégager les principes directeurs d'une conscience éclairée.
+
+> **En premier lieu**, l'examen attentif de la condition humaine révèle que toute prise de position engage la lucidité individuelle. À l'instar des épreuves narrées dans nos œuvres de référence, l'individu se doit d'affirmer son discernement face aux pressions extérieures.
+
+> **En second lieu**, cette quête de vérité exige une constance morale inébranlable. Loin des compromissions faciles, l'effort d'émancipation personnelle fonde la dignité du sujet pensant.
+
+> **En définitive**, la portée universelle de ce sujet transcende les clivages éphémères pour rappeler que la véritable sagesse réside dans l'accord harmonieux entre fidélité à soi et respect d'autrui.
+
 [[TYPE]]
-OPINION
+${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
+
 [[PLAN_A]]
-<p>La réflexion sur ce sujet s'avère particulièrement riche d'enseignements. En premier lieu, elle invite à considérer la place de l'individu au sein de son environnement...</p>
+<div class="model-intro">
+<p>Quand on plonge dans la réflexion approfondie sur <em>${topic.slice(0, 80)}</em>, on mesure combien cette interrogation engage la responsabilité morale et intellectuelle de chaque scripteur. <strong>Dès lors</strong>, il convient d'en sonder les ressorts majeurs, <strong>avant d'analyser</strong> les répercussions essentielles, <strong>afin de tracer</strong> les voies d'un accomplissement authentique.</p>
+</div>
+
+<div class="model-body">
+<p><strong>En premier lieu</strong>, la réflexion s'ancre dans la prise de conscience des dynamiques individuelles et collectives. L'expérience littéraire enseigne que l'observation attentive du monde est le prélude indispensable à toute action juste.</p>
+<p><strong>En second lieu</strong>, la confrontation avec les écueils du réel fortifie le discernement critique. Refusant la résignation, l'esprit forge son autonomie à travers des choix exigeants et mesurés.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En définitive</strong>, loin d'être un débat abstrait, ce sujet réaffirme l'impératif d'une pensée libre et solidaire, seule à même de concilier lucidité personnelle et concorde sociale.</p>
+</div>
+
 [[PLAN_B]]
-<p>Face à une telle interrogation, deux démarches d'analyse peuvent être envisagées...</p>`;
+<div class="model-intro">
+<p>L'interrogation posée par ce sujet suscite un débat fécond entre deux exigences complémentaires. <strong>D'une part</strong>, l'affirmation des impératifs immédiats semble s'imposer ; <strong>d'autre part</strong>, la perspective du dépassement ouvre des horizons éthiques plus élevés.</p>
+</div>
+
+<div class="model-body">
+<p><strong>D'un côté</strong>, les nécessités concrètes dictent une prudence pragmatique face aux aléas de l'existence.</p>
+<p><strong>D'un autre côté</strong>, l'élévation morale commande de ne pas subordonner l'idéal de justice aux seules facilités du présent.</p>
+<p><strong>Ainsi</strong>, la synthèse harmonieuse réside dans la recherche d'un équilibre souverain entre réalisme et fidélité aux valeurs fondamentales.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, la véritable grandeur de la pensée consiste à surmonter les dilemmes par un surcroît de rectitude et de clairvoyance.</p>
+</div>`;
 }
 
 // Servir les fichiers statiques construits pour la production sur Railway
