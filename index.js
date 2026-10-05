@@ -176,10 +176,11 @@ function isCandidateTextOffTopic(sujet, texte) {
 
   // Si le candidat exprime explicitement son opinion personnelle, il respecte par définition le sujet d'opinion !
   const personalOpinionTriggers = [
-    'personnellement', 'a mon avis', 'selon moi', 'd apres moi',
+    'personnellement', 'a mon avis', 'selon moi', 'd apres moi', 'a mon sens',
     'en ce qui me concerne', 'pour ma part', 'a mes yeux', 'je pense',
-    'j estime', 'je trouve', 'je considere', 'je soutiens',
-    'je partage', 'je ne partage pas', 'je suis d accord', 'je ne suis pas d accord'
+    'j estime', 'je trouve', 'je considere', 'je soutiens', 'je crois',
+    'je partage', 'je ne partage pas', 'je suis d accord', 'je ne suis pas d accord',
+    'je n approuve pas', 'j approuve', 'n approuve pas', 'refuse d admettre'
   ];
   const hasPersonalOpinion = personalOpinionTriggers.some(op => tNorm.includes(op));
 
@@ -251,16 +252,14 @@ Tu dois produire une ANALYSE CHIRURGICALE, EXHAUSTIVE ET SANS COMPLAISANCE de la
 RÈGLES D'OR ABSOLUES :
 - Ne JAMAIS mentionner l'intelligence artificielle ou de système automatisé.
 - SANCTION ÉLIMINATOIRE MAJEURE DU HORS-SUJET (NORME BACCALAURÉAT) :
-  RÈGLE N°1 INTRANSIGEANTE : Compare scrupuleusement le SUJET OFFICIEL et la COPIE DU CANDIDAT.
-  Une copie est OBLIGATOIREMENT HORS-SUJET dans les cas suivants :
-  1. HORS-SUJET THÉMATIQUE : La copie ne traite pas le sujet imposé, disserte sur une autre thématique, raconte une anecdote personnelle sans rapport, ou traite d'une autre œuvre sans lien.
+  RÈGLE OFFICIELLE D'APPLICATION DU HORS-SUJET :
+  1. HORS-SUJET THÉMATIQUE : La copie ne traite absolument pas le sujet imposé, disserte sur une thématique étrangère sans aucun rapport (ex: parler de football ou de cuisine sur un sujet littéraire).
   2. HORS-SUJET MÉTHODOLOGIQUE (CONFUSION ENTRE PLAN D'OPINION ET PLAN ANALYTIQUE) :
-     Si le sujet est un sujet d'OPINION (qui demande un avis, une prise de position, ou de débattre avec un plan dialectique ou thématique, ex: « Partagez-vous ce point de vue ? », « Pensez-vous que... », « Faut-il... », « Êtes-vous d'accord ? ») ET QUE LE CANDIDAT CITE DES CAUSES ET DES SOLUTIONS (plan analytique), C'EST FORMELLEMENT UN HORS-SUJET !
-  Dans TOUS ces cas de hors-sujet :
-  1. Tu DOIS IMPÉRATIVEMENT commencer le tout début de ta réponse par [[HORS_SUJET]].
-  2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
-     [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
-  3. L'ensemble des critères est frappé de caducité académique.
+     Une copie n'est en hors-sujet méthodologique QUE SI le sujet demande un avis ou point de vue (sujet d'opinion : « Pensez-vous que », « Partagez-vous ce point de vue », « Justifiez votre point de vue ») ET QUE le candidat refuse de prendre position et structure tout son développement en consacrant au début du développement le 1er paragraphe aux causes et le 2ème paragraphe aux conséquences ou solutions (Plan Analytique pur).
+  ATTENTION RÈGLE D'OR : Si le candidat exprime sa prise de position personnelle (ex: « Personnellement, je pense que... », « Je n'approuve pas... », « À mon avis... », « Selon moi... ») et avance des arguments pour justifier son point de vue, LA COPIE EST PARFAITEMENT DANS LE SUJET ! Tu NE DOIS EN AUCUN CAS la déclarer hors-sujet ! Évalue-la avec précision et bienveillance selon ses mérites réels sur 10 points.
+  Uniquement en cas de VRAI hors-sujet avéré :
+  1. Commence le tout début de ta réponse par [[HORS_SUJET]].
+  2. Attribue la note de 0/10 : [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
 - L'analyse doit être d'une rigueur didactique chirurgicale, adaptée aux exigences du Baccalauréat marocain (œuvres au programme : La Boîte à Merveilles d'Ahmed Sefrioui, Antigone de Jean Anouilh, Le Dernier Jour d'un Condamné de Victor Hugo).
 - EXIGENCE DE COHÉRENCE ABSOLUE POUR LES INTRODUCTIONS & MODÈLES :
   L'introduction doit rigoureusement respecter la progression logique en entonnoir sans rupture conceptuelle :
