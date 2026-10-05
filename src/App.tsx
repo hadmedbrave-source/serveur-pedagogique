@@ -324,7 +324,8 @@ export default function App() {
     const opinionIndicators = [
       'pensez vous', 'partagez vous', 'etes vous', 'd accord', 'qu en pensez vous',
       'faut il', 'peut on', 'votre avis', 'votre point de vue', 'votre opinion',
-      'approuvez vous', 'selon vous', 'justifiez votre point de vue', 'partagez cette'
+      'approuvez vous', 'selon vous', 'justifiez votre point de vue', 'partagez cette',
+      'dans quelle mesure', 'quel est votre avis', 'adherez vous', 'etes vous pour ou contre'
     ];
 
     const isExplicitAnalyticSubject = sNorm.includes('causes et solutions') ||
@@ -334,24 +335,29 @@ export default function App() {
 
     const isOpinion = opinionIndicators.some(ind => sNorm.includes(ind)) && !isExplicitAnalyticSubject;
 
-    if (isOpinion) {
-      const causeWords = ['cause', 'causes', 'facteur', 'facteurs', 'raison', 'raisons'];
-      const solutionWords = ['solution', 'solutions', 'remede', 'remedes', 'remedier', 'resoudre', 'lutter'];
+    // Si le candidat exprime son avis personnel, il respecte pleinement la consigne d'opinion
+    const personalOpinionTriggers = [
+      'personnellement', 'a mon avis', 'selon moi', 'd apres moi',
+      'en ce qui me concerne', 'pour ma part', 'a mes yeux', 'je pense',
+      'j estime', 'je trouve', 'je considere', 'je soutiens',
+      'je partage', 'je ne partage pas', 'je suis d accord', 'je ne suis pas d accord'
+    ];
+    const hasPersonalOpinion = personalOpinionTriggers.some(op => tNorm.includes(op));
 
-      const tWords = tNorm.split(' ');
-      const causeCount = tWords.filter(w => causeWords.includes(w)).length;
-      const solutionCount = tWords.filter(w => solutionWords.includes(w)).length;
-
-      const analyticalPhrases = [
-        'parmi les causes', 'les causes de ce', 'premiere cause', 'deuxieme cause',
-        'les facteurs de', 'les solutions pour', 'pour remedier', 'pour resoudre',
-        'comme solution', 'comme solutions', 'les consequences de ce'
+    if (isOpinion && !hasPersonalOpinion) {
+      const explicitCauseStructure = [
+        'parmi les causes de ce', 'les causes de ce probleme', 'les causes de ce phenomene',
+        'premiere cause', 'la cause principale de ce'
+      ];
+      const explicitSolutionStructure = [
+        'comme solutions a ce', 'les solutions pour lutter', 'les solutions a adopter',
+        'pour eradiquer ce fleau', 'les remedes preconises'
       ];
 
-      const hasAnalyticalPhrase = analyticalPhrases.some(p => tNorm.includes(p));
-      const hasBothCausesAndSolutions = (causeCount >= 1 && solutionCount >= 1) || (causeCount >= 2 && solutionCount >= 1);
+      const hasCauseSection = explicitCauseStructure.some(p => tNorm.includes(p));
+      const hasSolutionSection = explicitSolutionStructure.some(p => tNorm.includes(p));
 
-      if (hasAnalyticalPhrase || hasBothCausesAndSolutions) {
+      if (hasCauseSection && hasSolutionSection) {
         return { isOff: true, type: 'METHODOLOGIQUE' };
       }
     }
@@ -476,15 +482,13 @@ export default function App() {
 
       const offTopicCheck = checkOffTopicStatus(sujet, texte);
       const isMethodological = offTopicCheck.isOff && offTopicCheck.type === 'METHODOLOGIQUE';
-      const horsSujet = offTopicCheck.isOff ||
-                        raw.toUpperCase().includes('HORS-SUJET') || 
-                        raw.toUpperCase().includes('HORS_SUJET') || 
-                        raw.toUpperCase().includes('HORS SUJET') || 
-                        raw.toUpperCase().includes('[[HORS_SUJET]]') ||
-                        raw.toUpperCase().includes('CONSIGNE:0') ||
-                        raw.toUpperCase().includes('CONSIGNE: 0') ||
-                        raw.toUpperCase().includes('CONSIGNE:0.0') ||
-                        raw.toUpperCase().includes('CONSIGNE: 0.0');
+      
+      // Seule une sanction explicite [[HORS_SUJET]] ou une note de consigne à 0/2 dans le retour de l'IA (ou un hors-sujet strict avéré) déclenche la sanction 0/10
+      const isAiExplicitHorsSujet = raw.includes('[[HORS_SUJET]]') || 
+                                    raw.includes('===HORS_SUJET===') || 
+                                    /(?:CONSIGNE|Consigne)\s*:\s*0(?:\.0+)?(?:\s*\/|\s*\||\s*$)/.test(raw);
+      
+      const horsSujet = isAiExplicitHorsSujet || offTopicCheck.isOff;
 
       setIsHorsSujet(horsSujet);
       setOffTopicType(isMethodological ? 'METHODOLOGIQUE' : (offTopicCheck.type || 'GENERAL'));
