@@ -337,10 +337,11 @@ export default function App() {
 
     // Si le candidat exprime son avis personnel, il respecte pleinement la consigne d'opinion
     const personalOpinionTriggers = [
-      'personnellement', 'a mon avis', 'selon moi', 'd apres moi',
+      'personnellement', 'a mon avis', 'selon moi', 'd apres moi', 'a mon sens',
       'en ce qui me concerne', 'pour ma part', 'a mes yeux', 'je pense',
-      'j estime', 'je trouve', 'je considere', 'je soutiens',
-      'je partage', 'je ne partage pas', 'je suis d accord', 'je ne suis pas d accord'
+      'j estime', 'je trouve', 'je considere', 'je soutiens', 'je crois',
+      'je partage', 'je ne partage pas', 'je suis d accord', 'je ne suis pas d accord',
+      'je n approuve pas', 'j approuve', 'n approuve pas', 'refuse d admettre'
     ];
     const hasPersonalOpinion = personalOpinionTriggers.some(op => tNorm.includes(op));
 
