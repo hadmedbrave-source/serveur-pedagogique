@@ -237,24 +237,9 @@ function isCandidateTextOffTopic(sujet, texte) {
     }
   }
 
-  const thematicClusters = [
-    { triggers: ['pein', 'mort', 'condamn', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crime', 'justice', 'hugo'], keywords: ['condamn', 'pein', 'mort', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crim', 'chati', 'hugo', 'execut', 'abolit', 'prison', 'cellul', 'cachot'] },
-    { triggers: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol'], keywords: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol', 'isolement', 'souffr', 'refig', 'imagin'] },
-    { triggers: ['antigon', 'creon', 'anouilh', 'polynic', 'devoir', 'sepultur', 'enter', 'decret', 'revolt', 'obeir'], keywords: ['antigon', 'creon', 'anouilh', 'polynic', 'sepultur', 'enter', 'decret', 'revolt', 'destin', 'tragedi', 'loi', 'famill', 'frere', 'choix'] },
-    { triggers: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat'], keywords: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat', 'adolesc', 'guid', 'autonom', 'pere', 'mere'] },
-    { triggers: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc'], keywords: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc', 'gueris', 'sidi', 'ali', 'boughaleb'] }
-  ];
-
-  const subjectCluster = thematicClusters.find(c => c.triggers.some(trig => subjectWords.some(sw => sw.startsWith(trig))));
-  if (subjectCluster) {
-    const textHasSubjectCluster = subjectCluster.keywords.some(kw => textWords.some(tw => tw.startsWith(kw)));
-    if (!textHasSubjectCluster) {
-      return true;
-    }
-  }
-
+  // Contrôle du Hors-Sujet Thématique : seulement si le texte n'a strictement AUCUN mot ou racine en commun avec le sujet
   if (matches === 0 && textWords.length >= 8) {
-    return true;
+    return true; // Zéro mot-clé en commun : hors-sujet thématique avéré
   }
 
   return false;
