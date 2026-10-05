@@ -28,7 +28,7 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Zone manuscrite lignée type examen */
+/* Lined manuscript writing zone */
 .writing-ruled-zone {
   min-height: 380px;
   line-height: 34px;
@@ -46,6 +46,7 @@
   display: block;
 }
 
+/* AI Injected Annotation Highlights */
 .struct-missing {
   display: block;
   margin: 8px 0;
@@ -85,4 +86,359 @@
   margin: 1px 2px;
   border: 1px solid #a7f3d0;
   box-shadow: 0 1px 2px rgba(4, 120, 87, 0.08);
+}
+
+.err-text {
+  color: #be123c;
+  font-weight: 700;
+  background-color: #ffe4e6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.err-highlight:hover {
+  background-color: #fecdd3;
+}
+
+.conn-student {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  border-bottom: 2px solid #60a5fa;
+  display: inline-block;
+  margin: 1px 2px;
+}
+
+.conn-model {
+  color: #c2410c;
+  background-color: #fff7ed;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  border: 1px dashed #fb923c;
+  display: inline-block;
+  margin: 1px 2px;
+}
+
+/* Model reference blocks */
+.model-intro {
+  background: #fffbeb;
+  padding: 24px;
+  border-left: 4px solid var(--gold);
+  border-top: 1px solid #fef3c7;
+  border-right: 1px solid #fef3c7;
+  border-bottom: 1px solid #fef3c7;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.04);
+}
+
+.model-body {
+  background: #f0fdf4;
+  padding: 24px;
+  border-left: 4px solid var(--emerald-custom);
+  border-top: 1px solid #dcfce7;
+  border-right: 1px solid #dcfce7;
+  border-bottom: 1px solid #dcfce7;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(6, 95, 70, 0.04);
+}
+
+.model-body p {
+  margin-bottom: 1.25rem;
+  line-height: 1.85;
+  text-indent: 1.75rem;
+}
+
+.model-body p:last-child {
+  margin-bottom: 0;
+}
+
+.model-intro p, .model-concl p {
+  line-height: 1.85;
+  text-indent: 1.75rem;
+}
+
+#outReform blockquote {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  border-left: 3.5px solid var(--gold);
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  line-height: 1.85;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 1.05rem;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.model-concl {
+  background: #eef2ff;
+  padding: 24px;
+  border-left: 4px solid var(--indigo-custom);
+  border-top: 1px solid #e0e7ff;
+  border-right: 1px solid #e0e7ff;
+  border-bottom: 1px solid #e0e7ff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(49, 46, 129, 0.04);
+}
+
+/* Tab button active state */
+.tab-trigger.active {
+  background: #0b1528 !important;
+  color: #ffffff !important;
+  border-color: #0b1528 !important;
+  box-shadow: 0 4px 12px rgba(11, 21, 40, 0.2);
+}
+
+/* Rich Markdown Table Styling */
+#outTable table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+#outTable th {
+  background: #0f172a;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.75rem;
+  border-bottom: 2px solid #334155;
+}
+
+#outTable td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+/* Colonne 1 : Extrait fautif (en rouge) */
+#outTable td:nth-child(1),
+#outTable td:nth-child(1) span,
+#outTable td:nth-child(1) strong {
+  color: #dc2626 !important;
+  font-weight: 800 !important;
+  background-color: #fef2f2;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  display: inline-block;
+}
+
+/* Colonne 2 : Nature de l'erreur */
+#outTable td:nth-child(2) {
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+/* Colonne 3 : Correction certifiée (en vert) */
+#outTable td:nth-child(3),
+#outTable td:nth-child(3) span,
+#outTable td:nth-child(3) strong {
+  color: #047857 !important;
+  font-weight: 800 !important;
+  background-color: #ecfdf5;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #a7f3d0;
+  display: inline-block;
+}
+
+#outTable td:nth-child(3) code {
+  color: #047857;
+  font-weight: 800;
+  background-color: #ecfdf5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #a7f3d0;
+}
+
+/* Colonne 4 : Règle pédagogique */
+#outTable td:nth-child(4) {
+  color: #475569;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+#outTable tr:last-child td {
+  border-bottom: none;
+}
+
+#outTable tr:nth-child(even) td {
+  background-color: #f8fafc;
+}
+
+#outTable tr:hover td {
+  background-color: #f1f5f9;
+}
+
+/* Markdown typography in outBilan and outReform */
+#outBilan h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0b1528;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #ffffff;
+  border-left: 4px solid #c5221f;
+  border-radius: 0 8px 8px 0;
+  border-top: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#outReform h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0b1528;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: #ffffff;
+  border-left: 5px solid #b45309;
+  border-radius: 0 10px 10px 0;
+  border-top: 1px solid #fef3c7;
+  border-right: 1px solid #fef3c7;
+  border-bottom: 1px solid #fef3c7;
+  box-shadow: 0 2px 4px rgba(180, 83, 9, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#outBilan p, #outReform p {
+  color: #334155;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+}
+
+#outBilan ul, #outReform ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: #334155;
+}
+
+#outBilan li, #outReform li {
+  margin-bottom: 0.4rem;
+  line-height: 1.6;
+}
+
+#outBilan blockquote, #outReform blockquote {
+  border-left: 3.5px solid #b45309;
+  padding: 0.85rem 1.25rem;
+  font-style: normal;
+  color: #1e293b;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  margin: 1.25rem 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Official Circular Stamp */
+.official-seal-badge {
+  width: 150px;
+  height: 150px;
+  border: 4px double #b45309;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-4deg);
+  color: #92400e;
+  background: radial-gradient(circle, #fffbeb 60%, #fef3c7 100%);
+  box-shadow: 0 4px 15px rgba(180, 83, 9, 0.15);
+  position: relative;
+  user-select: none;
+}
+
+.official-seal-badge::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px dashed #d97706;
+  border-radius: 50%;
+}
+
+/* Official Diagonal "HORS-SUJET" Red Stamp / Cachet */
+.stamp-cachet-diagonal {
+  border: 6px double #dc2626;
+  border-radius: 18px;
+  padding: 14px 44px;
+  color: #dc2626;
+  background: rgba(254, 242, 242, 0.94);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.22), 0 14px 35px rgba(220, 38, 38, 0.18);
+  text-align: center;
+  user-select: none;
+  font-family: 'Cinzel', serif;
+  position: relative;
+}
+
+.stamp-cachet-diagonal::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1.5px dashed #ef4444;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 10mm 12mm;
+}
+
+@media print {
+  html, body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  #reportSection {
+    display: block !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+  .writing-ruled-zone {
+    background-image: none !important;
+  }
+  .stamp-cachet-diagonal {
+    opacity: 0.95 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
