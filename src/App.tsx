@@ -254,15 +254,36 @@ export default function App() {
   const formatTranscription = (transText: string, originalText: string): string => {
     const cleaned = transText ? transText.replace(/<span class="struct-missing">[^<]*<\/span>/gi, '').trim() : '';
     
+    // Connecteurs logiques officiels à mettre en gras
+    const connectors = [
+      'En premier lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+      'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Enfin',
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant',
+      'Par conséquent', 'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En outre',
+      'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
+      'D’une part', "D'une part", 'D’autre part', "D'autre part", 'Ainsi',
+      'C\'est pourquoi', 'C’est pourquoi'
+    ];
+
+    const applyHighlights = (str: string) => {
+      let res = str;
+      // Connecteurs en gras s'ils ne le sont pas déjà
+      for (const c of connectors) {
+        const regex = new RegExp(`(?<!<strong>)\\b(${c})\\b(?!<\\/strong>)`, 'gi');
+        res = res.replace(regex, '<strong>$1</strong>');
+      }
+      return res;
+    };
+
     if (!cleaned) {
       const paras = originalText.split(/\n\s*\n/).filter(p => p.trim());
-      return paras.map(p => `<p>${p.trim().replace(/\n/g, '<br/>')}</p>`).join('\n\n');
+      return paras.map(p => `<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(p.trim().replace(/\n/g, '<br/>'))}</p>`).join('\n\n');
     }
 
     // If it already has multiple <p> tags, preserve and format them
     const pCount = (cleaned.match(/<p[\s>]/gi) || []).length;
     if (pCount > 1) {
-      return cleaned;
+      return applyHighlights(cleaned);
     }
 
     // If separated by double linebreaks, split into distinct <p> tags
@@ -270,7 +291,7 @@ export default function App() {
     if (rawParas.length > 1) {
       return rawParas.map(p => {
         let trimmed = p.trim().replace(/^<p>/i, '').replace(/<\/p>$/i, '').trim();
-        return `<p>${trimmed.replace(/\n/g, '<br/>')}</p>`;
+        return `<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(trimmed.replace(/\n/g, '<br/>'))}</p>`;
       }).join('\n\n');
     }
 
@@ -282,7 +303,7 @@ export default function App() {
       
       for (let i = 0; i < originalParas.length; i++) {
         if (i === originalParas.length - 1) {
-          reconstructed.push(`<p>${remaining.trim()}</p>`);
+          reconstructed.push(`<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(remaining.trim())}</p>`);
           break;
         }
         
@@ -293,11 +314,10 @@ export default function App() {
         
         if (matchIndex > 0) {
           const currentPara = remaining.slice(0, matchIndex).trim();
-          reconstructed.push(`<p>${currentPara}</p>`);
+          reconstructed.push(`<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(currentPara)}</p>`);
           remaining = remaining.slice(matchIndex).trim();
         } else {
-          // If match not found, fallback to original paragraph
-          reconstructed.push(`<p>${originalParas[i].trim()}</p>`);
+          reconstructed.push(`<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(originalParas[i].trim())}</p>`);
         }
       }
       if (reconstructed.length > 0) {
@@ -305,7 +325,7 @@ export default function App() {
       }
     }
 
-    return `<p>${cleaned.replace(/\n/g, '<br/>')}</p>`;
+    return `<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(cleaned.replace(/\n/g, '<br/>'))}</p>`;
   };
 
   const checkOffTopicStatus = (sujetStr: string, texteStr: string): { isOff: boolean; type: 'METHODOLOGIQUE' | 'THEMATIQUE' | 'GENERAL' } => {
@@ -552,7 +572,18 @@ export default function App() {
       }
 
       const typePlan = extract('TYPE').toUpperCase();
-      const isAnalytic = typePlan.includes('ANALYTIQUE');
+      const sNorm = sujet.toLowerCase();
+      const isExplicitAnalytic = sNorm.includes('causes et solutions') ||
+        sNorm.includes('causes et conséquences') ||
+        sNorm.includes('quelles sont les causes') ||
+        sNorm.includes('analyser les causes');
+
+      const isAnalytic = (typePlan.includes('ANALYTIQUE') || isExplicitAnalytic) &&
+        !sNorm.includes('partagez-vous') &&
+        !sNorm.includes('pensez-vous') &&
+        !sNorm.includes('votre avis') &&
+        !sNorm.includes('votre point de vue');
+
       setDetectedPlanType(isAnalytic ? 'ANALYTIQUE' : 'OPINION');
 
       planARef.current = cleanModelText(extract('PLAN_A')) || '<p>Modèle didactique certifié disponible.</p>';
@@ -821,8 +852,14 @@ export default function App() {
             disabled={isProcessing}
             className="w-full py-5 px-8 bg-gradient-to-r from-[#0b1528] via-[#162544] to-[#0b1528] text-white rounded-xl font-cinzel font-bold text-lg sm:text-xl tracking-wider shadow-lg hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition duration-200 cursor-pointer border border-amber-600/30 flex items-center justify-center gap-3 disabled:opacity-80"
           >
-            <span>{isProcessing ? "Génération de l'expertise didactique..." : "Générer l'Expertise Certifiée"}</span>
-            <Sparkles className="w-5 h-5 text-amber-400" />
+            {isProcessing ? (
+              <>
+                <span className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
+                <span>Évaluation didactique en cours...</span>
+              </>
+            ) : (
+              <span>Valider l'Évaluation Pédagogique</span>
+            )}
           </button>
         </div>
 
@@ -850,31 +887,74 @@ export default function App() {
             </div>
           )}
 
-          {/* Sceau officiel & En-tête académique */}
-          <div className="flex flex-col md:flex-row items-center justify-between border-b-2 border-slate-200 pb-8 mb-8 gap-6">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest mb-2">
-                Rapport d'Expertise Certifiée
+          {/* Sceau officiel & En-tête académique d'excellence */}
+          <div className="border-b-2 border-slate-900 pb-7 mb-8">
+            {/* Bandeau officiel de tête */}
+            <div className="bg-[#0b1528] text-white px-5 py-3.5 rounded-2xl mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-sm border border-slate-800">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-amber-400 block">
+                  Royaume du Maroc • Ministère de l'Éducation Nationale
+                </span>
+                <span className="font-cinzel text-sm sm:text-base font-bold tracking-wider text-white">
+                  Centre d'Expertise & Ingénierie Pédagogique Al Akhawayn
+                </span>
               </div>
-              <h2 id="rNom" className="font-cinzel text-2xl sm:text-3xl font-black text-slate-950 uppercase tracking-tight">
-                {studentName || 'YOUSSEF EL MANSOURI'}
-              </h2>
-              <p id="rFil" className="font-outfit uppercase text-xs font-bold text-slate-500 tracking-wider mt-1">
-                {filiere}
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="px-3.5 py-1 bg-amber-500/20 border border-amber-400/40 rounded-full text-[11px] font-black uppercase tracking-wider text-amber-300">
+                  Examen Régional 2026 • Contrôle Officiel
+                </span>
+              </div>
             </div>
 
-            {/* Sceau officiel circulaire */}
-            <div className={`official-seal-badge shrink-0 ${isHorsSujet ? 'border-red-500 bg-red-50 text-red-900 shadow-sm' : ''}`}>
-              <span className={`text-[9px] font-black tracking-widest uppercase ${isHorsSujet ? 'text-red-700' : 'text-[#b45309]'}`}>
-                {isHorsSujet ? 'Sanction Régionale' : 'Direction Didactique'}
-              </span>
-              <span id="rTotal" className={`text-2xl font-black font-cinzel my-0.5 ${isHorsSujet ? 'text-red-700' : 'text-slate-950'}`}>
-                {isHorsSujet ? '0/10' : '8.8/10'}
-              </span>
-              <span className={`text-[8px] font-bold tracking-wider uppercase ${isHorsSujet ? 'text-red-600' : 'text-slate-600'}`}>
-                {isHorsSujet ? 'Hors-Sujet Avéré' : 'Certifié Conforme'}
-              </span>
+            {/* Fiche d'identification et Cachet d'assermentation */}
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
+              <div className="space-y-3 flex-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest">
+                  Procès-Verbal d'Évaluation Certifiée
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Candidat officiel :</span>
+                  <h2 id="rNom" className="font-cinzel text-2xl sm:text-3xl font-black text-slate-950 uppercase tracking-tight">
+                    {studentName || 'YOUSSEF EL MANSOURI'}
+                  </h2>
+                </div>
+                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-600">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-slate-900 uppercase">Filière :</span>
+                    <span id="rFil" className="font-outfit uppercase text-slate-700 font-bold">{filiere}</span>
+                  </div>
+                  <span className="text-slate-300">|</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-slate-900 uppercase">Épreuve :</span>
+                    <span className="text-slate-700">Production Écrite (Français - 1ère Bac)</span>
+                  </div>
+                </div>
+
+                {/* Rappel du sujet officiel imposé */}
+                {sujet && (
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl mt-2 text-xs leading-relaxed text-slate-800">
+                    <span className="font-extrabold uppercase text-[10px] tracking-wider text-[#b45309] block mb-1">
+                      📌 Sujet Officiel Imposé au Candidat :
+                    </span>
+                    <p className="italic text-slate-700">« {sujet} »</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Sceau officiel circulaire d'évaluation */}
+              <div className="flex justify-center items-center lg:pl-6">
+                <div className={`official-seal-badge shrink-0 ${isHorsSujet ? 'border-red-500 bg-red-50 text-red-900 shadow-sm' : ''}`}>
+                  <span className={`text-[9px] font-black tracking-widest uppercase ${isHorsSujet ? 'text-red-700' : 'text-[#b45309]'}`}>
+                    {isHorsSujet ? 'Sanction Régionale' : 'Direction Didactique'}
+                  </span>
+                  <span id="rTotal" className={`text-2xl font-black font-cinzel my-0.5 ${isHorsSujet ? 'text-red-700' : 'text-slate-950'}`}>
+                    {isHorsSujet ? '0/10' : '8.8/10'}
+                  </span>
+                  <span className={`text-[8px] font-bold tracking-wider uppercase ${isHorsSujet ? 'text-red-600' : 'text-slate-600'}`}>
+                    {isHorsSujet ? 'Hors-Sujet Avéré' : 'Certifié Conforme'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1043,7 +1123,7 @@ export default function App() {
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-950 text-xs font-black uppercase tracking-wider shadow-2xs">
                       <span>🎯 Plan Détecté :</span>
                       <span className="text-[#b45309]">
-                        {detectedPlanType === 'ANALYTIQUE' ? 'Plan Analytique' : (activePlan === 'A' ? 'Plan Thématique' : 'Plan Dialectique')}
+                        {detectedPlanType === 'ANALYTIQUE' ? 'Plan Analytique (Causes & Solutions)' : 'Sujet d\'Opinion (2 Modèles au Choix)'}
                       </span>
                     </span>
                   </div>
@@ -1055,7 +1135,7 @@ export default function App() {
                       id="ts"
                       className={`tab-trigger px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
-                      Plan Thématique (Simple)
+                      Option 1 : Plan Thématique (Simple)
                     </button>
                     <button
                       type="button"
@@ -1063,9 +1143,17 @@ export default function App() {
                       id="td"
                       className={`tab-trigger px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
-                      Plan Dialectique
+                      Option 2 : Plan Dialectique
                     </button>
                   </div>
+                </div>
+
+                <div className="mb-3 text-[11px] font-semibold text-slate-500">
+                  {detectedPlanType === 'ANALYTIQUE' ? (
+                    <span>Plan analytique imposé par la consigne : analyse méthodique des causes premières suivie des solutions et conséquences. Liens logiques en bleu et exemples des œuvres en vert émeraude.</span>
+                  ) : (
+                    <span>Sujet d'opinion : deux modèles certifiés au choix (Plan Simple ou Plan Dialectique). Liens logiques en bleu et exemples des œuvres en vert émeraude.</span>
+                  )}
                 </div>
 
                 <div id="outModel" className="p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-base leading-relaxed space-y-4"></div>
