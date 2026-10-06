@@ -62,6 +62,7 @@ export default function App() {
   const [sessionPassword, setSessionPassword] = useState(() => localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -132,8 +133,9 @@ export default function App() {
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthNotice(null);
     if (!passwordInput.trim()) {
-      setAuthError('Veuillez saisir votre mot de passe enseignant.');
+      setAuthError('Veuillez introduire le mot de passe actuel.');
       return;
     }
     setIsVerifying(true);
@@ -277,17 +279,28 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setChangeFeedback({ type: 'success', message: 'Mot de passe enseignant mis à jour avec succès sur le serveur !' });
+        setChangeFeedback({
+          type: 'success',
+          message: 'Mot de passe mis à jour avec succès ! La page a été verrouillée automatiquement.',
+        });
         setSessionPassword(newPasswordInput.trim());
         setOldPasswordInput('');
         setNewPasswordInput('');
         setConfirmPasswordInput('');
         setMasterKeyInput('');
+
+        // Verrouillage automatique de la session
+        sessionStorage.removeItem('akhawayn_auth');
+        setIsUnlocked(false);
+        setPasswordInput('');
+        setAuthError('');
+        setAuthNotice('Session verrouillée suite au changement de mot de passe. Le candidat doit introduire le nouveau mot de passe fourni par l’enseignant.');
+
         setTimeout(() => {
           setShowChangeModal(false);
           setPasswordChangeStep('KEY');
           setChangeFeedback(null);
-        }, 1800);
+        }, 1500);
       } else {
         setChangeFeedback({ type: 'error', message: data.message || 'Mot de passe actuel incorrect.' });
       }
@@ -1190,6 +1203,13 @@ export default function App() {
               </div>
             </div>
 
+            {authNotice && (
+              <div className="p-3.5 bg-amber-950/70 border border-amber-500/60 text-amber-200 text-xs rounded-xl flex items-start gap-2.5 shadow-inner">
+                <Lock className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                <span className="leading-relaxed font-medium">{authNotice}</span>
+              </div>
+            )}
+
             {authError && (
               <div className="p-3 bg-red-950/50 border border-red-800 text-red-300 text-xs rounded-xl flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
@@ -1216,32 +1236,10 @@ export default function App() {
             </button>
           </form>
 
-          <div className="pt-3 text-center border-t border-slate-800/80 mt-4">
-            <button
-              type="button"
-              onClick={() => {
-                setPasswordChangeStep('KEY');
-                setMasterKeyInput('');
-                setOldPasswordInput('');
-                setNewPasswordInput('');
-                setConfirmPasswordInput('');
-                setChangeFeedback(null);
-                setShowChangeModal(true);
-              }}
-              className="text-xs text-amber-400 hover:text-amber-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 transition"
-            >
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>Mot de passe enseignant (Changer le mot de passe)</span>
-            </button>
-          </div>
-
-          <p className="mt-6 text-[11px] text-slate-500 italic">
+          <p className="mt-8 text-[11px] text-slate-500 italic">
             Session sécurisée • Direction Pédagogique Al Akhawayn Tamansourte
           </p>
         </div>
-
-        {/* Modal de changement de mot de passe enseignant accessible directement depuis l'écran de verrouillage */}
-        {showChangeModal && renderPasswordChangeModal()}
       </div>
     );
   }
