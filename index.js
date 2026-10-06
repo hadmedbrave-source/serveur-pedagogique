@@ -131,24 +131,29 @@ app.post('/api/request-password-code', async (req, res) => {
   };
 
   let emailSent = false;
+  let sendError = null;
   if (mailTransporter) {
     try {
+      const sender = (process.env.GMAIL_APP_USER || 'hadmed.brave@gmail.com').trim();
       await mailTransporter.sendMail({
-        from: '"Centre Al Akhawayn" <no-reply@centre-alakhawayn.ma>',
+        from: `"Centre Al Akhawayn" <${sender}>`,
         to: 'hadmed.brave@gmail.com',
         subject: `[Centre Al Akhawayn] Code de confirmation de sécurité : ${code}`,
-        text: `Bonjour Professeur,\n\nVoici votre code de confirmation pour modifier le mot de passe enseignant : ${code}\n\nCe code est valable pendant 15 minutes.\n\nDirection Pédagogique - Centre Al Akhawayn`,
+        text: `Bonjour Professeur,\n\nVoici votre code secret de confirmation pour modifier le mot de passe enseignant : ${code}\n\nCe code est valable pendant 15 minutes.\n\nDirection Pédagogique - Centre Al Akhawayn`,
         html: `
-          <div style="font-family: Arial, sans-serif; padding: 24px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 500px;">
-            <h2 style="color: #0b1528; margin-top: 0;">Centre Al Akhawayn</h2>
-            <p style="color: #334155; font-size: 14px;">Bonjour Professeur,</p>
-            <p style="color: #334155; font-size: 14px;">Vous avez initié une demande de mise à jour du mot de passe enseignant. Voici votre code officiel de confirmation :</p>
-            <div style="text-align: center; margin: 24px 0;">
-              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #b45309; background: #ffffff; padding: 12px 24px; border-radius: 8px; border: 2px dashed #b45309; display: inline-block;">
+          <div style="font-family: Arial, sans-serif; padding: 24px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 500px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #0b1528; margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">CENTRE AL AKHAWAYN</h2>
+              <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #b45309; font-weight: bold;">Portail Pédagogique • Code de Sécurité</span>
+            </div>
+            <p style="color: #334155; font-size: 14px; line-height: 1.6;">Bonjour Professeur,</p>
+            <p style="color: #334155; font-size: 14px; line-height: 1.6;">Vous avez initié une demande de mise à jour du mot de passe enseignant. Voici votre code officiel de confirmation :</p>
+            <div style="text-align: center; margin: 26px 0;">
+              <span style="font-size: 34px; font-weight: 900; letter-spacing: 8px; color: #b45309; background: #ffffff; padding: 14px 28px; border-radius: 10px; border: 2px dashed #b45309; display: inline-block;">
                 ${code}
               </span>
             </div>
-            <p style="font-size: 12px; color: #64748b; line-height: 1.5;">Ce code est à usage unique et expire dans 15 minutes. Si vous n'êtes pas à l'origine de cette demande, veuillez ignorer ce message.</p>
+            <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 0;">Ce code est à usage unique et expire dans <strong>15 minutes</strong>. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message en toute sécurité.</p>
           </div>
         `,
       });
@@ -156,19 +161,32 @@ app.post('/api/request-password-code', async (req, res) => {
       console.log(`[Gmail SMTP Succès] Code ${code} envoyé avec succès par email à hadmed.brave@gmail.com`);
     } catch (mailErr) {
       console.error('[Gmail SMTP Échec]', mailErr.message);
+      sendError = mailErr.message || 'Erreur SMTP';
     }
   } else {
     console.warn('[Gmail SMTP] mailTransporter n\'est pas initialisé (GMAIL_APP_PASSWORD non détecté).');
   }
 
-  console.log(`[Sécurité 2FA] Code de confirmation généré pour hadmed.brave@gmail.com : ${code}`);
+  if (emailSent) {
+    return res.json({
+      success: true,
+      message: 'Un code de confirmation sécurisé a été transmis directement à votre boîte Gmail (hadmed.brave@gmail.com).',
+      emailSent: true,
+    });
+  }
 
-  return res.json({
-    success: true,
-    message: emailSent
-      ? 'Un code de confirmation sécurisé a été transmis directement à votre boîte Gmail.'
-      : 'Code de confirmation généré et envoyé à votre adresse Gmail.',
-    emailSent,
+  if (!mailTransporter) {
+    return res.status(503).json({
+      success: false,
+      message: 'Le service d\'envoi d\'email n\'est pas encore configuré (variable d\'environnement GMAIL_APP_PASSWORD non définie sur le serveur).',
+      emailSent: false,
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: `Impossible d'envoyer l'email par Gmail : ${sendError}. Veuillez vérifier que votre mot de passe d'application Google (16 caractères) est exact.`,
+    emailSent: false,
   });
 });
 
