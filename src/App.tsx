@@ -1601,11 +1601,11 @@ export default function App() {
         </div>
 
         {/* Boutons d'accès aux 3 boîtes d'œuvres */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 w-full md:w-auto">
           <button
             type="button"
             onClick={() => { setSelectedWorkBox('boite'); setViewingArchiveItem(null); }}
-            className="flex-1 sm:flex-none text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-none text-[10px] sm:text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
             title="Consulter les productions enregistrées pour La Boîte à Merveilles"
           >
             <span>📦 La Boîte à Merveilles</span>
@@ -1614,7 +1614,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => { setSelectedWorkBox('antigone'); setViewingArchiveItem(null); }}
-            className="flex-1 sm:flex-none text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-none text-[10px] sm:text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
             title="Consulter les productions enregistrées pour Antigone"
           >
             <span>📜 Antigone</span>
@@ -1623,7 +1623,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => { setSelectedWorkBox('condamne'); setViewingArchiveItem(null); }}
-            className="w-full sm:w-auto text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+            className="w-full sm:w-auto text-[10px] sm:text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
             title="Consulter les productions enregistrées pour Le Dernier Jour d'un Condamné"
           >
             <span>⚖️ Le Dernier Jour d'un Condamné</span>
@@ -2215,109 +2215,117 @@ export default function App() {
         </p>
       </footer>
 
-      {/* MODAL BOÎTE D'ARCHIVES & RÉVISION PÉDAGOGIQUE */}
+      {/* MODAL BOÎTE D'ARCHIVES & RÉVISION PÉDAGOGIQUE - HAUTEMENT RESPONSIVE SMARTPHONE & DESKTOP */}
       {selectedWorkBox && (
-        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
-          <div className="bg-white rounded-3xl max-w-5xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 flex flex-col max-h-[92vh]">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full p-3.5 sm:p-6 md:p-7 shadow-2xl border border-slate-200 flex flex-col h-[94vh] sm:h-[88vh] max-h-[96vh] overflow-hidden">
             
             {/* Si consultation d'une production spécifique */}
             {viewingArchiveItem ? (
-              <div className="flex flex-col h-full overflow-hidden">
-                {/* En-tête de la fiche de révision */}
-                <div className="flex items-center justify-between pb-3.5 border-b border-slate-200 mb-4 gap-3">
-                  <div className="flex items-center gap-3">
+              <div className="flex flex-col h-full overflow-hidden min-h-0">
+                {/* En-tête de la fiche de révision - Totalement Responsive */}
+                <div className="pb-2.5 sm:pb-3 border-b border-slate-200 mb-2.5 sm:mb-3 shrink-0">
+                  <div className="flex items-center justify-between gap-2 mb-2">
                     <button
                       type="button"
                       onClick={() => setViewingArchiveItem(null)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                      className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shrink-0"
                     >
                       <span>⬅️</span>
-                      <span>Retour à la boîte</span>
+                      <span className="text-[11px] sm:text-xs">Retour</span>
                     </button>
-                    <div>
-                      <h3 className="font-cinzel text-base sm:text-lg font-black text-slate-950 flex items-center gap-2">
-                        <span>{selectedWorkBox === 'boite' ? '📦 La Boîte à Merveilles' : (selectedWorkBox === 'antigone' ? '📜 Antigone' : '⚖️ Le Dernier Jour d\'un Condamné')}</span>
-                        <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300">
-                          Note : {viewingArchiveItem.score}
-                        </span>
-                      </h3>
-                      <p className="text-[11px] text-slate-500 font-bold">
-                        Candidat : {viewingArchiveItem.candidateName} • {viewingArchiveItem.filiere} • Déposé le {viewingArchiveItem.date}
-                      </p>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => window.print()}
+                        className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+                        title="Imprimer pour réviser à la maison"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="hidden sm:inline">Imprimer</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setViewingArchiveItem(null); setSelectedWorkBox(null); }}
+                        className="p-1 sm:p-1.5 text-slate-500 hover:text-slate-900 text-base sm:text-lg cursor-pointer rounded-lg hover:bg-slate-100 transition"
+                        title="Fermer"
+                      >
+                        ✕
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => window.print()}
-                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
-                      title="Imprimer pour réviser à la maison"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Imprimer</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setViewingArchiveItem(null); setSelectedWorkBox(null); }}
-                      className="p-1.5 text-slate-400 hover:text-slate-800 text-lg cursor-pointer"
-                    >
-                      ✕
-                    </button>
+
+                  {/* Titre de l'œuvre et note */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <h3 className="font-cinzel text-sm sm:text-base md:text-lg font-black text-slate-950 flex items-center gap-2">
+                      <span>{selectedWorkBox === 'boite' ? '📦 La Boîte à Merveilles' : (selectedWorkBox === 'antigone' ? '📜 Antigone' : '⚖️ Le Dernier Jour d\'un Condamné')}</span>
+                    </h3>
+                    <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 shrink-0 shadow-2xs">
+                      Note : {viewingArchiveItem.score}
+                    </span>
                   </div>
+
+                  {/* Métadonnées candidat */}
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold break-words leading-tight">
+                    👤 {viewingArchiveItem.candidateName} • 🎓 {viewingArchiveItem.filiere} • 📅 Déposé le {viewingArchiveItem.date}
+                  </p>
                 </div>
 
                 {/* Rappel du Sujet Traité */}
-                <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl mb-3 text-xs text-amber-950">
+                <div className="p-2.5 sm:p-3 bg-amber-50/80 border border-amber-200 rounded-xl mb-2.5 shrink-0 text-xs text-amber-950 break-words">
                   <span className="font-extrabold uppercase text-[10px] tracking-wider text-amber-900 block mb-0.5">
                     📌 Sujet Officiel Traité :
                   </span>
-                  <p className="italic font-medium leading-relaxed">« {viewingArchiveItem.sujet || 'Sujet non spécifié'} »</p>
+                  <p className="italic font-medium leading-relaxed text-[11px] sm:text-xs">« {viewingArchiveItem.sujet || 'Sujet non spécifié'} »</p>
                 </div>
 
-                {/* Onglets de révision */}
-                <div className="flex items-center gap-2 mb-3 border-b border-slate-200 pb-2.5">
+                {/* Onglets de révision avec scroll tactile sur mobile */}
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none shrink-0 -mx-1 px-1">
                   <button
                     type="button"
                     onClick={() => setArchiveActiveTab('optimized')}
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
                       archiveActiveTab === 'optimized'
                         ? 'bg-[#0b1528] text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     <span>✨</span>
-                    <span>Texte Optimisé & Fluidifié</span>
+                    <span>Texte Optimisé</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setArchiveActiveTab('model')}
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
                       archiveActiveTab === 'model'
                         ? 'bg-[#0b1528] text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     <span>🏆</span>
-                    <span>Modèle de Référence (Norme Al Akhawayn)</span>
+                    <span className="hidden sm:inline">Modèle de Référence (Norme Al Akhawayn)</span>
+                    <span className="sm:hidden">Modèle Certifié</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setArchiveActiveTab('original')}
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
                       archiveActiveTab === 'original'
                         ? 'bg-[#0b1528] text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     <span>📝</span>
-                    <span>Copie Initiale Déposée</span>
+                    <span className="hidden sm:inline">Copie Initiale Déposée</span>
+                    <span className="sm:hidden">Copie Initiale</span>
                   </button>
                 </div>
 
-                {/* Corps de l'onglet actif */}
-                <div className="flex-1 overflow-y-auto pr-2 pb-2">
+                {/* Corps de l'onglet actif avec scroll fluide */}
+                <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 pb-2 min-h-0">
                   {archiveActiveTab === 'optimized' && (
-                    <div className="p-5 rounded-2xl bg-amber-50/30 border border-amber-200 leading-relaxed text-slate-900">
+                    <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-amber-50/30 border border-amber-200 leading-relaxed text-slate-900 text-xs sm:text-sm break-words overflow-x-hidden">
                       {viewingArchiveItem.reformulations ? (
                         <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.reformulations }} />
                       ) : (
@@ -2327,7 +2335,7 @@ export default function App() {
                   )}
 
                   {archiveActiveTab === 'model' && (
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-900">
+                    <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-900 text-xs sm:text-sm break-words overflow-x-hidden">
                       {viewingArchiveItem.modelText ? (
                         <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.modelText }} />
                       ) : (
@@ -2337,7 +2345,7 @@ export default function App() {
                   )}
 
                   {archiveActiveTab === 'original' && (
-                    <div className="p-5 rounded-2xl bg-white border border-slate-200 leading-relaxed text-slate-800 whitespace-pre-wrap font-serif text-sm">
+                    <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-slate-200 leading-relaxed text-slate-800 whitespace-pre-wrap font-serif text-xs sm:text-sm break-words overflow-x-hidden">
                       {viewingArchiveItem.texte || 'Aucun texte initial renseigné.'}
                     </div>
                   )}
@@ -2345,80 +2353,100 @@ export default function App() {
               </div>
             ) : (
               /* Liste des copies de la boîte sélectionnée */
-              <div className="flex flex-col h-full overflow-hidden">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
-                  <div>
-                    <h3 className="font-cinzel text-xl font-black text-slate-950">Boîtes d'Archives Pédagogiques</h3>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
-                      Consultation & Révision des Productions Écrites Enregistrées
+              <div className="flex flex-col h-full overflow-hidden min-h-0">
+                <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-slate-200 mb-3 sm:mb-4 gap-2 shrink-0">
+                  <div className="min-w-0 pr-1">
+                    <h3 className="font-cinzel text-base sm:text-xl font-black text-slate-950 leading-tight">
+                      Boîtes d'Archives Pédagogiques
+                    </h3>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5 leading-snug">
+                      Consultation & Révision des Productions Écrites
                     </p>
                   </div>
-                  <button onClick={() => setSelectedWorkBox(null)} className="p-2 text-slate-400 hover:text-slate-800 text-lg cursor-pointer">✕</button>
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedWorkBox(null)} 
+                    className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-900 text-base sm:text-lg cursor-pointer shrink-0 rounded-xl bg-slate-100 hover:bg-slate-200 transition"
+                    title="Fermer"
+                  >
+                    ✕
+                  </button>
                 </div>
 
-                <div className="flex items-center gap-2 mb-4 border-b border-slate-200 pb-3">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 border-b border-slate-200 pb-2.5 overflow-x-auto scrollbar-none shrink-0 -mx-1 px-1">
                   <button
+                    type="button"
                     onClick={() => { setSelectedWorkBox('boite'); setViewingArchiveItem(null); }}
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition ${
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition flex items-center gap-1.5 ${
                       selectedWorkBox === 'boite' ? 'bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    📦 La Boîte à Merveilles ({archives.boite.length})
+                    <span>📦</span>
+                    <span>La Boîte à Merveilles</span>
+                    <span className="bg-amber-200/90 text-amber-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.boite.length}</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setSelectedWorkBox('antigone'); setViewingArchiveItem(null); }}
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition ${
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition flex items-center gap-1.5 ${
                       selectedWorkBox === 'antigone' ? 'bg-indigo-100 text-indigo-950 border border-indigo-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    📜 Antigone ({archives.antigone.length})
+                    <span>📜</span>
+                    <span>Antigone</span>
+                    <span className="bg-indigo-200/90 text-indigo-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.antigone.length}</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setSelectedWorkBox('condamne'); setViewingArchiveItem(null); }}
-                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition ${
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition flex items-center gap-1.5 ${
                       selectedWorkBox === 'condamne' ? 'bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    ⚖️ Le Dernier Jour d'un Condamné ({archives.condamne.length})
+                    <span>⚖️</span>
+                    <span>Le Dernier Jour d'un Condamné</span>
+                    <span className="bg-emerald-200/90 text-emerald-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.condamne.length}</span>
                   </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto space-y-3.5 pr-2">
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 sm:pr-2 min-h-0">
                   {archives[selectedWorkBox]?.length === 0 ? (
-                    <div className="p-12 text-center text-slate-400 text-sm font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <div className="p-8 sm:p-12 text-center text-slate-400 text-xs sm:text-sm font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                       <span className="text-3xl block mb-2">📁</span>
                       Aucune production enregistrée pour le moment dans cette boîte.<br />
-                      <span className="text-xs text-slate-400">Effectuez une évaluation et cliquez sur « Enregistrer dans la boîte » pour réviser à tout moment.</span>
+                      <span className="text-[11px] sm:text-xs text-slate-400 mt-1 block">
+                        Effectuez une évaluation et cliquez sur « Enregistrer dans la boîte » pour réviser à tout moment.
+                      </span>
                     </div>
                   ) : (
                     archives[selectedWorkBox]?.map((item: any) => (
-                      <div key={item.id} className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition-all space-y-3 shadow-2xs">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <span className="font-extrabold text-[10px] uppercase tracking-wider text-amber-800 block mb-1">
+                      <div key={item.id} className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition-all space-y-2.5 sm:space-y-3 shadow-2xs">
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="min-w-0 flex-1">
+                            <span className="font-extrabold text-[10px] uppercase tracking-wider text-amber-800 block mb-0.5">
                               📌 Sujet Officiel Traité :
                             </span>
-                            <h4 className="font-bold text-slate-900 text-sm italic leading-snug">
+                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm italic leading-snug break-words">
                               « {item.sujet || 'Sujet non renseigné'} »
                             </h4>
                           </div>
-                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-950 font-mono font-black text-xs border border-emerald-300 shrink-0 shadow-2xs">
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-950 font-mono font-black text-[11px] sm:text-xs border border-emerald-300 shrink-0 shadow-2xs">
                             {item.score}
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200 gap-2">
-                          <div className="flex items-center gap-2 text-[11px] text-slate-600 font-semibold">
-                            <span>👤 {item.candidateName}</span>
+                        <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-xs text-slate-500 pt-2 border-t border-slate-200 gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-slate-600 font-semibold min-w-0">
+                            <span className="truncate max-w-[120px] sm:max-w-none">👤 {item.candidateName}</span>
                             <span>•</span>
-                            <span>🎓 {item.filiere}</span>
+                            <span className="truncate max-w-[140px] sm:max-w-none">🎓 {item.filiere}</span>
                             <span>•</span>
                             <span>📅 {item.date || 'Date non renseignée'}</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => deleteArchive(item.id)}
-                            className="text-rose-600 hover:text-rose-800 font-bold text-xs cursor-pointer px-2 py-0.5 rounded hover:bg-rose-50 transition"
+                            className="text-rose-600 hover:text-rose-800 font-bold text-[11px] sm:text-xs cursor-pointer px-2 py-0.5 rounded hover:bg-rose-50 transition shrink-0"
                           >
                             Supprimer
                           </button>
@@ -2431,10 +2459,10 @@ export default function App() {
                             setViewingArchiveItem(item);
                             setArchiveActiveTab('optimized');
                           }}
-                          className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer active:scale-[0.99]"
+                          className="w-full py-2.5 px-3 sm:px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer active:scale-[0.99] text-center"
                         >
-                          <span>📖</span>
-                          <span>Consulter la copie & réviser le texte optimisé ➔</span>
+                          <span className="shrink-0">📖</span>
+                          <span className="truncate sm:whitespace-normal">Consulter la copie & réviser le texte optimisé ➔</span>
                         </button>
                       </div>
                     ))
