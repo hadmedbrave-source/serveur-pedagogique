@@ -155,6 +155,7 @@ export default function App() {
   const [selectedWorkBox, setSelectedWorkBox] = useState<'boite' | 'antigone' | 'condamne' | null>(null);
   const [viewingArchiveItem, setViewingArchiveItem] = useState<any | null>(null);
   const [archiveActiveTab, setArchiveActiveTab] = useState<'optimized' | 'model' | 'original'>('optimized');
+  const [archiveModelPlanTab, setArchiveModelPlanTab] = useState<'A' | 'B'>('A');
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
   const planARef = useRef('');
@@ -492,9 +493,11 @@ export default function App() {
       'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Puis', 'Enfin',
       'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant',
       'Par conséquent', 'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En outre',
+      'De surcroît', 'De surcroit',
       'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
       'D’une part', "D'une part", 'D’autre part', "D'autre part", 'Ainsi',
-      'C\'est pourquoi', 'C’est pourquoi', 'Non seulement', 'Mais encore'
+      'C\'est pourquoi', 'C’est pourquoi', 'Non seulement', 'Mais encore',
+      'À cet égard', "A cet égard", 'Il en résulte que'
     ];
     let res = html;
     for (const c of connectors) {
@@ -636,6 +639,9 @@ export default function App() {
     // Connecteurs en bleu
     parsed = highlightConnectors(parsed);
 
+    // Convertir les balises markdown en gras si présentes
+    parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
     // B. Texte Intégral Réécrit : Exemples tirés des œuvres EN GRAS BIEN VISIBLE
     const worksExamplesRegex = [
       /\b(La Bo[iî]te [aà] Merveilles)\b/gi,
@@ -645,7 +651,7 @@ export default function App() {
       /\b(Ma[aâ]lem Abdeslam)\b/gi,
       /\b(Lalla A[iï]cha)\b/gi,
       /\b(Dar Chouafa)\b/gi,
-      /\b(la voyante)\b/gi,
+      /\b(la voyante(?:\s+Kenza)?)\b/gi,
       /\b(Kenza)\b/gi,
       /\b(Zineb)\b/gi,
       /\b(Rahma)\b/gi,
@@ -653,6 +659,8 @@ export default function App() {
       /\b(Sidi El Arafi)\b/gi,
       /\b(le fqih)\b/gi,
       /\b(le Msid)\b/gi,
+      /\b(Moulay Larbi)\b/gi,
+      /\b(Sidi Ali Boughaleb)\b/gi,
       /\b(Antigone)\b/gi,
       /\b(Jean Anouilh)\b/gi,
       /\b(Cr[eé]on)\b/gi,
@@ -663,15 +671,18 @@ export default function App() {
       /\b(Eurydice)\b/gi,
       /\b(Le Ch[oœ]ur)\b/gi,
       /\b(La Nourrice)\b/gi,
+      /\b(Th[eè]bes)\b/gi,
       /\b(Le Dernier Jour d['’]un Condamn[eé])\b/gi,
       /\b(Victor Hugo)\b/gi,
-      /\b(le condamn[eé])\b/gi,
+      /\b(le condamn[eé](?:\s+[aà]\s+mort)?)\b/gi,
       /\b(la petite Marie)\b/gi,
       /\b(Bic[eê]tre)\b/gi,
       /\b(la Conciergerie)\b/gi,
       /\b(la guillotine)\b/gi,
       /\b(la peine de mort)\b/gi,
       /\b(la place de Gr[eè]ve)\b/gi,
+      /\b(le friauche)\b/gi,
+      /\b(le bourreau Samson)\b/gi,
     ];
 
     for (const reg of worksExamplesRegex) {
@@ -683,6 +694,8 @@ export default function App() {
 
   const formatModelPlan = (txt: string, planType: 'SIMPLE' | 'DIALECTIQUE' | 'ANALYTIQUE') => {
     let raw = txt ? txt.trim() : '';
+    // Conversion préalable des balises Markdown en HTML
+    raw = raw.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
     const isDialectique = planType === 'DIALECTIQUE';
     const bannerTitle = isDialectique
@@ -816,9 +829,9 @@ export default function App() {
     bodyHtml = highlightConnectors(bodyHtml);
 
     const worksTerms = [
-      'La Boîte à Merveilles', 'La Boite a Merveilles', 'Ahmed Sefrioui', 'Sidi Mohammed', 'Lalla Zoubida', 'Maâlem Abdeslam', 'Lalla Aïcha', 'Dar Chouafa', 'la voyante',
-      'Antigone', 'Jean Anouilh', 'Créon', 'Ismène', 'Hémon', 'Polynice', 'Étéocle', 'Le Chœur', 'La Nourrice',
-      'Le Dernier Jour d’un Condamné', "Le Dernier Jour d'un Condamné", 'Victor Hugo', 'Bicêtre', 'la Conciergerie', 'la guillotine', 'la peine de mort', 'la place de Grève'
+      'La Boîte à Merveilles', 'La Boite a Merveilles', 'Ahmed Sefrioui', 'Sidi Mohammed', 'Lalla Zoubida', 'Maâlem Abdeslam', 'Maalem Abdeslam', 'Lalla Aïcha', 'Lalla Aicha', 'Dar Chouafa', 'la voyante Kenza', 'la voyante', 'Sidi El Arafi', 'le fqih', 'le Msid', 'Zineb', 'Rahma', 'Fatma Bziouya', 'Moulay Larbi', 'Sidi Ali Boughaleb',
+      'Antigone', 'Jean Anouilh', 'Créon', 'Creon', 'Ismène', 'Ismene', 'Hémon', 'Hemon', 'Polynice', 'Étéocle', 'Eteocle', 'Eurydice', 'Le Chœur', 'Le Choeur', 'La Nourrice', 'Thèbes', 'Thebes',
+      'Le Dernier Jour d’un Condamné', "Le Dernier Jour d'un Condamné", 'Victor Hugo', 'Bicêtre', 'Bicetre', 'la Conciergerie', 'la guillotine', 'la peine de mort', 'la place de Grève', 'la place de Greve', 'la petite Marie', 'le friauche', 'le bourreau Samson'
     ];
     for (const w of worksTerms) {
       const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -1239,8 +1252,47 @@ export default function App() {
 
       setDetectedPlanType(isAnalytic ? 'ANALYTIQUE' : 'OPINION');
 
-      planARef.current = extract('PLAN_A') || '<p>Modèle didactique certifié disponible.</p>';
-      planBRef.current = extract('PLAN_B') || '<p>Plan dialectique complémentaire.</p>';
+      const planAExtracted = extract('PLAN_A');
+      const planBExtracted = extract('PLAN_B');
+
+      const buildDefaultPlanA = () => `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme, on se rend compte que la réflexion autour de « ${sujet.slice(0, 75)} » constitue un enjeu littéraire, humain et moral fondamental. En effet, tandis que certains perçoivent les épreuves et les traditions comme des contraintes pesantes, d'autres y découvrent un socle structurant indispensable à l'édification de la conscience personnelle. Dès lors, convient-il d'appréhender cette réalité comme un carcan aliénant ou au contraire comme un cheminement formateur vers la maturité ? Pour répondre avec rigueur à cette problématique, il conviendra d'examiner dans un premier axe la valeur émancipatrice de la lucidité intérieure, avant d'analyser dans un second axe les impératifs de la solidarité humaine.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'affirmation d'une pensée autonome permet à l'individu de préserver son authenticité face aux pressions extérieures et aux illusions du monde social. C'est précisément ce que révèle l'univers poétique de <strong>Sidi Mohammed dans La Boîte à Merveilles</strong> : face aux querelles de <strong>Dar Chouafa</strong> et aux déceptions du réel, sa boîte magique et son imaginaire constituent un sanctuaire inviolable de liberté spirituelle. De même, dans la tragédie moderne, <strong>l'héroïne Antigone de Jean Anouilh</strong> proclame avec une grandeur sublime son refus des faux compromis, préférant périr plutôt que de salir la pureté de son idéal moral. Ainsi, la fidélité à ses convictions intimes confère à l'être une dignité inaliénable.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette quête d'indépendance ne saurait toutefois faire oublier la fragilité inhérente à la condition humaine lorsque les liens collectifs viennent à se rompre. L'œuvre bouleversante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> en administre la preuve la plus saisissante : séquestré dans l'obscurité de <strong>Bicêtre</strong>, le captif mesure combien l'isolement forcé détruit l'esprit et combien le respect de la vie humaine exige une compassion universelle. De plus, l'épreuve de la ruine financière vécue par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> démontre que seule l'entraide fraternelle permet de triompher des vicissitudes du sort. Dès lors, l'autonomie ne trouve son plein sens que dans l'harmonie avec autrui.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, la réflexion menée met en lumière la nécessité d'allier souveraineté morale et bienveillance communautaire. Loin de s'opposer, la force de l'esprit critique et la chaleur des solidarités humaines se fécondent mutuellement pour façonner une personnalité éclairée. En définitive, la véritable sagesse ne réside-t-elle pas dans cet équilibre souverain entre liberté intérieure et générosité envers son prochain ?</p>
+</div>`;
+
+      const buildDefaultPlanB = () => `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${sujet.slice(0, 75)} » confronte deux exigences complémentaires de l'existence. D'une part, une vision pragmatique impose le respect des devoirs établis et la soumission aux nécessités sociales pour garantir la cohésion du groupe. D'autre part, une conscience exigeante revendique le droit inaliénable de questionner l'ordre existant au nom d'un idéal de justice supérieur. Dès lors, comment concilier le réalisme des contraintes partagées et l'aspiration légitime à la liberté morale ? Il conviendra d'analyser dans une première partie le bien-fondé des impératifs collectifs, d'envisager dans une deuxième partie la légitimité du sursaut individuel, afin de dégager dans une troisième partie les voies d'une synthèse équilibrée.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'inscription sincère dans la communauté et l'acceptation de ses règles fondent la sécurité et la continuité morale de l'existence. Dans <strong>La Boîte à Merveilles</strong>, le courage discret du tisserand <strong>Maâlem Abdeslam</strong> qui part travailler aux moissons pour subvenir aux besoins des siens prouve que la fidélité au devoir familial surmonte les plus rudes crises. De même, les arguments d'État présentés par <strong>Créon dans Antigone</strong> rappellent avec gravité que la sauvegarde de la cité requiert l'obéissance aux lois communes afin de prémunir les hommes contre l'anarchie. L'intérêt général commande donc une discipline loyale.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'obéissance aveugle devient inacceptable lorsqu'elle bafoue les valeurs sacrées de la conscience et de l'équité. La voix passionnée de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> s'élève pour dénoncer l'atrocité de la guillotine dressée sur <strong>la place de Grève</strong>, démontrant qu'aucune institution ne peut s'arroger le droit de massacrer un être humain. Parallèlement, <strong>Antigone</strong> oppose le devoir fraternel et l'amour immortel aux décrets tyranniques, incarnant le refus héroïque de l'injustice. L'honneur humain réside dans cette résistance sacrée de la conscience morale.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la solution féconde réside dans une synthèse souveraine où les règles de la société se perfectionnent au contact des aspirations éthiques. Il s'agit d'édifier un ordre juste qui ne repose pas sur la contrainte aveugle mais sur l'adhésion lucide et le respect absolu de la dignité humaine. C'est à ce point de rencontre entre devoir et liberté que s'épanouit une citoyenneté responsable et généreuse.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, ce débat invite à dépasser les clivages superficiels pour affirmer la suprématie de la lucidité et de l'empathie. Les leçons tirées de nos chefs-d'œuvre littéraires rappellent que la véritable grandeur humaine s'accomplit dans la conciliation courageuse de l'idéal éthique et du respect d'autrui. Ne revient-il pas dès lors à chacun d'œuvrer quotidiennement à cette exigeante concorde ?</p>
+</div>`;
+
+      planARef.current = (planAExtracted && planAExtracted.trim().length > 150) ? planAExtracted : buildDefaultPlanA();
+      planBRef.current = (planBExtracted && planBExtracted.trim().length > 150) ? planBExtracted : buildDefaultPlanB();
 
       const tabSelectors = document.getElementById('tabSelectors');
       if (tabSelectors) {
@@ -1337,6 +1389,8 @@ export default function App() {
       texte: texte || '',
       reformulations: outReform,
       modelText: outModel,
+      planA: planARef.current,
+      planB: planBRef.current,
       date: new Date().toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: 'long',
@@ -2219,14 +2273,14 @@ export default function App() {
                 <div id="outBilan" className="p-4 sm:p-6 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-sm sm:text-base"></div>
               </div>
 
-              {/* 5. Optimisation Stylistique (Reformulation) */}
+              {/* 5. Optimisation Stylistique (Texte Optimisé - Min. 18 lignes) */}
               <div className="mb-8">
                 <div className="mb-3">
                   <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 5. Optimisation Stylistique & Version Continue d'Excellence (Clarté & Fluidité Naturelle)
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 5. Optimisation Stylistique & Version Continue d'Excellence (Texte Optimisé • Min. 18 lignes)
                   </h3>
                   <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                    Chirurgie des phrases faibles et réécriture intégrale en français standard soigné (Niveau 1ère Bac). Proscription formelle du registre soutenu artificiel ou boursouflé. Liens logiques en gras et en couleur bleue.
+                    Chirurgie des phrases faibles et réécriture intégrale en texte optimisé d'au moins 18 lignes rédigées, articulé par des liens logiques puissants en bleu et des exemples tirés de l'œuvre en gras vert émeraude. Langage fort, limpide et rigoureux, sans recours à un registre soutenu artificiel.
                   </p>
                 </div>
                 <div id="outReform" className="p-4 sm:p-6 rounded-xl bg-amber-50/40 border border-amber-200 leading-relaxed text-sm sm:text-base"></div>
@@ -2237,12 +2291,12 @@ export default function App() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
-                      <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèle de Référence Certifié (Norme Al Akhawayn)
+                      <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèles Rédigés d'Excellence (Norme Al Akhawayn • Min. 18 lignes)
                     </h3>
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-950 text-xs font-black uppercase tracking-wider shadow-2xs">
                       <span>🎯 Modèle Actif :</span>
                       <span className="text-[#b45309]">
-                        {activePlan === 'A' ? 'Option 1 : Plan Thématique (Simple)' : 'Option 2 : Plan Dialectique (Thèse / Antithèse)'}
+                        {activePlan === 'A' ? 'Option 1 : Plan Simple (Thématique) • Min. 18 lignes' : 'Option 2 : Plan Dialectique (Thèse / Antithèse) • Min. 18 lignes'}
                       </span>
                     </span>
                   </div>
@@ -2255,7 +2309,7 @@ export default function App() {
                       id="ts"
                       className={`tab-trigger px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
-                      Option 1 : Plan Thématique (Simple)
+                      Option 1 : Plan Simple (Thématique)
                     </button>
                     <button
                       type="button"
@@ -2269,7 +2323,7 @@ export default function App() {
                 </div>
 
                 <div className="mb-3 text-[11px] font-semibold text-slate-500">
-                  <span>Modèles d'excellence certifiés conformes au Cadre de Référence officiel. Structure déclarée, chaque élément identifié par sa couleur (Introduction, Thèse, Antithèse, Synthèse, Conclusion), liens logiques en bleu et exemples précis des œuvres au programme en vert émeraude.</span>
+                  <span>Modèles de référence certifiés conformes au Cadre de Référence officiel. Les deux options (Plan Simple et Plan Dialectique) comportent au minimum 18 lignes de texte rédigé avec des liens logiques puissants (en bleu), des exemples précis en gras tirés des œuvres au programme (en vert émeraude) et un langage fort sans registre soutenu artificiel.</span>
                 </div>
 
                 <div id="outModel" className="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-sm sm:text-base leading-relaxed space-y-4"></div>
@@ -2483,12 +2537,47 @@ export default function App() {
                   )}
 
                   {archiveActiveTab === 'model' && (
-                    <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-900 text-xs sm:text-sm break-words overflow-x-hidden">
-                      {viewingArchiveItem.modelText ? (
-                        <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.modelText }} />
-                      ) : (
-                        <p className="text-slate-400 italic">Aucun modèle de référence associé enregistré.</p>
+                    <div className="space-y-3">
+                      {(viewingArchiveItem.planA || viewingArchiveItem.planB) && (
+                        <div className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl">
+                          <button
+                            type="button"
+                            onClick={() => setArchiveModelPlanTab('A')}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer flex-1 text-center ${
+                              archiveModelPlanTab === 'A' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
+                            }`}
+                          >
+                            Option 1 : Plan Simple (Min. 18 lignes)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setArchiveModelPlanTab('B')}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer flex-1 text-center ${
+                              archiveModelPlanTab === 'B' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
+                            }`}
+                          >
+                            Option 2 : Plan Dialectique (Min. 18 lignes)
+                          </button>
+                        </div>
                       )}
+                      <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-900 text-xs sm:text-sm break-words overflow-x-hidden">
+                        {(viewingArchiveItem.planA || viewingArchiveItem.planB) ? (
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: formatModelPlan(
+                                archiveModelPlanTab === 'A'
+                                  ? (viewingArchiveItem.planA || viewingArchiveItem.modelText)
+                                  : (viewingArchiveItem.planB || viewingArchiveItem.modelText),
+                                archiveModelPlanTab === 'A' ? 'SIMPLE' : 'DIALECTIQUE'
+                              ),
+                            }}
+                          />
+                        ) : viewingArchiveItem.modelText ? (
+                          <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.modelText }} />
+                        ) : (
+                          <p className="text-slate-400 italic">Aucun modèle de référence associé enregistré.</p>
+                        )}
+                      </div>
                     </div>
                   )}
 
