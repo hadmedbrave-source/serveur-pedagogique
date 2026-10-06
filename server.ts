@@ -215,7 +215,7 @@ app.post('/api/confirm-change-password', (req, res) => {
   pendingVerification = { code: null, email: null, expiresAt: 0 };
   return res.json({
     success: true,
-    message: 'Mot de passe enseignant mis à jour avec succès sur le serveur !'
+    message: 'Mot de passe direction mis à jour avec succès sur le serveur !'
   });
 });
 
@@ -228,7 +228,7 @@ app.post('/api/verify-master-key', (req, res) => {
   }
   const cleanKey = masterKey.trim().toLowerCase().replace(/\s+/g, '');
   if (cleanKey === MASTER_SECRET_KEY || cleanKey === 'hadmed.brave@gmail.com2026' || cleanKey === 'hadmed.brave@gmail.com') {
-    return res.json({ success: true, message: 'Identité enseignant confirmée avec succès.' });
+    return res.json({ success: true, message: 'Identité direction confirmée avec succès.' });
   }
   return res.status(401).json({ success: false, message: 'Clé secrète d’habilitation incorrecte.' });
 });
@@ -249,7 +249,7 @@ app.post('/api/change-password', (req, res) => {
     return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit comporter au moins 4 caractères.' });
   }
   PROFESSOR_PASSWORD = newPassword.trim();
-  return res.json({ success: true, message: 'Mot de passe enseignant mis à jour avec succès sur le serveur !' });
+  return res.json({ success: true, message: 'Mot de passe direction mis à jour avec succès sur le serveur !' });
 });
 
 // Boîtes d'enregistrement des candidats par œuvre
