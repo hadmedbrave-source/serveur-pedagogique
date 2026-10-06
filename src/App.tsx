@@ -1771,27 +1771,30 @@ export default function App() {
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
                   <span className="text-base">📧</span>
                   <div>
-                    <span className="font-bold block">Code de sécurité envoyé !</span>
+                    <span className="font-bold block">Code de sécurité expédié par Gmail !</span>
                     <span className="text-[11px] text-amber-800">
-                      Consultez votre boîte Gmail pour récupérer votre code de confirmation à 6 chiffres.
+                      Ouvrez votre boîte de réception Gmail (et votre dossier Spam / Indésirables si besoin) pour récupérer votre code secret à 6 chiffres. Ce code reste strictement confidentiel et n'est jamais affiché sur cette page.
                     </span>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Code de confirmation reçu par Gmail (6 chiffres)
+                    Code secret reçu par Gmail (6 chiffres)
                   </label>
                   <input
                     type="text"
                     maxLength={6}
                     value={verificationCodeInput}
                     onChange={(e) => setVerificationCodeInput(e.target.value.trim())}
-                    placeholder="Ex: 839201"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-base font-mono tracking-widest font-black text-center text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                    placeholder="• • • • • •"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-lg font-mono tracking-[0.4em] font-black text-center text-slate-900 focus:bg-white focus:border-slate-900 outline-none placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
                     required
                     autoFocus
                   />
+                  <span className="text-[10px] text-slate-400 mt-1 block text-center">
+                    Saisissez ici les 6 chiffres reçus dans l'email envoyé à votre adresse hadmed.brave@gmail.com
+                  </span>
                 </div>
 
                 <div>
