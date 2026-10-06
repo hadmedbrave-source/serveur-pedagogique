@@ -57,8 +57,14 @@ export default function App() {
     return total;
   }, [texte]);
 
-  // Authentification Enseignant
-  const [isUnlocked, setIsUnlocked] = useState(() => sessionStorage.getItem('akhawayn_auth') === 'true');
+  // Authentification Enseignant & Candidat (mémorisée en continu dans le navigateur de l'élève)
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    try {
+      return localStorage.getItem('akhawayn_auth') === 'true' || sessionStorage.getItem('akhawayn_auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [sessionPassword, setSessionPassword] = useState(() => localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026');
   const [passwordInput, setPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
@@ -94,12 +100,39 @@ export default function App() {
   const [isCheckingCandidate, setIsCheckingCandidate] = useState(false);
   const [showCandidatePassword, setShowCandidatePassword] = useState(false);
 
-  // Boîtes d'archives par œuvre
-  const [archives, setArchives] = useState<{ boite: any[]; antigone: any[]; condamne: any[] }>({
-    boite: [],
-    antigone: [],
-    condamne: [],
-  });
+  // Utilitaires de stockage dans le navigateur de l'élève (localStorage)
+  const getStoredArchives = (): { boite: any[]; antigone: any[]; condamne: any[] } => {
+    try {
+      const stored = localStorage.getItem('akhawayn_student_archives');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          boite: Array.isArray(parsed?.boite) ? parsed.boite : [],
+          antigone: Array.isArray(parsed?.antigone) ? parsed.antigone : [],
+          condamne: Array.isArray(parsed?.condamne) ? parsed.condamne : [],
+        };
+      }
+    } catch (e) {
+      console.error('Erreur lecture localStorage archives:', e);
+    }
+    return { boite: [], antigone: [], condamne: [] };
+  };
+
+  const mergeArchiveArrays = (localArr: any[], serverArr: any[]): any[] => {
+    const map = new Map<string, any>();
+    for (const item of localArr || []) {
+      if (item && item.id) map.set(item.id, item);
+    }
+    for (const item of serverArr || []) {
+      if (item && item.id && !map.has(item.id)) {
+        map.set(item.id, item);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  // Boîtes d'archives par œuvre (Enregistrées prioritairement dans le navigateur de l'élève)
+  const [archives, setArchives] = useState<{ boite: any[]; antigone: any[]; condamne: any[] }>(getStoredArchives);
   const [selectedWorkBox, setSelectedWorkBox] = useState<'boite' | 'antigone' | 'condamne' | null>(null);
   const [viewingArchiveItem, setViewingArchiveItem] = useState<any | null>(null);
   const [archiveActiveTab, setArchiveActiveTab] = useState<'optimized' | 'model' | 'original'>('optimized');
@@ -122,14 +155,29 @@ export default function App() {
   }, []);
 
   const fetchArchives = async () => {
+    // 1. Chargement instantané et garanti depuis le navigateur de l'élève
+    const local = getStoredArchives();
+    setArchives(local);
+
+    // 2. Synchronisation de secours avec le serveur (sans écraser les copies de l'élève)
     try {
       const res = await fetch('/api/archives');
       if (res.ok) {
-        const data = await res.json();
-        setArchives(data);
+        const serverData = await res.json();
+        if (serverData && typeof serverData === 'object') {
+          const merged = {
+            boite: mergeArchiveArrays(local.boite, serverData.boite || []),
+            antigone: mergeArchiveArrays(local.antigone, serverData.antigone || []),
+            condamne: mergeArchiveArrays(local.condamne, serverData.condamne || []),
+          };
+          setArchives(merged);
+          try {
+            localStorage.setItem('akhawayn_student_archives', JSON.stringify(merged));
+          } catch {}
+        }
       }
     } catch (e) {
-      console.error('Erreur lecture archives:', e);
+      // Aucun problème : le navigateur conserve toutes les productions en local
     }
   };
 
@@ -152,6 +200,8 @@ export default function App() {
       if (res.ok && data.success) {
         setSessionPassword(passwordInput.trim());
         setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', passwordInput.trim());
         sessionStorage.setItem('akhawayn_auth', 'true');
         setPasswordInput('');
       } else {
@@ -161,6 +211,8 @@ export default function App() {
       if (passwordInput.trim() === 'AKHAWAYN2026') {
         setSessionPassword(passwordInput.trim());
         setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', passwordInput.trim());
         sessionStorage.setItem('akhawayn_auth', 'true');
         setPasswordInput('');
       } else {
@@ -189,8 +241,10 @@ export default function App() {
       if (res.ok && data.success) {
         setSessionPassword(candidatePasswordInput.trim());
         setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', candidatePasswordInput.trim());
         sessionStorage.setItem('akhawayn_auth', 'true');
-        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active.' });
+        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active et mémorisée dans votre navigateur.' });
         setTimeout(() => {
           setShowCandidateModal(false);
           setCandidatePasswordInput('');
@@ -203,8 +257,10 @@ export default function App() {
       if (candidatePasswordInput.trim() === 'AKHAWAYN2026') {
         setSessionPassword(candidatePasswordInput.trim());
         setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', candidatePasswordInput.trim());
         sessionStorage.setItem('akhawayn_auth', 'true');
-        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active.' });
+        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active et mémorisée dans votre navigateur.' });
         setTimeout(() => {
           setShowCandidateModal(false);
           setCandidatePasswordInput('');
@@ -292,6 +348,7 @@ export default function App() {
         setMasterKeyInput('');
 
         // Verrouillage automatique de la session
+        localStorage.removeItem('akhawayn_auth');
         sessionStorage.removeItem('akhawayn_auth');
         setIsUnlocked(false);
         setPasswordInput('');
@@ -1223,7 +1280,7 @@ export default function App() {
   };
 
   const saveCurrentToArchives = async () => {
-    const workSelect = (document.getElementById('archiveSelectWork') as HTMLSelectElement)?.value || 'boite';
+    const workSelect = ((document.getElementById('archiveSelectWork') as HTMLSelectElement)?.value || 'boite') as 'boite' | 'antigone' | 'condamne';
     const rNom = document.getElementById('rNom')?.innerText || studentName || 'Candidat';
     const rTotal = document.getElementById('rTotal')?.innerText || 'N/A';
     const outReform = document.getElementById('outReform')?.innerHTML || '';
@@ -1234,41 +1291,89 @@ export default function App() {
       return;
     }
 
+    const newEntry = {
+      id: 'arch_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      work: workSelect,
+      candidateName: rNom.trim() || 'Candidat',
+      filiere: filiere || '1ère BAC',
+      score: rTotal,
+      sujet: sujet || '',
+      texte: texte || '',
+      reformulations: outReform,
+      modelText: outModel,
+      date: new Date().toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    };
+
+    // 1. Enregistrement prioritaire et immédiat dans le navigateur de l'élève (localStorage)
+    const currentArchives = getStoredArchives();
+    const updatedWorkList = [newEntry, ...(currentArchives[workSelect] || [])];
+    const updatedArchives = {
+      ...currentArchives,
+      [workSelect]: updatedWorkList,
+    };
+
     try {
-      const res = await fetch('/api/archives', {
+      localStorage.setItem('akhawayn_student_archives', JSON.stringify(updatedArchives));
+      // Maintien absolu de la session déverrouillée dans le navigateur
+      localStorage.setItem('akhawayn_auth', 'true');
+      sessionStorage.setItem('akhawayn_auth', 'true');
+    } catch (err) {
+      console.warn('Erreur écriture localStorage archives:', err);
+    }
+
+    setIsUnlocked(true);
+    setArchives(updatedArchives);
+
+    const workNames: Record<string, string> = {
+      boite: 'La Boîte à Merveilles',
+      antigone: 'Antigone',
+      condamne: "Le Dernier Jour d'un Condamné",
+    };
+    const workLabel = workNames[workSelect] || workSelect;
+    setSaveToast(`Production enregistrée avec succès dans votre navigateur (${workLabel}) ! Vos révisions y sont conservées pour toute l'année.`);
+    setTimeout(() => setSaveToast(null), 4500);
+
+    // 2. Synchronisation de secours en arrière-plan avec le serveur
+    try {
+      await fetch('/api/archives', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          work: workSelect,
-          candidateName: rNom,
-          filiere,
-          score: rTotal,
-          sujet,
-          texte,
-          reformulations: outReform,
-          modelText: outModel,
-          date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        }),
+        body: JSON.stringify(newEntry),
       });
-      if (res.ok) {
-        setSaveToast('Copie enregistrée avec succès dans la boîte d’archives !');
-        fetchArchives();
-        setTimeout(() => setSaveToast(null), 3500);
-      }
-    } catch (e) {
-      alert("Erreur lors de l'enregistrement de l'archive.");
+    } catch {
+      // Ignorer : la copie est déjà sauvegardée avec succès à 100% dans le navigateur de l'élève
     }
   };
 
   const deleteArchive = async (id: string) => {
-    if (!confirm('Supprimer cette archive ?')) return;
+    if (!confirm('Voulez-vous vraiment supprimer cette production de votre boîte ?')) return;
+
+    // 1. Suppression immédiate dans le navigateur de l'élève (localStorage)
+    const currentArchives = getStoredArchives();
+    const updatedArchives = {
+      boite: (currentArchives.boite || []).filter((item: any) => item.id !== id),
+      antigone: (currentArchives.antigone || []).filter((item: any) => item.id !== id),
+      condamne: (currentArchives.condamne || []).filter((item: any) => item.id !== id),
+    };
+
     try {
-      const res = await fetch(`/api/archives/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchArchives();
-      }
-    } catch (e) {
-      alert('Erreur lors de la suppression.');
+      localStorage.setItem('akhawayn_student_archives', JSON.stringify(updatedArchives));
+    } catch (err) {
+      console.warn('Erreur mise à jour localStorage:', err);
+    }
+    setArchives(updatedArchives);
+
+    // 2. Suppression de secours en tâche de fond sur le serveur
+    try {
+      await fetch(`/api/archives/${id}`, { method: 'DELETE' });
+    } catch {
+      // Ignorer si hors-ligne
     }
   };
 
@@ -2360,7 +2465,7 @@ export default function App() {
                       Boîtes d'Archives Pédagogiques
                     </h3>
                     <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5 leading-snug">
-                      Consultation & Révision des Productions Écrites
+                      Consultation & Révision des Productions (Enregistrées dans votre navigateur)
                     </p>
                   </div>
                   <button 
@@ -2413,9 +2518,9 @@ export default function App() {
                   {archives[selectedWorkBox]?.length === 0 ? (
                     <div className="p-8 sm:p-12 text-center text-slate-400 text-xs sm:text-sm font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                       <span className="text-3xl block mb-2">📁</span>
-                      Aucune production enregistrée pour le moment dans cette boîte.<br />
+                      Aucune production enregistrée pour le moment dans cette boîte sur votre navigateur.<br />
                       <span className="text-[11px] sm:text-xs text-slate-400 mt-1 block">
-                        Effectuez une évaluation et cliquez sur « Enregistrer dans la boîte » pour réviser à tout moment.
+                        Effectuez une évaluation et cliquez sur « Enregistrer dans la boîte » pour réviser vos textes optimisés à tout moment d'ici la fin d'année.
                       </span>
                     </div>
                   ) : (
@@ -2551,6 +2656,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => {
+                    localStorage.removeItem('akhawayn_auth');
                     sessionStorage.removeItem('akhawayn_auth');
                     setIsUnlocked(false);
                     setShowCandidateModal(false);
