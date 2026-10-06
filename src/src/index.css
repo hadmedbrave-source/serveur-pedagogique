@@ -521,3 +521,52 @@
     print-color-adjust: exact !important;
   }
 }
+
+/* Smartphone & Mobile Touch UX Enhancements */
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .writing-ruled-zone {
+    min-height: 280px;
+    font-size: 1rem;
+    line-height: 28px;
+    background-size: 100% 28px;
+    background-image: linear-gradient(to bottom, transparent 27px, #e2e8f0 27px);
+  }
+
+  .writing-ruled-zone p {
+    text-indent: 1.25rem !important;
+    line-height: 28px !important;
+    margin-bottom: 1rem !important;
+  }
+
+  #outTable {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  #outTable table {
+    min-width: 540px;
+    font-size: 0.78rem;
+  }
+
+  #outTable th, #outTable td {
+    padding: 8px 10px;
+  }
+
+  .official-seal-badge {
+    width: 120px;
+    height: 120px;
+  }
+
+  .phrase-card-indigo,
+  .phrase-card-amber,
+  .phrase-card-emerald,
+  .phrase-card-purple {
+    padding: 12px 14px !important;
+    font-size: 0.85rem;
+  }
+}
