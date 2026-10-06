@@ -75,14 +75,14 @@ export default function App() {
     total: '8.8',
   });
 
-  // Modal Changement de mot de passe avec confirmation Gmail (2FA)
+  // Modal Changement de mot de passe sécurisé par Clé Maître Enseignant
   const [showChangeModal, setShowChangeModal] = useState(false);
-  const [passwordChangeStep, setPasswordChangeStep] = useState<'REQUEST' | 'VERIFY'>('REQUEST');
-  const [professorEmailInput, setProfessorEmailInput] = useState('');
+  const [passwordChangeStep, setPasswordChangeStep] = useState<'KEY' | 'PASSWORDS'>('KEY');
+  const [masterKeyInput, setMasterKeyInput] = useState('');
+  const [showMasterKey, setShowMasterKey] = useState(false);
   const [oldPasswordInput, setOldPasswordInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
-  const [verificationCodeInput, setVerificationCodeInput] = useState('');
   const [changeFeedback, setChangeFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isChanging, setIsChanging] = useState(false);
 
@@ -100,6 +100,15 @@ export default function App() {
 
   useEffect(() => {
     fetchArchives();
+
+    // Bloquer le clic droit sur toute la page
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
   }, []);
 
   const fetchArchives = async () => {
@@ -151,57 +160,42 @@ export default function App() {
     }
   };
 
-  const handleRequestCode = async (e: React.FormEvent) => {
+  const handleVerifyMasterKey = async (e: React.FormEvent) => {
     e.preventDefault();
     setChangeFeedback(null);
 
-    const emailTrim = professorEmailInput.trim().toLowerCase();
-    if (!emailTrim || !oldPasswordInput.trim()) {
-      setChangeFeedback({ type: 'error', message: 'Veuillez saisir votre adresse Gmail et votre mot de passe actuel.' });
-      return;
-    }
-
-    if (emailTrim !== 'hadmed.brave@gmail.com') {
-      setChangeFeedback({
-        type: 'error',
-        message: 'Adresse de messagerie non habilitée pour ce compte enseignant.',
-      });
+    const clean = masterKeyInput.trim();
+    if (!clean) {
+      setChangeFeedback({ type: 'error', message: 'Veuillez saisir votre clé secrète d’habilitation.' });
       return;
     }
 
     setIsChanging(true);
     try {
-      const res = await fetch('/api/request-password-code', {
+      const res = await fetch('/api/verify-master-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: emailTrim,
-          oldPassword: oldPasswordInput.trim(),
-        }),
+        body: JSON.stringify({ masterKey: clean }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setPasswordChangeStep('VERIFY');
-        setChangeFeedback({
-          type: 'success',
-          message: data.message || 'Un code de confirmation sécurisé a été transmis directement à votre boîte Gmail.',
-        });
+        setPasswordChangeStep('PASSWORDS');
+        setChangeFeedback({ type: 'success', message: 'Identité enseignant validée avec succès ! Vous pouvez maintenant mettre à jour le mot de passe.' });
       } else {
-        setChangeFeedback({ type: 'error', message: data.message || 'Vérification impossible.' });
+        setChangeFeedback({ type: 'error', message: data.message || 'Clé secrète d’habilitation incorrecte.' });
       }
     } catch (err) {
-      setChangeFeedback({ type: 'error', message: 'Erreur réseau lors de la demande de code.' });
+      setChangeFeedback({ type: 'error', message: 'Erreur de connexion au serveur.' });
     } finally {
       setIsChanging(false);
     }
   };
 
-  const handleConfirmChangePassword = async (e: React.FormEvent) => {
+  const handleSaveNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setChangeFeedback(null);
 
-    const emailTrim = professorEmailInput.trim().toLowerCase();
-    if (!verificationCodeInput.trim() || !newPasswordInput.trim() || !confirmPasswordInput.trim()) {
+    if (!oldPasswordInput.trim() || !newPasswordInput.trim() || !confirmPasswordInput.trim()) {
       setChangeFeedback({ type: 'error', message: 'Veuillez renseigner tous les champs obligatoires.' });
       return;
     }
@@ -218,34 +212,33 @@ export default function App() {
 
     setIsChanging(true);
     try {
-      const res = await fetch('/api/confirm-change-password', {
+      const res = await fetch('/api/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: emailTrim,
-          verificationCode: verificationCodeInput.trim(),
+          masterKey: masterKeyInput.trim(),
+          oldPassword: oldPasswordInput.trim(),
           newPassword: newPasswordInput.trim(),
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setChangeFeedback({ type: 'success', message: 'Mot de passe mis à jour avec succès sur le serveur !' });
+        setChangeFeedback({ type: 'success', message: 'Mot de passe enseignant mis à jour avec succès sur le serveur !' });
         setSessionPassword(newPasswordInput.trim());
         setOldPasswordInput('');
         setNewPasswordInput('');
         setConfirmPasswordInput('');
-        setVerificationCodeInput('');
-        setProfessorEmailInput('');
+        setMasterKeyInput('');
         setTimeout(() => {
           setShowChangeModal(false);
-          setPasswordChangeStep('REQUEST');
+          setPasswordChangeStep('KEY');
           setChangeFeedback(null);
         }, 1800);
       } else {
-        setChangeFeedback({ type: 'error', message: data.message || 'Échec de la validation du code.' });
+        setChangeFeedback({ type: 'error', message: data.message || 'Mot de passe actuel incorrect.' });
       }
     } catch (err) {
-      setChangeFeedback({ type: 'error', message: 'Erreur réseau lors de la validation du code.' });
+      setChangeFeedback({ type: 'error', message: 'Erreur de connexion au serveur.' });
     } finally {
       setIsChanging(false);
     }
@@ -1676,14 +1669,15 @@ export default function App() {
                 <div>
                   <h3 className="font-outfit font-bold text-base leading-tight">Sécurité Enseignant</h3>
                   <span className="text-[11px] text-slate-400 font-medium">
-                    {passwordChangeStep === 'REQUEST' ? 'Étape 1 : Vérification d\'identité' : 'Étape 2 : Confirmation par code Gmail'}
+                    {passwordChangeStep === 'KEY' ? 'Étape 1 : Habilitation confidentielle' : 'Étape 2 : Nouveau mot de passe'}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => {
                   setShowChangeModal(false);
-                  setPasswordChangeStep('REQUEST');
+                  setPasswordChangeStep('KEY');
+                  setMasterKeyInput('');
                   setChangeFeedback(null);
                 }}
                 className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer"
@@ -1692,28 +1686,102 @@ export default function App() {
               </button>
             </div>
 
-            {passwordChangeStep === 'REQUEST' ? (
-              <form onSubmit={handleRequestCode} className="p-6 space-y-4">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Pour sécuriser l'accès au système, la modification du mot de passe requiert la validation de votre adresse Gmail titulaire. Un code à usage unique vous sera transmis.
-                </p>
+            {/* ÉTAPE 1 : HABILITATION PAR CLÉ SECRÈTE ENSEIGNANT */}
+            {passwordChangeStep === 'KEY' ? (
+              <form onSubmit={handleVerifyMasterKey} className="p-6 space-y-4">
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
+                  <span className="text-lg">🛡️</span>
+                  <div>
+                    <span className="font-bold block text-sm text-[#b45309]">Habilitation Sécurisée Enseignant</span>
+                    <span className="text-[11px] text-amber-900 leading-relaxed block mt-0.5">
+                      Saisissez votre <strong>identifiant confidentiel unique</strong> (votre adresse personnelle suivie de 2026). Ce champ est strictement masqué : il ne s'affiche jamais à l'écran et n'est pas mémorisé par le navigateur.
+                    </span>
+                  </div>
+                </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Adresse Gmail Enseignant
-                  </label>
-                  <input
-                    type="email"
-                    value={professorEmailInput}
-                    onChange={(e) => setProfessorEmailInput(e.target.value)}
-                    placeholder="votre-adresse-email@gmail.com"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
-                    required
-                    autoFocus
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                      Clé Secrète d'Habilitation
+                    </label>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Confidentiel
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showMasterKey ? 'text' : 'password'}
+                      value={masterKeyInput}
+                      onChange={(e) => setMasterKeyInput(e.target.value)}
+                      placeholder="••••••••••••••••••••••••••••"
+                      className="w-full py-3.5 pl-4 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none font-mono text-sm tracking-widest transition"
+                      required
+                      autoFocus
+                      autoComplete="new-password"
+                      data-lpignore="true"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowMasterKey(!showMasterKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 p-1 cursor-pointer"
+                      title={showMasterKey ? 'Masquer' : 'Afficher'}
+                    >
+                      {showMasterKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <span className="text-[10px] text-slate-400 mt-1 block">
-                    Saisissez votre messagerie Gmail enregistrée pour recevoir le code de sécurité.
+                    Seul l'administrateur titulaire détient cette combinaison secrète.
                   </span>
+                </div>
+
+                {changeFeedback && (
+                  <div className={`p-3 rounded-xl text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                    {changeFeedback.message}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowChangeModal(false);
+                      setMasterKeyInput('');
+                      setChangeFeedback(null);
+                    }}
+                    className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isChanging}
+                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                  >
+                    {isChanging ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span>Vérification...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🔓</span>
+                        <span>Valider mon habilitation</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* ÉTAPE 2 : DÉFINITION DU NOUVEAU MOT DE PASSE */
+              <form onSubmit={handleSaveNewPassword} className="p-6 space-y-4">
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-start gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block text-emerald-900">Habilitation confirmée avec succès !</span>
+                    <span className="text-[11px] text-emerald-800">
+                      Veuillez saisir votre mot de passe actuel puis définir votre nouveau mot de passe enseignant.
+                    </span>
+                  </div>
                 </div>
 
                 <div>
@@ -1727,74 +1795,9 @@ export default function App() {
                     placeholder="Saisissez votre mot de passe actuel..."
                     className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
                     required
-                  />
-                </div>
-
-                {changeFeedback && (
-                  <div className={`p-3 rounded-lg text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
-                    {changeFeedback.message}
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowChangeModal(false);
-                      setChangeFeedback(null);
-                    }}
-                    className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 cursor-pointer"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isChanging}
-                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {isChanging ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span>Envoi en cours...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>✉️</span>
-                        <span>Envoyer le code par Gmail</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleConfirmChangePassword} className="p-6 space-y-4">
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
-                  <span className="text-base">📧</span>
-                  <div>
-                    <span className="font-bold block">Code de sécurité expédié par Gmail !</span>
-                    <span className="text-[11px] text-amber-800">
-                      Ouvrez votre boîte de réception Gmail (et votre dossier Spam / Indésirables si besoin) pour récupérer votre code secret à 6 chiffres. Ce code reste strictement confidentiel et n'est jamais affiché sur cette page.
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Code secret reçu par Gmail (6 chiffres)
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={verificationCodeInput}
-                    onChange={(e) => setVerificationCodeInput(e.target.value.trim())}
-                    placeholder="• • • • • •"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-lg font-mono tracking-[0.4em] font-black text-center text-slate-900 focus:bg-white focus:border-slate-900 outline-none placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
-                    required
+                    autoComplete="current-password"
                     autoFocus
                   />
-                  <span className="text-[10px] text-slate-400 mt-1 block text-center">
-                    Saisissez ici les 6 chiffres reçus dans l'email envoyé à votre adresse hadmed.brave@gmail.com
-                  </span>
                 </div>
 
                 <div>
@@ -1805,9 +1808,10 @@ export default function App() {
                     type="password"
                     value={newPasswordInput}
                     onChange={(e) => setNewPasswordInput(e.target.value)}
-                    placeholder="Nouveau mot de passe (min 4 car.)..."
+                    placeholder="Nouveau mot de passe (min 4 caractères)..."
                     className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
                     required
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -1822,6 +1826,7 @@ export default function App() {
                     placeholder="Confirmer le nouveau mot de passe..."
                     className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
                     required
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -1835,20 +1840,19 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      setPasswordChangeStep('REQUEST');
-                      setVerificationCodeInput('');
+                      setPasswordChangeStep('KEY');
                       setChangeFeedback(null);
                     }}
                     className="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                   >
-                    ← Renvoyer un code
+                    ← Modifier la clé
                   </button>
                   <button
                     type="submit"
                     disabled={isChanging}
-                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50"
+                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2"
                   >
-                    {isChanging ? 'Validation...' : 'Confirmer & Enregistrer'}
+                    {isChanging ? 'Enregistrement...' : 'Enregistrer le nouveau mot de passe'}
                   </button>
                 </div>
               </form>
