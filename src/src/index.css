@@ -566,7 +566,40 @@
   .phrase-card-amber,
   .phrase-card-emerald,
   .phrase-card-purple {
-    padding: 12px 14px !important;
-    font-size: 0.85rem;
+    padding: 10px 12px !important;
+    font-size: 0.82rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 12px !important;
   }
+
+  .phrase-card-indigo span,
+  .phrase-card-amber span,
+  .phrase-card-emerald span,
+  .phrase-card-purple span {
+    font-size: 0.7rem !important;
+    padding: 3px 8px !important;
+  }
+
+  /* Responsive dark banner in formatted text */
+  div[style*="background:#0b1528"],
+  div[style*="background: #0b1528"] {
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    gap: 6px !important;
+  }
+
+  /* Ensure long words and quotes do not overflow */
+  #outReform, #outModel, .work-example {
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+}
+
+/* Utilities for smooth touch scrollbars without horizontal clipping */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
