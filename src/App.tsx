@@ -236,7 +236,7 @@ export default function App() {
       const data = await res.json();
       if (res.ok && data.success) {
         setPasswordChangeStep('PASSWORDS');
-        setChangeFeedback({ type: 'success', message: 'Identité enseignant validée avec succès ! Vous pouvez maintenant mettre à jour le mot de passe.' });
+        setChangeFeedback({ type: 'success', message: 'Identité direction validée avec succès ! Vous pouvez maintenant mettre à jour le mot de passe.' });
       } else {
         setChangeFeedback({ type: 'error', message: data.message || 'Clé secrète d’habilitation incorrecte.' });
       }
@@ -294,7 +294,7 @@ export default function App() {
         setIsUnlocked(false);
         setPasswordInput('');
         setAuthError('');
-        setAuthNotice('Session verrouillée suite au changement de mot de passe. Le candidat doit introduire le nouveau mot de passe fourni par l’enseignant.');
+        setAuthNotice('Session verrouillée suite au changement de mot de passe. Le candidat doit introduire le nouveau mot de passe fourni par la direction.');
 
         setTimeout(() => {
           setShowChangeModal(false);
@@ -964,7 +964,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <KeyRound className="w-5 h-5 text-amber-400" />
             <div>
-              <h3 className="font-outfit font-bold text-base leading-tight">Sécurité Enseignant</h3>
+              <h3 className="font-outfit font-bold text-base leading-tight">Accès réservé à la direction</h3>
               <span className="text-[11px] text-slate-400 font-medium">
                 {passwordChangeStep === 'KEY' ? 'Étape 1 : Habilitation confidentielle' : 'Étape 2 : Nouveau mot de passe'}
               </span>
@@ -983,13 +983,13 @@ export default function App() {
           </button>
         </div>
 
-        {/* ÉTAPE 1 : HABILITATION PAR CLÉ SECRÈTE ENSEIGNANT */}
+        {/* ÉTAPE 1 : HABILITATION PAR CLÉ SECRÈTE DIRECTION */}
         {passwordChangeStep === 'KEY' ? (
           <form onSubmit={handleVerifyMasterKey} className="p-6 space-y-4">
             <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
               <span className="text-lg">🛡️</span>
               <div>
-                <span className="font-bold block text-sm text-[#b45309]">Habilitation Sécurisée Enseignant</span>
+                <span className="font-bold block text-sm text-[#b45309]">Habilitation Sécurisée Direction</span>
                 <span className="text-[11px] text-amber-900 leading-relaxed block mt-0.5">
                   Saisissez votre <strong>identifiant confidentiel unique</strong> (votre adresse personnelle suivie de 2026). Ce champ est strictement masqué : il ne s'affiche jamais à l'écran et n'est pas mémorisé par le navigateur.
                 </span>
@@ -1076,7 +1076,7 @@ export default function App() {
               <div>
                 <span className="font-bold block text-emerald-900">Habilitation confirmée avec succès !</span>
                 <span className="text-[11px] text-emerald-800">
-                  Veuillez saisir votre mot de passe actuel puis définir votre nouveau mot de passe enseignant.
+                  Veuillez saisir votre mot de passe actuel puis définir votre nouveau mot de passe direction.
                 </span>
               </div>
             </div>
@@ -1250,7 +1250,7 @@ export default function App() {
       {/* BARRE SUPÉRIEURE DISCRÈTE D'ADMINISTRATION & ARCHIVES */}
       <div className="max-w-5xl mx-auto mb-4 flex flex-wrap items-center justify-between gap-3 px-2 no-print">
         <div className="flex items-center gap-2.5">
-          {/* Bouton Mot de passe Enseignant (sert uniquement si le professeur va changer le mot de passe) */}
+          {/* Bouton Accès réservé à la direction (sert uniquement si la direction va changer le mot de passe) */}
           <button
             type="button"
             onClick={() => {
@@ -1263,10 +1263,10 @@ export default function App() {
               setShowChangeModal(true);
             }}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-1.5 rounded-full border border-slate-300 shadow-2xs transition cursor-pointer"
-            title="Réservé au professeur pour modifier le mot de passe"
+            title="Accès réservé à la direction pour modifier le mot de passe"
           >
             <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-            <span>Mot de passe enseignant</span>
+            <span>Accès réservé à la direction</span>
           </button>
 
           {/* Bouton Mot de passe Candidat (sert à introduire le mot de passe actuel) */}
