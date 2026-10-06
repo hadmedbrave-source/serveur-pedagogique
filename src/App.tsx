@@ -696,7 +696,7 @@ export default function App() {
               ${badgeText}
             </span>
           </div>
-          <div style="background:${bgColor}; border-left:5px solid ${borderColor}; border:1px solid ${borderColor}40; border-left-width:5px; border-radius:0 12px 12px 0; padding:16px 20px; color:#1e293b; line-height:2.05; box-shadow:0 1px 3px rgba(0,0,0,0.03); text-align:justify;">
+          <div style="background:${bgColor}; border-left:5px solid ${borderColor}; border:1px solid ${borderColor}40; border-left-width:5px; border-radius:0 12px 12px 0; padding:14px 16px; color:#1e293b; line-height:2.05; box-shadow:0 1px 3px rgba(0,0,0,0.03); text-align:justify; word-break:break-word; overflow-wrap:anywhere;">
             ${content.startsWith('<p>') ? content : `<p>${content}</p>`}
           </div>
         </div>
@@ -1563,8 +1563,8 @@ export default function App() {
     <div className="min-h-screen bg-slate-100/70 text-slate-900 font-sans p-3 sm:p-6 md:p-10 antialiased selection:bg-amber-100 selection:text-amber-900">
       
       {/* BARRE SUPÉRIEURE DISCRÈTE D'ADMINISTRATION & ARCHIVES */}
-      <div className="max-w-5xl mx-auto mb-4 flex flex-wrap items-center justify-between gap-3 px-2 no-print">
-        <div className="flex items-center gap-2.5">
+      <div className="max-w-5xl mx-auto mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 sm:px-2 no-print">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Bouton Accès réservé à la direction (sert uniquement si la direction va changer le mot de passe) */}
           <button
             type="button"
@@ -1577,10 +1577,10 @@ export default function App() {
               setChangeFeedback(null);
               setShowChangeModal(true);
             }}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-1.5 rounded-full border border-slate-300 shadow-2xs transition cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs transition cursor-pointer"
             title="Accès réservé à la direction pour modifier le mot de passe"
           >
-            <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+            <KeyRound className="w-3.5 h-3.5 text-amber-600 shrink-0" />
             <span>Accès réservé à la direction</span>
           </button>
 
@@ -1592,20 +1592,20 @@ export default function App() {
               setCandidateFeedback(null);
               setShowCandidateModal(true);
             }}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-1.5 rounded-full border border-slate-300 shadow-2xs transition cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs transition cursor-pointer"
             title="Introduire le mot de passe actuel"
           >
-            <User className="w-3.5 h-3.5 text-indigo-600" />
+            <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
             <span>Mot de passe candidat</span>
           </button>
         </div>
 
         {/* Boutons d'accès aux 3 boîtes d'œuvres */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <button
             type="button"
             onClick={() => { setSelectedWorkBox('boite'); setViewingArchiveItem(null); }}
-            className="text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-none text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             title="Consulter les productions enregistrées pour La Boîte à Merveilles"
           >
             <span>📦 La Boîte à Merveilles</span>
@@ -1614,7 +1614,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => { setSelectedWorkBox('antigone'); setViewingArchiveItem(null); }}
-            className="text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="flex-1 sm:flex-none text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             title="Consulter les productions enregistrées pour Antigone"
           >
             <span>📜 Antigone</span>
@@ -1623,7 +1623,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => { setSelectedWorkBox('condamne'); setViewingArchiveItem(null); }}
-            className="text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="w-full sm:w-auto text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
             title="Consulter les productions enregistrées pour Le Dernier Jour d'un Condamné"
           >
             <span>⚖️ Le Dernier Jour d'un Condamné</span>
@@ -1644,22 +1644,22 @@ export default function App() {
       )}
 
       {/* CARTE CENTRALE MAÎTRESSE PRESTIGIEUSE (LA MISE EN PAGE ORIGINALE DU CLIENT) */}
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-10 md:p-12 relative overflow-hidden">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200 p-4 sm:p-8 md:p-12 relative overflow-hidden">
         
         {/* Ruban aux couleurs officielles en haut de la carte */}
         <div className="h-2.5 w-full absolute top-0 left-0 bg-gradient-to-r from-[#0b1528] via-[#c5221f] to-[#b45309]"></div>
 
         {/* En-tête officiel prestigieux */}
-        <header className="text-center border-b-2 border-slate-900 pb-7 mb-8 mt-2">
+        <header className="text-center border-b-2 border-slate-900 pb-5 sm:pb-7 mb-6 sm:mb-8 mt-1 sm:mt-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full mb-3">
-            <span className="text-[11px] font-bold tracking-widest uppercase text-amber-800">
+            <span className="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-amber-800">
               Système Officiel d'Évaluation Pédagogique
             </span>
           </div>
-          <h1 className="font-cinzel text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+          <h1 className="font-cinzel text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
             CENTRE <span className="text-[#c5221f]">AL AKHAWAYN</span>
           </h1>
-          <p className="font-outfit uppercase font-extrabold text-xs sm:text-sm text-[#b45309] tracking-[0.25em] mt-2">
+          <p className="font-outfit uppercase font-extrabold text-[11px] sm:text-sm text-[#b45309] tracking-wider sm:tracking-[0.25em] mt-2">
             Expertise & Ingénierie Pédagogique • Excellence Académique
           </p>
         </header>
@@ -1804,7 +1804,7 @@ export default function App() {
         </div>
 
         {/* SECTION DU RAPPORT CERTIFIÉ (RÉVÉLÉE APRÈS TRAITEMENT OU CLIC APERÇU) */}
-        <div id="reportSection" className="mt-12 pt-10 border-t-2 border-slate-900 hidden animate-fade-in relative overflow-hidden bg-white p-6 sm:p-10 rounded-3xl shadow-sm">
+        <div id="reportSection" className="mt-8 sm:mt-12 pt-6 sm:pt-10 border-t-2 border-slate-900 hidden animate-fade-in relative overflow-hidden bg-white p-3.5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl shadow-sm">
           
           {/* Cachet rouge officiel "HORS-SUJET" en diagonale du rapport */}
           {isHorsSujet && (
@@ -2068,7 +2068,7 @@ export default function App() {
                 <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
                   <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 4. Audit Méthodologique & Progression Pédagogique
                 </h3>
-                <div id="outBilan" className="p-6 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed"></div>
+                <div id="outBilan" className="p-4 sm:p-6 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-sm sm:text-base"></div>
               </div>
 
               {/* 5. Optimisation Stylistique (Reformulation) */}
@@ -2081,7 +2081,7 @@ export default function App() {
                     Chirurgie des phrases faibles et réécriture intégrale en français standard soigné (Niveau 1ère Bac). Proscription formelle du registre soutenu artificiel ou boursouflé. Liens logiques en gras et en couleur bleue.
                   </p>
                 </div>
-                <div id="outReform" className="p-6 rounded-xl bg-amber-50/40 border border-amber-200 leading-relaxed"></div>
+                <div id="outReform" className="p-4 sm:p-6 rounded-xl bg-amber-50/40 border border-amber-200 leading-relaxed text-sm sm:text-base"></div>
               </div>
 
               {/* 6. Modèle de Référence Certifié (Norme Al Akhawayn) */}
@@ -2100,12 +2100,12 @@ export default function App() {
                   </div>
                   
                   {/* Sélecteur de plan simple vs dialectique TOUJOURS PRÉSENT et accessible */}
-                  <div id="tabSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs">
+                  <div id="tabSelectors" className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => displayM('A')}
                       id="ts"
-                      className={`tab-trigger px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      className={`tab-trigger px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
                       Option 1 : Plan Thématique (Simple)
                     </button>
@@ -2113,7 +2113,7 @@ export default function App() {
                       type="button"
                       onClick={() => displayM('B')}
                       id="td"
-                      className={`tab-trigger px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      className={`tab-trigger px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
                       Option 2 : Plan Dialectique (Thèse / Antithèse)
                     </button>
@@ -2124,7 +2124,7 @@ export default function App() {
                   <span>Modèles d'excellence certifiés conformes au Cadre de Référence officiel. Structure déclarée, chaque élément identifié par sa couleur (Introduction, Thèse, Antithèse, Synthèse, Conclusion), liens logiques en bleu et exemples précis des œuvres au programme en vert émeraude.</span>
                 </div>
 
-                <div id="outModel" className="p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-base leading-relaxed space-y-4"></div>
+                <div id="outModel" className="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-sm sm:text-base leading-relaxed space-y-4"></div>
               </div>
             </>
           )}
