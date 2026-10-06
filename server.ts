@@ -504,32 +504,36 @@ INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou 
 
 [[REFORMULATION]]
 (OPTIMISATION STYLISTIQUE & CLARTÉ SYNTAXIQUE (Niveau 1ère Année Baccalauréat) :
-ATTENTION RÈGLE CAPITALE SUR LE REGISTRE DE LANGUE :
+RÈGLES D'OR DU REGISTRE DE LANGUE ET DE LONGUEUR DU TEXTE OPTIMISÉ :
 - ÉVITER ABSOLUMENT DE PROPOSER DES FORMULATIONS EN REGISTRE SOUTENU OU ARTIFICIELLEMENT POMPEUSES.
-- L'objectif pour un candidat de 1ère Bac est une écriture claire, naturelle, fluide, accessible et rigoureuse (français standard soigné). Proscrire formellement le vocabulaire archaïque, boursouflé ou pédant.
+- Employer un LANGAGE FORT, PERCUTANT, CLAIR ET ACCESSIBLE (français standard soigné de haute rigueur, adapté à la 1ère Bac). Proscrire formellement le vocabulaire archaïque, précieux, alambiqué ou pédant.
 
 Structure obligatoire de cette section en deux volets indissociables :
 
 ### A. Chirurgie Stylistique des Phrases Clés
 - **Phrase de l'élève n°1 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
   - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, dynamique mais naturelle et accessible, sans registre soutenu artificiel] »*
 - **Phrase de l'élève n°2 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
   - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, dynamique mais naturelle et accessible, sans registre soutenu artificiel] »*
 - **Phrase de l'élève n°3 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
   - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, dynamique mais naturelle et accessible, sans registre soutenu artificiel] »*
 
-### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
-(Rédige l'intégralité de la copie du candidat réécrite du début à la fin dans une langue soignée, fluide, limpide et naturelle, accessible pour un élève du Baccalauréat.
-ATTENTION RÈGLE D'OR SUR LES EXEMPLES TIRÉS DES ŒUVRES :
-- Tu DOIS IMPÉRATIVEMENT MENTIONNER EN GRAS chaque exemple tiré de l'œuvre au programme : **exemple précis tiré de l'œuvre (personnage, événement, citation)** !
-- Les connecteurs logiques doivent être en gras : <strong>connecteur</strong>.
-- L'Introduction doit former un paragraphe autonome.
-- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre en gras). Sépare chaque paragraphe par un saut de ligne net (\n\n) et commence-le par un alinéa et un connecteur logique (*En premier lieu...*, *En second lieu...*, *Cependant...*).
-- La Conclusion doit former un paragraphe autonome.
-Préserve fidèlement tous les arguments et exemples du candidat, en assurant une parfaite fluidité sans emphase excessive.)
+### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
+(Rédige l'intégralité de la copie du candidat réécrite et optimisée du début à la fin.
+RÈGLE D'OR DE LONGUEUR FORMELLE :
+- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Un texte court ou condensé est strictement rejeté.
+- EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE :
+  Si une œuvre au programme est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), TU DOIS OBLIGATOIREMENT insérer des exemples précis, concrets et développés tirés de l'œuvre (personnages, scènes, citations, péripéties) et CHAQUE EXEMPLE DOIT ÊTRE MIS EN GRAS : **exemple précis tiré de l'œuvre**.
+- LIENS LOGIQUES PUISSANTS :
+  Structure l'essai avec des connecteurs logiques forts (En premier lieu, En second lieu, D'une part, D'autre part, En effet, Dès lors, Néanmoins, Cependant, Par conséquent, En somme, En définitive...) qui ouvrent et relient chaque paragraphe, et doivent être en gras : <strong>connecteur</strong>.
+- LANGAGE FORT SANS REGISTRE SOUTENU :
+  Une langue forte, persuasive et solide, sans afféterie, sans formules précieuses ou pompeuses.
+- L'Introduction doit former un paragraphe autonome (au moins 4-5 lignes).
+- LE DÉVELOPPEMENT DOIT COMPORTER AU MOINS 2 OU 3 GRANDS PARAGRAPHES TRÈS SUBSTANTIELS (au moins 5 à 6 lignes chacun), chaque paragraphe développant 1 argument fort avec 1 exemple précis de l'œuvre en gras.
+- La Conclusion doit former un paragraphe autonome (au moins 3-4 lignes).)
 
 [[TYPE]]
 (Détermine la nature exacte du sujet :
@@ -537,9 +541,9 @@ Préserve fidèlement tous les arguments et exemples du candidat, en assurant un
 - Si le sujet demande d'analyser un phénomène de société à travers ses causes, ses conséquences et ses solutions : écris uniquement "ANALYTIQUE")
 
 [[PLAN_A]]
-(Modèle de référence selon le plan détecté.
+(OPTION 1 : MODÈLE RÉDIGÉ SELON LE PLAN SIMPLE (Plan Thématique ou Analytique selon le sujet).
 RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
-- EXIGENCE DE LONGUEUR FORMELLE : Le modèle rédigé DOIT IMPÉRATIVEMENT FAIRE AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Un texte court de moins de 18 lignes est strictement inadmissible.
+- EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Tout texte court ou incomplet est strictement inadmissible.
 - AMORCE DE L'INTRODUCTION OBLIGATOIRE :
   Quand le sujet mentionne une œuvre intégrale (ou un thème littéraire), COMMENCER L'INTRODUCTION PAR LA FORMULE D'IMMERSION ATTENTIVE :
   « Quand on plonge dans la lecture attentive du roman [Titre du roman] de [Auteur], on se rend compte que [problématique et tension du sujet]... »
@@ -548,13 +552,17 @@ RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
   * Pour Le Dernier Jour d'un Condamné : « Quand on plonge dans la lecture attentive du roman à thèse Le Dernier Jour d'un Condamné de Victor Hugo, on se rend compte que... »
   * Pour Antigone : « Quand on plonge dans la lecture attentive de la tragédie moderne Antigone de Jean Anouilh, on se rend compte que... »
   * Pour un thème général : « Quand on plonge dans la lecture attentive des œuvres littéraires au programme, on se rend compte que... »)
-- VEILLER À LA COHÉRENCE PARFAITE DE L'INTRODUCTION EN ENTONNOIR :
+- COHÉRENCE PARFAITE EN ENTONNOIR DE L'INTRODUCTION (4 à 5 lignes) :
   1. Amorce attentive avec cette formule
   2. Tension et reformulation du sujet sans rupture logique
   3. Problématique nette et directrice
   4. Annonce fluide et symétrique des axes du plan
 - STRUCTURE DU DÉVELOPPEMENT :
-  Au moins 2 ou 3 grands paragraphes très substantiels (au moins 5 à 6 lignes chacun), avec connecteurs logiques en gras (<strong>En premier lieu</strong>, <strong>En second lieu</strong>, etc.), chacun contenant un argument approfondi, une analyse fine et un exemple développé issu de l'œuvre au programme en gras.
+  Au moins 2 ou 3 grands paragraphes très substantiels (au moins 5 à 6 lignes chacun) :
+  - Chaque paragraphe commence par un LIEN LOGIQUE PUISSANT en gras (<strong>En premier lieu</strong>, <strong>En second lieu</strong>, <strong>Par ailleurs</strong>, etc.).
+  - Chaque paragraphe intègre OBLIGATOIREMENT un EXEMPLE PRÉCIS ET DÉVELOPPÉ issu de l'œuvre au programme mentionnée dans le sujet (ou au programme), MIS EN GRAS : **exemple précis tiré de l'œuvre**.
+- LANGAGE FORT SANS REGISTRE SOUTENU :
+  Un langage fort, rigoureux, convaincant et percutant, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL (bannir l'emphase ridicule, le vocabulaire pompeux ou les formules absconses ; privilégier un français standard soigné de haut niveau).
 - CONCLUSION :
   Un paragraphe de 3 à 4 lignes avec bilan synthétique et ouverture stimulante.
 - BALISAGE CHROMATIQUE :
@@ -563,22 +571,35 @@ RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
   - Le second axe dans <div class="model-axe2"><p>...</p></div>
   - La conclusion dans <div class="model-concl"><p>...</p></div>
   - Les liens logiques en gras : <strong>lien logique</strong>.
+  - Les exemples de l'œuvre en gras : <strong>exemple précis de l'œuvre</strong> ou **exemple précis**.
   - Ne JAMAIS écrire d'étiquette scolaire comme "Introduction :" ou "I. Thèse".)
 
 [[PLAN_B]]
-(Si TYPE est OPINION :
-Propose le modèle rédigé selon le PLAN DIALECTIQUE.
-Même règle stricte : AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ.
-Introduction commençant par la formule d'immersion attentive « Quand on plonge dans la lecture attentive... ».
-Thèse, Antithèse et Synthèse substantielles avec exemples précis des œuvres en gras.
-Conclusion complète.
-- L'introduction dans <div class="model-intro"><p>...</p></div>
-- Le premier axe (Thèse) dans <div class="model-axe1"><p>...</p></div>
-- Le second axe (Antithèse) dans <div class="model-axe2"><p>...</p></div>
-- Le troisième axe (Synthèse) dans <div class="model-axe3"><p>...</p></div>
-- La conclusion dans <div class="model-concl"><p>...</p></div>
-- Les liens logiques en gras : <strong>lien logique</strong>.
-Si TYPE est ANALYTIQUE : laisser ce bloc entièrement vide.)`;
+(OPTION 2 : MODÈLE RÉDIGÉ SELON LE PLAN DIALECTIQUE (Thèse / Antithèse / Synthèse).
+OBLIGATION ABSOLUE : CE BLOC DOIT TOUJOURS ÊTRE ENTIÈREMENT RÉDIGÉ POUR TOUS LES SUJETS (ne JAMAIS le laisser vide) ! Même si le sujet est analytique, proposer une analyse dialectique des points de vue opposés puis de leur conciliation.
+- EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total).
+- AMORCE DE L'INTRODUCTION OBLIGATOIRE :
+  Commencer l'introduction par la formule d'immersion attentive « Quand on plonge dans la lecture attentive... ».
+- STRUCTURE DU PLAN DIALECTIQUE :
+  1. Introduction complète en entonnoir (4 à 5 lignes)
+  2. Premier axe : Thèse (au moins 5 lignes)
+  3. Second axe : Antithèse (au moins 5 lignes)
+  4. Troisième axe : Synthèse critique ou dépassement (au moins 4 lignes)
+  5. Conclusion équilibrée avec ouverture (3 à 4 lignes)
+- EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE :
+  Si une œuvre est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), insère OBLIGATOIREMENT des exemples précis, vivants et détaillés tirés de l'œuvre en gras (**exemple de l'œuvre**) dans chaque axe du développement.
+- LIENS LOGIQUES PUISSANTS :
+  Connecteurs logiques forts en gras (<strong>D'une part</strong>, <strong>D'autre part</strong>, <strong>Néanmoins</strong>, <strong>Dès lors</strong>, <strong>En somme</strong>, <strong>En définitive</strong>...).
+- LANGAGE FORT SANS REGISTRE SOUTENU :
+  Un style vigoureux, solide et percutant, sans jargon prétentieux ni tournures précieuses.
+- BALISAGE CHROMATIQUE :
+  - L'introduction dans <div class="model-intro"><p>...</p></div>
+  - Le premier axe (Thèse) dans <div class="model-axe1"><p>...</p></div>
+  - Le second axe (Antithèse) dans <div class="model-axe2"><p>...</p></div>
+  - Le troisième axe (Synthèse) dans <div class="model-axe3"><p>...</p></div>
+  - La conclusion dans <div class="model-concl"><p>...</p></div>
+  - Les liens logiques en gras : <strong>lien logique</strong>.
+  - Les exemples tirés de l'œuvre en gras : <strong>exemple précis de l'œuvre</strong>.)`;
 
 app.post('/api/chat', async (req, res) => {
   const { prompt, nom, filiere, sujet, texte, password } = req.body;
@@ -608,7 +629,13 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
    - Les liens logiques et connecteurs en gras : <strong>lien logique</strong>
    Ne mets AUCUNE balise d'avertissement.
 2. Dans [[BILAN]], [[TABLEAU]] et [[REFORMULATION]], traite EXCLUSIVEMENT ET DIRECTEMENT les phrases réelles, les arguments et les erreurs de la copie ci-dessus.
-3. Dans [[PLAN_A]] et [[PLAN_B]], propose des modèles rédigés de haute facture littéraire portant DIRECTEMENT ET STRICTEMENT sur le sujet : "${sujet}". Interdiction formelle d'ajouter des titres mécaniques ("Introduction...", "I. Causes...", etc.). Rédige l'essai en paragraphes fluides.`
+   - Dans [[REFORMULATION]] Volet B (Texte Intégral Réécrit - Version Continue) : Rédige le texte optimisé d'AU MOINS 18 LIGNES rédigées, structuré avec des liens logiques puissants en gras, un langage fort sans registre soutenu artificiel, et des exemples en gras tirés de l'œuvre si elle est mentionnée dans le sujet.
+3. Dans [[PLAN_A]] (Option 1 : Plan Simple) et [[PLAN_B]] (Option 2 : Plan Dialectique) :
+   - EXIGENCE DE LONGUEUR FORMELLE : CHACUNE DES DEUX OPTIONS DOIT IMPÉRATIVEMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total). Ne jamais abréger ni laisser vide !
+   - EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE : Si une œuvre est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), insère OBLIGATOIREMENT des exemples précis tirés de l'œuvre en gras (**exemple précis**).
+   - LIENS LOGIQUES PUISSANTS : Articule chaque paragraphe avec des connecteurs logiques forts en gras (<strong>connecteur</strong>).
+   - LANGAGE FORT SANS REGISTRE SOUTENU : Utilise un langage fort, percutant et argumenté, sans jamais employer un registre soutenu artificiel, pompeux ou précieux.
+   - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.`
     : prompt;
 
   const offTopicDetected = isCandidateTextOffTopic(sujet || '', texte || '');
@@ -779,14 +806,14 @@ ${highlightedCopy || `<p>${rawCopy}</p>`}
   - **Reformulation claire et naturelle (Niveau 1ère Bac) :**
     > *« Dès lors, la réflexion s'appuie sur des exemples concrets pour rendre l'argumentation plus convaincante et accessible. »*
 
-### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
-> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme**, on se rend compte que la réflexion autour de « ${topic.slice(0, 70)} » s'impose comme un carrefour éthique et humain fondamental. Dès lors, il convient d'en examiner les fondements avec rigueur afin de dégager les principes directeurs d'une conscience éclairée et mature.
+### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
+> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur même de la condition humaine. En effet, la confrontation entre les aspirations personnelles et les devoirs envers autrui fait naître des interrogations déterminantes pour chaque conscience en formation. Dès lors, convient-il de s'abandonner aux avis dominants ou importe-t-il d'affirmer un jugement éclairé et rigoureux ? Pour répondre à cette question essentielle, il convient d'analyser dans un premier axe les exigences de l'authenticité intérieure, avant d'envisager dans un second axe la force irremplaçable de la solidarité.
 
-> **En premier lieu**, l'examen attentif de la condition humaine révèle que toute prise de position engage la lucidité individuelle. À l'instar de **l'expérience solitaire de Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui**, l'individu se doit d'affirmer son discernement et de préserver son authenticité face aux pressions extérieures et aux conformismes du groupe.
+> **En premier lieu**, la préservation de son libre arbitre permet à l'être de résister aux facilités trompeuses de la conformité aveugle. C'est précisément la leçon émouvante qui se dégage du parcours de **Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui** : confronté à la solitude et aux querelles mesquines de **Dar Chouafa**, l'enfant trouve dans son univers intime et sa boîte un refuge préservé qui sauvegarde la pureté de son regard. De même, **l'héroïne Antigone de Jean Anouilh** démontre avec une force saisissante que refuser la compromission face aux décrets injustes de **Créon** constitue le fondement même de la dignité morale. Ainsi, la fidélité à ses principes forge une personnalité droite et courageuse.
 
-> **En second lieu**, cette quête de vérité exige une constance morale inébranlable. Loin des compromissions faciles, comme l'illustre **le combat sans concession mené par Antigone face à Créon chez Jean Anouilh**, le refus de la soumission fonde la dignité du sujet pensant. De surcroît, **le vibrant plaidoyer de Victor Hugo dans Le Dernier Jour d'un Condamné** rappelle avec gravité que la justice authentique ne saurait bafouer la dignité inhérente à chaque être humain.
+> **En second lieu**, cette indispensable liberté de penser ne saurait toutefois se transformer en un repli égoïste qui ignorerait la douleur d'autrui et la nécessité de l'entraide. Comme le proclame avec une intensité poignante **Victor Hugo dans Le Dernier Jour d'un Condamné**, la souffrance d'un homme jeté dans l'angoisse de **Bicêtre** et promis à **la guillotine** rappelle que la justice authentique ne peut jamais sacrifier la vie et la compassion. Par ailleurs, le sacrifice de **Maâlem Abdeslam**, partant travailler aux moissons pour restaurer l'honneur de son foyer aux côtés de **Lalla Zoubida**, témoigne de ce que l'amour et la responsabilité partagée donnent son véritable sens à la vie humaine.
 
-> **En définitive**, la portée universelle de ce sujet transcende les clivages éphémères pour rappeler que la véritable sagesse réside dans l'accord harmonieux entre fidélité à ses convictions et respect des liens communautaires.
+> **En définitive**, ce parcours réflexif démontre que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité de cœur. Loin de s'exclure, la force de conviction et l'attention fraternelle se complètent pour bâtir une société équilibrée et solidaire. Ne revient-il pas dès lors à chacun d'assumer ce devoir d'exigence et de bienveillance au quotidien ?
 
 [[TYPE]]
 ${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
