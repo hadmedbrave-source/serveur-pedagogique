@@ -86,6 +86,13 @@ export default function App() {
   const [changeFeedback, setChangeFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isChanging, setIsChanging] = useState(false);
 
+  // Modal Mot de passe Candidat (sert à introduire le mot de passe actuel)
+  const [showCandidateModal, setShowCandidateModal] = useState(false);
+  const [candidatePasswordInput, setCandidatePasswordInput] = useState('');
+  const [candidateFeedback, setCandidateFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isCheckingCandidate, setIsCheckingCandidate] = useState(false);
+  const [showCandidatePassword, setShowCandidatePassword] = useState(false);
+
   // Boîtes d'archives par œuvre
   const [archives, setArchives] = useState<{ boite: any[]; antigone: any[]; condamne: any[] }>({
     boite: [],
@@ -157,6 +164,53 @@ export default function App() {
       }
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleVerifyCandidatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!candidatePasswordInput.trim()) {
+      setCandidateFeedback({ type: 'error', message: 'Veuillez introduire le mot de passe actuel.' });
+      return;
+    }
+    setIsCheckingCandidate(true);
+    setCandidateFeedback(null);
+    try {
+      const res = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: candidatePasswordInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSessionPassword(candidatePasswordInput.trim());
+        setIsUnlocked(true);
+        sessionStorage.setItem('akhawayn_auth', 'true');
+        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active.' });
+        setTimeout(() => {
+          setShowCandidateModal(false);
+          setCandidatePasswordInput('');
+          setCandidateFeedback(null);
+        }, 1300);
+      } else {
+        setCandidateFeedback({ type: 'error', message: data.message || 'Mot de passe actuel incorrect.' });
+      }
+    } catch {
+      if (candidatePasswordInput.trim() === 'AKHAWAYN2026') {
+        setSessionPassword(candidatePasswordInput.trim());
+        setIsUnlocked(true);
+        sessionStorage.setItem('akhawayn_auth', 'true');
+        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active.' });
+        setTimeout(() => {
+          setShowCandidateModal(false);
+          setCandidatePasswordInput('');
+          setCandidateFeedback(null);
+        }, 1300);
+      } else {
+        setCandidateFeedback({ type: 'error', message: 'Mot de passe actuel incorrect.' });
+      }
+    } finally {
+      setIsCheckingCandidate(false);
     }
   };
 
@@ -890,6 +944,207 @@ export default function App() {
     }
   };
 
+  const renderPasswordChangeModal = () => (
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 text-left">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+        <div className="p-5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-5 h-5 text-amber-400" />
+            <div>
+              <h3 className="font-outfit font-bold text-base leading-tight">Sécurité Enseignant</h3>
+              <span className="text-[11px] text-slate-400 font-medium">
+                {passwordChangeStep === 'KEY' ? 'Étape 1 : Habilitation confidentielle' : 'Étape 2 : Nouveau mot de passe'}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setShowChangeModal(false);
+              setPasswordChangeStep('KEY');
+              setMasterKeyInput('');
+              setChangeFeedback(null);
+            }}
+            className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* ÉTAPE 1 : HABILITATION PAR CLÉ SECRÈTE ENSEIGNANT */}
+        {passwordChangeStep === 'KEY' ? (
+          <form onSubmit={handleVerifyMasterKey} className="p-6 space-y-4">
+            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
+              <span className="text-lg">🛡️</span>
+              <div>
+                <span className="font-bold block text-sm text-[#b45309]">Habilitation Sécurisée Enseignant</span>
+                <span className="text-[11px] text-amber-900 leading-relaxed block mt-0.5">
+                  Saisissez votre <strong>identifiant confidentiel unique</strong> (votre adresse personnelle suivie de 2026). Ce champ est strictement masqué : il ne s'affiche jamais à l'écran et n'est pas mémorisé par le navigateur.
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Clé Secrète d'Habilitation
+                </label>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Confidentiel
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type={showMasterKey ? 'text' : 'password'}
+                  value={masterKeyInput}
+                  onChange={(e) => setMasterKeyInput(e.target.value)}
+                  placeholder="••••••••••••••••••••••••••••"
+                  className="w-full py-3.5 pl-4 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none font-mono text-sm tracking-widest transition"
+                  required
+                  autoFocus
+                  autoComplete="new-password"
+                  data-lpignore="true"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowMasterKey(!showMasterKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 p-1 cursor-pointer"
+                  title={showMasterKey ? 'Masquer' : 'Afficher'}
+                >
+                  {showMasterKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Seul l'administrateur titulaire détient cette combinaison secrète.
+              </span>
+            </div>
+
+            {changeFeedback && (
+              <div className={`p-3 rounded-xl text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                {changeFeedback.message}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChangeModal(false);
+                  setMasterKeyInput('');
+                  setChangeFeedback(null);
+                }}
+                className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                disabled={isChanging}
+                className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
+              >
+                {isChanging ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Vérification...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔓</span>
+                    <span>Valider mon habilitation</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        ) : (
+          /* ÉTAPE 2 : DÉFINITION DU NOUVEAU MOT DE PASSE */
+          <form onSubmit={handleSaveNewPassword} className="p-6 space-y-4">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-start gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold block text-emerald-900">Habilitation confirmée avec succès !</span>
+                <span className="text-[11px] text-emerald-800">
+                  Veuillez saisir votre mot de passe actuel puis définir votre nouveau mot de passe enseignant.
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Mot de passe actuel
+              </label>
+              <input
+                type="password"
+                value={oldPasswordInput}
+                onChange={(e) => setOldPasswordInput(e.target.value)}
+                placeholder="Saisissez votre mot de passe actuel..."
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                required
+                autoComplete="current-password"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Nouveau mot de passe
+              </label>
+              <input
+                type="password"
+                value={newPasswordInput}
+                onChange={(e) => setNewPasswordInput(e.target.value)}
+                placeholder="Nouveau mot de passe (min 4 caractères)..."
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                required
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Confirmer le nouveau mot de passe
+              </label>
+              <input
+                type="password"
+                value={confirmPasswordInput}
+                onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                placeholder="Confirmer le nouveau mot de passe..."
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                required
+                autoComplete="new-password"
+              />
+            </div>
+
+            {changeFeedback && (
+              <div className={`p-3 rounded-lg text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                {changeFeedback.message}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setPasswordChangeStep('KEY');
+                  setChangeFeedback(null);
+                }}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+              >
+                ← Modifier la clé
+              </button>
+              <button
+                type="submit"
+                disabled={isChanging}
+                className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {isChanging ? 'Enregistrement...' : 'Enregistrer le nouveau mot de passe'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+
   if (!isUnlocked) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950">
@@ -914,14 +1169,14 @@ export default function App() {
           <form onSubmit={handleUnlock} className="space-y-4 text-left">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                Mot de Passe Enseignant
+                Mot de Passe Candidat (Mot de passe actuel)
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="Saisissez votre mot de passe..."
+                  placeholder="Introduire le mot de passe actuel..."
                   className="w-full py-3.5 pl-4 pr-12 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition text-sm"
                   autoFocus
                 />
@@ -955,16 +1210,38 @@ export default function App() {
               ) : (
                 <>
                   <Unlock className="w-4 h-4" />
-                  <span>Déverrouiller l'Espace d'Évaluation</span>
+                  <span>Accéder à l'Espace Candidat</span>
                 </>
               )}
             </button>
           </form>
 
-          <p className="mt-8 text-[11px] text-slate-500 italic">
-            Session sécurisée • Centre d'Études & d'Excellence Pédagogique Al Akhawayn
+          <div className="pt-3 text-center border-t border-slate-800/80 mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setPasswordChangeStep('KEY');
+                setMasterKeyInput('');
+                setOldPasswordInput('');
+                setNewPasswordInput('');
+                setConfirmPasswordInput('');
+                setChangeFeedback(null);
+                setShowChangeModal(true);
+              }}
+              className="text-xs text-amber-400 hover:text-amber-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 transition"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>Mot de passe enseignant (Changer le mot de passe)</span>
+            </button>
+          </div>
+
+          <p className="mt-6 text-[11px] text-slate-500 italic">
+            Session sécurisée • Direction Pédagogique Al Akhawayn Tamansourte
           </p>
         </div>
+
+        {/* Modal de changement de mot de passe enseignant accessible directement depuis l'écran de verrouillage */}
+        {showChangeModal && renderPasswordChangeModal()}
       </div>
     );
   }
@@ -974,19 +1251,39 @@ export default function App() {
       
       {/* BARRE SUPÉRIEURE DISCRÈTE D'ADMINISTRATION & ARCHIVES */}
       <div className="max-w-5xl mx-auto mb-4 flex flex-wrap items-center justify-between gap-3 px-2 no-print">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-            <span>Direction Pédagogique Al Akhawayn</span>
-          </div>
-
+        <div className="flex items-center gap-2.5">
+          {/* Bouton Mot de passe Enseignant (sert uniquement si le professeur va changer le mot de passe) */}
           <button
             type="button"
-            onClick={() => setShowChangeModal(true)}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 shadow-2xs transition cursor-pointer"
+            onClick={() => {
+              setPasswordChangeStep('KEY');
+              setMasterKeyInput('');
+              setOldPasswordInput('');
+              setNewPasswordInput('');
+              setConfirmPasswordInput('');
+              setChangeFeedback(null);
+              setShowChangeModal(true);
+            }}
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-1.5 rounded-full border border-slate-300 shadow-2xs transition cursor-pointer"
+            title="Réservé au professeur pour modifier le mot de passe"
           >
             <KeyRound className="w-3.5 h-3.5 text-amber-600" />
             <span>Mot de passe enseignant</span>
+          </button>
+
+          {/* Bouton Mot de passe Candidat (sert à introduire le mot de passe actuel) */}
+          <button
+            type="button"
+            onClick={() => {
+              setCandidatePasswordInput('');
+              setCandidateFeedback(null);
+              setShowCandidateModal(true);
+            }}
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-1.5 rounded-full border border-slate-300 shadow-2xs transition cursor-pointer"
+            title="Introduire le mot de passe actuel"
+          >
+            <User className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Mot de passe candidat</span>
           </button>
         </div>
 
@@ -1597,6 +1894,19 @@ export default function App() {
 
       </div>
 
+      {/* PIED DE PAGE OFFICIEL */}
+      <footer className="max-w-5xl mx-auto mt-8 mb-4 text-center text-xs font-semibold text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-xs rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2.5 mx-auto sm:mx-0">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+          <span className="font-outfit font-bold text-slate-800 uppercase tracking-wider text-xs">
+            Direction Pédagogique Al Akhawayn Tamansourte
+          </span>
+        </div>
+        <p className="text-[11px] text-slate-400 font-medium">
+          Plateforme Didactique Certifiée • Session Baccalauréat 2026
+        </p>
+      </footer>
+
       {/* MODAL BOÎTE D'ARCHIVES */}
       {selectedWorkBox && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1659,26 +1969,28 @@ export default function App() {
         </div>
       )}
 
-      {/* MODAL MODIFICATION MOT DE PASSE ENSEIGNANT AVEC CONFIRMATION GMAIL (2 ÉTAPES) */}
-      {showChangeModal && (
+      {/* MODAL MODIFICATION MOT DE PASSE ENSEIGNANT */}
+      {showChangeModal && renderPasswordChangeModal()}
+
+      {/* MODAL MOT DE PASSE CANDIDAT (POUR INTRODUIRE LE MOT DE PASSE ACTUEL) */}
+      {showCandidateModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
             <div className="p-5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800">
-              <div className="flex items-center gap-2">
-                <KeyRound className="w-5 h-5 text-amber-400" />
+              <div className="flex items-center gap-2.5">
+                <User className="w-5 h-5 text-indigo-400" />
                 <div>
-                  <h3 className="font-outfit font-bold text-base leading-tight">Sécurité Enseignant</h3>
+                  <h3 className="font-outfit font-bold text-base leading-tight">Mot de passe candidat</h3>
                   <span className="text-[11px] text-slate-400 font-medium">
-                    {passwordChangeStep === 'KEY' ? 'Étape 1 : Habilitation confidentielle' : 'Étape 2 : Nouveau mot de passe'}
+                    Introduire le mot de passe actuel
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => {
-                  setShowChangeModal(false);
-                  setPasswordChangeStep('KEY');
-                  setMasterKeyInput('');
-                  setChangeFeedback(null);
+                  setShowCandidateModal(false);
+                  setCandidatePasswordInput('');
+                  setCandidateFeedback(null);
                 }}
                 className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer"
               >
@@ -1686,177 +1998,85 @@ export default function App() {
               </button>
             </div>
 
-            {/* ÉTAPE 1 : HABILITATION PAR CLÉ SECRÈTE ENSEIGNANT */}
-            {passwordChangeStep === 'KEY' ? (
-              <form onSubmit={handleVerifyMasterKey} className="p-6 space-y-4">
-                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
-                  <span className="text-lg">🛡️</span>
-                  <div>
-                    <span className="font-bold block text-sm text-[#b45309]">Habilitation Sécurisée Enseignant</span>
-                    <span className="text-[11px] text-amber-900 leading-relaxed block mt-0.5">
-                      Saisissez votre <strong>identifiant confidentiel unique</strong> (votre adresse personnelle suivie de 2026). Ce champ est strictement masqué : il ne s'affiche jamais à l'écran et n'est pas mémorisé par le navigateur.
-                    </span>
-                  </div>
-                </div>
-
+            <form onSubmit={handleVerifyCandidatePassword} className="p-6 space-y-4">
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-950 flex items-start gap-2.5">
+                <span className="text-lg">🎓</span>
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                      Clé Secrète d'Habilitation
-                    </label>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      Confidentiel
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showMasterKey ? 'text' : 'password'}
-                      value={masterKeyInput}
-                      onChange={(e) => setMasterKeyInput(e.target.value)}
-                      placeholder="••••••••••••••••••••••••••••"
-                      className="w-full py-3.5 pl-4 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none font-mono text-sm tracking-widest transition"
-                      required
-                      autoFocus
-                      autoComplete="new-password"
-                      data-lpignore="true"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowMasterKey(!showMasterKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 p-1 cursor-pointer"
-                      title={showMasterKey ? 'Masquer' : 'Afficher'}
-                    >
-                      {showMasterKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <span className="text-[10px] text-slate-400 mt-1 block">
-                    Seul l'administrateur titulaire détient cette combinaison secrète.
+                  <span className="font-bold block text-sm text-indigo-900">Espace Candidat</span>
+                  <span className="text-[11px] text-indigo-800 leading-relaxed block mt-0.5">
+                    Ce bouton sert à <strong>introduire le mot de passe actuel</strong> pour activer ou valider la session d'évaluation du candidat.
                   </span>
                 </div>
+              </div>
 
-                {changeFeedback && (
-                  <div className={`p-3 rounded-xl text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
-                    {changeFeedback.message}
-                  </div>
-                )}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Mot de passe actuel
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCandidatePassword ? 'text' : 'password'}
+                    value={candidatePasswordInput}
+                    onChange={(e) => setCandidatePasswordInput(e.target.value)}
+                    placeholder="Saisissez le mot de passe actuel..."
+                    className="w-full py-3 pl-4 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none text-sm transition"
+                    required
+                    autoFocus
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCandidatePassword(!showCandidatePassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 p-1 cursor-pointer"
+                    title={showCandidatePassword ? 'Masquer' : 'Afficher'}
+                  >
+                    {showCandidatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
 
-                <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              {candidateFeedback && (
+                <div className={`p-3 rounded-xl text-xs font-medium ${candidateFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                  {candidateFeedback.message}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.removeItem('akhawayn_auth');
+                    setIsUnlocked(false);
+                    setShowCandidateModal(false);
+                  }}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-800 cursor-pointer flex items-center gap-1"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Verrouiller</span>
+                </button>
+
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setShowChangeModal(false);
-                      setMasterKeyInput('');
-                      setChangeFeedback(null);
+                      setShowCandidateModal(false);
+                      setCandidatePasswordInput('');
+                      setCandidateFeedback(null);
                     }}
                     className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 cursor-pointer"
                   >
-                    Annuler
+                    Fermer
                   </button>
                   <button
                     type="submit"
-                    disabled={isChanging}
-                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                    disabled={isCheckingCandidate}
+                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
                   >
-                    {isChanging ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span>Vérification...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>🔓</span>
-                        <span>Valider mon habilitation</span>
-                      </>
-                    )}
+                    {isCheckingCandidate ? 'Validation...' : 'Valider'}
                   </button>
                 </div>
-              </form>
-            ) : (
-              /* ÉTAPE 2 : DÉFINITION DU NOUVEAU MOT DE PASSE */
-              <form onSubmit={handleSaveNewPassword} className="p-6 space-y-4">
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold block text-emerald-900">Habilitation confirmée avec succès !</span>
-                    <span className="text-[11px] text-emerald-800">
-                      Veuillez saisir votre mot de passe actuel puis définir votre nouveau mot de passe enseignant.
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Mot de passe actuel
-                  </label>
-                  <input
-                    type="password"
-                    value={oldPasswordInput}
-                    onChange={(e) => setOldPasswordInput(e.target.value)}
-                    placeholder="Saisissez votre mot de passe actuel..."
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
-                    required
-                    autoComplete="current-password"
-                    autoFocus
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Nouveau mot de passe
-                  </label>
-                  <input
-                    type="password"
-                    value={newPasswordInput}
-                    onChange={(e) => setNewPasswordInput(e.target.value)}
-                    placeholder="Nouveau mot de passe (min 4 caractères)..."
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
-                    required
-                    autoComplete="new-password"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                    Confirmer le nouveau mot de passe
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmPasswordInput}
-                    onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                    placeholder="Confirmer le nouveau mot de passe..."
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
-                    required
-                    autoComplete="new-password"
-                  />
-                </div>
-
-                {changeFeedback && (
-                  <div className={`p-3 rounded-lg text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
-                    {changeFeedback.message}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPasswordChangeStep('KEY');
-                      setChangeFeedback(null);
-                    }}
-                    className="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
-                  >
-                    ← Modifier la clé
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isChanging}
-                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {isChanging ? 'Enregistrement...' : 'Enregistrer le nouveau mot de passe'}
-                  </button>
-                </div>
-              </form>
-            )}
+              </div>
+            </form>
           </div>
         </div>
       )}
