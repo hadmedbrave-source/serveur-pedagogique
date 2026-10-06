@@ -83,7 +83,6 @@ export default function App() {
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
   const [verificationCodeInput, setVerificationCodeInput] = useState('');
-  const [devCodeHint, setDevCodeHint] = useState<string | null>(null);
   const [changeFeedback, setChangeFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isChanging, setIsChanging] = useState(false);
 
@@ -155,7 +154,6 @@ export default function App() {
   const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setChangeFeedback(null);
-    setDevCodeHint(null);
 
     const emailTrim = professorEmailInput.trim().toLowerCase();
     if (!emailTrim || !oldPasswordInput.trim()) {
@@ -186,11 +184,8 @@ export default function App() {
         setPasswordChangeStep('VERIFY');
         setChangeFeedback({
           type: 'success',
-          message: data.message || 'Un code de confirmation a été transmis à votre adresse Gmail.',
+          message: data.message || 'Un code de confirmation sécurisé a été transmis directement à votre boîte Gmail.',
         });
-        if (data.verificationCode) {
-          setDevCodeHint(data.verificationCode);
-        }
       } else {
         setChangeFeedback({ type: 'error', message: data.message || 'Vérification impossible.' });
       }
@@ -241,7 +236,6 @@ export default function App() {
         setConfirmPasswordInput('');
         setVerificationCodeInput('');
         setProfessorEmailInput('');
-        setDevCodeHint(null);
         setTimeout(() => {
           setShowChangeModal(false);
           setPasswordChangeStep('REQUEST');
@@ -1691,7 +1685,6 @@ export default function App() {
                   setShowChangeModal(false);
                   setPasswordChangeStep('REQUEST');
                   setChangeFeedback(null);
-                  setDevCodeHint(null);
                 }}
                 className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer"
               >
@@ -1784,13 +1777,6 @@ export default function App() {
                     </span>
                   </div>
                 </div>
-
-                {devCodeHint && (
-                  <div className="p-2.5 bg-slate-100 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex items-center justify-between">
-                    <span className="font-semibold">Code de validation généré :</span>
-                    <span className="font-mono font-black text-amber-800 bg-white px-2 py-0.5 rounded border border-slate-300 tracking-widest">{devCodeHint}</span>
-                  </div>
-                )}
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
