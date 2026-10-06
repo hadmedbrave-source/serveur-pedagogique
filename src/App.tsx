@@ -58,15 +58,34 @@ export default function App() {
   }, [texte]);
 
   // Authentification Enseignant & Candidat (mémorisée en continu dans le navigateur de l'élève)
-  const [isUnlocked, setIsUnlocked] = useState(() => {
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('akhawayn_auth') === 'true' || sessionStorage.getItem('akhawayn_auth') === 'true';
+      const auth = localStorage.getItem('akhawayn_auth');
+      const pwd = localStorage.getItem('akhawayn_pwd');
+      const sessAuth = sessionStorage.getItem('akhawayn_auth');
+      // Si l'élève est déjà authentifié ou possède un mot de passe stocké dans le navigateur
+      if (auth === 'true' || sessAuth === 'true' || (typeof pwd === 'string' && pwd.trim().length >= 4)) {
+        return true;
+      }
     } catch {
       return false;
     }
+    return false;
   });
-  const [sessionPassword, setSessionPassword] = useState(() => localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026');
-  const [passwordInput, setPasswordInput] = useState('');
+  const [sessionPassword, setSessionPassword] = useState(() => {
+    try {
+      return localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026';
+    } catch {
+      return 'AKHAWAYN2026';
+    }
+  });
+  const [passwordInput, setPasswordInput] = useState(() => {
+    try {
+      return localStorage.getItem('akhawayn_pwd') || '';
+    } catch {
+      return '';
+    }
+  });
   const [authError, setAuthError] = useState('');
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -142,6 +161,18 @@ export default function App() {
   const planBRef = useRef('');
 
   useEffect(() => {
+    // Déverrouillage automatique et immédiat si l'élève a son mot de passe mémorisé dans son navigateur
+    try {
+      const auth = localStorage.getItem('akhawayn_auth');
+      const pwd = localStorage.getItem('akhawayn_pwd');
+      if (auth === 'true' || (pwd && pwd.trim().length >= 4)) {
+        setIsUnlocked(true);
+        sessionStorage.setItem('akhawayn_auth', 'true');
+      }
+    } catch (e) {
+      console.warn('Erreur accès localStorage:', e);
+    }
+
     fetchArchives();
 
     // Bloquer le clic droit sur toute la page
@@ -1018,6 +1049,11 @@ export default function App() {
     setIsProcessing(true);
     const pwd = sessionPassword || localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026';
     try {
+      localStorage.setItem('akhawayn_auth', 'true');
+      localStorage.setItem('akhawayn_pwd', pwd);
+      sessionStorage.setItem('akhawayn_auth', 'true');
+    } catch {}
+    try {
       let res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -1322,6 +1358,7 @@ export default function App() {
       localStorage.setItem('akhawayn_student_archives', JSON.stringify(updatedArchives));
       // Maintien absolu de la session déverrouillée dans le navigateur
       localStorage.setItem('akhawayn_auth', 'true');
+      localStorage.setItem('akhawayn_pwd', sessionPassword || 'AKHAWAYN2026');
       sessionStorage.setItem('akhawayn_auth', 'true');
     } catch (err) {
       console.warn('Erreur écriture localStorage archives:', err);
@@ -1637,6 +1674,11 @@ export default function App() {
               </div>
             )}
 
+            <div className="flex items-center gap-2 text-[11px] text-amber-300/90 bg-amber-950/40 p-2.5 rounded-xl border border-amber-900/60">
+              <span className="text-sm">💾</span>
+              <span>Enregistrement direct et garanti dans ce navigateur : vous n'aurez plus besoin de le ressaisir à chaque visite.</span>
+            </div>
+
             <button
               type="submit"
               disabled={isVerifying}
@@ -1645,12 +1687,12 @@ export default function App() {
               {isVerifying ? (
                 <>
                   <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
-                  <span>Vérification...</span>
+                  <span>Vérification & Mémorisation...</span>
                 </>
               ) : (
                 <>
                   <Unlock className="w-4 h-4" />
-                  <span>Accéder à l'Espace Candidat</span>
+                  <span>Valider & Mémoriser sur ce navigateur</span>
                 </>
               )}
             </button>
@@ -1689,19 +1731,20 @@ export default function App() {
             <span>Accès réservé à la direction</span>
           </button>
 
-          {/* Bouton Mot de passe Candidat (sert à introduire le mot de passe actuel) */}
+          {/* Bouton Mot de passe Candidat (Mémorisé dans le navigateur) */}
           <button
             type="button"
             onClick={() => {
-              setCandidatePasswordInput('');
+              setCandidatePasswordInput(localStorage.getItem('akhawayn_pwd') || sessionPassword || 'AKHAWAYN2026');
               setCandidateFeedback(null);
               setShowCandidateModal(true);
             }}
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs transition cursor-pointer"
-            title="Introduire le mot de passe actuel"
+            title="Consulter le mot de passe mémorisé dans votre navigateur"
           >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
             <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-            <span>Mot de passe candidat</span>
+            <span>Mot de passe mémorisé</span>
           </button>
         </div>
 
@@ -2610,12 +2653,12 @@ export default function App() {
             </div>
 
             <form onSubmit={handleVerifyCandidatePassword} className="p-6 space-y-4">
-              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-950 flex items-start gap-2.5">
-                <span className="text-lg">🎓</span>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-start gap-2.5">
+                <span className="text-lg">🛡️</span>
                 <div>
-                  <span className="font-bold block text-sm text-indigo-900">Espace Candidat</span>
-                  <span className="text-[11px] text-indigo-800 leading-relaxed block mt-0.5">
-                    Ce bouton sert à <strong>introduire le mot de passe actuel</strong> pour activer ou valider la session d'évaluation du candidat.
+                  <span className="font-bold block text-sm text-emerald-900">Enregistrement Garanti dans votre Navigateur</span>
+                  <span className="text-[11px] text-emerald-800 leading-relaxed block mt-0.5">
+                    Votre mot de passe est enregistré et mémorisé de façon permanente dans votre navigateur (localStorage). Vos sessions et vos boîtes d'œuvres restent accessibles sans avoir à le ressaisir à chaque fois.
                   </span>
                 </div>
               </div>
@@ -2657,6 +2700,7 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     localStorage.removeItem('akhawayn_auth');
+                    localStorage.removeItem('akhawayn_pwd');
                     sessionStorage.removeItem('akhawayn_auth');
                     setIsUnlocked(false);
                     setShowCandidateModal(false);
@@ -2684,7 +2728,7 @@ export default function App() {
                     disabled={isCheckingCandidate}
                     className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
                   >
-                    {isCheckingCandidate ? 'Validation...' : 'Valider'}
+                    {isCheckingCandidate ? 'Mémorisation...' : 'Valider & Mémoriser'}
                   </button>
                 </div>
               </div>
