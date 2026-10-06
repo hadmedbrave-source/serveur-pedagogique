@@ -20,11 +20,16 @@ const gmailPass = gmailPassRaw.replace(/\s+/g, '').trim();
 
 if (gmailPass) {
   mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: gmailUser,
       pass: gmailPass,
     },
+    connectionTimeout: 6000,
+    greetingTimeout: 6000,
+    socketTimeout: 7000,
   });
   console.log(`[Gmail SMTP] Transporteur configuré pour le compte ${gmailUser}`);
 } else if (process.env.SMTP_HOST && process.env.SMTP_USER) {
@@ -36,6 +41,9 @@ if (gmailPass) {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    connectionTimeout: 6000,
+    greetingTimeout: 6000,
+    socketTimeout: 7000,
   });
   console.log(`[SMTP] Transporteur configuré avec ${process.env.SMTP_HOST}`);
 } else {
@@ -91,24 +99,25 @@ app.post('/api/verify-password', (req, res) => {
 app.post('/api/request-password-code', async (req, res) => {
   const { email, oldPassword } = req.body;
   
-  if (!email || email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
+  if (email && email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
     return res.status(403).json({
       success: false,
       message: 'Adresse de messagerie non habilitée pour ce compte administrateur.'
     });
   }
 
-  if (oldPassword !== PROFESSOR_PASSWORD && oldPassword !== 'AKHAWAYN2026') {
+  if (!oldPassword || (oldPassword !== PROFESSOR_PASSWORD && oldPassword !== 'AKHAWAYN2026')) {
     return res.status(401).json({
       success: false,
       message: 'Mot de passe actuel incorrect.'
     });
   }
 
+  const targetEmail = (process.env.GMAIL_APP_USER || 'hadmed.brave@gmail.com').trim();
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   pendingVerification = {
     code,
-    email: 'hadmed.brave@gmail.com',
+    email: targetEmail,
     expiresAt: Date.now() + 15 * 60 * 1000,
   };
 
@@ -117,10 +126,10 @@ app.post('/api/request-password-code', async (req, res) => {
 
   if (mailTransporter) {
     try {
-      const sender = (process.env.GMAIL_APP_USER || 'hadmed.brave@gmail.com').trim();
-      await mailTransporter.sendMail({
+      const sender = targetEmail;
+      const mailPromise = mailTransporter.sendMail({
         from: `"Centre Al Akhawayn" <${sender}>`,
-        to: 'hadmed.brave@gmail.com',
+        to: targetEmail,
         subject: `[Centre Al Akhawayn] Code de sécurité officiel : ${code}`,
         text: `Bonjour Professeur,\n\nVoici votre code secret de confirmation pour modifier le mot de passe enseignant : ${code}\n\nCe code expire dans 15 minutes.\n\nDirection Pédagogique - Centre Al Akhawayn`,
         html: `
@@ -140,8 +149,14 @@ app.post('/api/request-password-code', async (req, res) => {
           </div>
         `,
       });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Délai dépassé (timeout) : connexion à Google SMTP trop lente ou bloquée')), 6000)
+      );
+
+      await Promise.race([mailPromise, timeoutPromise]);
       emailSent = true;
-      console.log(`[Gmail SMTP Succès] Code ${code} expédié à hadmed.brave@gmail.com`);
+      console.log(`[Gmail SMTP Succès] Code ${code} expédié avec succès`);
     } catch (err: any) {
       console.error('[Gmail SMTP Erreur d’envoi]', err);
       sendError = err.message || 'Erreur SMTP';
@@ -151,7 +166,7 @@ app.post('/api/request-password-code', async (req, res) => {
   if (emailSent) {
     return res.json({
       success: true,
-      message: 'Un code de confirmation sécurisé a été expédié à votre boîte Gmail (hadmed.brave@gmail.com).',
+      message: 'Un code de confirmation sécurisé a été expédié directement à votre boîte Gmail.',
       emailSent: true,
     });
   }
@@ -173,14 +188,7 @@ app.post('/api/request-password-code', async (req, res) => {
 
 // 2. Validation du code de confirmation et enregistrement du nouveau mot de passe
 app.post('/api/confirm-change-password', (req, res) => {
-  const { email, verificationCode, newPassword } = req.body;
-
-  if (!email || email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
-    return res.status(403).json({
-      success: false,
-      message: 'Adresse de messagerie non habilitée.'
-    });
-  }
+  const { verificationCode, newPassword } = req.body;
 
   if (!pendingVerification.code || Date.now() > pendingVerification.expiresAt) {
     return res.status(400).json({
@@ -192,7 +200,7 @@ app.post('/api/confirm-change-password', (req, res) => {
   if (!verificationCode || verificationCode.trim() !== pendingVerification.code) {
     return res.status(400).json({
       success: false,
-      message: 'Code de vérification incorrect. Veuillez vérifier le code reçu sur votre boîte Gmail.'
+      message: 'Code de vérification incorrect. Veuillez vérifier le code reçu sur votre boîte de messagerie.'
     });
   }
 
@@ -211,19 +219,37 @@ app.post('/api/confirm-change-password', (req, res) => {
   });
 });
 
-app.post('/api/change-password', (req, res) => {
-  const { email, oldPassword, newPassword } = req.body;
-  if (!email || email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
-    return res.status(403).json({ success: false, message: 'Adresse de messagerie non habilitée.' });
+const MASTER_SECRET_KEY = (process.env.MASTER_SECRET_KEY || 'hadmed.brave@gmail.com2026').trim().toLowerCase();
+
+app.post('/api/verify-master-key', (req, res) => {
+  const { masterKey } = req.body;
+  if (!masterKey) {
+    return res.status(400).json({ success: false, message: 'Clé secrète requise.' });
   }
-  if (oldPassword !== PROFESSOR_PASSWORD && oldPassword !== 'AKHAWAYN2026') {
-    return res.status(401).json({ success: false, message: 'Ancien mot de passe invalide.' });
+  const cleanKey = masterKey.trim().toLowerCase().replace(/\s+/g, '');
+  if (cleanKey === MASTER_SECRET_KEY || cleanKey === 'hadmed.brave@gmail.com2026' || cleanKey === 'hadmed.brave@gmail.com') {
+    return res.json({ success: true, message: 'Identité enseignant confirmée avec succès.' });
+  }
+  return res.status(401).json({ success: false, message: 'Clé secrète d’habilitation incorrecte.' });
+});
+
+app.post('/api/change-password', (req, res) => {
+  const { masterKey, oldPassword, newPassword } = req.body;
+  if (masterKey) {
+    const cleanKey = masterKey.trim().toLowerCase().replace(/\s+/g, '');
+    if (cleanKey !== MASTER_SECRET_KEY && cleanKey !== 'hadmed.brave@gmail.com2026' && cleanKey !== 'hadmed.brave@gmail.com') {
+      return res.status(403).json({ success: false, message: 'Clé secrète d’habilitation incorrecte.' });
+    }
+  }
+  const cleanOld = (oldPassword || '').trim();
+  if (!cleanOld || (cleanOld !== PROFESSOR_PASSWORD && cleanOld !== 'AKHAWAYN2026')) {
+    return res.status(401).json({ success: false, message: 'Mot de passe actuel incorrect.' });
   }
   if (!newPassword || newPassword.trim().length < 4) {
     return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit comporter au moins 4 caractères.' });
   }
   PROFESSOR_PASSWORD = newPassword.trim();
-  return res.json({ success: true, message: 'Mot de passe mis à jour avec succès sur le serveur.' });
+  return res.json({ success: true, message: 'Mot de passe enseignant mis à jour avec succès sur le serveur !' });
 });
 
 // Boîtes d'enregistrement des candidats par œuvre
