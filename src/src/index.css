@@ -104,8 +104,7 @@
 }
 
 .conn-student,
-#outReform .conn-student,
-#outReform strong {
+#outReform .conn-student {
   color: #1d4ed8 !important;
   background-color: #eff6ff !important;
   padding: 2px 7px !important;
@@ -117,7 +116,7 @@
 }
 
 .conn-model,
-#outModel strong {
+#outModel .conn-model {
   color: #1d4ed8 !important;
   background-color: #eff6ff !important;
   padding: 2px 7px !important;
@@ -257,9 +256,7 @@
   display: inline-block !important;
 }
 
-/* Connecteurs en gras et en couleur dans Section 5 (outReform) */
-#outReform strong,
-#outReform b,
+/* Connecteurs logiques certifiés dans Section 5 (outReform) */
 #outReform .conn-student {
   color: #1d4ed8 !important;
   font-weight: 800 !important;
@@ -271,8 +268,24 @@
   margin: 1px 2px !important;
 }
 
-#outReform strong:hover {
+#outReform .conn-student:hover {
   background-color: #dbeafe !important;
+}
+
+/* Exemples tirés des œuvres au programme en gras certifié */
+.work-example,
+#outReform strong.work-example,
+#outReform .work-example,
+#outModel strong.work-example,
+#outModel .work-example {
+  color: #064e3b !important;
+  font-weight: 900 !important;
+  background-color: #ecfdf5 !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  border: 1.5px solid #a7f3d0 !important;
+  display: inline-block !important;
+  margin: 1px 2px !important;
 }
 
 /* Erreurs en rouge dans Section 2 (outTrans) */
