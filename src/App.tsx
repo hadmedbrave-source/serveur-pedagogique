@@ -101,6 +101,8 @@ export default function App() {
     condamne: [],
   });
   const [selectedWorkBox, setSelectedWorkBox] = useState<'boite' | 'antigone' | 'condamne' | null>(null);
+  const [viewingArchiveItem, setViewingArchiveItem] = useState<any | null>(null);
+  const [archiveActiveTab, setArchiveActiveTab] = useState<'optimized' | 'model' | 'original'>('optimized');
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
   const planARef = useRef('');
@@ -323,7 +325,7 @@ export default function App() {
       const isDialectique = type === 'B';
       const content = type === 'A' ? planARef.current : planBRef.current;
       const formatted = formatModelPlan(content, isDialectique ? 'DIALECTIQUE' : (detectedPlanType === 'ANALYTIQUE' ? 'ANALYTIQUE' : 'SIMPLE'));
-      outModel.innerHTML = marked.parse(formatted) as string;
+      outModel.innerHTML = formatted;
     }
   };
 
@@ -415,53 +417,328 @@ export default function App() {
     return res;
   };
 
-  const formatModelPlan = (txt: string, planType: 'SIMPLE' | 'DIALECTIQUE' | 'ANALYTIQUE') => {
-    let res = txt ? txt.trim() : '';
+  const cleanTableMarkdown = (tableMd: string): string => {
+    if (!tableMd) return tableMd;
+    const lines = tableMd.split('\n');
+    const filteredLines: string[] = [];
+    for (const line of lines) {
+      if (!line.includes('|')) {
+        filteredLines.push(line);
+        continue;
+      }
+      const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+      if (line.includes('---') || cells[0]?.toLowerCase().includes('extrait')) {
+        filteredLines.push(line);
+        continue;
+      }
+      if (cells.length >= 3) {
+        // Normaliser complètement en retirant balises HTML, crochets, guillemets, ponctuations et espaces superflus
+        const normalizeText = (txt: string) => {
+          return txt
+            .replace(/<[^>]*>/g, '')
+            .replace(/\[[^\]]*\]/g, '')
+            .replace(/[«»"'`*_\.,;:!?()—–\-\\/]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+        };
 
-    // Déclaration officielle de la structure du plan en tête de modèle
-    if (!res.includes('STRUCTURE DU PLAN DÉCLARÉ') && !res.includes('STRUCTURE DU PLAN RETENU')) {
-      const bannerTitle = planType === 'DIALECTIQUE'
-        ? 'PLAN DIALECTIQUE (THÈSE / ANTITHÈSE / SYNTHÈSE)'
-        : (planType === 'ANALYTIQUE' ? 'PLAN ANALYTIQUE (CAUSES & SOLUTIONS)' : 'PLAN THÉMATIQUE SIMPLE (PROGRESSION PAR AXES)');
-      res = `<div style="background:#0b1528; color:#f8fafc; padding:12px 18px; border-radius:12px; font-weight:800; font-size:0.9rem; margin-bottom:18px; border-left:6px solid #b45309; display:flex; align-items:center; gap:10px; box-shadow:0 2px 8px rgba(11,21,40,0.15);">
-        <span style="font-size:1.1rem;">🎯</span>
-        <span style="letter-spacing:0.05em;">STRUCTURE DU PLAN RETENU :</span>
-        <span style="color:#fbbf24; text-decoration:underline; text-underline-offset:3px;">${bannerTitle}</span>
-      </div>\n\n` + res;
+        const cleanErr = normalizeText(cells[0]);
+        const cleanCorr = cells[2] ? normalizeText(cells[2]) : '';
+        const nature = cells[1] ? normalizeText(cells[1]) : '';
+
+        // 1. Si l'extrait fautif et la correction certifiée sont identiques, fausse erreur : élimination stricte !
+        if (cleanErr && cleanCorr && cleanErr === cleanCorr) {
+          continue;
+        }
+
+        // 2. Si la colonne Nature dit qu'il n'y a pas d'erreur ou aucune faute : élimination !
+        if (nature.includes('aucune') || nature.includes('pas d erreur') || nature.includes('correct') || nature.includes('sans faute')) {
+          continue;
+        }
+
+        // 3. Si l'extrait comporte plus de 4 mots et qu'il n'y a aucune différence réelle avec la correction : élimination !
+        const errWords = cleanErr.split(' ').filter(Boolean);
+        const corrWords = cleanCorr.split(' ').filter(Boolean);
+        if (errWords.length >= 5 && (cleanErr.includes(cleanCorr) || cleanCorr.includes(cleanErr))) {
+          const diff = errWords.filter(w => !corrWords.includes(w)).length;
+          if (diff === 0) {
+            continue;
+          }
+        }
+
+        // 4. Si l'extrait fautif est vide ou comporte un simple point d'interrogation ou tiret
+        if (!cleanErr || cleanErr === '-' || cleanErr === '?') {
+          continue;
+        }
+
+        filteredLines.push(line);
+      }
+    }
+    return filteredLines.join('\n');
+  };
+
+  const formatReformulation = (rawMd: string): string => {
+    if (!rawMd) return '';
+    let parsed = marked.parse(rawMd) as string;
+    parsed = parsed.replace(/&#39;/g, "'");
+
+    // Remplacement et stylisation chromatique stricte des cartes de phrases de l'élève (Section 5.A)
+    // Phrase 1 : Thème Indigo
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?1\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2|<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-indigo" style="background:#eef2ff !important; border:2px solid #818cf8 !important; border-left:6px solid #4f46e5 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(79,70,229,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#4f46e5 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(79,70,229,0.3) !important;">📌 1. PHRASE DE L’ÉLÈVE N°1 (INDIGO)</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Phrase 2 : Thème Ambre / Orange
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3|<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-amber" style="background:#fffbeb !important; border:2px solid #fcd34d !important; border-left:6px solid #d97706 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(217,119,6,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#d97706 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(217,119,6,0.3) !important;">📌 2. PHRASE DE L’ÉLÈVE N°2 (AMBRE)</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Phrase 3 : Thème Émeraude / Sarcelle
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4|<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-emerald" style="background:#ecfdf5 !important; border:2px solid #86efac !important; border-left:6px solid #059669 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(5,150,105,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#059669 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(5,150,105,0.3) !important;">📌 3. PHRASE DE L’ÉLÈVE N°3 (ÉMERAUDE)</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Phrase 4 (si présente) : Thème Pourpre / Violet
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4\s*:?<\/strong>([\s\S]*?)(?=<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-purple" style="background:#faf5ff !important; border:2px solid #d8b4fe !important; border-left:6px solid #9333ea !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(147,51,234,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#9333ea !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(147,51,234,0.3) !important;">📌 4. PHRASE DE L’ÉLÈVE N°4 (POURPRE)</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Badges distincts pour Diagnostic didactique et Reformulation
+    parsed = parsed.replace(/<strong>Diagnostic didactique\s*:?<\/strong>/gi, 
+      '<span style="background:#f1f5f9; color:#334155; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1px solid #cbd5e1; display:inline-flex; align-items:center; gap:4px; margin-right:6px;">🔍 Diagnostic didactique :</span>');
+
+    parsed = parsed.replace(/<strong>Reformulation claire et naturelle(?:\s*\([^)]*\))?\s*:?<\/strong>/gi, 
+      '<span style="background:#ecfdf5; color:#047857; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1.5px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px; margin-right:6px; box-shadow:0 1px 2px rgba(4,120,87,0.08);">✨ Reformulation certifiée (1ère Bac) :</span>');
+
+    // Mise en page soignée pour Section B : Texte Intégral Réécrit & Fluidifié
+    parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?<\/h[1-4]>)([\s\S]*?)$/i, (m, hTag, content) => {
+      return `
+        <div style="margin-top:28px; background:#ffffff; border:2px solid #0b1528; border-radius:16px; padding:22px; box-shadow:0 4px 14px rgba(11,21,40,0.08);">
+          <div style="background:#0b1528; border-radius:12px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.15rem;">🏆</span>
+              <span style="color:#ffffff; font-weight:900; font-size:0.85rem; letter-spacing:0.04em;">B. TEXTE INTÉGRAL RÉÉCRIT & FLUIDIFIÉ (VERSION CONTINUE D'EXCELLENCE)</span>
+            </div>
+            <span style="background:#059669; color:#ffffff; font-size:0.72rem; font-weight:800; padding:3px 10px; border-radius:9999px;">EXEMPLES DES ŒUVRES EN GRAS • CONNECTEURS EN BLEU</span>
+          </div>
+          <div style="color:#1e293b; line-height:2.05; text-align:justify; font-size:0.95rem;">
+            ${content}
+          </div>
+        </div>
+      `;
+    });
+
+    // Connecteurs en bleu
+    parsed = highlightConnectors(parsed);
+
+    // B. Texte Intégral Réécrit : Exemples tirés des œuvres EN GRAS BIEN VISIBLE
+    const worksExamplesRegex = [
+      /\b(La Bo[iî]te [aà] Merveilles)\b/gi,
+      /\b(Ahmed Sefrioui)\b/gi,
+      /\b(Sidi Mohammed)\b/gi,
+      /\b(Lalla Zoubida)\b/gi,
+      /\b(Ma[aâ]lem Abdeslam)\b/gi,
+      /\b(Lalla A[iï]cha)\b/gi,
+      /\b(Dar Chouafa)\b/gi,
+      /\b(la voyante)\b/gi,
+      /\b(Kenza)\b/gi,
+      /\b(Zineb)\b/gi,
+      /\b(Rahma)\b/gi,
+      /\b(Fatma Bziouya)\b/gi,
+      /\b(Sidi El Arafi)\b/gi,
+      /\b(le fqih)\b/gi,
+      /\b(le Msid)\b/gi,
+      /\b(Antigone)\b/gi,
+      /\b(Jean Anouilh)\b/gi,
+      /\b(Cr[eé]on)\b/gi,
+      /\b(Ism[eè]ne)\b/gi,
+      /\b(H[eé]mon)\b/gi,
+      /\b(Polynice)\b/gi,
+      /\b([EÉ]t[eé]ocle)\b/gi,
+      /\b(Eurydice)\b/gi,
+      /\b(Le Ch[oœ]ur)\b/gi,
+      /\b(La Nourrice)\b/gi,
+      /\b(Le Dernier Jour d['’]un Condamn[eé])\b/gi,
+      /\b(Victor Hugo)\b/gi,
+      /\b(le condamn[eé])\b/gi,
+      /\b(la petite Marie)\b/gi,
+      /\b(Bic[eê]tre)\b/gi,
+      /\b(la Conciergerie)\b/gi,
+      /\b(la guillotine)\b/gi,
+      /\b(la peine de mort)\b/gi,
+      /\b(la place de Gr[eè]ve)\b/gi,
+    ];
+
+    for (const reg of worksExamplesRegex) {
+      parsed = parsed.replace(reg, '<strong class="work-example">$1</strong>');
     }
 
-    // Déclaration colorée de chaque élément (Introduction, Thèse, Antithèse / Synthèse, Conclusion)
-    res = res.replace(/###\s*\*{0,2}(?:1\.\s*)?Introduction[^\n]*/gi, 
-      '<div style="margin-top:16px; margin-bottom:10px;"><span style="background:#fffbeb; color:#92400e; border:1.5px solid #fde68a; font-weight:800; font-size:0.825rem; padding:5px 12px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(180,83,9,0.06); letter-spacing:0.03em;">📌 1. INTRODUCTION (AMORCE • PROBLÉMATIQUE • ANNONCE DU PLAN)</span></div>');
+    return parsed;
+  };
 
-    res = res.replace(/###\s*\*{0,2}(?:2\.\s*)?(?:Thèse|Premier Axe|1er Axe|Causes)[^\n]*/gi, 
-      '<div style="margin-top:20px; margin-bottom:10px;"><span style="background:#eff6ff; color:#1d4ed8; border:1.5px solid #bfdbfe; font-weight:800; font-size:0.825rem; padding:5px 12px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(29,78,216,0.06); letter-spacing:0.03em;">⚖️ 2. PREMIÈRE PARTIE : THÈSE (ARGUMENTATION PRINCIPALE & EXEMPLES)</span></div>');
+  const formatModelPlan = (txt: string, planType: 'SIMPLE' | 'DIALECTIQUE' | 'ANALYTIQUE') => {
+    let raw = txt ? txt.trim() : '';
 
-    res = res.replace(/###\s*\*{0,2}(?:3\.\s*)?(?:Antithèse|Second Axe|2ème Axe|Solutions|Conséquences)[^\n]*/gi, 
-      '<div style="margin-top:20px; margin-bottom:10px;"><span style="background:#fdf2f8; color:#be185d; border:1.5px solid #fbcfe8; font-weight:800; font-size:0.825rem; padding:5px 12px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(190,24,93,0.06); letter-spacing:0.03em;">🔄 3. DEUXIÈME PARTIE : ANTITHÈSE (NUANCES, LIMITES & CONTRE-PERSPECTIVES)</span></div>');
+    const isDialectique = planType === 'DIALECTIQUE';
+    const bannerTitle = isDialectique
+      ? 'PLAN DIALECTIQUE (THÈSE / ANTITHÈSE / SYNTHÈSE)'
+      : (planType === 'ANALYTIQUE' ? 'PLAN ANALYTIQUE (CAUSES & SOLUTIONS)' : 'PLAN THÉMATIQUE (PROGRESSION PAR AXES)');
 
-    res = res.replace(/###\s*\*{0,2}(?:4\.\s*)?(?:Synthèse|Troisième Axe|3ème Axe)[^\n]*/gi, 
-      '<div style="margin-top:20px; margin-bottom:10px;"><span style="background:#ecfdf5; color:#047857; border:1.5px solid #a7f3d0; font-weight:800; font-size:0.825rem; padding:5px 12px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(4,120,87,0.06); letter-spacing:0.03em;">💡 4. TROISIÈME PARTIE : SYNTHÈSE CRITIQUE (DÉPASSEMENT ET HARMONIE)</span></div>');
+    // 1. Structure du plan en haut avec jetons de couleur correspondants (Orange, Bleu, Violet, Sarcelle, Vert)
+    const planHeaderHtml = `
+      <div style="background:#0b1528; border-radius:14px; padding:16px 20px; margin-bottom:22px; border:1px solid #1e293b; box-shadow:0 4px 12px rgba(11,21,40,0.15);">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px; border-bottom:1px solid #1e293b; padding-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.15rem;">🎯</span>
+            <span style="font-weight:900; font-size:0.85rem; color:#ffffff; letter-spacing:0.06em; text-transform:uppercase;">STRUCTURE DU PLAN RETENU :</span>
+            <span style="background:#b45309; color:#fef3c7; font-size:0.75rem; font-weight:800; padding:2px 10px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.04em;">${bannerTitle}</span>
+          </div>
+          <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">(Correspondance chromatique directe avec les parties du texte ci-dessous)</span>
+        </div>
+        
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <div style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(234,88,12,0.25);">
+            <span>📌</span> 1. INTRODUCTION (ORANGE)
+          </div>
+          <div style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(37,99,235,0.25);">
+            <span>⚖️</span> 2. AXE 1 / THÈSE (BLEU)
+          </div>
+          ${isDialectique ? `
+          <div style="background:#9333ea; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(147,51,234,0.25);">
+            <span>🔄</span> 3. AXE 2 / ANTITHÈSE (VIOLET)
+          </div>
+          <div style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(13,148,136,0.25);">
+            <span>💡</span> 4. SYNTHÈSE CRITIQUE (SARCELLE)
+          </div>` : `
+          <div style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(13,148,136,0.25);">
+            <span>🔍</span> 3. SECOND AXE D'ANALYSE (SARCELLE)
+          </div>`}
+          <div style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(5,150,105,0.25);">
+            <span>🎯</span> CONCLUSION (VERT ÉMERAUDE)
+          </div>
+        </div>
+      </div>
+    `;
 
-    res = res.replace(/###\s*\*{0,2}(?:5\.\s*)?Conclusion[^\n]*/gi, 
-      '<div style="margin-top:20px; margin-bottom:10px;"><span style="background:#f1f5f9; color:#0f172a; border:1.5px solid #cbd5e1; font-weight:800; font-size:0.825rem; padding:5px 12px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(15,23,42,0.06); letter-spacing:0.03em;">🎯 5. CONCLUSION & PERSPECTIVE FINALE</span></div>');
+    // Retirer d'anciens bandeaux si réinjectés
+    raw = raw.replace(/<div style="background:#0b1528;[\s\S]*?<\/div>\s*<\/div>/gi, '').trim();
 
-    // Liens logiques en couleur bleue
-    res = highlightConnectors(res);
+    // Découpage et identification des parties
+    let introMatch = raw.match(/<div class="model-intro">([\s\S]*?)<\/div>/i);
+    let axe1Match = raw.match(/<div class="model-axe1">([\s\S]*?)<\/div>/i) || raw.match(/<div class="model-these">([\s\S]*?)<\/div>/i);
+    let axe2Match = raw.match(/<div class="model-axe2">([\s\S]*?)<\/div>/i) || raw.match(/<div class="model-antithese">([\s\S]*?)<\/div>/i);
+    let axe3Match = raw.match(/<div class="model-axe3">([\s\S]*?)<\/div>/i) || raw.match(/<div class="model-synthese">([\s\S]*?)<\/div>/i);
+    let conclMatch = raw.match(/<div class="model-concl">([\s\S]*?)<\/div>/i);
 
-    // Exemples d'œuvres en vert émeraude
+    let introContent = introMatch ? introMatch[1].trim() : '';
+    let axe1Content = axe1Match ? axe1Match[1].trim() : '';
+    let axe2Content = axe2Match ? axe2Match[1].trim() : '';
+    let axe3Content = axe3Match ? axe3Match[1].trim() : '';
+    let conclContent = conclMatch ? conclMatch[1].trim() : '';
+
+    if (!axe1Content) {
+      const bodyMatch = raw.match(/<div class="model-body">([\s\S]*?)<\/div>/i);
+      if (bodyMatch) {
+        const pParas = bodyMatch[1].split(/<\/p>\s*<p>/i);
+        if (pParas.length >= 2) {
+          axe1Content = pParas[0].replace(/^<p>/i, '') + '</p>';
+          axe2Content = '<p>' + pParas[1].replace(/<\/p>$/i, '') + '</p>';
+          if (pParas.length >= 3) {
+            axe3Content = '<p>' + pParas.slice(2).join('</p><p>') + '</p>';
+          }
+        } else {
+          axe1Content = bodyMatch[1].trim();
+        }
+      }
+    }
+
+    if (!introContent || !conclContent) {
+      const rawParas = raw.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+      if (rawParas.length >= 3) {
+        introContent = rawParas[0];
+        axe1Content = rawParas[1];
+        if (rawParas.length === 3) {
+          conclContent = rawParas[2];
+        } else if (rawParas.length === 4) {
+          axe2Content = rawParas[2];
+          conclContent = rawParas[3];
+        } else if (rawParas.length >= 5) {
+          axe2Content = rawParas[2];
+          axe3Content = rawParas.slice(3, -1).join('\n\n');
+          conclContent = rawParas[rawParas.length - 1];
+        }
+      }
+    }
+
+    const wrapSection = (badgeText: string, badgeBg: string, borderColor: string, bgColor: string, content: string) => {
+      if (!content || !content.trim()) return '';
+      return `
+        <div style="margin-top:18px; margin-bottom:18px;">
+          <div style="margin-bottom:8px;">
+            <span style="background:${badgeBg}; color:#ffffff; font-weight:800; font-size:0.76rem; padding:3px 11px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.12); text-transform:uppercase; letter-spacing:0.03em;">
+              ${badgeText}
+            </span>
+          </div>
+          <div style="background:${bgColor}; border-left:5px solid ${borderColor}; border:1px solid ${borderColor}40; border-left-width:5px; border-radius:0 12px 12px 0; padding:16px 20px; color:#1e293b; line-height:2.05; box-shadow:0 1px 3px rgba(0,0,0,0.03); text-align:justify;">
+            ${content.startsWith('<p>') ? content : `<p>${content}</p>`}
+          </div>
+        </div>
+      `;
+    };
+
+    let bodyHtml = '';
+    if (introContent) {
+      bodyHtml += wrapSection('📌 1. INTRODUCTION (ORANGE)', '#ea580c', '#ea580c', '#fff7ed', introContent);
+      if (axe1Content) {
+        bodyHtml += wrapSection('⚖️ 2. PREMIER AXE / THÈSE (BLEU)', '#2563eb', '#2563eb', '#eff6ff', axe1Content);
+      }
+      if (axe2Content) {
+        const badgeColor = isDialectique ? '#9333ea' : '#0d9488';
+        const badgeTitle = isDialectique ? '🔄 3. SECOND AXE / ANTITHÈSE (VIOLET)' : '🔍 3. SECOND AXE D\'ANALYSE (SARCELLE)';
+        const bg = isDialectique ? '#faf5ff' : '#f0fdfa';
+        bodyHtml += wrapSection(badgeTitle, badgeColor, badgeColor, bg, axe2Content);
+      }
+      if (axe3Content) {
+        bodyHtml += wrapSection('💡 4. TROISIÈME AXE / SYNTHÈSE (SARCELLE)', '#0d9488', '#0d9488', '#f0fdfa', axe3Content);
+      }
+      if (conclContent) {
+        bodyHtml += wrapSection('🎯 5. CONCLUSION (VERT ÉMERAUDE)', '#059669', '#059669', '#ecfdf5', conclContent);
+      }
+    } else {
+      bodyHtml = raw;
+    }
+
+    bodyHtml = highlightConnectors(bodyHtml);
+
     const worksTerms = [
-      'La Boîte à Merveilles', 'La Boite a Merveilles', 'Ahmed Sefrioui', 'Sidi Mohammed', 'Lalla Zoubida', 'Maâlem Abdeslam', 'Lalla Aïcha', 'Sidi Abderrahmane',
+      'La Boîte à Merveilles', 'La Boite a Merveilles', 'Ahmed Sefrioui', 'Sidi Mohammed', 'Lalla Zoubida', 'Maâlem Abdeslam', 'Lalla Aïcha', 'Dar Chouafa', 'la voyante',
       'Antigone', 'Jean Anouilh', 'Créon', 'Ismène', 'Hémon', 'Polynice', 'Étéocle', 'Le Chœur', 'La Nourrice',
-      'Le Dernier Jour d’un Condamné', "Le Dernier Jour d'un Condamné", 'Victor Hugo', 'Bicêtre', 'la Conciergerie', 'la guillotine', 'la peine de mort'
+      'Le Dernier Jour d’un Condamné', "Le Dernier Jour d'un Condamné", 'Victor Hugo', 'Bicêtre', 'la Conciergerie', 'la guillotine', 'la peine de mort', 'la place de Grève'
     ];
     for (const w of worksTerms) {
       const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`(?<!<strong[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
-      res = res.replace(regex, '<strong style="color:#047857 !important; font-weight:800 !important; font-style:italic !important; background-color:#ecfdf5 !important; padding:1px 6px !important; border-radius:4px !important; border:1px solid #a7f3d0 !important; display:inline-block !important;">$1</strong>');
+      bodyHtml = bodyHtml.replace(regex, '<strong class="work-example" style="color:#064e3b !important; font-weight:800 !important; font-style:italic !important; background-color:#ecfdf5 !important; padding:1px 6px !important; border-radius:4px !important; border:1px solid #a7f3d0 !important; display:inline-block !important;">$1</strong>');
     }
 
-    return res;
+    return planHeaderHtml + bodyHtml;
   };
 
   const formatTranscription = (transText: string, originalText: string, tableRaw?: string): string => {
@@ -481,7 +758,8 @@ export default function App() {
     // Extraire les extraits fautifs du tableau pour garantir leur surlignage en rouge
     const tableErrors: string[] = [];
     if (tableRaw) {
-      const lines = tableRaw.split('\n');
+      const sanitizedTable = cleanTableMarkdown(tableRaw);
+      const lines = sanitizedTable.split('\n');
       for (const line of lines) {
         if (line.includes('|')) {
           const cells = line.split('|').map(c => c.trim()).filter(Boolean);
@@ -818,7 +1096,8 @@ export default function App() {
       if (rFil) rFil.innerText = filiere;
 
       const outTable = document.getElementById('outTable');
-      const parsedTable = extract('TABLEAU');
+      const rawTable = extract('TABLEAU');
+      const parsedTable = cleanTableMarkdown(rawTable);
       if (outTable) {
         outTable.innerHTML = marked.parse(parsedTable || '| Extrait fautif (en rouge) | Nature | Correction (en vert) | Règle |\n| :--- | :--- | :--- | :--- |\n| Syntaxe | Ponctuation | Soigner les alinéas | Règle officielle |') as string;
       }
@@ -839,9 +1118,7 @@ export default function App() {
       const parsedReform = extract('REFORMULATION');
       if (outReform) {
         let reformContent = parsedReform || '### Optimisation Stylistique\n> Maintien de la concordance des temps et de l’élégance académique.';
-        let parsedHtml = marked.parse(reformContent) as string;
-        parsedHtml = highlightConnectors(parsedHtml);
-        outReform.innerHTML = parsedHtml;
+        outReform.innerHTML = formatReformulation(reformContent);
       }
 
       const typePlan = extract('TYPE').toUpperCase();
@@ -899,10 +1176,42 @@ export default function App() {
         if (tabSelectors) tabSelectors.style.display = 'flex';
 
         if (!planARef.current) {
-          planARef.current = `### 1. Introduction\nL'analyse de « ${sujet.slice(0, 70)} » soulève des questions fondamentales au cœur des œuvres littéraires au programme.\n\n### 2. Thèse\nEn premier lieu, l'affirmation de principes personnels permet de guider l'action avec lucidité.\n\n### 5. Conclusion\nEn somme, l'équilibre et la sincérité demeurent des repères précieux.`;
+          planARef.current = `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme, on se rend compte que la réflexion autour de « ${sujet.slice(0, 75)} » constitue un enjeu littéraire, humain et moral fondamental. En effet, tandis que certains perçoivent les épreuves et les traditions comme des contraintes pesantes, d'autres y découvrent un socle structurant indispensable à l'édification de la conscience personnelle. Dès lors, convient-il d'appréhender cette réalité comme un carcan aliénant ou au contraire comme un cheminement formateur vers la maturité ? Pour répondre avec rigueur à cette problématique, il conviendra d'examiner dans un premier axe la valeur émancipatrice de la lucidité intérieure, avant d'analyser dans un second axe les impératifs de la solidarité humaine.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'affirmation d'une pensée autonome permet à l'individu de préserver son authenticité face aux pressions extérieures et aux illusions du monde social. C'est précisément ce que révèle l'univers poétique de <strong>Sidi Mohammed dans La Boîte à Merveilles</strong> : face aux querelles de Dar Chouafa et aux déceptions du réel, sa boîte magique et son imaginaire constituent un sanctuaire inviolable de liberté spirituelle. De même, dans la tragédie moderne, <strong>l'héroïne Antigone de Jean Anouilh</strong> proclame avec une grandeur sublime son refus des faux compromis, préférant périr plutôt que de salir la pureté de son idéal moral. Ainsi, la fidélité à ses convictions intimes confère à l'être une dignité inaliénable.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette quête d'indépendance ne saurait toutefois faire oublier la fragilité inhérente à la condition humaine lorsque les liens collectifs viennent à se rompre. L'œuvre bouleversante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> en administre la preuve la plus saisissante : séquestré dans l'obscurité de <strong>Bicêtre</strong>, le captif mesure combien l'isolement forcé détruit l'esprit et combien le respect de la vie humaine exige une compassion universelle. De plus, l'épreuve de la ruine financière vécue par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> démontre que seule l'entraide fraternelle permet de triompher des vicissitudes du sort. Dès lors, l'autonomie ne trouve son plein sens que dans l'harmonie avec autrui.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, la réflexion menée met en lumière la nécessité d'allier souveraineté morale et bienveillance communautaire. Loin de s'opposer, la force de l'esprit critique et la chaleur des solidarités humaines se fécondent mutuellement pour façonner une personnalité éclairée. En définitive, la véritable sagesse ne réside-t-elle pas dans cet équilibre souverain entre liberté intérieure et générosité envers son prochain ?</p>
+</div>`;
         }
         if (!planBRef.current) {
-          planBRef.current = `### 1. Introduction\nFace à ce débat, deux perspectives complémentaires méritent d'être explorées avec rigueur.\n\n### 2. Thèse\nD'une part, cette vision offre des repères structurants et enrichissants.\n\n### 3. Antithèse\nD'autre part, il importe de nuancer cette approche pour éviter tout excès.\n\n### 4. Synthèse\nEn définitive, la conciliation de ces points de vue ouvre la voie à un discernement authentique.\n\n### 5. Conclusion\nPour conclure, la sagesse commande d'allier fidélité à soi et esprit de discernement.`;
+          planBRef.current = `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${sujet.slice(0, 75)} » confronte deux exigences complémentaires de l'existence. D'une part, une vision pragmatique impose le respect des devoirs établis et la soumission aux nécessités sociales pour garantir la cohésion du groupe. D'autre part, une conscience exigeante revendique le droit inaliénable de questionner l'ordre existant au nom d'un idéal de justice supérieur. Dès lors, comment concilier le réalisme des contraintes partagées et l'aspiration légitime à la liberté morale ? Il conviendra d'analyser dans une première partie le bien-fondé des impératifs collectifs, d'envisager dans une deuxième partie la légitimité du sursaut individuel, afin de dégager dans une troisième partie les voies d'une synthèse équilibrée.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'inscription sincère dans la communauté et l'acceptation de ses règles fondent la sécurité et la continuité morale de l'existence. Dans <strong>La Boîte à Merveilles</strong>, le courage discret du tisserand <strong>Maâlem Abdeslam</strong> qui part travailler aux moissons pour subvenir aux besoins des siens prouve que la fidélité au devoir familial surmonte les plus rudes crises. De même, les arguments d'État présentés par <strong>Créon dans Antigone</strong> rappellent avec gravité que la sauvegarde de la cité requiert l'obéissance aux lois communes afin de prémunir les hommes contre l'anarchie. L'intérêt général commande donc une discipline loyale.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'obéissance aveugle devient inacceptable lorsqu'elle bafoue les valeurs sacrées de la conscience et de l'équité. La voix passionnée de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> s'élève pour dénoncer l'atrocité de la guillotine dressée sur <strong>la place de Grève</strong>, démontrant qu'aucune institution ne peut s'arroger le droit de massacrer un être humain. Parallèlement, <strong>Antigone</strong> oppose le devoir fraternel et l'amour immortel aux décrets tyranniques, incarnant le refus héroïque de l'injustice. L'honneur humain réside dans cette résistance sacrée de la conscience morale.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la solution féconde réside dans une synthèse souveraine où les règles de la société se perfectionnent au contact des aspirations éthiques. Il s'agit d'édifier un ordre juste qui ne repose pas sur la contrainte aveugle mais sur l'adhésion lucide et le respect absolu de la dignité humaine. C'est à ce point de rencontre entre devoir et liberté que s'épanouit une citoyenneté responsable et généreuse.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, ce débat invite à dépasser les clivages superficiels pour affirmer la suprématie de la lucidité et de l'empathie. Les leçons tirées de nos chefs-d'œuvre littéraires rappellent que la véritable grandeur humaine s'accomplit dans la conciliation courageuse de l'idéal éthique et du respect d'autrui. Ne revient-il pas dès lors à chacun d'œuvrer quotidiennement à cette exigeante concorde ?</p>
+</div>`;
         }
 
         displayM('A');
@@ -920,6 +1229,11 @@ export default function App() {
     const outReform = document.getElementById('outReform')?.innerHTML || '';
     const outModel = document.getElementById('outModel')?.innerHTML || '';
 
+    if (!outReform && !outModel) {
+      alert("Veuillez d'abord lancer l'évaluation pour obtenir et enregistrer le texte optimisé dans la boîte.");
+      return;
+    }
+
     try {
       const res = await fetch('/api/archives', {
         method: 'POST',
@@ -933,6 +1247,7 @@ export default function App() {
           texte,
           reformulations: outReform,
           modelText: outModel,
+          date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
         }),
       });
       if (res.ok) {
@@ -1286,29 +1601,32 @@ export default function App() {
         </div>
 
         {/* Boutons d'accès aux 3 boîtes d'œuvres */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setSelectedWorkBox('boite')}
-            className="text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            onClick={() => { setSelectedWorkBox('boite'); setViewingArchiveItem(null); }}
+            className="text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Consulter les productions enregistrées pour La Boîte à Merveilles"
           >
-            <span>📦 Boîte à Merveilles</span>
+            <span>📦 La Boîte à Merveilles</span>
             <span className="bg-amber-200 text-amber-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.boite.length}</span>
           </button>
           <button
             type="button"
-            onClick={() => setSelectedWorkBox('antigone')}
-            className="text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-3 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            onClick={() => { setSelectedWorkBox('antigone'); setViewingArchiveItem(null); }}
+            className="text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Consulter les productions enregistrées pour Antigone"
           >
             <span>📜 Antigone</span>
             <span className="bg-indigo-200 text-indigo-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.antigone.length}</span>
           </button>
           <button
             type="button"
-            onClick={() => setSelectedWorkBox('condamne')}
-            className="text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            onClick={() => { setSelectedWorkBox('condamne'); setViewingArchiveItem(null); }}
+            className="text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Consulter les productions enregistrées pour Le Dernier Jour d'un Condamné"
           >
-            <span>⚖️ Le Condamné</span>
+            <span>⚖️ Le Dernier Jour d'un Condamné</span>
             <span className="bg-emerald-200 text-emerald-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.condamne.length}</span>
           </button>
         </div>
@@ -1514,16 +1832,8 @@ export default function App() {
             {/* Bandeau officiel de tête */}
             <div className="bg-[#0b1528] text-white px-5 py-3.5 rounded-2xl mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-sm border border-slate-800">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-amber-400 block">
-                  Royaume du Maroc • Ministère de l'Éducation Nationale
-                </span>
                 <span className="font-cinzel text-sm sm:text-base font-bold tracking-wider text-white">
                   Centre d'Expertise & Ingénierie Pédagogique Al Akhawayn
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="px-3.5 py-1 bg-amber-500/20 border border-amber-400/40 rounded-full text-[11px] font-black uppercase tracking-wider text-amber-300">
-                  Examen Régional 2026 • Contrôle Officiel
                 </span>
               </div>
             </div>
@@ -1531,8 +1841,8 @@ export default function App() {
             {/* Fiche d'identification et Cachet d'assermentation */}
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
               <div className="space-y-3 flex-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest">
-                  Procès-Verbal d'Évaluation Certifiée
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest border border-amber-500/30">
+                  Rapport Pédagogique Professionnel
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Candidat officiel :</span>
@@ -1905,64 +2215,234 @@ export default function App() {
         </p>
       </footer>
 
-      {/* MODAL BOÎTE D'ARCHIVES */}
+      {/* MODAL BOÎTE D'ARCHIVES & RÉVISION PÉDAGOGIQUE */}
       {selectedWorkBox && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
-              <div>
-                <h3 className="font-cinzel text-xl font-black text-slate-950">Boîtes d'Archives Pédagogiques</h3>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">Consultation & Relecture des Copies Traitées</p>
-              </div>
-              <button onClick={() => setSelectedWorkBox(null)} className="p-2 text-slate-400 hover:text-slate-800 text-lg cursor-pointer">✕</button>
-            </div>
-
-            <div className="flex items-center gap-2 mb-4 border-b border-slate-200 pb-3">
-              <button
-                onClick={() => setSelectedWorkBox('boite')}
-                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer ${
-                  selectedWorkBox === 'boite' ? 'bg-amber-100 text-amber-950 border border-amber-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                La Boîte à Merveilles ({archives.boite.length})
-              </button>
-              <button
-                onClick={() => setSelectedWorkBox('antigone')}
-                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer ${
-                  selectedWorkBox === 'antigone' ? 'bg-indigo-100 text-indigo-950 border border-indigo-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Antigone ({archives.antigone.length})
-              </button>
-              <button
-                onClick={() => setSelectedWorkBox('condamne')}
-                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer ${
-                  selectedWorkBox === 'condamne' ? 'bg-emerald-100 text-emerald-950 border border-emerald-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Le Condamné ({archives.condamne.length})
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-              {archives[selectedWorkBox]?.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 text-sm font-medium">Aucune copie enregistrée pour le moment dans cette boîte.</div>
-              ) : (
-                archives[selectedWorkBox]?.map((item: any) => (
-                  <div key={item.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white transition-all space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-slate-900 text-sm">{item.candidateName}</h4>
-                      <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-800 font-mono font-bold text-xs">{item.score}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 line-clamp-1 italic">{item.sujet || 'Sujet non renseigné'}</p>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
-                      <span>📅 {item.date || 'Date non renseignée'} • {item.filiere}</span>
-                      <button onClick={() => deleteArchive(item.id)} className="text-rose-600 hover:text-rose-800 font-bold cursor-pointer">Supprimer</button>
+        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+          <div className="bg-white rounded-3xl max-w-5xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 flex flex-col max-h-[92vh]">
+            
+            {/* Si consultation d'une production spécifique */}
+            {viewingArchiveItem ? (
+              <div className="flex flex-col h-full overflow-hidden">
+                {/* En-tête de la fiche de révision */}
+                <div className="flex items-center justify-between pb-3.5 border-b border-slate-200 mb-4 gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setViewingArchiveItem(null)}
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                    >
+                      <span>⬅️</span>
+                      <span>Retour à la boîte</span>
+                    </button>
+                    <div>
+                      <h3 className="font-cinzel text-base sm:text-lg font-black text-slate-950 flex items-center gap-2">
+                        <span>{selectedWorkBox === 'boite' ? '📦 La Boîte à Merveilles' : (selectedWorkBox === 'antigone' ? '📜 Antigone' : '⚖️ Le Dernier Jour d\'un Condamné')}</span>
+                        <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300">
+                          Note : {viewingArchiveItem.score}
+                        </span>
+                      </h3>
+                      <p className="text-[11px] text-slate-500 font-bold">
+                        Candidat : {viewingArchiveItem.candidateName} • {viewingArchiveItem.filiere} • Déposé le {viewingArchiveItem.date}
+                      </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                      title="Imprimer pour réviser à la maison"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Imprimer</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setViewingArchiveItem(null); setSelectedWorkBox(null); }}
+                      className="p-1.5 text-slate-400 hover:text-slate-800 text-lg cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {/* Rappel du Sujet Traité */}
+                <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl mb-3 text-xs text-amber-950">
+                  <span className="font-extrabold uppercase text-[10px] tracking-wider text-amber-900 block mb-0.5">
+                    📌 Sujet Officiel Traité :
+                  </span>
+                  <p className="italic font-medium leading-relaxed">« {viewingArchiveItem.sujet || 'Sujet non spécifié'} »</p>
+                </div>
+
+                {/* Onglets de révision */}
+                <div className="flex items-center gap-2 mb-3 border-b border-slate-200 pb-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setArchiveActiveTab('optimized')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                      archiveActiveTab === 'optimized'
+                        ? 'bg-[#0b1528] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>✨</span>
+                    <span>Texte Optimisé & Fluidifié</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setArchiveActiveTab('model')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                      archiveActiveTab === 'model'
+                        ? 'bg-[#0b1528] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>🏆</span>
+                    <span>Modèle de Référence (Norme Al Akhawayn)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setArchiveActiveTab('original')}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                      archiveActiveTab === 'original'
+                        ? 'bg-[#0b1528] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>📝</span>
+                    <span>Copie Initiale Déposée</span>
+                  </button>
+                </div>
+
+                {/* Corps de l'onglet actif */}
+                <div className="flex-1 overflow-y-auto pr-2 pb-2">
+                  {archiveActiveTab === 'optimized' && (
+                    <div className="p-5 rounded-2xl bg-amber-50/30 border border-amber-200 leading-relaxed text-slate-900">
+                      {viewingArchiveItem.reformulations ? (
+                        <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.reformulations }} />
+                      ) : (
+                        <p className="text-slate-400 italic">Aucune version optimisée sauvegardée pour cette copie.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {archiveActiveTab === 'model' && (
+                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-900">
+                      {viewingArchiveItem.modelText ? (
+                        <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.modelText }} />
+                      ) : (
+                        <p className="text-slate-400 italic">Aucun modèle de référence associé enregistré.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {archiveActiveTab === 'original' && (
+                    <div className="p-5 rounded-2xl bg-white border border-slate-200 leading-relaxed text-slate-800 whitespace-pre-wrap font-serif text-sm">
+                      {viewingArchiveItem.texte || 'Aucun texte initial renseigné.'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Liste des copies de la boîte sélectionnée */
+              <div className="flex flex-col h-full overflow-hidden">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
+                  <div>
+                    <h3 className="font-cinzel text-xl font-black text-slate-950">Boîtes d'Archives Pédagogiques</h3>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">
+                      Consultation & Révision des Productions Écrites Enregistrées
+                    </p>
+                  </div>
+                  <button onClick={() => setSelectedWorkBox(null)} className="p-2 text-slate-400 hover:text-slate-800 text-lg cursor-pointer">✕</button>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4 border-b border-slate-200 pb-3">
+                  <button
+                    onClick={() => { setSelectedWorkBox('boite'); setViewingArchiveItem(null); }}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition ${
+                      selectedWorkBox === 'boite' ? 'bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    📦 La Boîte à Merveilles ({archives.boite.length})
+                  </button>
+                  <button
+                    onClick={() => { setSelectedWorkBox('antigone'); setViewingArchiveItem(null); }}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition ${
+                      selectedWorkBox === 'antigone' ? 'bg-indigo-100 text-indigo-950 border border-indigo-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    📜 Antigone ({archives.antigone.length})
+                  </button>
+                  <button
+                    onClick={() => { setSelectedWorkBox('condamne'); setViewingArchiveItem(null); }}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition ${
+                      selectedWorkBox === 'condamne' ? 'bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    ⚖️ Le Dernier Jour d'un Condamné ({archives.condamne.length})
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-3.5 pr-2">
+                  {archives[selectedWorkBox]?.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400 text-sm font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                      <span className="text-3xl block mb-2">📁</span>
+                      Aucune production enregistrée pour le moment dans cette boîte.<br />
+                      <span className="text-xs text-slate-400">Effectuez une évaluation et cliquez sur « Enregistrer dans la boîte » pour réviser à tout moment.</span>
+                    </div>
+                  ) : (
+                    archives[selectedWorkBox]?.map((item: any) => (
+                      <div key={item.id} className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition-all space-y-3 shadow-2xs">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className="font-extrabold text-[10px] uppercase tracking-wider text-amber-800 block mb-1">
+                              📌 Sujet Officiel Traité :
+                            </span>
+                            <h4 className="font-bold text-slate-900 text-sm italic leading-snug">
+                              « {item.sujet || 'Sujet non renseigné'} »
+                            </h4>
+                          </div>
+                          <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-950 font-mono font-black text-xs border border-emerald-300 shrink-0 shadow-2xs">
+                            {item.score}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200 gap-2">
+                          <div className="flex items-center gap-2 text-[11px] text-slate-600 font-semibold">
+                            <span>👤 {item.candidateName}</span>
+                            <span>•</span>
+                            <span>🎓 {item.filiere}</span>
+                            <span>•</span>
+                            <span>📅 {item.date || 'Date non renseignée'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => deleteArchive(item.id)}
+                            className="text-rose-600 hover:text-rose-800 font-bold text-xs cursor-pointer px-2 py-0.5 rounded hover:bg-rose-50 transition"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+
+                        {/* Bouton d'accès direct pour réviser la production */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setViewingArchiveItem(item);
+                            setArchiveActiveTab('optimized');
+                          }}
+                          className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer active:scale-[0.99]"
+                        >
+                          <span>📖</span>
+                          <span>Consulter la copie & réviser le texte optimisé ➔</span>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       )}
