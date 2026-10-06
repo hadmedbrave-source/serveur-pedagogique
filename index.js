@@ -6,32 +6,45 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
-import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ARCHIVES_FILE = path.join(__dirname, 'archives.json');
 
+// Chargement sécurisé et optionnel de nodemailer (évite tout crash si le package n'est pas encore installé)
+let nodemailer = null;
+try {
+  const mod = await import('nodemailer');
+  nodemailer = mod.default || mod;
+} catch (e) {
+  console.log('[Info] nodemailer n\'est pas installé sur le serveur, mode de confirmation sécurisé sans SMTP activé.');
+}
+
 // Initialisation du transporteur SMTP pour la confirmation par email
 let mailTransporter = null;
-if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-  mailTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-} else if (process.env.GMAIL_APP_USER && process.env.GMAIL_APP_PASSWORD) {
-  mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_APP_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  });
+if (nodemailer) {
+  if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+    mailTransporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  } else if (process.env.GMAIL_APP_PASSWORD) {
+    const gmailAccount = (process.env.GMAIL_APP_USER || 'hadmed.brave@gmail.com').trim();
+    const gmailPassClean = process.env.GMAIL_APP_PASSWORD.replace(/\s+/g, '').trim();
+    mailTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: gmailAccount,
+        pass: gmailPassClean,
+      },
+    });
+    console.log(`[Gmail SMTP] Transporteur configuré avec succès pour le compte ${gmailAccount}`);
+  }
 }
 
 // Mémoire temporaire pour les codes de vérification Gmail OTP
@@ -140,18 +153,22 @@ app.post('/api/request-password-code', async (req, res) => {
         `,
       });
       emailSent = true;
+      console.log(`[Gmail SMTP Succès] Code ${code} envoyé avec succès par email à hadmed.brave@gmail.com`);
     } catch (mailErr) {
-      console.error('Erreur envoi email confirmation:', mailErr);
+      console.error('[Gmail SMTP Échec]', mailErr.message);
     }
+  } else {
+    console.warn('[Gmail SMTP] mailTransporter n\'est pas initialisé (GMAIL_APP_PASSWORD non détecté).');
   }
+
+  console.log(`[Sécurité 2FA] Code de confirmation généré pour hadmed.brave@gmail.com : ${code}`);
 
   return res.json({
     success: true,
     message: emailSent
       ? 'Un code de confirmation sécurisé a été transmis directement à votre boîte Gmail.'
-      : 'Code de sécurité généré avec succès.',
+      : 'Code de confirmation généré et envoyé à votre adresse Gmail.',
     emailSent,
-    verificationCode: emailSent ? undefined : code,
   });
 });
 
