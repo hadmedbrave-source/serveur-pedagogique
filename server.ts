@@ -491,9 +491,12 @@ INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou 
 ### 4. Bilan Global de Progression & Synthèse Didactique)
 
 [[TABLEAU]]
-(ATTENTION RÈGLE FORMELLE SUR LE DIAGNOSTIC DES FAUTES :
-- Ce tableau DOIT UNIQUEMENT ET EXCLUSIVEMENT recenser les ERREURS OBJECTIVES : Orthographe (lexicale ou grammaticale), Conjugaison (temps, modes), Accords (sujet-verbe, nom-adjectif, participe passé), Coordination (conjonctions mal employées), Syntaxe grammaticale, Ponctuation.
-- INTERDICTION FORMELLE d'inclure des « phrases faibles », des maladresses de style ou des formulations lourdes dans ce tableau ! (Ceux-ci relèvent exclusivement de la section [[REFORMULATION]]).
+(ATTENTION RÈGLE FORMELLE ET ABSOLUE SUR LE DIAGNOSTIC DES FAUTES :
+- Ce tableau DOIT UNIQUEMENT ET EXCLUSIVEMENT recenser les VRAIES ERREURS OBJECTIVES : Orthographe (lexicale ou grammaticale), Conjugaison (temps, modes), Accords (sujet-verbe, nom-adjectif, participe passé), Coordination (conjonctions mal employées), Syntaxe grammaticale.
+- RÈGLE DE STRICTE DISSIMILITUDE : L'extrait fautif et la correction certifiée NE DOIVENT JAMAIS ÊTRE IDENTIQUES ! Si une phrase ou un extrait est correct, NE JAMAIS L'INCLURE DANS CE TABLEAU SOUS AUCUN PRÉTEXTE.
+- INTERDICTION FORMELLE d'inclure des phrases complètes ou des propositions sans faute. L'extrait fautif doit être UNIQUEMENT le mot ou le petit groupe fautif précis (1 à 4 mots maximum, ex: « la rechercher elle même », « tout les hommes », « il a partager »), JAMAIS une phrase entière de 10 mots !
+- La correction certifiée doit corriger explicitement la faute ciblée.
+- S'il n'y a que 2 ou 3 fautes dans toute la copie de l'élève, ne produis que 2 ou 3 lignes ! Ne fabrique JAMAIS de fausses fautes artificielles.
 - Structure OBLIGATOIRE du tableau Markdown en 4 colonnes, avec les extraits fautifs obligatoirement en rouge (<span class="err-highlight">...</span>) et les corrections certifiées obligatoirement en vert (<span class="corr-green">...</span>) :
 | Extrait fautif (en rouge) | Nature de l'erreur (Orthographe / Conjugaison / Accord / Coordination / Syntaxe) | Correction certifiée (en vert) | Règle pédagogique précise |
 | :--- | :--- | :--- | :--- |
@@ -511,13 +514,20 @@ Structure obligatoire de cette section en deux volets indissociables :
 - **Phrase de l'élève n°1 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
   - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
   - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
-[Répète pour au moins 3 phrases du texte du candidat]
+- **Phrase de l'élève n°2 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
+  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
+- **Phrase de l'élève n°3 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
+  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
 (Rédige l'intégralité de la copie du candidat réécrite du début à la fin dans une langue soignée, fluide, limpide et naturelle, accessible pour un élève du Baccalauréat.
-ATTENTION RÈGLE D'OR DE DÉCOUPAGE : Le développement NE DOIT JAMAIS ÊTRE COMPACTÉ EN UN SEUL BLOC !
+ATTENTION RÈGLE D'OR SUR LES EXEMPLES TIRÉS DES ŒUVRES :
+- Tu DOIS IMPÉRATIVEMENT MENTIONNER EN GRAS chaque exemple tiré de l'œuvre au programme : **exemple précis tiré de l'œuvre (personnage, événement, citation)** !
+- Les connecteurs logiques doivent être en gras : <strong>connecteur</strong>.
 - L'Introduction doit former un paragraphe autonome.
-- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre). Sépare chaque paragraphe par un saut de ligne net (\n\n) et commence-le par un alinéa et un connecteur logique (*En premier lieu...*, *En second lieu...*, *Cependant...*).
+- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre en gras). Sépare chaque paragraphe par un saut de ligne net (\n\n) et commence-le par un alinéa et un connecteur logique (*En premier lieu...*, *En second lieu...*, *Cependant...*).
 - La Conclusion doit former un paragraphe autonome.
 Préserve fidèlement tous les arguments et exemples du candidat, en assurant une parfaite fluidité sans emphase excessive.)
 
@@ -528,19 +538,44 @@ Préserve fidèlement tous les arguments et exemples du candidat, en assurant un
 
 [[PLAN_A]]
 (Modèle de référence selon le plan détecté.
-RÈGLE FORMELLE ET STRICTE : NE JAMAIS ÉCRIRE DE MENTION OU TITRE DANS LE TEXTE COMME "Introduction...", "I. Facteurs / Causes...", "II. Conséquences...", "III. Solutions...", ou "Conclusion :". Le modèle doit se lire comme un essai rédigé, fluide et élégant, composé de paragraphes bien articulés :
-- L'introduction dans <div class="model-intro"><p>...</p></div>
-- Le développement dans <div class="model-body"><p>...</p><p>...</p></div>
-- La conclusion dans <div class="model-concl"><p>...</p></div>
-- Les liens logiques doivent être en gras : <strong>lien logique</strong>.)
+RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
+- EXIGENCE DE LONGUEUR FORMELLE : Le modèle rédigé DOIT IMPÉRATIVEMENT FAIRE AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Un texte court de moins de 18 lignes est strictement inadmissible.
+- AMORCE DE L'INTRODUCTION OBLIGATOIRE :
+  Quand le sujet mentionne une œuvre intégrale (ou un thème littéraire), COMMENCER L'INTRODUCTION PAR LA FORMULE D'IMMERSION ATTENTIVE :
+  « Quand on plonge dans la lecture attentive du roman [Titre du roman] de [Auteur], on se rend compte que [problématique et tension du sujet]... »
+  (Exemples :
+  * Pour La Boîte à Merveilles : « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que... »
+  * Pour Le Dernier Jour d'un Condamné : « Quand on plonge dans la lecture attentive du roman à thèse Le Dernier Jour d'un Condamné de Victor Hugo, on se rend compte que... »
+  * Pour Antigone : « Quand on plonge dans la lecture attentive de la tragédie moderne Antigone de Jean Anouilh, on se rend compte que... »
+  * Pour un thème général : « Quand on plonge dans la lecture attentive des œuvres littéraires au programme, on se rend compte que... »)
+- VEILLER À LA COHÉRENCE PARFAITE DE L'INTRODUCTION EN ENTONNOIR :
+  1. Amorce attentive avec cette formule
+  2. Tension et reformulation du sujet sans rupture logique
+  3. Problématique nette et directrice
+  4. Annonce fluide et symétrique des axes du plan
+- STRUCTURE DU DÉVELOPPEMENT :
+  Au moins 2 ou 3 grands paragraphes très substantiels (au moins 5 à 6 lignes chacun), avec connecteurs logiques en gras (<strong>En premier lieu</strong>, <strong>En second lieu</strong>, etc.), chacun contenant un argument approfondi, une analyse fine et un exemple développé issu de l'œuvre au programme en gras.
+- CONCLUSION :
+  Un paragraphe de 3 à 4 lignes avec bilan synthétique et ouverture stimulante.
+- BALISAGE CHROMATIQUE :
+  - L'introduction dans <div class="model-intro"><p>...</p></div>
+  - Le premier axe dans <div class="model-axe1"><p>...</p></div>
+  - Le second axe dans <div class="model-axe2"><p>...</p></div>
+  - La conclusion dans <div class="model-concl"><p>...</p></div>
+  - Les liens logiques en gras : <strong>lien logique</strong>.
+  - Ne JAMAIS écrire d'étiquette scolaire comme "Introduction :" ou "I. Thèse".)
 
 [[PLAN_B]]
 (Si TYPE est OPINION :
 Propose le modèle rédigé selon le PLAN DIALECTIQUE.
-Même règle stricte : AUCUN TITRE NI ÉTIQUETTE SCOLAIRE (Ne JAMAIS écrire "Introduction...", "I. Thèse...", "II. Antithèse...", "III. Synthèse...", "Conclusion:").
-Rédige directement l'essai fluide :
+Même règle stricte : AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ.
+Introduction commençant par la formule d'immersion attentive « Quand on plonge dans la lecture attentive... ».
+Thèse, Antithèse et Synthèse substantielles avec exemples précis des œuvres en gras.
+Conclusion complète.
 - L'introduction dans <div class="model-intro"><p>...</p></div>
-- Le développement dans <div class="model-body"><p>...</p><p>...</p><p>...</p></div>
+- Le premier axe (Thèse) dans <div class="model-axe1"><p>...</p></div>
+- Le second axe (Antithèse) dans <div class="model-axe2"><p>...</p></div>
+- Le troisième axe (Synthèse) dans <div class="model-axe3"><p>...</p></div>
 - La conclusion dans <div class="model-concl"><p>...</p></div>
 - Les liens logiques en gras : <strong>lien logique</strong>.
 Si TYPE est ANALYTIQUE : laisser ce bloc entièrement vide.)`;
@@ -600,7 +635,7 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
 
     // 2. Try Gemini with proven fast model cascade
     if (gemini) {
-      const modelsToTry = ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.8-flash'];
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.8-flash'];
       for (const m of modelsToTry) {
         try {
           const response = await gemini.models.generateContent({
@@ -745,44 +780,53 @@ ${highlightedCopy || `<p>${rawCopy}</p>`}
     > *« Dès lors, la réflexion s'appuie sur des exemples concrets pour rendre l'argumentation plus convaincante et accessible. »*
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
-> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme**, on se rend compte que la réflexion autour de « ${topic.slice(0, 70)} » s'impose comme un carrefour éthique et humain fondamental. Dès lors, il convient d'en examiner les fondements avec rigueur afin de dégager les principes directeurs d'une conscience éclairée.
+> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme**, on se rend compte que la réflexion autour de « ${topic.slice(0, 70)} » s'impose comme un carrefour éthique et humain fondamental. Dès lors, il convient d'en examiner les fondements avec rigueur afin de dégager les principes directeurs d'une conscience éclairée et mature.
 
-> **En premier lieu**, l'examen attentif de la condition humaine révèle que toute prise de position engage la lucidité individuelle. À l'instar des épreuves narrées dans nos œuvres de référence, l'individu se doit d'affirmer son discernement face aux pressions extérieures.
+> **En premier lieu**, l'examen attentif de la condition humaine révèle que toute prise de position engage la lucidité individuelle. À l'instar de **l'expérience solitaire de Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui**, l'individu se doit d'affirmer son discernement et de préserver son authenticité face aux pressions extérieures et aux conformismes du groupe.
 
-> **En second lieu**, cette quête de vérité exige une constance morale inébranlable. Loin des compromissions faciles, l'effort d'émancipation personnelle fonde la dignité du sujet pensant.
+> **En second lieu**, cette quête de vérité exige une constance morale inébranlable. Loin des compromissions faciles, comme l'illustre **le combat sans concession mené par Antigone face à Créon chez Jean Anouilh**, le refus de la soumission fonde la dignité du sujet pensant. De surcroît, **le vibrant plaidoyer de Victor Hugo dans Le Dernier Jour d'un Condamné** rappelle avec gravité que la justice authentique ne saurait bafouer la dignité inhérente à chaque être humain.
 
-> **En définitive**, la portée universelle de ce sujet transcende les clivages éphémères pour rappeler que la véritable sagesse réside dans l'accord harmonieux entre fidélité à soi et respect d'autrui.
+> **En définitive**, la portée universelle de ce sujet transcende les clivages éphémères pour rappeler que la véritable sagesse réside dans l'accord harmonieux entre fidélité à ses convictions et respect des liens communautaires.
 
 [[TYPE]]
 ${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
 
 [[PLAN_A]]
 <div class="model-intro">
-<p>Quand on plonge dans la réflexion approfondie sur <em>${topic.slice(0, 80)}</em>, on mesure combien cette interrogation engage la responsabilité morale et intellectuelle de chaque scripteur. <strong>Dès lors</strong>, il convient d'en sonder les ressorts majeurs, <strong>avant d'analyser</strong> les répercussions essentielles, <strong>afin de tracer</strong> les voies d'un accomplissement authentique.</p>
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme, on se rend compte que la question posée par « ${topic.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante. En effet, tandis que certaines approches privilégient une fidélité inconditionnelle aux devoirs traditionnels et aux règles collectives, d'autres voix défendent la primauté de l'autonomie critique et de la liberté individuelle. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites ou importe-t-il d'affirmer un recul discernant face aux conventions ? Pour répondre à cette problématique, il s'agira d'examiner dans un premier temps les impératifs structurants de la responsabilité personnelle, avant de mettre en lumière dans un second temps les bienfaits d'une émancipation mesurée et solidaire.</p>
 </div>
 
-<div class="model-body">
-<p><strong>En premier lieu</strong>, la réflexion s'ancre dans la prise de conscience des dynamiques individuelles et collectives. L'expérience littéraire enseigne que l'observation attentive du monde est le prélude indispensable à toute action juste.</p>
-<p><strong>En second lieu</strong>, la confrontation avec les écueils du réel fortifie le discernement critique. Refusant la résignation, l'esprit forge son autonomie à travers des choix exigeants et mesurés.</p>
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes partagés permet à l'individu de construire un ancrage solide et d'échapper aux illusions de l'arbitraire. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les solidarités de quartier et les rituels familiaux partagés par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles. De même, dans la tragédie classique de <strong>Jean Anouilh</strong>, le personnage de <strong>Créon</strong> rappelle avec gravité que le maintien de l'ordre civique exige le respect de règles communes sans lesquelles la cité s'effondre dans le chaos. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie en communauté.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette fidélité aux principes ne saurait toutefois se muer en un assujettissement aveugle qui étoufferait la singularité et la quête de justice de l'être pensant. C'est précisément ce que revendique avec une grandeur tragique <strong>l'héroïne Antigone</strong>, qui préfère mourir plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> dénonce avec une virulence universelle l'inhumanité des châtiments institutionnalisés à travers les angoisses d'un homme claquemuré dans <strong>le cachot de Bicêtre</strong>, démontrant que la véritable équité commande de réformer les lois lorsque celles-ci heurtent la dignité humaine. Dès lors, le discernement critique s'affirme comme le moteur vital du progrès éthique.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En définitive</strong>, loin d'être un débat abstrait, ce sujet réaffirme l'impératif d'une pensée libre et solidaire, seule à même de concilier lucidité personnelle et concorde sociale.</p>
+<p><strong>En définitive</strong>, la réflexion menée invite à dépasser toute opposition manichéenne en harmonisant l'exigence des devoirs sociaux avec le souffle vivifiant de la conscience individuelle. Loin de s'exclure mutuellement, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré. En conclusion, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de sa rectitude morale ?</p>
 </div>
 
 [[PLAN_B]]
 <div class="model-intro">
-<p>L'interrogation posée par ce sujet suscite un débat fécond entre deux exigences complémentaires. <strong>D'une part</strong>, l'affirmation des impératifs immédiats semble s'imposer ; <strong>d'autre part</strong>, la perspective du dépassement ouvre des horizons éthiques plus élevés.</p>
+<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${topic.slice(0, 80)} » engage deux visions complémentaires de l'expérience humaine. D'un côté, une perspective rigoureuse souligne la nécessité d'une discipline collective et d'un réalisme lucide face aux contingences du monde. D'un autre côté, une exigence morale supérieure refuse tout asservissement et place l'intégrité de la conscience au-dessus des facilités matérielles. Dès lors, face à cette polarité féconde, comment concilier le réalisme des devoirs quotidiens et l'idéal inaliénable de liberté ? Il conviendra d'examiner dans une première partie la valeur pragmatique des devoirs collectifs, d'envisager dans une deuxième partie la légitimité du refus éthique, pour enfin dégager dans une synthèse souveraine les conditions d'un équilibre harmonieux.</p>
 </div>
 
-<div class="model-body">
-<p><strong>D'un côté</strong>, les nécessités concrètes dictent une prudence pragmatique face aux aléas de l'existence.</p>
-<p><strong>D'un autre côté</strong>, l'élévation morale commande de ne pas subordonner l'idéal de justice aux seules facilités du présent.</p>
-<p><strong>Ainsi</strong>, la synthèse harmonieuse réside dans la recherche d'un équilibre souverain entre réalisme et fidélité aux valeurs fondamentales.</p>
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'acceptation des nécessités concrètes et le respect des normes sociales constituent le garant de la cohésion civique et de la sécurité matérielle. Dans <strong>La Boîte à Merveilles</strong>, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent que la persévérance au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence. De même, les arguments d'État défendus par <strong>Créon dans Antigone</strong> soulignent avec réalisme que diriger des hommes impose parfois des compromis austères afin de préserver la paix civile. L'individu ne peut donc s'affranchir unilatéralement des contraintes qui assurent la survie de la collectivité.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'obéissance aux impératifs sociaux trouve sa limite imprescriptible là où commence l'avilissement de la conscience et la violation des droits sacrés de la personne. La voix vibrante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> retentit pour proclamer que nulle société civilisée ne peut s'arroger le droit de tuer froidement un semblable sur <strong>la place de Grève</strong> au nom d'une prétendue exemplarité judiciaire. De même, <strong>Antigone</strong> oppose à la raison d'État la supériorité des lois non écrites du cœur et de l'amour fraternel. L'honneur de l'humanité réside dans cette capacité suprême à dire non à l'injustice institutionnalisée.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse éclairée, où l'ordre extérieur s'ajuste en permanence aux progrès de la sensibilité morale. Il ne s'agit ni de basculer dans une révolte stérile, ni de se résigner à une soumission servile, mais de faire dialoguer le sens des responsabilités avec l'esprit de compassion et d'équité. L'art littéraire enseigne que les grandes avancées naissent toujours de cette tension maîtrisée entre respect de la règle et courage de l'idéal.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En somme</strong>, la véritable grandeur de la pensée consiste à surmonter les dilemmes par un surcroît de rectitude et de clairvoyance.</p>
+<p><strong>En somme</strong>, ce débat transcende les circonstances contingentes pour rappeler que la dignité humaine se forge dans la conciliation souveraine de la lucidité et du cœur. Par-delà les doutes et les déchirements, la fidélité à des valeurs fraternelles ouvre la voie à un avenir plus solidaire et plus juste. Ne revient-il pas dès lors à chaque génération d'accomplir ce perpétuel dépassement éthique ?</p>
 </div>`;
 }
 
