@@ -507,7 +507,10 @@ Ne mets AUCUNE balise d'avertissement intrusive.)
 [[TABLEAU]]
 (ATTENTION RÈGLE FORMELLE SUR LE DIAGNOSTIC DES FAUTES :
 - Ce tableau DOIT UNIQUEMENT ET EXCLUSIVEMENT recenser les ERREURS OBJECTIVES : Orthographe (lexicale ou grammaticale), Conjugaison (temps, modes), Accords (sujet-verbe, nom-adjectif, participe passé), Coordination (conjonctions mal employées), Syntaxe grammaticale, Ponctuation.
-- INTERDICTION FORMELLE d'inclure des « phrases faibles », des maladresses de style ou des formulations lourdes dans ce tableau ! (Ceux-ci relèvent exclusivement de la section [[REFORMULATION]]).
+- INTERDICTION FORMELLE ET STRICTE d'insérer une ligne où l'« Extrait fautif » et la « Correction certifiée » sont identiques ! Si un extrait est correct, NE JAMAIS LE CITER ICI !
+- INTERDICTION FORMELLE d'inclure des phrases complètes ou des propositions sans faute. L'extrait fautif doit être UNIQUEMENT le mot ou le petit groupe fautif précis (1 à 4 mots maximum), JAMAIS une phrase entière !
+- La correction certifiée doit être OBLIGATOIREMENT différente de l'extrait fautif et corriger la faute de manière incontestable.
+- Ne recense QUE les véritables fautes objectives avérées. S'il n'y a que 2 ou 3 fautes dans toute la copie, ne mets que ces 2 ou 3 lignes.
 - Structure OBLIGATOIRE du tableau Markdown en 4 colonnes, avec les extraits fautifs obligatoirement en rouge (<span class="err-highlight">...</span>) et les corrections certifiées obligatoirement en vert (<span class="corr-green">...</span>) :
 | Extrait fautif (en rouge) | Nature de l'erreur (Orthographe / Conjugaison / Accord / Coordination / Syntaxe) | Correction certifiée (en vert) | Règle pédagogique précise |
 | :--- | :--- | :--- | :--- |
@@ -521,19 +524,24 @@ ATTENTION RÈGLE CAPITALE SUR LE REGISTRE DE LANGUE :
 
 Structure obligatoire de cette section en deux volets indissociables :
 
-### **A. Chirurgie Stylistique des Phrases Clés**
+### A. Chirurgie Stylistique des Phrases Clés
 - **Phrase de l'élève n°1 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
   - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
   - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
-[Répète pour au moins 3 phrases du texte du candidat]
+- **Phrase de l'élève n°2 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
+  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
+- **Phrase de l'élève n°3 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
+  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
+  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, élégante mais naturelle et accessible, sans registre soutenu artificiel] »*
 
-### **B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)**
+### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)
 (Rédige l'intégralité de la copie du candidat réécrite du début à la fin dans une langue soignée, fluide, limpide et naturelle, accessible pour un élève du Baccalauréat.
-ATTENTION RÈGLE D'OR DE DÉCOUPAGE : Le développement NE DOIT JAMAIS ÊTRE COMPACTÉ EN UN SEUL BLOC !
+ATTENTION RÈGLE D'OR SUR LES EXEMPLES TIRÉS DES ŒUVRES :
+- Tu DOIS IMPÉRATIVEMENT MENTIONNER EN GRAS chaque exemple tiré de l'œuvre au programme : **exemple précis tiré de l'œuvre (personnage, événement, citation)** !
+- Les connecteurs logiques doivent être en gras : <strong>connecteur</strong>.
 - L'Introduction doit former un paragraphe autonome.
-- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre). Sépare chaque paragraphe par un saut de ligne net et commence-le par un alinéa.
-- DANS CETTE PARTIE B : TOUS LES LIENS LOGIQUES ET CONNECTEURS DOIVENT OBLIGATOIREMENT ÊTRE EN GRAS ET EN COULEUR BLEUE : <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">connecteur</strong>.
-- RÈGLE DES ŒUVRES : Si le sujet mentionne une œuvre précise parmi les œuvres étudiées (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné), citer impérativement des exemples tirés de cette œuvre !
+- LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS.
 - La Conclusion doit former un paragraphe autonome.)
 
 [[TYPE]]
