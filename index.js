@@ -6,10 +6,40 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
+import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ARCHIVES_FILE = path.join(__dirname, 'archives.json');
+
+// Initialisation du transporteur SMTP pour la confirmation par email
+let mailTransporter = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+  mailTransporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+} else if (process.env.GMAIL_APP_USER && process.env.GMAIL_APP_PASSWORD) {
+  mailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_APP_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+}
+
+// Mémoire temporaire pour les codes de vérification Gmail OTP
+let pendingVerification = {
+  code: null,
+  email: null,
+  expiresAt: 0,
+};
 
 // Initialisation et persistance des boîtes d'archives
 function loadArchives() {
@@ -62,8 +92,119 @@ app.post('/api/verify-password', (req, res) => {
   return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
 });
 
+// 1. Demande d'envoi du code de confirmation sécurisé par Gmail
+app.post('/api/request-password-code', async (req, res) => {
+  const { email, oldPassword } = req.body;
+  
+  if (!email || email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
+    return res.status(403).json({
+      success: false,
+      message: 'Adresse de messagerie non habilitée pour ce compte administrateur.'
+    });
+  }
+
+  if (oldPassword !== PROFESSOR_PASSWORD && oldPassword !== 'AKHAWAYN2026') {
+    return res.status(401).json({
+      success: false,
+      message: 'Mot de passe actuel incorrect.'
+    });
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  pendingVerification = {
+    code,
+    email: 'hadmed.brave@gmail.com',
+    expiresAt: Date.now() + 15 * 60 * 1000,
+  };
+
+  let emailSent = false;
+  if (mailTransporter) {
+    try {
+      await mailTransporter.sendMail({
+        from: '"Centre Al Akhawayn" <no-reply@centre-alakhawayn.ma>',
+        to: 'hadmed.brave@gmail.com',
+        subject: `[Centre Al Akhawayn] Code de confirmation de sécurité : ${code}`,
+        text: `Bonjour Professeur,\n\nVoici votre code de confirmation pour modifier le mot de passe enseignant : ${code}\n\nCe code est valable pendant 15 minutes.\n\nDirection Pédagogique - Centre Al Akhawayn`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 24px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 500px;">
+            <h2 style="color: #0b1528; margin-top: 0;">Centre Al Akhawayn</h2>
+            <p style="color: #334155; font-size: 14px;">Bonjour Professeur,</p>
+            <p style="color: #334155; font-size: 14px;">Vous avez initié une demande de mise à jour du mot de passe enseignant. Voici votre code officiel de confirmation :</p>
+            <div style="text-align: center; margin: 24px 0;">
+              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #b45309; background: #ffffff; padding: 12px 24px; border-radius: 8px; border: 2px dashed #b45309; display: inline-block;">
+                ${code}
+              </span>
+            </div>
+            <p style="font-size: 12px; color: #64748b; line-height: 1.5;">Ce code est à usage unique et expire dans 15 minutes. Si vous n'êtes pas à l'origine de cette demande, veuillez ignorer ce message.</p>
+          </div>
+        `,
+      });
+      emailSent = true;
+    } catch (mailErr) {
+      console.error('Erreur envoi email confirmation:', mailErr);
+    }
+  }
+
+  return res.json({
+    success: true,
+    message: emailSent
+      ? 'Un code de confirmation sécurisé a été transmis directement à votre boîte Gmail.'
+      : 'Code de sécurité généré avec succès.',
+    emailSent,
+    verificationCode: emailSent ? undefined : code,
+  });
+});
+
+// 2. Validation du code de confirmation et enregistrement du nouveau mot de passe
+app.post('/api/confirm-change-password', (req, res) => {
+  const { email, verificationCode, newPassword } = req.body;
+
+  if (!email || email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
+    return res.status(403).json({
+      success: false,
+      message: 'Adresse de messagerie non habilitée.'
+    });
+  }
+
+  if (!pendingVerification.code || Date.now() > pendingVerification.expiresAt) {
+    return res.status(400).json({
+      success: false,
+      message: 'Le code de vérification a expiré ou n\'a pas encore été demandé. Veuillez renvoyer un code.'
+    });
+  }
+
+  if (!verificationCode || verificationCode.trim() !== pendingVerification.code) {
+    return res.status(400).json({
+      success: false,
+      message: 'Code de vérification incorrect. Veuillez vérifier le code reçu sur votre boîte Gmail.'
+    });
+  }
+
+  if (!newPassword || newPassword.trim().length < 4) {
+    return res.status(400).json({
+      success: false,
+      message: 'Le nouveau mot de passe doit comporter au moins 4 caractères.'
+    });
+  }
+
+  PROFESSOR_PASSWORD = newPassword.trim();
+  pendingVerification = { code: null, email: null, expiresAt: 0 };
+  return res.json({
+    success: true,
+    message: 'Mot de passe enseignant mis à jour avec succès sur le serveur !'
+  });
+});
+
 app.post('/api/change-password', (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+  const { email, oldPassword, newPassword } = req.body;
+  
+  if (!email || email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
+    return res.status(403).json({
+      success: false,
+      message: 'Adresse de messagerie non habilitée.'
+    });
+  }
+
   if (oldPassword !== PROFESSOR_PASSWORD && oldPassword !== 'AKHAWAYN2026') {
     return res.status(401).json({ success: false, message: 'Ancien mot de passe invalide.' });
   }
@@ -338,28 +479,48 @@ Structure obligatoire de cette section en deux volets indissociables :
 ATTENTION RÈGLE D'OR DE DÉCOUPAGE : Le développement NE DOIT JAMAIS ÊTRE COMPACTÉ EN UN SEUL BLOC !
 - L'Introduction doit former un paragraphe autonome.
 - LE DÉVELOPPEMENT DOIT OBLIGATOIREMENT ÊTRE DÉCOUPÉ EN PARAGRAPHES DISTINCTS (1 paragraphe par argument développé + exemple précis de l'œuvre). Sépare chaque paragraphe par un saut de ligne net et commence-le par un alinéa.
-- DANS CETTE PARTIE B : TOUS LES LIENS LOGIQUES ET CONNECTEURS DOIVENT ÊTRE MIS EN COULEUR BLEUE : <strong style="color:#1d4ed8; font-weight:800;">connecteur</strong>.
+- DANS CETTE PARTIE B : TOUS LES LIENS LOGIQUES ET CONNECTEURS DOIVENT OBLIGATOIREMENT ÊTRE EN GRAS ET EN COULEUR BLEUE : <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">connecteur</strong>.
+- RÈGLE DES ŒUVRES : Si le sujet mentionne une œuvre précise parmi les œuvres étudiées (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné), citer impérativement des exemples tirés de cette œuvre !
 - La Conclusion doit former un paragraphe autonome.)
 
 [[TYPE]]
 (Détermine strictement le type : "ANALYTIQUE" si le sujet demande des causes, conséquences, facteurs ou solutions ; "OPINION" si le sujet demande un avis, une prise de position ou de débattre.)
 
 [[PLAN_A]]
-(Modèle de référence selon le plan détecté. Sans étiquettes scolaires de titres dans le corps du texte.
-RÈGLE OBLIGATOIRE DES COULEURS DANS LE MODÈLE :
-1. TOUS les liens logiques et connecteurs DOIVENT être en couleur bleue : <strong style="color:#1d4ed8; font-weight:800;">lien logique</strong>.
-2. TOUS les exemples tirés des œuvres au programme DOIVENT être en couleur verte émeraude : <strong style="color:#047857; font-weight:800; font-style:italic;">exemple d'œuvre (ex: la Chouafa dans La Boîte à Merveilles, Créon dans Antigone)</strong>.
+(Option 1 - Si TYPE est OPINION : Modèle Thématique Simple. Si TYPE est ANALYTIQUE : Plan Analytique.
+DÉCLARATION OBLIGATOIRE DU PLAN ET DES ÉLÉMENTS EN COULEUR :
+1. Affiche en tête la déclaration de structure :
+   <div style="background:#0b1528; color:#f8fafc; padding:8px 14px; border-radius:8px; font-weight:800; font-size:0.85rem; margin-bottom:12px; border-left:4px solid #b45309;">
+     🎯 STRUCTURE DU PLAN RETENU : [PLAN THÉMATIQUE (AXES COMPLÉMENTAIRES) ou PLAN ANALYTIQUE (CAUSES & SOLUTIONS)]
+   </div>
+2. Chaque étape doit débuter par son badge coloré distinct :
+   - Introduction : <span style="background:#fffbeb; color:#92400e; border:1px solid #fcd34d; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">📌 INTRODUCTION & POSITION DU SUJET</span>
+   - 1er Axe : <span style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">1️⃣ PREMIER AXE ARGUMENTATIF (ou CAUSES)</span>
+   - 2ème Axe : <span style="background:#f5f3ff; color:#5b21b6; border:1px solid #ddd6fe; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">2️⃣ SECOND AXE ARGUMENTATIF (ou SOLUTIONS)</span>
+   - Conclusion : <span style="background:#0f172a; color:#ffffff; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">🎯 CONCLUSION & BILAN SYNTHÉTIQUE</span>
+3. RÈGLE DES ŒUVRES : Si le sujet mentionne une œuvre spécifique, citer impérativement des personnages et scènes de cette œuvre ! Exemples d'œuvres en vert émeraude (<strong style="color:#047857; font-weight:800; font-style:italic;">...</strong>) et liens logiques en bleu (<strong style="color:#1d4ed8; font-weight:800;">...</strong>).
 - L'introduction dans <div class="model-intro"><p>...</p></div>
 - Le développement dans <div class="model-body"><p>...</p><p>...</p></div>
 - La conclusion dans <div class="model-concl"><p>...</p></div>)
 
 [[PLAN_B]]
-(Si TYPE est OPINION : Deuxième option - Modèle dialectique (Thèse / Antithèse / Synthèse) sans étiquettes de titres.
-Mêmes règles de couleurs : liens logiques en <strong style="color:#1d4ed8; font-weight:800;">bleu</strong> et exemples d'œuvres en <strong style="color:#047857; font-weight:800; font-style:italic;">vert émeraude</strong>.
+(Si TYPE est OPINION : Option 2 - Modèle Dialectique (Thèse / Antithèse / Synthèse).
+DÉCLARATION OBLIGATOIRE DU PLAN ET DES ÉLÉMENTS EN COULEUR :
+1. Déclaration de structure en tête :
+   <div style="background:#0b1528; color:#f8fafc; padding:8px 14px; border-radius:8px; font-weight:800; font-size:0.85rem; margin-bottom:12px; border-left:4px solid #3b82f6;">
+     🎯 STRUCTURE DU PLAN RETENU : PLAN DIALECTIQUE (THÈSE / ANTITHÈSE / SYNTHÈSE)
+   </div>
+2. Chaque étape doit débuter par son badge coloré distinct :
+   - Introduction : <span style="background:#fffbeb; color:#92400e; border:1px solid #fcd34d; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">📌 INTRODUCTION & PARADOXE INITIAL</span>
+   - Thèse : <span style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">⚖️ PREMIÈRE PARTIE : THÈSE (Défense du point de vue)</span>
+   - Antithèse : <span style="background:#fdf2f8; color:#9d174d; border:1px solid #fbcfe8; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">🔄 DEUXIÈME PARTIE : ANTITHÈSE (Limites & Nuances)</span>
+   - Synthèse : <span style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">💡 TROISIÈME PARTIE : SYNTHÈSE (Dépassement critique)</span>
+   - Conclusion : <span style="background:#0f172a; color:#ffffff; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block; margin-bottom:6px;">🎯 CONCLUSION & OUVERTURE ÉTHIQUE</span>
+3. RÈGLE DES ŒUVRES : Si le sujet cite une œuvre, exemples obligatoirement tirés de celle-ci ! Mêmes règles de couleurs : liens logiques en bleu et exemples d'œuvres en vert émeraude.
 - L'introduction dans <div class="model-intro"><p>...</p></div>
 - Le développement dans <div class="model-body"><p>...</p><p>...</p><p>...</p></div>
 - La conclusion dans <div class="model-concl"><p>...</p></div>
-ATTENTION : Si TYPE est ANALYTIQUE, laisser ce bloc [[PLAN_B]] STRICTEMENT VIDE ! Le plan analytique ne comporte pas d'option dialectique au choix.)`;
+ATTENTION : Génère TOUJOURS ce bloc [[PLAN_B]] avec un modèle dialectique complet (Thèse / Antithèse / Synthèse) pour offrir en permanence au professeur et à l'élève les deux options méthodologiques certifiées !)`;
 
 app.post('/api/chat', async (req, res) => {
   const { prompt, nom, filiere, sujet, texte, password } = req.body;
@@ -487,14 +648,33 @@ OPINION
 `;
   }
 
-  const isAnalytic = topic.toLowerCase().includes("cause") ||
-    topic.toLowerCase().includes("solution") ||
-    topic.toLowerCase().includes("conséquence") ||
-    topic.toLowerCase().includes("consequence") ||
-    topic.toLowerCase().includes("fléau") ||
-    topic.toLowerCase().includes("fleau") ||
-    topic.toLowerCase().includes("facteur");
+  const topicLower = topic.toLowerCase();
+  const isExplicitOpinion = topicLower.includes("pensez-vous") ||
+    topicLower.includes("pensez vous") ||
+    topicLower.includes("partagez-vous") ||
+    topicLower.includes("partagez vous") ||
+    topicLower.includes("avis") ||
+    topicLower.includes("opinion") ||
+    topicLower.includes("point de vue") ||
+    topicLower.includes("accord") ||
+    topicLower.includes("faut-il") ||
+    topicLower.includes("faut il") ||
+    topicLower.includes("peut-on") ||
+    topicLower.includes("peut on") ||
+    topicLower.includes("croyez-vous") ||
+    topicLower.includes("défendez") ||
+    topicLower.includes("justifiez") ||
+    topicLower.includes("adherez") ||
+    topicLower.includes("etes-vous") ||
+    topicLower.includes("êtes-vous");
 
+  const hasCauseKeywords = topicLower.includes("causes et solutions") ||
+    topicLower.includes("causes et conséquences") ||
+    topicLower.includes("causes et consequences") ||
+    topicLower.includes("quelles sont les causes") ||
+    topicLower.includes("analyser les causes");
+
+  const isAnalytic = hasCauseKeywords && !isExplicitOpinion;
   const isOpinion = !isAnalytic;
 
   const paragraphs = rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()) : [rawCopy];
@@ -522,6 +702,29 @@ OPINION
   const sentences = rawCopy.match(/[^.!?]+[.!?]+/g) || [rawCopy];
   const s1 = (sentences[0] || "Première phrase de la copie").trim();
   const s2 = (sentences[1] || sentences[0] || "Deuxième phrase de la copie").trim();
+
+  const mentionsBoite = topicLower.includes('boîte') || topicLower.includes('boite') || topicLower.includes('sidi mohammed') || topicLower.includes('sefrioui') || topicLower.includes('chouafa');
+  const mentionsAntigone = topicLower.includes('antigone') || topicLower.includes('créon') || topicLower.includes('creon') || topicLower.includes('anouilh');
+  const mentionsCondamne = topicLower.includes('condamné') || topicLower.includes('condamne') || topicLower.includes('victor hugo') || topicLower.includes('bicêtre') || topicLower.includes('peine de mort');
+
+  // Choix des exemples prioritaires selon l'œuvre citée dans le sujet
+  let ex1 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">la solitude et l'univers imaginaire de Sidi Mohammed dans « La Boîte à Merveilles » d'Ahmed Sefrioui</strong>`;
+  let ex2 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">le courage intransigeant d'Antigone face aux édits de Créon dans « Antigone » de Jean Anouilh</strong>`;
+  let ex3 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">les angoisses poignantes et le cri d'humanité du condamné dans « Le Dernier Jour d'un Condamné » de Victor Hugo</strong>`;
+
+  if (mentionsBoite) {
+    ex1 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">l'isolement volontaire de Sidi Mohammed à Dar Chouafa et le réconfort trouvé dans sa boîte à merveilles</strong>`;
+    ex2 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">la précarité familiale et les visites superstitieuses au sanctuaire de Sidi Ali Boughaleb dans « La Boîte à Merveilles »</strong>`;
+    ex3 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">le regard lucide et poétique que porte le narrateur enfant sur les adultes qui l'entourent</strong>`;
+  } else if (mentionsAntigone) {
+    ex1 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">la fidélité inébranlable d'Antigone à son devoir sacré d'ensevelir son frère Polynice</strong>`;
+    ex2 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">le pragmatisme politique autoritaire de Créon prêt à sacrifier la justice morale pour la raison d'État dans « Antigone »</strong>`;
+    ex3 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">le refus catégorique de tout compromis médiocre qui pousse l'héroïne à dire « non » jusqu'au sacrifice suprême</strong>`;
+  } else if (mentionsCondamne) {
+    ex1 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">la torture psychologique et l'obsession de l'échafaud vécues par le condamné dans son cachot de Bicêtre</strong>`;
+    ex2 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">le plaidoyer humaniste de Victor Hugo démontrant la barbarie mécanique de la peine de mort dans « Le Dernier Jour d'un Condamné »</strong>`;
+    ex3 = `<strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">la déchirure d'un père privé de sa fille Marie, rappelant la tragédie humaine irréversible de l'exécution</strong>`;
+  }
 
   return `[[GRILLE]] : Consigne:1.8|Structure:1.7|Arguments:1.8|Langue:2.2|Lexique:1.3
 
@@ -568,42 +771,64 @@ ${highlightedCopy || `<p>${rawCopy}</p>`}
 ### **B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence)**
 > <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Dans la vie quotidienne comme au fil des œuvres au programme</strong>, la question soulevée par « ${topic.slice(0, 75)} » invite à une réflexion approfondie. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Dès lors</strong>, il convient d'examiner cette problématique avec clarté afin de comprendre les raisons de cette vision et d'en mesurer la portée.</p>
 
-> <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En premier lieu</strong>, l'expérience personnelle et littéraire montre que chaque être humain traverse des moments décisifs qui forgent son caractère. Ainsi, dans <strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">« La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, le jeune Sidi Mohammed apprivoise sa solitude grâce à ses rêveries et à ses objets familiers, transformant ce manque en une source d'évasion féconde.</p>
+> <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En premier lieu</strong>, l'expérience personnelle et littéraire montre que chaque être humain traverse des moments décisifs qui forgent son caractère. Ainsi, comme l'illustre ${ex1}, l'épreuve vécue par le personnage permet de révéler les ressorts intimes de sa conscience.</p>
 
-> <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En second lieu</strong>, la lucidité et la fidélité à ses convictions permettent de surmonter les épreuves avec dignité. De la même façon, dans <strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;">« Antigone » de Jean Anouilh</strong>, l'héroïne préfère assumer son devoir fraternel jusqu'au bout plutôt que de céder à des compromis faciles imposés par son oncle Créon.</p>
+> <p style="text-indent: 2rem; margin-bottom: 1rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En second lieu</strong>, la lucidité et la fidélité à ses convictions permettent de surmonter les épreuves avec dignité. De la même façon, à l'image de ${ex2}, l'affirmation de principes sincères fortifie l'autonomie morale de l'individu face aux pesanteurs de son entourage.</p>
 
-> <p style="text-indent: 2rem; margin-bottom: 0.5rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En définitive</strong>, il apparaît clairement que ce sujet touche à des valeurs humaines fondamentales : la force d'esprit, la sincérité envers soi-même et la capacité à donner un sens à ses épreuves.</p>
+> <p style="text-indent: 2rem; margin-bottom: 0.5rem;"><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En définitive</strong>, il apparaît clairement que ce sujet touche à des valeurs humaines fondamentales : la force d'esprit, la sincérité envers soi-même et la capacité à donner un sens à son existence.</p>
 
 [[TYPE]]
 ${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
 
 [[PLAN_A]]
+<div style="background:#0b1528; color:#f8fafc; padding:10px 16px; border-radius:10px; font-weight:800; font-size:0.875rem; margin-bottom:14px; border-left:4px solid #b45309; display:flex; align-items:center; gap:8px;">
+  <span>🎯 STRUCTURE DU PLAN RETENU :</span>
+  <span style="color:#fbbf24;">${isAnalytic ? 'PLAN ANALYTIQUE (CAUSES & SOLUTIONS)' : 'PLAN THÉMATIQUE (PROGRESSION PAR AXES COMPLÉMENTAIRES)'}</span>
+</div>
+
 <div class="model-intro">
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Lorsqu'on s'interroge sur</strong> <em>« ${topic.slice(0, 80)} »</em>, on constate combien cette réflexion touche aux préoccupations fondamentales de notre société. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Dès lors</strong>, ${isAnalytic ? "il est essentiel de cerner les causes majeures de ce phénomène, <strong style=\"color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;\">avant d'envisager</strong> les conséquences et les solutions adaptées." : "il convient d'analyser les différents aspects de cette réalité afin d'en dégager une compréhension équilibrée et convaincante."}</p>
+<div style="margin-bottom:8px;"><span style="background:#fffbeb; color:#92400e; border:1px solid #fcd34d; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">📌 INTRODUCTION : AMORCE, TENSION DU SUJET & ANNONCE DU PLAN</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Lorsqu'on s'interroge sur</strong> <em>« ${topic.slice(0, 80)} »</em>, on constate combien cette réflexion touche aux préoccupations fondamentales de notre société et de nos œuvres littéraires. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Dès lors</strong>, ${isAnalytic ? "il est essentiel de cerner les causes majeures de ce phénomène, <strong style=\"color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;\">avant d'envisager</strong> les conséquences et les solutions adaptées." : "il convient d'analyser les différents aspects de cette réalité afin d'en dégager une compréhension équilibrée, solide et convaincante."}</p>
 </div>
 
 <div class="model-body">
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En premier lieu</strong>, ${isAnalytic ? "les causes de cette situation trouvent leur origine dans les conditions sociales et psychologiques de l'individu. Comme l'illustre <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">la vie difficile et la précarité à Dar Chouafa dans « La Boîte à Merveilles »</strong>, le manque d'écoute et les soucis quotidiens poussent souvent les individus à s'isoler ou à chercher refuge dans des croyances rassurantes." : "l'expérience montre que l'autonomie et le recul personnel sont des étapes clés dans la construction de l'individu. Dans <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">« La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, Sidi Mohammed apprend à observer le monde des adultes et trouve dans ses rêveries une manière saine de grandir à son propre rythme."}</p>
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En second lieu</strong>, ${isAnalytic ? "les conséquences de ce phénomène appellent des solutions concrètes et pérennes. À l'image de <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">l'angoisse oppressante du condamné à mort dans l'œuvre de Victor Hugo</strong>, l'isolement sans issue détruit la paix de l'esprit, ce qui justifie la mise en place d'un accompagnement solidaire et d'un dialogue ouvert au sein de la famille et de l'école." : "le refus de la facilité et l'attachement à ses principes permettent de préserver sa dignité. Ainsi, dans <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">« Antigone » de Jean Anouilh</strong>, l'héroïne prouve qu'une conviction sincère et désintéressée est plus précieuse que toutes les concessions morales."}</p>
+<div style="margin-bottom:8px;"><span style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">1️⃣ PREMIER AXE DÉVELOPPÉ (OU CAUSES DÉTERMINANTES)</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En premier lieu</strong>, ${isAnalytic ? "les causes de cette situation trouvent leur origine dans les conditions sociales et psychologiques de l'individu. Comme l'illustre " + ex1 + ", le manque d'écoute et les soucis quotidiens poussent souvent les individus à s'isoler ou à chercher refuge dans des croyances rassurantes." : "l'expérience prouve que l'autonomie et le recul personnel sont des étapes clés dans la construction de l'individu. Comme en témoigne " + ex1 + ", l'apprentissage de la vie exige une capacité d'observation attentive et une maîtrise sereine de ses émotions."}</p>
+
+<div style="margin-bottom:8px; margin-top:14px;"><span style="background:#f5f3ff; color:#5b21b6; border:1px solid #ddd6fe; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">2️⃣ SECOND AXE DÉVELOPPÉ (OU CONSÉQUENCES & SOLUTIONS)</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En second lieu</strong>, ${isAnalytic ? "les conséquences de ce phénomène appellent des solutions concrètes et pérennes. À l'image de " + ex2 + ", l'absence de soutien détruit la paix de l'esprit, ce qui justifie la mise en place d'un accompagnement solidaire et d'un dialogue ouvert au sein de la famille et de l'école." : "le refus de la facilité et l'attachement à ses principes permettent de préserver sa dignité. Ainsi, à l'instar de " + ex2 + ", une conviction sincère et désintéressée est plus précieuse que toutes les concessions morales."}</p>
 </div>
 
 <div class="model-concl">
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En conclusion</strong>, cette réflexion montre que le discernement et l'équilibre demeurent les meilleures vertus pour faire face aux défis de l'existence avec maturité.</p>
+<div style="margin-bottom:8px;"><span style="background:#0f172a; color:#ffffff; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">🎯 CONCLUSION : BILAN SYNTHÉTIQUE & OUVERTURE</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En conclusion</strong>, cette réflexion montre que le discernement et l'équilibre demeurent les meilleures vertus pour faire face aux défis de l'existence avec maturité et hauteur de vue.</p>
 </div>
 
 [[PLAN_B]]
-${isAnalytic ? '' : `<div class="model-intro">
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Face à la question soulevée par</strong> <em>« ${topic.slice(0, 80)} »</em>, les avis des scripteurs sont souvent partagés entre deux conceptions opposées. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'un côté</strong>, certains soutiennent la thèse initiale ; <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">d'un autre côté</strong>, d'autres nuancent cette position avec force arguments.</p>
+${isAnalytic ? '' : `<div style="background:#0b1528; color:#f8fafc; padding:10px 16px; border-radius:10px; font-weight:800; font-size:0.875rem; margin-bottom:14px; border-left:4px solid #3b82f6; display:flex; align-items:center; gap:8px;">
+  <span>🎯 STRUCTURE DU PLAN RETENU :</span>
+  <span style="color:#60a5fa;">PLAN DIALECTIQUE (THÈSE / ANTITHÈSE / SYNTHÈSE)</span>
+</div>
+
+<div class="model-intro">
+<div style="margin-bottom:8px;"><span style="background:#fffbeb; color:#92400e; border:1px solid #fcd34d; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">📌 INTRODUCTION : POSITION DU DÉBAT & ANNONCE DU PLAN DIALECTIQUE</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Face à la question soulevée par</strong> <em>« ${topic.slice(0, 80)} »</em>, les avis des observateurs et des scripteurs se partagent légitimement entre deux conceptions opposées. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'un côté</strong>, certains soutiennent la thèse initiale ; <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">d'un autre côté</strong>, d'autres nuancent cette position avec force arguments.</p>
 </div>
 
 <div class="model-body">
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'une part</strong>, les partisans du premier point de vue mettent en avant les bienfaits manifestes de cette attitude. L'exemple de <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">Sidi Mohammed dans « La Boîte à Merveilles »</strong> témoigne que le silence et la tranquillité permettent à l'esprit de s'épanouir loin de la rumeur du monde.</p>
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'autre part</strong>, poussée à l'excès, cette même posture comporte des risques réels qu'il ne faut pas négliger. Comme le montre <strong style=\"color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:1px 6px; border-radius:4px; border:1px solid #a7f3d0;\">Victor Hugo dans « Le Dernier Jour d'un Condamné »</strong>, l'enfermement moral et le manque de communication humaine plongent l'être dans une profonde souffrance.</p>
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En définitive</strong>, la juste attitude consiste à trouver un équilibre harmonieux entre le recueillement personnel et l'ouverture chaleureuse envers les autres.</p>
+<div style="margin-bottom:8px;"><span style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">⚖️ PREMIÈRE PARTIE : THÈSE (CONFIRMATION DU POINT DE VUE)</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'une part</strong>, les partisans du premier point de vue mettent en avant les bienfaits manifestes de cette attitude. L'exemple de ${ex1} témoigne que le silence et la tranquillité permettent à l'esprit de s'épanouir loin de la rumeur du monde et de forger sa propre identité.</p>
+
+<div style="margin-bottom:8px; margin-top:14px;"><span style="background:#fdf2f8; color:#9d174d; border:1px solid #fbcfe8; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">🔄 DEUXIÈME PARTIE : ANTITHÈSE (LIMITES, NUANCES & CONTRE-ARGUMENTS)</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">D'autre part</strong>, poussée à l'excès, cette même posture comporte des risques réels qu'il ne faut pas négliger. Comme le montre ${ex2}, l'enfermement moral et le manque de communication humaine peuvent plonger l'individu dans une profonde détresse et le couper de ses devoirs envers la collectivité.</p>
+
+<div style="margin-bottom:8px; margin-top:14px;"><span style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">💡 TROISIÈME PARTIE : SYNTHÈSE (CONCILIATION & DÉPASSEMENT CRITIQUE)</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">En définitive</strong>, la juste attitude consiste à trouver un équilibre souverain entre le recueillement personnel et l'ouverture chaleureuse et solidaire envers autrui, à la manière des leçons humanistes véhiculées par ${ex3}.</p>
 </div>
 
 <div class="model-concl">
-<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Pour conclure</strong>, ce débat rappelle que la sagesse ne réside pas dans l'isolement complet ni dans la dispersion, mais dans l'harmonie entre soi-même et la société.</p>
+<div style="margin-bottom:8px;"><span style="background:#0f172a; color:#ffffff; font-weight:800; font-size:0.75rem; padding:2px 8px; border-radius:6px; display:inline-block;">🎯 CONCLUSION : SYNTHÈSE DES DEUX THÈSES & ÉLARGISSEMENT</span></div>
+<p><strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:1px 6px; border-radius:4px; border:1px solid #bfdbfe;">Pour conclure</strong>, ce débat rappelle que la sagesse ne réside pas dans l'isolement complet ni dans la soumission aveugle, mais dans une harmonie vivante entre fidélité à soi et engagement envers la société.</p>
 </div>`}`;
 
 }
