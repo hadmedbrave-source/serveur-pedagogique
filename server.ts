@@ -523,8 +523,11 @@ Structure obligatoire de cette section en deux volets indissociables :
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
 (Rédige l'intégralité de la copie du candidat réécrite et optimisée du début à la fin.
+RÈGLE D'OR MÉTHODOLOGIQUE POUR LES SUJETS DEMANDANT UN POINT DE VUE :
+- SI LE SUJET DEMANDE UN POINT DE VUE (« Partagez-vous ce point de vue ? », « Donnez votre avis », « Êtes-vous d'accord ? », « Pensez-vous que... ») :
+  CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT ADOPTER LE PLAN SIMPLE (PRISE DE POSITION NETTE ET ARGUMENTS CONVERGENTS). L'élève affirme et défend son point de vue avec clarté, SANS JAMAIS SE CONTREDIRE DANS UN PLAN DIALECTIQUE QUI DÉTRUIRAIT SON POINT DE VUE !
 RÈGLE D'OR DE LONGUEUR FORMELLE :
-- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Un texte court ou condensé est strictement rejeté.
+- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total, soit au moins 280 à 350 mots) ! Un texte court ou condensé est strictement rejeté.
 - EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE :
   Si une œuvre au programme est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), TU DOIS OBLIGATOIREMENT insérer des exemples précis, concrets et développés tirés de l'œuvre (personnages, scènes, citations, péripéties) et CHAQUE EXEMPLE DOIT ÊTRE MIS EN GRAS : **exemple précis tiré de l'œuvre**.
 - LIENS LOGIQUES PUISSANTS :
@@ -537,11 +540,13 @@ RÈGLE D'OR DE LONGUEUR FORMELLE :
 
 [[TYPE]]
 (Détermine la nature exacte du sujet :
-- Si le sujet demande un point de vue, une prise de position personnelle ou si l'on partage un avis : écris uniquement "OPINION"
-- Si le sujet demande d'analyser un phénomène de société à travers ses causes, ses conséquences et ses solutions : écris uniquement "ANALYTIQUE")
+RÈGLE D'OR FORMELLE :
+- TOUT sujet portant sur une œuvre littéraire au programme (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné) ou demandant d'examiner une tension, un avis, une alternative ("est-elle une faiblesse ou une source d'épanouissement", "partagez-vous", "pensez-vous", "faut-il", "peut-on", "développez votre réflexion", etc.) est STRICTEMENT UN SUJET D'OPINION ! Écris UNIQUEMENT "OPINION".
+- Un sujet est "ANALYTIQUE" UNIQUEMENT ET STRICTEMENT s'il s'agit d'un phénomène de société sans lien avec les œuvres ET demandant expressément dans sa consigne officielle d'analyser les CAUSES et de proposer des SOLUTIONS.)
 
 [[PLAN_A]]
-(OPTION 1 : MODÈLE RÉDIGÉ SELON LE PLAN SIMPLE (Plan Thématique ou Analytique selon le sujet).
+(OPTION 1 : MODÈLE RÉDIGÉ SELON LE PLAN SIMPLE (Plan Thématique ou Prise de Position).
+ATTENTION RÈGLE DIDACTIQUE MAJEURE : POUR UN SUJET DEMANDANT UN POINT DE VUE (« Partagez-vous ce point de vue ? », « Pensez-vous que », etc.), LE PLAN SIMPLE EST LE PLAN OFFICIEL RETENU PAR EXCELLENCE !
 RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
 - EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Tout texte court ou incomplet est strictement inadmissible.
 - AMORCE DE L'INTRODUCTION OBLIGATOIRE :
@@ -554,7 +559,7 @@ RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
   * Pour un thème général : « Quand on plonge dans la lecture attentive des œuvres littéraires au programme, on se rend compte que... »)
 - COHÉRENCE PARFAITE EN ENTONNOIR DE L'INTRODUCTION (4 à 5 lignes) :
   1. Amorce attentive avec cette formule
-  2. Tension et reformulation du sujet sans rupture logique
+  2. Tension et reformulation du sujet sans rupture logique (affirmation nette de la prise de position si le sujet demande un point de vue)
   3. Problématique nette et directrice
   4. Annonce fluide et symétrique des axes du plan
 - STRUCTURE DU DÉVELOPPEMENT :
@@ -575,8 +580,8 @@ RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
   - Ne JAMAIS écrire d'étiquette scolaire comme "Introduction :" ou "I. Thèse".)
 
 [[PLAN_B]]
-(OPTION 2 : MODÈLE RÉDIGÉ SELON LE PLAN DIALECTIQUE (Thèse / Antithèse / Synthèse).
-OBLIGATION ABSOLUE : CE BLOC DOIT TOUJOURS ÊTRE ENTIÈREMENT RÉDIGÉ POUR TOUS LES SUJETS (ne JAMAIS le laisser vide) ! Même si le sujet est analytique, proposer une analyse dialectique des points de vue opposés puis de leur conciliation.
+(OPTION 2 : MODÈLE RÉDIGÉ SELON LE PLAN DIALECTIQUE (Thèse / Antithèse / Synthèse - Variante comparative).
+OBLIGATION ABSOLUE : CE BLOC DOIT TOUJOURS ÊTRE ENTIÈREMENT RÉDIGÉ POUR TOUS LES SUJETS (ne JAMAIS le laisser vide) ! Même si le sujet demande un point de vue où le plan simple est recommandé, proposer ici la variante dialectique pour enrichir la réflexion didactique de l'élève.
 - EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total).
 - AMORCE DE L'INTRODUCTION OBLIGATOIRE :
   Commencer l'introduction par la formule d'immersion attentive « Quand on plonge dans la lecture attentive... ».
@@ -599,7 +604,8 @@ OBLIGATION ABSOLUE : CE BLOC DOIT TOUJOURS ÊTRE ENTIÈREMENT RÉDIGÉ POUR TOUS
   - Le troisième axe (Synthèse) dans <div class="model-axe3"><p>...</p></div>
   - La conclusion dans <div class="model-concl"><p>...</p></div>
   - Les liens logiques en gras : <strong>lien logique</strong>.
-  - Les exemples tirés de l'œuvre en gras : <strong>exemple précis de l'œuvre</strong>.)`;
+  - Les exemples de l'œuvre en gras : <strong>exemple précis de l'œuvre</strong> ou **exemple précis**.
+  - Ne JAMAIS écrire d'étiquette scolaire comme "Introduction :" ou "I. Thèse".)`;
 
 app.post('/api/chat', async (req, res) => {
   const { prompt, nom, filiere, sujet, texte, password } = req.body;
@@ -662,7 +668,7 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
 
     // 2. Try Gemini with proven fast model cascade
     if (gemini) {
-      const modelsToTry = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.8-flash'];
+      const modelsToTry = ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
       for (const m of modelsToTry) {
         try {
           const response = await gemini.models.generateContent({
@@ -807,53 +813,53 @@ ${highlightedCopy || `<p>${rawCopy}</p>`}
     > *« Dès lors, la réflexion s'appuie sur des exemples concrets pour rendre l'argumentation plus convaincante et accessible. »*
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
-> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur même de la condition humaine. En effet, la confrontation entre les aspirations personnelles et les devoirs envers autrui fait naître des interrogations déterminantes pour chaque conscience en formation. Dès lors, convient-il de s'abandonner aux avis dominants ou importe-t-il d'affirmer un jugement éclairé et rigoureux ? Pour répondre à cette question essentielle, il convient d'analyser dans un premier axe les exigences de l'authenticité intérieure, avant d'envisager dans un second axe la force irremplaçable de la solidarité.
+> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur même de l'existence humaine et de la conscience morale. En effet, face aux tumultes du monde et aux jugements hâtifs, chaque individu est appelé à clarifier sa position personnelle pour ne point subir les pressions de son environnement. Dès lors, convient-il d'épouser aveuglément les préjugés établis ou importe-t-il au contraire d'affirmer un point de vue lucide, autonome et courageusement argumenté ? Pour apporter une réponse rigoureuse à cette problématique majeure, il conviendra d'examiner dans un premier temps la valeur émancipatrice de la liberté de conscience, avant d'analyser dans un second temps la force irremplaçable de la solidarité humaine et de l'écoute bienveillante d'autrui.
 
-> **En premier lieu**, la préservation de son libre arbitre permet à l'être de résister aux facilités trompeuses de la conformité aveugle. C'est précisément la leçon émouvante qui se dégage du parcours de **Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui** : confronté à la solitude et aux querelles mesquines de **Dar Chouafa**, l'enfant trouve dans son univers intime et sa boîte un refuge préservé qui sauvegarde la pureté de son regard. De même, **l'héroïne Antigone de Jean Anouilh** démontre avec une force saisissante que refuser la compromission face aux décrets injustes de **Créon** constitue le fondement même de la dignité morale. Ainsi, la fidélité à ses principes forge une personnalité droite et courageuse.
+> **En premier lieu**, la préservation de son libre arbitre permet à l'être de résister aux facilités trompeuses de la conformité aveugle et de protéger son authenticité. C'est précisément la leçon émouvante qui se dégage du parcours de **Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui** : confronté à la solitude enfantine et aux querelles mesquines qui agitent **Dar Chouafa**, l'enfant trouve dans son univers intime et sa boîte magique un refuge préservé qui sauvegarde la pureté de son regard face aux déceptions du monde adulte. De même, **l'héroïne Antigone de Jean Anouilh** démontre avec une grandeur tragique sublime que refuser les faux compromis face aux décrets injustes du roi **Créon** constitue le fondement même de la dignité morale. Ainsi, la fidélité absolue à ses convictions intimes confère à chaque personne une grandeur inaliénable qui lui permet de braver l'injustice.
 
-> **En second lieu**, cette indispensable liberté de penser ne saurait toutefois se transformer en un repli égoïste qui ignorerait la douleur d'autrui et la nécessité de l'entraide. Comme le proclame avec une intensité poignante **Victor Hugo dans Le Dernier Jour d'un Condamné**, la souffrance d'un homme jeté dans l'angoisse de **Bicêtre** et promis à **la guillotine** rappelle que la justice authentique ne peut jamais sacrifier la vie et la compassion. Par ailleurs, le sacrifice de **Maâlem Abdeslam**, partant travailler aux moissons pour restaurer l'honneur de son foyer aux côtés de **Lalla Zoubida**, témoigne de ce que l'amour et la responsabilité partagée donnent son véritable sens à la vie humaine.
+> **En second lieu**, cette indispensable liberté de penser ne saurait toutefois se transformer en un repli égoïste ou stérile qui ignorerait la douleur d'autrui et la nécessité vitale de l'entraide. Comme le proclame avec une intensité poignante **Victor Hugo dans Le Dernier Jour d'un Condamné**, la souffrance d'un être humain jeté dans l'angoisse insoutenable du cachot de **Bicêtre** et promis à l'échafaud de **la guillotine** sur **la place de Grève** rappelle à tous que la justice authentique ne peut jamais sacrifier la vie et la compassion. Par ailleurs, dans le chef-d'œuvre marocain, le sacrifice admirable de **Maâlem Abdeslam**, partant courageusement travailler comme moissonneur dans les champs pour restaurer la sécurité de son foyer aux côtés de **Lalla Zoubida**, témoigne de ce que l'amour familial et la responsabilité partagée donnent son véritable sens à la vie en société. Dès lors, l'autonomie personnelle ne s'accomplit véritablement que lorsqu'elle se met au service du bien commun.
 
-> **En définitive**, ce parcours réflexif démontre que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité de cœur. Loin de s'exclure, la force de conviction et l'attention fraternelle se complètent pour bâtir une société équilibrée et solidaire. Ne revient-il pas dès lors à chacun d'assumer ce devoir d'exigence et de bienveillance au quotidien ?
+> **En définitive**, ce parcours réflexif démontre avec clarté que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité de cœur. Loin de s'exclure mutuellement, la force de conviction personnelle et l'attention fraternelle envers ses semblables se complètent pour bâtir une société équilibrée, harmonieuse et profondément humaine. En conclusion, ne revient-il pas dès lors à chacun d'entre nous d'assumer ce double devoir d'exigence intellectuelle et de bienveillance active au quotidien pour faire triompher la dignité humaine ?
 
 [[TYPE]]
 ${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
 
 [[PLAN_A]]
 <div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme, on se rend compte que la question posée par « ${topic.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante. En effet, tandis que certaines approches privilégient une fidélité inconditionnelle aux devoirs traditionnels et aux règles collectives, d'autres voix défendent la primauté de l'autonomie critique et de la liberté individuelle. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites ou importe-t-il d'affirmer un recul discernant face aux conventions ? Pour répondre à cette problématique, il s'agira d'examiner dans un premier temps les impératifs structurants de la responsabilité personnelle, avant de mettre en lumière dans un second temps les bienfaits d'une émancipation mesurée et solidaire.</p>
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme du Baccalauréat, on se rend compte que la question posée par « ${topic.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante pour la jeunesse contemporaine. En effet, tandis que certains perçoivent les épreuves et les traditions comme de simples contraintes extérieures, une analyse plus lucide révèle qu'elles forgent au contraire le caractère et affermissent le discernement moral de l'individu. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par la conscience ou importe-t-il d'affirmer un recul critique face aux illusions du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs structurants de la rectitude personnelle, avant de mettre en lumière dans un second axe les bienfaits d'une émancipation fraternelle et solidaire.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes partagés permet à l'individu de construire un ancrage solide et d'échapper aux illusions de l'arbitraire. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les solidarités de quartier et les rituels familiaux partagés par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles. De même, dans la tragédie classique de <strong>Jean Anouilh</strong>, le personnage de <strong>Créon</strong> rappelle avec gravité que le maintien de l'ordre civique exige le respect de règles communes sans lesquelles la cité s'effondre dans le chaos. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie en communauté.</p>
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes moraux partagés permet à l'individu de construire un ancrage intérieur solide et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les solidarités de voisinage et les rituels familiaux partagés par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la misère. De même, dans la tragédie classique de <strong>Jean Anouilh</strong>, le personnage de <strong>Créon</strong> rappelle avec une solennité indéniable que le maintien de l'ordre civique et la paix civile exigent le respect de règles communes sans lesquelles la cité s'effondre dans l'anarchie sanglante. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie sereine en communauté.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>En second lieu</strong>, cette fidélité aux principes ne saurait toutefois se muer en un assujettissement aveugle qui étoufferait la singularité et la quête de justice de l'être pensant. C'est précisément ce que revendique avec une grandeur tragique <strong>l'héroïne Antigone</strong>, qui préfère mourir plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> dénonce avec une virulence universelle l'inhumanité des châtiments institutionnalisés à travers les angoisses d'un homme claquemuré dans <strong>le cachot de Bicêtre</strong>, démontrant que la véritable équité commande de réformer les lois lorsque celles-ci heurtent la dignité humaine. Dès lors, le discernement critique s'affirme comme le moteur vital du progrès éthique.</p>
+<p><strong>En second lieu</strong>, cette fidélité aux valeurs fondamentales ne saurait toutefois se muer en un assujettissement passif ou aveugle qui étoufferait la singularité, l'esprit critique et la quête de justice de l'être pensant. C'est précisément ce que revendique avec une grandeur tragique incomparable <strong>l'héroïne Antigone</strong>, qui préfère affronter la mort plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> dénonce avec une virulence universelle l'inhumanité des châtiments institutionnalisés à travers les angoisses d'un homme claquemuré dans <strong>le cachot de Bicêtre</strong>, démontrant que la véritable équité commande de réformer les lois lorsque celles-ci heurtent frontalement la dignité humaine. Dès lors, le discernement critique et le courage personnel s'affirment comme le moteur vital du progrès humain et de la justice.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En définitive</strong>, la réflexion menée invite à dépasser toute opposition manichéenne en harmonisant l'exigence des devoirs sociaux avec le souffle vivifiant de la conscience individuelle. Loin de s'exclure mutuellement, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré. En conclusion, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de sa rectitude morale ?</p>
+<p><strong>En définitive</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence des devoirs sociaux avec le souffle vivifiant de la conscience individuelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En conclusion, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de sa rectitude morale et de sa dignité ?</p>
 </div>
 
 [[PLAN_B]]
 <div class="model-intro">
-<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${topic.slice(0, 80)} » engage deux visions complémentaires de l'expérience humaine. D'un côté, une perspective rigoureuse souligne la nécessité d'une discipline collective et d'un réalisme lucide face aux contingences du monde. D'un autre côté, une exigence morale supérieure refuse tout asservissement et place l'intégrité de la conscience au-dessus des facilités matérielles. Dès lors, face à cette polarité féconde, comment concilier le réalisme des devoirs quotidiens et l'idéal inaliénable de liberté ? Il conviendra d'examiner dans une première partie la valeur pragmatique des devoirs collectifs, d'envisager dans une deuxième partie la légitimité du refus éthique, pour enfin dégager dans une synthèse souveraine les conditions d'un équilibre harmonieux.</p>
+<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${topic.slice(0, 80)} » engage deux visions complémentaires et indispensables de l'expérience humaine. D'un côté, une perspective rigoureuse souligne la nécessité d'une discipline collective et d'un réalisme lucide face aux contingences sévères de l'existence. D'un autre côté, une exigence morale supérieure refuse tout asservissement et place l'intégrité de la conscience au-dessus des facilités matérielles et des compromis mesquins. Dès lors, face à cette féconde polarité, comment concilier le réalisme des devoirs quotidiens et l'idéal inaliénable de liberté ? Il conviendra d'examiner dans une première partie la valeur pragmatique des devoirs collectifs, d'envisager dans une deuxième partie la légitimité du refus éthique, pour enfin dégager dans une synthèse souveraine les conditions d'un équilibre harmonieux.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>D'une part</strong>, l'acceptation des nécessités concrètes et le respect des normes sociales constituent le garant de la cohésion civique et de la sécurité matérielle. Dans <strong>La Boîte à Merveilles</strong>, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent que la persévérance au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence. De même, les arguments d'État défendus par <strong>Créon dans Antigone</strong> soulignent avec réalisme que diriger des hommes impose parfois des compromis austères afin de préserver la paix civile. L'individu ne peut donc s'affranchir unilatéralement des contraintes qui assurent la survie de la collectivité.</p>
+<p><strong>D'une part</strong>, l'acceptation des nécessités concrètes et le respect scrupuleux des normes sociales constituent le garant fondamental de la cohésion civique et de la sécurité matérielle du groupe. Dans <strong>La Boîte à Merveilles</strong>, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent que la persévérance au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et l'effondrement familial. De même, les arguments d'État défendus par <strong>Créon dans Antigone</strong> soulignent avec réalisme que diriger des hommes impose parfois des décisions austères afin de préserver la paix civile et d'éviter les désastres de la guerre. L'individu ne peut donc s'affranchir unilatéralement des contraintes qui assurent la sauvegarde collective.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>D'autre part</strong>, l'obéissance aux impératifs sociaux trouve sa limite imprescriptible là où commence l'avilissement de la conscience et la violation des droits sacrés de la personne. La voix vibrante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> retentit pour proclamer que nulle société civilisée ne peut s'arroger le droit de tuer froidement un semblable sur <strong>la place de Grève</strong> au nom d'une prétendue exemplarité judiciaire. De même, <strong>Antigone</strong> oppose à la raison d'État la supériorité des lois non écrites du cœur et de l'amour fraternel. L'honneur de l'humanité réside dans cette capacité suprême à dire non à l'injustice institutionnalisée.</p>
+<p><strong>D'autre part</strong>, l'obéissance aux impératifs sociaux trouve sa limite imprescriptible là où commence l'avilissement de la conscience et la négation des droits sacrés de la personne humaine. La voix vibrante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> retentit pour proclamer avec force que nulle société civilisée ne peut s'arroger le droit de tuer froidement un semblable sur <strong>la place de Grève</strong> au nom d'une prétendue exemplarité judiciaire. De même, <strong>Antigone</strong> oppose à la raison d'État la supériorité des lois non écrites du cœur et de l'amour fraternel. L'honneur de l'humanité réside dans cette capacité suprême à dire non à l'injustice institutionnalisée lorsque la morale est bafouée.</p>
 </div>
 
 <div class="model-axe3">
-<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse éclairée, où l'ordre extérieur s'ajuste en permanence aux progrès de la sensibilité morale. Il ne s'agit ni de basculer dans une révolte stérile, ni de se résigner à une soumission servile, mais de faire dialoguer le sens des responsabilités avec l'esprit de compassion et d'équité. L'art littéraire enseigne que les grandes avancées naissent toujours de cette tension maîtrisée entre respect de la règle et courage de l'idéal.</p>
+<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse éclairée, où l'ordre extérieur s'ajuste en permanence aux progrès de la sensibilité morale et du respect de la dignité. Il ne s'agit ni de basculer dans une révolte stérile, ni de se résigner à une soumission servile, mais de faire dialoguer le sens des responsabilités avec l'esprit de compassion et d'équité. L'art littéraire enseigne que les grandes avancées civiques naissent toujours de cette tension maîtrisée entre respect de la règle et courage de l'idéal.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En somme</strong>, ce débat transcende les circonstances contingentes pour rappeler que la dignité humaine se forge dans la conciliation souveraine de la lucidité et du cœur. Par-delà les doutes et les déchirements, la fidélité à des valeurs fraternelles ouvre la voie à un avenir plus solidaire et plus juste. Ne revient-il pas dès lors à chaque génération d'accomplir ce perpétuel dépassement éthique ?</p>
+<p><strong>En somme</strong>, ce débat transcende les circonstances contingentes pour rappeler que la dignité humaine se forge dans la conciliation souveraine de la lucidité et du cœur. Par-delà les doutes et les déchirements, la fidélité à des valeurs fraternelles ouvre la voie à un avenir plus solidaire, plus équitable et plus juste. Ne revient-il pas dès lors à chaque génération d'accomplir ce perpétuel dépassement éthique au service de l'homme ?</p>
 </div>`;
 }
 
