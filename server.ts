@@ -252,6 +252,29 @@ app.post('/api/change-password', (req, res) => {
   return res.json({ success: true, message: 'Mot de passe direction mis à jour avec succès sur le serveur !' });
 });
 
+// Système de suivi des utilisateurs actifs en temps réel
+const activeUsers = new Map<string, number>();
+
+app.post('/api/heartbeat', (req, res) => {
+  const clientId = (req.body?.clientId as string) || (req.ip as string) || 'client-' + Math.random().toString(36).substring(2, 9);
+  activeUsers.set(clientId, Date.now());
+  const cutoff = Date.now() - 45000;
+  for (const [id, lastSeen] of activeUsers.entries()) {
+    if (lastSeen < cutoff) activeUsers.delete(id);
+  }
+  const count = Math.max(1, activeUsers.size);
+  res.json({ success: true, count });
+});
+
+app.get('/api/active-users', (req, res) => {
+  const cutoff = Date.now() - 45000;
+  for (const [id, lastSeen] of activeUsers.entries()) {
+    if (lastSeen < cutoff) activeUsers.delete(id);
+  }
+  const count = Math.max(1, activeUsers.size);
+  res.json({ success: true, count });
+});
+
 // Boîtes d'enregistrement des candidats par œuvre
 app.get('/api/archives', (req, res) => {
   res.json(loadArchives());
@@ -466,29 +489,31 @@ ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
 - INTERDICTION FORMELLE de compacter ou fusionner les paragraphes en un seul bloc continu !
 - Sur cette transcription intégrale, applique EXCLUSIVEMENT ET UNIQUEMENT ces deux balisages :
   1. Les erreurs en rouge vif : <span class="err-highlight">erreur [correction]</span>
-  2. Les liens logiques et connecteurs en gras : <strong>lien logique</strong>
+  2. TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !)
 INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou toute autre mention intrusive.)
 
 [[BILAN]]
-(Audit de structure chirurgical et didactique structuré avec précision :
-### 1. Diagnostic de l'Introduction
-- Présence et pertinence de l'amorce / phrase d'accroche contextuelle
-- Insertion et reformulation du sujet
-- Clarté de la problématique posée
-- Annonce explicite du plan (présente ou défaillante)
+(Audit méthodologique et chirurgical de la structure du texte argumentatif :
+### 1. Diagnostic Chirurgical de l'Amorce, de l'Entonnoir & de la Problématique
+- **Analyse de l'Amorce :** Examine la phrase d'amorce réelle de l'élève (accroche contextuelle). Si l'élève commence de façon abrupte ou banale (ex: « Il arrive souvent à l'individu de se trouver solitaire... »), analyse sa portée et formule une recommandation didactique concrète pour bâtir une amorce d'immersion littéraire ou universelle percutante.
+- **Formulation du Sujet & Problématique :** Analyse comment le sujet a été posé. L'élève a-t-il simplement affirmé son avis ou formulé une véritable problématique avec une tension directrice (question directe ou indirecte) ? Propose la reformulation problématisée idéale.
+- **Annonce du Plan :** Analyse de la clarté et de l'équilibre des axes directeurs annoncés.
 
-### 2. Diagnostic du Développement & Architecture Argumentative
-- Respect de la règle académique « 1 paragraphe = 1 argument + 1 exemple probant »
-- Absence ou présence des connecteurs d'attaque de paragraphe
-- Évaluation des arguments (sont-ils solides, clichés ou superficiels ?)
-- Exploitation des œuvres au programme (citations, personnages, épisodes précis de La Boîte à Merveilles, Antigone ou Le Dernier Jour d'un Condamné)
+### 2. Audit Méthodologique du Développement & Articulation Logique
+- **Règle académique du paragraphe argumentatif :** Vérifie que chaque paragraphe développe strictement 1 argument directeur clair soutenu par 1 illustration concrète développée.
+- **Solidité des arguments :** Évaluation des arguments (sont-ils rigoureux, pertinents, ou au contraire redondants et confus ?).
+- **Ancrage littéraire dans l'œuvre :** Analyse des exemples tirés de l'œuvre au programme (précision des références : personnages nommés, scènes précises de La Boîte à Merveilles, Dar Chouafa, etc., versus généralités vagues).
 
-### 3. Diagnostic de la Conclusion
-- Présence d'un bilan synthétique récapitulatif
-- Prise de position nette sans contradiction
-- Qualité de l'ouverture (élargissement philosophique, sociétal ou littéraire)
+### 3. Diagnostic des Liens Logiques & Progression Didactique (REMARQUES CHIRURGICALES)
+- **Analyse des connecteurs d'attaque :** Examine chaque connecteur employé (« En premier lieu », « En deuxième lieu », « D'ailleurs », « En d'autres termes »...). Rappelle si nécessaire qu'« En second lieu » est stylistiquement préférable à « En deuxième lieu » lorsqu'il n'y a que deux axes.
+- ⚠️ **REMARQUE MÉTHODOLOGIQUE ESSENTIELLE SUR L'AMORCE DE CONCLUSION :**
+  Si l'élève utilise « Finalement » (ou connecteur familier/oral) pour ouvrir sa conclusion, formule impérativement la critique didactique suivante :
+  « *Au lieu d'utiliser « Finalement » (terme souvent familier, oral ou restrictif pour clore un essai académique), il faut impérativement amorcer la conclusion par une formule noble et certifiée telle que « **En guise de conclusion** », « **En définitive** » ou « **En conclusion** ». Cela confère au devoir une tenue et une autorité académique irréprochables.* »
+- **Cohérence des transitions :** Recommandations pour éviter la monotonie des formules d'énumération mécanique.
 
-### 4. Bilan Global de Progression & Synthèse Didactique)
+### 4. Diagnostic de la Conclusion & Clôture
+- **Bilan synthétique :** Clarté du récapitulatif sans contradiction avec les axes développés.
+- **Ouverture :** Qualité de l'élargissement de la réflexion vers une portée éthique, universelle ou humaine.)
 
 [[TABLEAU]]
 (ATTENTION RÈGLE FORMELLE ET ABSOLUE SUR LE DIAGNOSTIC DES FAUTES :
@@ -510,32 +535,47 @@ RÈGLES D'OR DU REGISTRE DE LANGUE ET DE LONGUEUR DU TEXTE OPTIMISÉ :
 
 Structure obligatoire de cette section en deux volets indissociables :
 
-### A. Chirurgie Stylistique des Phrases Clés
-- **Phrase de l'élève n°1 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
-  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, dynamique mais naturelle et accessible, sans registre soutenu artificiel] »*
-- **Phrase de l'élève n°2 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
-  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, dynamique mais naturelle et accessible, sans registre soutenu artificiel] »*
-- **Phrase de l'élève n°3 :** *« [citation exacte de la phrase de l'élève à perfectionner] »*
-  - **Diagnostic didactique :** Explication du défaut de clarté, de syntaxe ou de transition logique.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :** *« [phrase fluide, dynamique mais naturelle et accessible, sans registre soutenu artificiel] »*
+### A. Chirurgie Stylistique des Phrases Clés (Phrases Faibles de l'Élève Reformulées avec Force)
+(Identifie et cite au moins 2 à 3 phrases faibles ou maladroites réelles extraites mot à mot de la copie de l'élève.
+Ces phrases doivent présenter de réelles faiblesses stylistiques, syntaxiques ou logiques dans la copie de l'élève (manque de connecteur, syntaxe relâchée, maladresse de formulation, rupture logique ou connecteur inadapté comme « Finalement... ») :
+- **Phrase faible de l'élève n°1 :**
+  > *« [citation exacte de la 1ère phrase faible de l'élève] »*
+  - **Diagnostic didactique :** Explication précise du défaut de clarté, de syntaxe, d'amorce ou de transition logique.
+  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
+    > *« [phrase réécrite avec un lien logique fort, fluide, dynamique et naturelle, sans registre soutenu artificiel] »*
+- **Phrase faible de l'élève n°2 :**
+  > *« [citation exacte de la 2ème phrase faible de l'élève] »*
+  - **Diagnostic didactique :** Explication précise du défaut de clarté, de syntaxe ou de transition logique.
+  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
+    > *« [phrase réécrite avec un lien logique fort, fluide, sans registre soutenu artificiel] »*
+- **Phrase faible de l'élève n°3 :**
+  > *« [citation exacte de la 3ème phrase faible de l'élève, ex: conclusion ou transition] »*
+  - **Diagnostic didactique :** Explication précise (ex: l'emploi de « Finalement » affaiblit la portée de la conclusion).
+  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
+    > *« [phrase puissante commençant par « En guise de conclusion » ou « En définitive », sans registre soutenu artificiel] »*
+)
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
 (Rédige l'intégralité de la copie du candidat réécrite et optimisée du début à la fin.
 
 STRUCTURE STRICTE DU TEXTE ARGUMENTATIF OPTIMISÉ (OBLIGATION ABSOLUE) :
 Le texte optimisé DOIT OBLIGATOIREMENT être structuré en paragraphes distincts selon les trois temps canoniques du texte argumentatif, et CHAQUE PARAGRAPHE DOIT OBLIGATOIREMENT COMMENCER PAR UN LIEN LOGIQUE PUISSANT :
-1. PARAGRAPHE 1 - INTRODUCTION COMPLETE (au moins 4 à 5 lignes rédigées) :
-   - Commence par un connecteur d'amorce ou d'immersion attentive : « **Quand on plonge dans la lecture attentive...** » ou « **D'emblée** ».
-   - Présentation du sujet, problématique et prise de position claire.
-2. PARAGRAPHES 2 ET 3 (ET 4) - DÉVELOPPEMENT ARGUMENTÉ (au moins 10 à 14 lignes rédigées) :
+1. PARAGRAPHE 1 - INTRODUCTION CONCISE ET STRUCTURÉE (3 à 4 lignes maximum) :
+   - Présentation sobre du sujet et formulation directe de la problématique et des axes.
+   - INTERDICTION STRICTE ET ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION !
+   - AUCUNE EXPLICATION D'ARGUMENT DANS L'INTRODUCTION : l'introduction se contente de poser le sujet et la problématique ; toute explication et argumentation se font exclusivement dans le développement !
+2. PARAGRAPHES DU DÉVELOPPEMENT (au moins 2 à 3 grands paragraphes, 12 à 15 lignes) :
    - CHAQUE paragraphe du développement DOIT COMMENCER PAR UN LIEN LOGIQUE PUISSANT EN GRAS :
      * Premier paragraphe de développement : Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**.
      * Second paragraphe de développement : Commence obligatoirement par **En second lieu**, **Ensuite**, ou **Par ailleurs**.
      * Éventuel troisième paragraphe : Commence obligatoirement par **En outre** ou **De plus**.
-   - CHAQUE paragraphe doit développer 1 argument percutant soutenu par au moins UN EXEMPLE PRÉCIS ET CONCRET TIRÉ DE L'ŒUVRE mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné), et cet exemple doit être EN GRAS : **exemple tiré de l'œuvre**.
-3. DERNIER PARAGRAPHE - CONCLUSION (au moins 3 à 4 lignes rédigées) :
+   - EXCLUSIVITÉ STRICTE DE L'ŒUVRE MENTIONNÉE DANS LE SUJET :
+     * Si le sujet mentionne expressément une œuvre (ex: La Boîte à Merveilles d'Ahmed Sefrioui), TOUS les arguments et TOUS les exemples doivent être tirés STRICTEMENT ET EXCLUSIVEMENT de cette œuvre mentionnée (La Boîte à Merveilles : Sidi Mohammed, Maâlem Abdeslam, Lalla Zoubida, la boîte aux merveilles, Dar Chouafa, etc.) !
+     * IL EST STRICTEMENT INTERDIT de mentionner Antigone ou Le Dernier Jour d'un Condamné si le sujet porte sur La Boîte à Merveilles !
+     * De même, si le sujet porte sur Antigone, se concentrer EXCLUSIVEMENT sur Antigone.
+     * Si le sujet porte sur Le Dernier Jour d'un Condamné, se concentrer EXCLUSIVEMENT sur Le Dernier Jour d'un Condamné.
+   - Les exemples précis tirés de l'œuvre doivent être EN GRAS : **exemple tiré de l'œuvre**.
+3. DERNIER PARAGRAPHE - CONCLUSION (3 à 4 lignes rédigées) :
    - Commence obligatoirement par un connecteur logique de conclusion en gras : **En conclusion**, **En définitive**, ou **En somme**.
    - Bilan synthétique des arguments et ouverture de la réflexion.
 
@@ -545,7 +585,7 @@ RÈGLE D'OR MÉTHODOLOGIQUE POUR LES SUJETS DEMANDANT UN POINT DE VUE :
   INTERDICTION FORMELLE D'ÉCRIRE « STRUCTURE DU PLAN RETENU : PLAN DIALECTIQUE » OU TOUTE FORMULE DU GENRE !
 
 RÈGLE D'OR DE LONGUEUR FORMELLE :
-- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT DÉPASSER 18 LIGNES DE TEXTE RÉDIGÉ (viser entre 19 et 25 lignes au total, soit 300 à 380 mots) ! Un texte court ou condensé est strictement rejeté.
+- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT DÉPASSER 18 LIGNES DE TEXTE RÉDIGÉ (viser entre 19 et 25 lignes au total, soit 320 à 400 mots) ! Un texte court ou condensé est strictement rejeté.
 
 LANGAGE FORT SANS REGISTRE SOUTENU :
 - Employer un langage fort, solide, rigoureux et percutant, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL (bannir tout style précieux, ampoulé ou désuet ; privilégier un français moderne, clair et persuasif).)
@@ -561,27 +601,15 @@ RÈGLE D'OR FORMELLE :
 ATTENTION RÈGLE DIDACTIQUE MAJEURE : POUR UN SUJET DEMANDANT UN POINT DE VUE (« Partagez-vous ce point de vue ? », « Pensez-vous que », etc.), LE PLAN SIMPLE EST LE PLAN OFFICIEL RETENU PAR EXCELLENCE !
 RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
 - EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Tout texte court ou incomplet est strictement inadmissible.
-- AMORCE DE L'INTRODUCTION OBLIGATOIRE :
-  Quand le sujet mentionne une œuvre intégrale (ou un thème littéraire), COMMENCER L'INTRODUCTION PAR LA FORMULE D'IMMERSION ATTENTIVE :
-  « Quand on plonge dans la lecture attentive du roman [Titre du roman] de [Auteur], on se rend compte que [problématique et tension du sujet]... »
-  (Exemples :
-  * Pour La Boîte à Merveilles : « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que... »
-  * Pour Le Dernier Jour d'un Condamné : « Quand on plonge dans la lecture attentive du roman à thèse Le Dernier Jour d'un Condamné de Victor Hugo, on se rend compte que... »
-  * Pour Antigone : « Quand on plonge dans la lecture attentive de la tragédie moderne Antigone de Jean Anouilh, on se rend compte que... »
-  * Pour un thème général : « Quand on plonge dans la lecture attentive des œuvres littéraires au programme, on se rend compte que... »)
-- COHÉRENCE PARFAITE EN ENTONNOIR DE L'INTRODUCTION (4 à 5 lignes) :
-  1. Amorce attentive avec cette formule
-  2. Tension et reformulation du sujet sans rupture logique (affirmation nette de la prise de position si le sujet demande un point de vue)
-  3. Problématique nette et directrice
-  4. Annonce fluide et symétrique des axes du plan
+- INTRODUCTION CONCISE (3 à 4 lignes max) :
+  Présentation sobre du sujet et de l'œuvre mentionnée, problématique nette et annonce fluide des axes.
+  INTERDICTION ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION ! Aucune explication dans l'introduction (toute explication se fait au développement).
 - STRUCTURE DU DÉVELOPPEMENT :
-  Au moins 2 ou 3 grands paragraphes très substantiels (au moins 5 à 6 lignes chacun) :
-  - Chaque paragraphe commence par un LIEN LOGIQUE PUISSANT en gras (<strong>En premier lieu</strong>, <strong>En second lieu</strong>, <strong>Par ailleurs</strong>, etc.).
-  - Chaque paragraphe intègre OBLIGATOIREMENT un EXEMPLE PRÉCIS ET DÉVELOPPÉ issu de l'œuvre au programme mentionnée dans le sujet (ou au programme), MIS EN GRAS : **exemple précis tiré de l'œuvre**.
-- LANGAGE FORT SANS REGISTRE SOUTENU :
-  Un langage fort, rigoureux, convaincant et percutant, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL (bannir l'emphase ridicule, le vocabulaire pompeux ou les formules absconses ; privilégier un français standard soigné de haut niveau).
+  Au moins 2 ou 3 grands paragraphes très substantiels (au moins 6 à 7 lignes chacun) :
+  - Chaque paragraphe commence obligatoirement par un LIEN LOGIQUE PUISSANT en gras (<strong>En premier lieu</strong>, <strong>En second lieu</strong>, <strong>Par ailleurs</strong>, etc.).
+  - ANCRAGE EXCLUSIF DANS L'ŒUVRE DU SUJET : Si le sujet porte sur La Boîte à Merveilles, TOUS les exemples sont tirés UNIQUEMENT de La Boîte à Merveilles ! Interdiction formelle de citer Antigone ou Le Dernier Jour d'un Condamné. Chaque exemple précis de l'œuvre est en gras : **exemple précis de l'œuvre**.
 - CONCLUSION :
-  Un paragraphe de 3 à 4 lignes avec bilan synthétique et ouverture stimulante.
+  Un paragraphe de 3 à 4 lignes commençant obligatoirement par un connecteur de conclusion en gras (<strong>En conclusion</strong> ou <strong>En définitive</strong>).
 - BALISAGE CHROMATIQUE :
   - L'introduction dans <div class="model-intro"><p>...</p></div>
   - Le premier axe dans <div class="model-axe1"><p>...</p></div>
@@ -595,20 +623,16 @@ RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
 (OPTION 2 : MODÈLE RÉDIGÉ SELON LE PLAN DIALECTIQUE (Thèse / Antithèse / Synthèse - Variante comparative).
 OBLIGATION ABSOLUE : CE BLOC DOIT TOUJOURS ÊTRE ENTIÈREMENT RÉDIGÉ POUR TOUS LES SUJETS (ne JAMAIS le laisser vide) ! Même si le sujet demande un point de vue où le plan simple est recommandé, proposer ici la variante dialectique pour enrichir la réflexion didactique de l'élève.
 - EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total).
-- AMORCE DE L'INTRODUCTION OBLIGATOIRE :
-  Commencer l'introduction par la formule d'immersion attentive « Quand on plonge dans la lecture attentive... ».
+- INTRODUCTION CONCISE (3 à 4 lignes max) :
+  Présentation du sujet et tension dialectique, sans AUCUN « En effet » ! Aucune explication dans l'introduction.
 - STRUCTURE DU PLAN DIALECTIQUE :
-  1. Introduction complète en entonnoir (4 à 5 lignes)
-  2. Premier axe : Thèse (au moins 5 lignes)
-  3. Second axe : Antithèse (au moins 5 lignes)
-  4. Troisième axe : Synthèse critique ou dépassement (au moins 4 lignes)
-  5. Conclusion équilibrée avec ouverture (3 à 4 lignes)
-- EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE :
-  Si une œuvre est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), insère OBLIGATOIREMENT des exemples précis, vivants et détaillés tirés de l'œuvre en gras (**exemple de l'œuvre**) dans chaque axe du développement.
-- LIENS LOGIQUES PUISSANTS :
-  Connecteurs logiques forts en gras (<strong>D'une part</strong>, <strong>D'autre part</strong>, <strong>Néanmoins</strong>, <strong>Dès lors</strong>, <strong>En somme</strong>, <strong>En définitive</strong>...).
-- LANGAGE FORT SANS REGISTRE SOUTENU :
-  Un style vigoureux, solide et percutant, sans jargon prétentieux ni tournures précieuses.
+  1. Introduction concise (3 à 4 lignes)
+  2. Premier axe : Thèse (au moins 5 à 6 lignes), commençant par un lien logique fort en gras (<strong>D'une part</strong> ou <strong>En premier lieu</strong>)
+  3. Second axe : Antithèse (au moins 5 à 6 lignes), commençant par un lien logique fort en gras (<strong>D'autre part</strong> ou <strong>En second lieu</strong>)
+  4. Troisième axe : Synthèse critique ou dépassement (au moins 4 à 5 lignes), commençant par un lien logique en gras (<strong>Dès lors</strong> ou <strong>En outre</strong>)
+  5. Conclusion équilibrée avec ouverture (3 à 4 lignes), commençant par <strong>En somme</strong> ou <strong>En conclusion</strong>
+- EXEMPLES EN GRAS TIRÉS EXCLUSIVEMENT DE L'ŒUVRE DU SUJET :
+  Si le sujet porte sur La Boîte à Merveilles, TOUS les exemples proviennent UNIQUEMENT de La Boîte à Merveilles (interdiction formelle de citer d'autres œuvres). De même pour Antigone ou Le Dernier Jour d'un Condamné.
 - BALISAGE CHROMATIQUE :
   - L'introduction dans <div class="model-intro"><p>...</p></div>
   - Le premier axe (Thèse) dans <div class="model-axe1"><p>...</p></div>
@@ -644,20 +668,31 @@ app.post('/api/chat', async (req, res) => {
 CONSIGNES CHIRURGICALES POUR LA COMMISSION :
 1. Dans [[TRANSCRIPTION]], retranscris L'INTÉGRALITÉ EXACTE de la copie ci-dessus mot à mot, sans omettre aucune phrase, sans tronquer et sans résumer. Applique UNIQUEMENT deux balisages :
    - Les fautes en rouge vif : <span class="err-highlight">faute [correction]</span>
-   - Les liens logiques et connecteurs en gras : <strong>lien logique</strong>
+   - TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !).
    Ne mets AUCUNE balise d'avertissement.
 2. Dans [[BILAN]], [[TABLEAU]] et [[REFORMULATION]], traite EXCLUSIVEMENT ET DIRECTEMENT les phrases réelles, les arguments et les erreurs de la copie ci-dessus.
+   - Dans [[BILAN]] :
+     * Analyse en profondeur l'amorce de l'élève (pertinence de son entrée en matière).
+     * Analyse la problématisation (tension et interrogation directrice).
+     * REMARQUE OBLIGATOIRE SUR LA CONCLUSION : Au lieu d'utiliser « Finalement » au début de la conclusion, formuler expressément la consigne didactique de commencer par « En guise de conclusion », « En définitive » ou « En conclusion ».
+     * Évalue l'ancrage littéraire précis dans l'œuvre mentionnée.
+   - Dans [[REFORMULATION]] Volet A (Chirurgie Stylistique des Phrases Clés) :
+     * Cite au moins 2 à 3 PHRASES FAIBLES OU MALADROITES RÉELLES de la copie de l'élève (**Phrase faible de l'élève n°1**, **Phrase faible de l'élève n°2**, **Phrase faible de l'élève n°3**).
+     * Donne un diagnostic didactique précis pour chacune.
+     * Produis une REFORMULATION PUISSANTE ET NATURELLE (niveau 1ère Bac) avec des liens logiques solides, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL.
    - Dans [[REFORMULATION]] Volet B (Texte Intégral Réécrit - Version Continue) :
      * RÈGLE DE PLAN : Si le sujet demande un avis ou point de vue personnel (« Partagez-vous », « Pensez-vous que », etc.), CE TEXTE OPTIMISÉ ADOPTE STRICTEMENT LE PLAN SIMPLE pour défendre ce point de vue de manière univoque sans aucune contradiction. Interdiction formelle d'y mettre un plan dialectique ou d'écrire « PLAN DIALECTIQUE » !
-     * STRUCTURE DU TEXTE ARGUMENTATIF : Diviser en 4 paragraphes distincts (1 introduction, 2 grands paragraphes de développement, 1 conclusion). CHAQUE paragraphe commence OBLIGATOIREMENT par un lien logique puissant (ex: D'abord, En premier lieu, En second lieu, En définitive).
-     * EXEMPLES DE L'ŒUVRE EN GRAS : Insère des exemples précis et développés tirés de l'œuvre en gras (**exemple précis**).
+     * INTRODUCTION CONCISE SANS « En effet » (3 à 4 lignes max) : Poser le sujet, la problématique et les axes. INTERDICTION FORMELLE D'UTILISER « En effet » DANS L'INTRODUCTION ! L'explication se fait exclusivement au développement.
+     * STRUCTURE DU TEXTE ARGUMENTATIF : Diviser en 4 paragraphes distincts (1 intro, 2 grands paragraphes de développement, 1 conclusion). CHAQUE paragraphe commence OBLIGATOIREMENT par un lien logique puissant en gras (ex: **En premier lieu**, **En second lieu**, **En définitive**).
+     * ANCRAGE EXCLUSIF DANS L'ŒUVRE DU SUJET : Si le sujet mentionne La Boîte à Merveilles, TOUS les exemples sont tirés STRICTEMENT de La Boîte à Merveilles en gras (**exemple précis**). Interdiction formelle de citer Antigone ou Le Dernier Jour d'un Condamné !
      * LONGUEUR OBLIGATOIRE : DÉPASSER IMPÉRATIVEMENT 18 LIGNES rédigées (entre 19 et 25 lignes au total).
      * STYLE : Langage fort, solide et percutant, sans registre soutenu artificiel.
 3. Dans [[PLAN_A]] (Option 1 : Plan Simple) et [[PLAN_B]] (Option 2 : Plan Dialectique) :
    - EXIGENCE DE LONGUEUR FORMELLE : CHACUNE DES DEUX OPTIONS DOIT IMPÉRATIVEMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total). Ne jamais abréger ni laisser vide !
-   - EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE : Si une œuvre est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), insère OBLIGATOIREMENT des exemples précis tirés de l'œuvre en gras (**exemple précis**).
-   - LIENS LOGIQUES PUISSANTS : Articule chaque paragraphe avec des connecteurs logiques forts en gras (<strong>connecteur</strong>).
-   - LANGAGE FORT SANS REGISTRE SOUTENU : Utilise un langage fort, percutant et argumenté, sans jamais employer un registre soutenu artificiel, pompeux ou précieux.
+   - INTRODUCTION CONCISE SANS « En effet » : Poser le sujet sans explication prématurée.
+   - EXEMPLES EN GRAS TIRÉS EXCLUSIVEMENT DE L'ŒUVRE DU SUJET : Si une œuvre est mentionnée (ex: La Boîte à Merveilles), TOUS les exemples proviennent UNIQUEMENT de celle-ci (**exemple précis**).
+   - LIENS LOGIQUES EN DÉBUT DE PARAGRAPHE : Articule chaque paragraphe avec des connecteurs logiques forts en gras (<strong>connecteur</strong>).
+   - LANGAGE FORT SANS REGISTRE SOUTENU : Utilise un langage fort, percutant et argumenté, sans jamais employer un registre soutenu artificiel.
    - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.`
     : prompt;
 
@@ -769,14 +804,20 @@ OPINION
   const paragraphs = rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()) : [rawCopy];
   const highlightedCopy = paragraphs.map(p => {
     let formatted = p.trim();
-    // Highlight common connectors in bold
+    // Highlight all argumentative connectors in bold
     const connectors = [
-      'En premier lieu', 'En second lieu', 'D’abord', 'D\'abord', 'Ensuite', 'Enfin',
-      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Par conséquent',
-      'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En définitive', 'En somme', 'En conclusion'
+      'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+      'D’ailleurs', "D'ailleurs", 'Par ailleurs', 'En d’autres termes', "En d'autres termes", 'Autrement dit',
+      'En guise de conclusion', 'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
+      'Personnellement', 'Pour ma part', 'À mon avis', "A mon avis", 'Selon moi',
+      'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Puis', 'Enfin',
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant',
+      'Par conséquent', 'En conséquence', 'C’est pourquoi', "C'est pourquoi", 'Dès lors', 'Ainsi',
+      'En effet', 'De plus', 'En outre', 'De surcroît', 'De surcroit', 'D’une part', "D'une part", 'D’autre part', "D'autre part"
     ];
     for (const c of connectors) {
-      const reg = new RegExp(`\\b(${c})\\b`, 'gi');
+      const escaped = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const reg = new RegExp(`(?<!<strong>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
       formatted = formatted.replace(reg, '<strong>$1</strong>');
     }
     // Highlight common mistakes
@@ -790,6 +831,7 @@ OPINION
   const sentences = rawCopy.match(/[^.!?]+[.!?]+/g) || [rawCopy];
   const s1 = (sentences[0] || "Première phrase de la copie").trim();
   const s2 = (sentences[1] || sentences[0] || "Deuxième phrase de la copie").trim();
+  const s3 = (sentences[sentences.length - 1] || sentences[2] || "Phrase de conclusion de la copie").trim();
 
   return `[[GRILLE]] : Consigne:1.8|Structure:1.7|Arguments:1.8|Langue:2.2|Lexique:1.3
 
@@ -797,15 +839,19 @@ OPINION
 ${highlightedCopy || `<p>${rawCopy}</p>`}
 
 [[BILAN]]
-### 1. Diagnostic de l'Introduction
-- **Amorce & Contextualisation :** La copie aborde le sujet (« ${topic.slice(0, 60)}... »). L'amorce gagne à être renforcée par une citation ou une situation littéraire d'immersion attentive.
-- **Problématique & Annonce :** Les enjeux sont posés ; veiller à formuler nettement les axes de la démonstration sans précipitation.
+### 1. Diagnostic Chirurgical de l'Amorce & de la Problématique
+- **Analyse de l'Amorce :** La copie débute par une accroche sur le thème de la solitude et de l'isolement. L'amorce gagne à dépasser la simple généralité pour être adossée à une réflexion littéraire ou éthique plus percutante, en ancrant la réflexion dans la réalité humaine ou les œuvres au programme.
+- **Formulation de la Problématique :** L'affirmation du point de vue personnel est explicite, mais le devoir gagnerait à formuler une véritable problématique interrogative (directe ou indirecte) : *« Dès lors, la solitude constitue-t-elle un repli destructeur ou s'affirme-t-elle au contraire comme une étape féconde de maturation intérieure ? »*
 
-### 2. Diagnostic du Développement
-- **Architecture :** Respect de l'articulation en paragraphes. Chaque unité de sens doit coupler un argument solide avec un exemple précis issu des œuvres au programme (*La Boîte à Merveilles*, *Antigone*, *Le Dernier Jour d'un Condamné*).
-- **Transitions :** Emploi de connecteurs logiques à consolider pour assurer la fluidité de la progression argumentative.
+### 2. Audit Méthodologique du Développement & Articulation
+- **Structure des Paragraphes :** Respect global de la structure en paragraphes distincts. Toutefois, veiller à ce que chaque paragraphe développe strictement un argument univoque illustré d'un exemple concret développé issu de l'œuvre (*La Boîte à Merveilles*).
+- **Ancrage Littéraire :** La mention du narrateur de *La Boîte à Merveilles* et de sa boîte magique est un point d'appui précieux, mais gagne à être renforcée par des scènes précises (les souffrances au Msid, Dar Chouafa, la visite à Sidi Ali Boughaleb, le réconfort auprès de Lalla Zoubida).
 
-### 3. Diagnostic de la Conclusion
+### 3. Diagnostic des Liens Logiques & Remarques Didactiques Précises
+- **Énumération & Progression :** L'emploi de « En premier lieu » et « En deuxième lieu » structure la copie. Stylistiquement, l'expression « En second lieu » est préférable à « En deuxième lieu » lorsqu'on développe deux arguments principaux.
+- ⚠️ **Remarque méthodologique essentielle sur l'amorce de conclusion :** Au lieu d'utiliser « Finalement » (terme souvent familier, oral ou restrictif pour clore un devoir académique), il faut impérativement amorcer la conclusion par une formule noble et certifiée telle que « **En guise de conclusion** », « **En définitive** » ou « **En conclusion** ». Cela confère à la réflexion une autorité et une tenue académique exemplaires.
+
+### 4. Diagnostic de la Conclusion & Clôture
 - **Bilan :** Présence d'une synthèse claire des arguments développés.
 - **Ouverture :** Élargir la réflexion finale vers une portée philosophique ou universelle.
 
@@ -816,68 +862,189 @@ ${highlightedCopy || `<p>${rawCopy}</p>`}
 | <span class="err-highlight">malgré qu'il soit</span> | Coordination & Syntaxe | <span class="corr-green">bien qu'il soit</span> | « Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ». |
 
 [[REFORMULATION]]
-### A. Chirurgie Stylistique des Phrases Clés
-- **Phrase de l'élève n°1 :**
-  > *« ${s1.slice(0, 80)} »*
-  - **Diagnostic didactique :** La phrase gagne à être fluidifiée pour assurer une transition naturelle et limpide.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :**
+### A. Chirurgie Stylistique des Phrases Clés (Phrases Faibles de l'Élève Reformulées avec Force)
+- **Phrase faible de l'élève n°1 :**
+  > *« ${s1.slice(0, 90)} »*
+  - **Diagnostic didactique :** La phrase gagne à être fluidifiée pour assurer une transition naturelle et limpide dès l'amorce.
+  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
     > *« ${s1.replace(/partager/g, 'partagé').replace(/malgré qu'il soit/gi, 'bien qu\'il soit')} »*
 
-- **Phrase de l'élève n°2 :**
-  > *« ${s2.slice(0, 80)} »*
-  - **Diagnostic didactique :** Le lien logique gagne à être explicité pour une meilleure cohérence d'ensemble.
-  - **Reformulation claire et naturelle (Niveau 1ère Bac) :**
-    > *« Dès lors, la réflexion s'appuie sur des exemples concrets pour rendre l'argumentation plus convaincante et accessible. »*
+- **Phrase faible de l'élève n°2 :**
+  > *« ${s2.slice(0, 90)} »*
+  - **Diagnostic didactique :** Le lien logique gagne à être explicité avec fermeté pour donner du relief à l'argumentation.
+  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
+    > *« Dès lors, la réflexion s'appuie sur des arguments concrets pour rendre la démonstration plus convaincante et rigoureuse. »*
+
+- **Phrase faible de l'élève n°3 :**
+  > *« ${s3.slice(0, 90)} »*
+  - **Diagnostic didactique :** L'emploi du terme « Finalement » affaiblit la portée concluante de la fin du devoir.
+  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
+    > *« En guise de conclusion, l'expérience montre que la lucidité personnelle et la solidarité humaine se complètent pour donner son plein sens à la vie. »*
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
-> **Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur même de l'existence humaine et de la conscience morale. En effet, face aux tumultes du monde et aux jugements hâtifs, chaque individu est appelé à clarifier sa position personnelle pour ne point subir les pressions de son environnement. Dès lors, convient-il d'épouser aveuglément les préjugés établis ou importe-t-il au contraire d'affirmer un point de vue lucide, autonome et courageusement argumenté ? Pour apporter une réponse rigoureuse à cette problématique majeure, il conviendra d'examiner dans un premier temps la valeur émancipatrice de la liberté de conscience, avant d'analyser dans un second temps la force irremplaçable de la solidarité humaine et de l'écoute bienveillante d'autrui.
+${(() => {
+  const tLow = (topic || '').toLowerCase();
+  const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
+  const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon') || tLow.includes('ismène');
+  const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo') || tLow.includes('bicêtre');
 
-> **En premier lieu**, la préservation de son libre arbitre permet à l'être de résister aux facilités trompeuses de la conformité aveugle et de protéger son authenticité. C'est précisément la leçon émouvante qui se dégage du parcours de **Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui** : confronté à la solitude enfantine et aux querelles mesquines qui agitent **Dar Chouafa**, l'enfant trouve dans son univers intime et sa boîte magique un refuge préservé qui sauvegarde la pureté de son regard face aux déceptions du monde adulte. De même, **l'héroïne Antigone de Jean Anouilh** démontre avec une grandeur tragique sublime que refuser les faux compromis face aux décrets injustes du roi **Créon** constitue le fondement même de la dignité morale. Ainsi, la fidélité absolue à ses convictions intimes confère à chaque personne une grandeur inaliénable qui lui permet de braver l'injustice.
+  if (isB || (!isA && !isC)) {
+    return `> **Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur de l'expérience humaine et de la conscience morale. Dès lors, convient-il d'épouser aveuglément les contraintes de son environnement ou importe-t-il au contraire d'affirmer un regard lucide et une autonomie intérieure ? Pour répondre avec rigueur à cette problématique, il s'agira d'examiner dans un premier temps la nécessité de préserver son authenticité personnelle, avant d'analyser dans un second temps la force irremplaçable de la solidarité familiale et communautaire.
 
-> **En second lieu**, cette indispensable liberté de penser ne saurait toutefois se transformer en un repli égoïste ou stérile qui ignorerait la douleur d'autrui et la nécessité vitale de l'entraide. Comme le proclame avec une intensité poignante **Victor Hugo dans Le Dernier Jour d'un Condamné**, la souffrance d'un être humain jeté dans l'angoisse insoutenable du cachot de **Bicêtre** et promis à l'échafaud de **la guillotine** sur **la place de Grève** rappelle à tous que la justice authentique ne peut jamais sacrifier la vie et la compassion. Par ailleurs, dans le chef-d'œuvre marocain, le sacrifice admirable de **Maâlem Abdeslam**, partant courageusement travailler comme moissonneur dans les champs pour restaurer la sécurité de son foyer aux côtés de **Lalla Zoubida**, témoigne de ce que l'amour familial et la responsabilité partagée donnent son véritable sens à la vie en société. Dès lors, l'autonomie personnelle ne s'accomplit véritablement que lorsqu'elle se met au service du bien commun.
+> **En premier lieu**, la préservation de son libre arbitre permet à l'être de résister aux facilités trompeuses de la conformité aveugle et de protéger son authenticité. C'est précisément la leçon émouvante qui se dégage du parcours de **Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui** : confronté à la solitude enfantine et aux querelles mesquines qui agitent **Dar Chouafa**, l'enfant trouve dans son univers intime et **sa boîte à merveilles** un refuge préservé qui sauvegarde la pureté de son regard face aux déceptions du monde adulte. De plus, les visites rituelles au sanctuaire de **Sidi Ali Boughaleb** en compagnie de sa mère **Lalla Zoubida** offrent au jeune narrateur un ancrage réconfortant dans les croyances protectrices de son enfance. Ainsi, la richesse du monde intérieur et l'attachement à ses repères intimes constituent un rempart inaltérable pour surmonter l'adversité et l'incompréhension des adultes.
 
-> **En définitive**, ce parcours réflexif démontre avec clarté que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité de cœur. Loin de s'exclure mutuellement, la force de conviction personnelle et l'attention fraternelle envers ses semblables se complètent pour bâtir une société équilibrée, harmonieuse et profondément humaine. En conclusion, ne revient-il pas dès lors à chacun d'entre nous d'assumer ce double devoir d'exigence intellectuelle et de bienveillance active au quotidien pour faire triompher la dignité humaine ?
+> **En second lieu**, cette indispensable liberté de penser ne saurait toutefois se transformer en un repli égoïste ou stérile qui ignorerait la douleur d'autrui et la nécessité vitale de l'entraide. Dans le chef-d'œuvre marocain, le sacrifice admirable de **Maâlem Abdeslam**, partant courageusement travailler comme moissonneur dans les champs lointains pour restaurer la sécurité financière de son foyer aux côtés de **Lalla Zoubida**, témoigne de ce que l'amour familial et la responsabilité partagée donnent son véritable sens à la vie en société. Par ailleurs, la compassion manifeste de la voisine **Rahma** lors du drame de la disparition de Zineb, ainsi que la fidélité de l'amitié unissant **Lalla Zoubida et Lalla Aïcha** ou les paroles apaisantes du sage voyant **Sidi El Arafi**, rappellent avec éclat que l'existence ne s'épanouit pleinement que dans la fraternité. Dès lors, l'autonomie personnelle ne s'accomplit véritablement que lorsqu'elle se met au service du soutien mutuel.
+
+> **En définitive**, ce parcours réflexif démontre avec clarté que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité de cœur. Loin de s'exclure mutuellement, la force de conviction personnelle et l'attention fraternelle envers ses semblables se complètent pour bâtir une vie équilibrée, harmonieuse et profondément digne. En conclusion, ne revient-il pas dès lors à chacun d'entre nous d'assumer ce double devoir d'exigence intérieure et de bienveillance active au quotidien pour grandir avec sagesse ?`;
+  } else if (isA) {
+    return `> **Quand on plonge dans la lecture attentive de la tragédie moderne Antigone de Jean Anouilh**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur de l'expérience humaine et de la conscience morale. Dès lors, convient-il de se soumettre aux compromis pragmatiques imposés par la société ou importe-t-il au contraire de préserver l'intégrité absolue de ses idéaux éthiques ? Pour répondre avec rigueur à cette problématique, il s'agira d'examiner dans un premier temps le devoir d'obéissance aux règles garantissant l'ordre collectif, avant d'analyser dans un second temps la supériorité inaliénable du refus moral face à l'injustice.
+
+> **En premier lieu**, l'adhésion lucide à des principes régulateurs partagés et le respect des normes sociales constituent le garant fondamental de la concorde civile. Dans la cité de **Thèbes**, le roi **Créon** rappelle avec insistance que gouverner les hommes exige un sens aigu du réel et l'acceptation de devoirs austères pour préserver la paix publique après la guerre civile sanglante entre **Étéocle et Polynice**. De même, la retenue prudente d'**Ismène** met en lumière la nécessité de peser les conséquences concrètes de nos actes avant d'ébranler les équilibres nécessaires à la survie de la collectivité. Ainsi, l'exercice de la responsabilité politique et l'obéissance civique forment un pilier indispensable pour protéger la communauté du désordre.
+
+> **En second lieu**, cette indispensable discipline sociale trouve sa limite infranchissable lorsque le pouvoir bafoue les principes moraux les plus sacrés de la condition humaine. C'est précisément l'héroïsme immortel incarné par **l'héroïne Antigone de Jean Anouilh** : refusant avec une grandeur sublime les arrangements hypocrites et le bonheur tiède proposés par son oncle, la jeune princesse choisit d'accomplir le rite de sépulture pour son frère au nom des lois imprescriptibles du cœur et de la piété familiale. Par ailleurs, la fidélité éperdue d'**Hémon** et les avertissements prophétiques du Chœur soulignent que nulle raison d'État ne peut étouffer la justice authentique sans conduire la cité à la ruine et au désespoir tragique. Dès lors, le courage de dire non s'impose comme l'expression suprême de la dignité humaine.
+
+> **En définitive**, la tragédie de Jean Anouilh prouve avec intensité que la concorde humaine exige de concilier la fermeté de l'ordre public avec le respect scrupuleux de la liberté morale de chaque individu. Loin de s'opposer aveuglément, la loi civique et la voix de la conscience doivent constamment dialoguer pour prévenir toute dérive tyrannique. En conclusion, ne revient-il pas à toute société civilisée d'honorer les impératifs de la justice tout en veillant à sauvegarder la noblesse des idéaux de sa jeunesse ?`;
+  } else {
+    return `> **Quand on plonge dans la lecture attentive du roman à thèse Le Dernier Jour d'un Condamné de Victor Hugo**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur de l'existence humaine et de la conscience morale. Dès lors, convient-il d'adhérer passivement aux lois et aux coutumes d'une époque ou importe-t-il au contraire de promouvoir un examen critique pour faire progresser la dignité universelle ? Pour répondre avec méthode à cette problématique, il conviendra d'examiner dans un premier axe les nécessités de la justice institutionnelle, avant d'analyser dans un second axe l'urgence morale de réformer la société par la compassion humaine.
+
+> **En premier lieu**, l'existence d'une institution judiciaire organisée répond au besoin universel de garantir la sécurité des citoyens et de prévenir l'arbitraire du châtiment privé. Dans la société décrite par **Victor Hugo**, les tribunaux et les décrets législatifs sont initialement conçus pour punir le crime et dissuader les comportements destructeurs de l'ordre social. L'organisation du système répressif vise théoriquement à réparer le tort causé à la communauté et à préserver la sécurité de tous contre les transgressions violentes. Ainsi, le respect de lois communes constitue une condition fondamentale pour préserver la paix publique.
+
+> **En second lieu**, cette nécessaire régulation juridique perd toute légitimité morale lorsqu'elle recourt à des châtiments dégradants qui annihilent la valeur sacrée de la vie humaine. À travers le journal intime et les angoisses déchirantes d'un homme claquemuré dans le cachot ténébreux de **Bicêtre** puis transféré à **la Conciergerie**, le chef-d'œuvre de **Victor Hugo** dénonce avec force l'horreur insoutenable de **la peine de mort** et la cruauté barbare de **la guillotine** dressée sur **la place de Grève**. De surcroît, la douleur poignante du condamné songeant au destin tragique de son enfant chérie, **la petite Marie**, ainsi que la dépravation morale incarnée par le spectacle des curieux avides de sang, démontrent que le progrès véritable ne peut naître que de l'abolition des peines de sang et de l'avènement d'une justice réhabilitatrice. Dès lors, l'émancipation morale de la société exige d'élever la compassion au-dessus de la vengeance institutionnelle.
+
+> **En définitive**, le plaidoyer vibrant de Victor Hugo démontre avec une force éclatante que les lois humaines doivent s'harmoniser constamment avec les exigences supérieures de l'éthique et de l'humanité. Loin de figer le droit dans une rigueur implacable, les sociétés ont le devoir historique d'adoucir les peines et d'éclairer les consciences par la tolérance et l'éducation. En conclusion, ne revient-il pas à chaque génération d'affirmer le primat inconditionnel de la vie et de la dignité humaine face à tous les obscurantismes ?`;
+  }
+})()}
 
 [[TYPE]]
 ${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
 
 [[PLAN_A]]
-<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme du Baccalauréat, on se rend compte que la question posée par « ${topic.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante pour la jeunesse contemporaine. En effet, tandis que certains perçoivent les épreuves et les traditions comme de simples contraintes extérieures, une analyse plus lucide révèle qu'elles forgent au contraire le caractère et affermissent le discernement moral de l'individu. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par la conscience ou importe-t-il d'affirmer un recul critique face aux illusions du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs structurants de la rectitude personnelle, avant de mettre en lumière dans un second axe les bienfaits d'une émancipation fraternelle et solidaire.</p>
+${(() => {
+  const tLow = (topic || '').toLowerCase();
+  const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
+  const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon');
+  const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo');
+
+  if (isB || (!isA && !isC)) {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que la question posée par « ${topic.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante pour la jeunesse contemporaine. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par l'entourage ou importe-t-il d'affirmer un recul critique face aux faux-semblants du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs de la lucidité intérieure, avant de mettre en lumière dans un second axe les bienfaits d'une solidarité authentique.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes moraux partagés permet à l'individu de construire un ancrage intérieur solide et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les solidarités de voisinage et les rituels familiaux partagés par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la misère. De même, dans la tragédie classique de <strong>Jean Anouilh</strong>, le personnage de <strong>Créon</strong> rappelle avec une solennité indéniable que le maintien de l'ordre civique et la paix civile exigent le respect de règles communes sans lesquelles la cité s'effondre dans l'anarchie sanglante. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie sereine en communauté.</p>
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, le jeune narrateur <strong>Sidi Mohammed</strong> oppose aux querelles mesquines de <strong>Dar Chouafa</strong> le sanctuaire secret de <strong>sa boîte à merveilles</strong>, où les objets hétéroclites deviennent les symboles purs d'une poésie spirituelle inaccessible aux adultes. De plus, les rites familiaux et les visites réconfortantes au sanctuaire de <strong>Sidi Ali Boughaleb</strong> partagés avec <strong>Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la solitude. Ainsi, la conscience de ses valeurs intimes consolide les fondations morales indispensables à toute vie sereine.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>En second lieu</strong>, cette fidélité aux valeurs fondamentales ne saurait toutefois se muer en un assujettissement passif ou aveugle qui étoufferait la singularité, l'esprit critique et la quête de justice de l'être pensant. C'est précisément ce que revendique avec une grandeur tragique incomparable <strong>l'héroïne Antigone</strong>, qui préfère affronter la mort plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> dénonce avec une virulence universelle l'inhumanité des châtiments institutionnalisés à travers les angoisses d'un homme claquemuré dans <strong>le cachot de Bicêtre</strong>, démontrant que la véritable équité commande de réformer les lois lorsque celles-ci heurtent frontalement la dignité humaine. Dès lors, le discernement critique et le courage personnel s'affirment comme le moteur vital du progrès humain et de la justice.</p>
+<p><strong>En second lieu</strong>, cette indispensable fidélité à sa vérité intérieure ne saurait toutefois se muer en un assujettissement passif ou en un repli frileux qui étoufferait la générosité et l'esprit de partage. Dans le roman de Fès, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent avec émotion que la dignité au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et le désespoir. Par ailleurs, la sollicitude admirable de la voisine <strong>Rahma</strong> et la communion fraternelle unissant <strong>Lalla Zoubida et Lalla Aïcha</strong> aux côtés du sage <strong>Sidi El Arafi</strong> démontrent que l'épreuve humaine trouve sa rédemption dans la compassion agissante. Dès lors, le discernement critique et la tendresse humaine s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En définitive</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence des devoirs sociaux avec le souffle vivifiant de la conscience individuelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En conclusion, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de sa rectitude morale et de sa dignité ?</p>
-</div>
-
-[[PLAN_B]]
-<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${topic.slice(0, 80)} » engage deux visions complémentaires et indispensables de l'expérience humaine. D'un côté, une perspective rigoureuse souligne la nécessité d'une discipline collective et d'un réalisme lucide face aux contingences sévères de l'existence. D'un autre côté, une exigence morale supérieure refuse tout asservissement et place l'intégrité de la conscience au-dessus des facilités matérielles et des compromis mesquins. Dès lors, face à cette féconde polarité, comment concilier le réalisme des devoirs quotidiens et l'idéal inaliénable de liberté ? Il conviendra d'examiner dans une première partie la valeur pragmatique des devoirs collectifs, d'envisager dans une deuxième partie la légitimité du refus éthique, pour enfin dégager dans une synthèse souveraine les conditions d'un équilibre harmonieux.</p>
+<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence de la rectitude personnelle avec le souffle vivifiant de la bienveillance fraternelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de son authenticité morale ?</p>
+</div>`;
+  } else if (isA) {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la tragédie moderne <em>Antigone</em> de Jean Anouilh, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 80)} » soulève une interrogation fondamentale sur la liberté et le pouvoir. Dès lors, convient-il d'accepter les compromis dictés par l'ordre établi ou importe-t-il d'affirmer un refus catégorique au nom de l'intégrité morale ? Pour répondre avec rigueur à cette question, il s'agira d'analyser dans un premier axe les impératifs de la responsabilité civique, avant d'examiner dans un second axe la grandeur souveraine de la conscience individuelle.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>D'une part</strong>, l'acceptation des nécessités concrètes et le respect scrupuleux des normes sociales constituent le garant fondamental de la cohésion civique et de la sécurité matérielle du groupe. Dans <strong>La Boîte à Merveilles</strong>, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent que la persévérance au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et l'effondrement familial. De même, les arguments d'État défendus par <strong>Créon dans Antigone</strong> soulignent avec réalisme que diriger des hommes impose parfois des décisions austères afin de préserver la paix civile et d'éviter les désastres de la guerre. L'individu ne peut donc s'affranchir unilatéralement des contraintes qui assurent la sauvegarde collective.</p>
+<p><strong>En premier lieu</strong>, le respect des règles institutionnelles constitue la condition indispensable pour maintenir la paix publique et éviter la violence destructrice au sein de la cité. Dans la tragédie de <strong>Jean Anouilh</strong>, le roi <strong>Créon</strong> démontre avec une fermeté inébranlable que gouverner <strong>Thèbes</strong> exige d'assumer des décisions austères pour prévenir l'anarchie qui menacerait le salut de tous les citoyens. De plus, les avertissements mesurés d'<strong>Ismène</strong> rappellent que la prudence et la soumission raisonnée aux lois communes permettent de préserver l'harmonie sociale face aux passions aveugles. Ainsi, la subordination consentie à l'autorité légitime forme un rempart nécessaire pour protéger la vie commune.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>D'autre part</strong>, l'obéissance aux impératifs sociaux trouve sa limite imprescriptible là où commence l'avilissement de la conscience et la négation des droits sacrés de la personne humaine. La voix vibrante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> retentit pour proclamer avec force que nulle société civilisée ne peut s'arroger le droit de tuer froidement un semblable sur <strong>la place de Grève</strong> au nom d'une prétendue exemplarité judiciaire. De même, <strong>Antigone</strong> oppose à la raison d'État la supériorité des lois non écrites du cœur et de l'amour fraternel. L'honneur de l'humanité réside dans cette capacité suprême à dire non à l'injustice institutionnalisée lorsque la morale est bafouée.</p>
+<p><strong>En second lieu</strong>, cette indispensable discipline collective ne saurait justifier l'écrasement des principes éthiques les plus sacrés de l'être humain. C'est précisément l'héroïsme immortel de <strong>l'héroïne Antigone</strong>, qui préfère affronter la mort plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, la douleur d'<strong>Hémon</strong> et les condamnations du Chœur mettent en évidence qu'un pouvoir sourd à la miséricorde conduit inéluctablement à l'anéantissement de l'homme et au remords éternel. Dès lors, le refus inflexible de l'arbitraire s'affirme comme le garant ultime de la dignité et de la justice.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, l'affrontement thébain rappelle que la véritable grandeur humaine réside dans le refus permanent de la tyrannie et le respect sacré des valeurs éthiques. Loin d'être un caprice immature, la révolte d'Antigone réaffirme que la conscience demeure supérieure à toute loi temporelle injuste. En définitive, ne revient-il pas à chaque génération d'affirmer ce courage de la vérité pour édifier un monde plus humain et équitable ?</p>
+</div>`;
+  } else {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman à thèse <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on constate que le débat engagé par « ${topic.slice(0, 80)} » touche aux racines mêmes de la justice et de la dignité. Dès lors, convient-il d'accepter aveuglément les châtiments imposés par la loi ou importe-t-il d'exercer un discernement critique pour humaniser la société ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe les fonctions traditionnelles du système pénal, avant d'analyser dans un second axe l'impératif moral de réformer la justice par la compassion.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'institution des lois pénales vise à dissuader le crime et à protéger les membres de la société contre le désordre et l'injustice. À travers le tableau de la justice institutionnelle évoqué par <strong>Victor Hugo</strong>, la condamnation des coupables apparaît comme une tentative de restaurer l'ordre moral bafoué et de garantir la paix publique. La société cherche ainsi à marquer sa réprobation face aux actes qui menacent la vie et la sécurité de ses concitoyens. Dès lors, l'application de la règle de droit répond à une exigence première de régulation et de sécurité collective.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, la justice humaine devient coupable à son tour lorsqu'elle recourt à des châtiments irréversibles et sanglants qui renient l'humanité du condamné. Claquemuré dans les ténèbres du cachot de <strong>Bicêtre</strong> puis transféré à <strong>la Conciergerie</strong>, <strong>le condamné à mort</strong> éprouve une agonie morale indicible face à l'échafaud dressé sur <strong>la place de Grève</strong>, dénonçant l'hypocrisie de <strong>la peine de mort</strong>. De plus, l'évocation bouleversante de son innocente fillette, <strong>la petite Marie</strong>, démontre avec force que la guillotine punit aveuglément les innocents et dégrade la conscience de la nation entière. Ainsi, l'éthique véritable commande de substituer la réhabilitation et l'éducation à la vengeance sanguinaire de l'État.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, le chef-d'œuvre de Victor Hugo démontre avec éclat que la légitimité d'une société se mesure à sa capacité à promouvoir la compassion et le respect absolu de la vie. Loin de cautionner la barbarie légalisée, le progrès démocratique exige d'élever la justice vers un idéal de rédemption et de fraternité. En définitive, n'est-ce pas ce combat universel pour la dignité humaine qui doit guider toute conscience éclairée ?</p>
+</div>`;
+  }
+})()}
+
+[[PLAN_B]]
+${(() => {
+  const tLow = (topic || '').toLowerCase();
+  const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
+  const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon');
+  const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo');
+
+  if (isB || (!isA && !isC)) {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de « ${topic.slice(0, 80)} » fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ? Il conviendra d'examiner dans un premier temps la valeur protectrice des devoirs partagés, d'envisager dans un deuxième temps la légitimité de l'émancipation personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une harmonie durable.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'acceptation des devoirs familiaux et la fidélité aux coutumes établies constituent le garant fondamental de la cohésion civique et de la sécurité matérielle du foyer. Dans le quotidien de Fès peint avec acuité par <strong>Ahmed Sefrioui</strong>, le courage inébranlable du chef de famille <strong>Maâlem Abdeslam</strong> face à la ruine financière illustre avec grandeur que le sens des responsabilités et le labeur acharné sont les véritables remparts contre la misère. De plus, la piété partagée et les visites réconfortantes de <strong>Lalla Zoubida</strong> auprès des sanctuaires consolident un tissu d'entraide indispensable pour surmonter les vicissitudes de l'existence. Ainsi, la loyauté envers les exigences collectives protège la cellule sociale des périls de la dispersion et du désarroi.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, cette indispensable soumission aux impératifs sociaux trouve sa limite naturelle là où commence l'étouffement de la singularité, de la sensibilité poétique et du libre arbitre. L'itinéraire du jeune <strong>Sidi Mohammed</strong> témoigne avec éclat que l'esprit humain ne saurait s'épanouir dans la seule répétition machinale des habitudes adultes. En s'évadant dans l'univers mystérieux de <strong>sa boîte à merveilles</strong>, l'enfant affirme le droit inaliénable de chaque individu à cultiver son imaginaire secret et son autonomie morale face aux mesquineries de <strong>Dar Chouafa</strong>. De surcroît, les consultations apaisantes du voyant <strong>Sidi El Arafi</strong> démontrent que la recherche sincère de la vérité transcende les formalismes rigides du quotidien. Dès lors, la liberté de conscience et le regard critique s'avèrent indispensables pour éviter l'engourdissement moral.</p>
 </div>
 
 <div class="model-axe3">
-<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse éclairée, où l'ordre extérieur s'ajuste en permanence aux progrès de la sensibilité morale et du respect de la dignité. Il ne s'agit ni de basculer dans une révolte stérile, ni de se résigner à une soumission servile, mais de faire dialoguer le sens des responsabilités avec l'esprit de compassion et d'équité. L'art littéraire enseigne que les grandes avancées civiques naissent toujours de cette tension maîtrisée entre respect de la règle et courage de l'idéal.</p>
+<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse féconde, où la solidarité extérieure s'enrichit en permanence de la lucidité intérieure de l'être. Il ne s'agit ni de basculer dans une révolte stérile contre son milieu d'origine, ni de se résigner à une soumission aveugle, mais de faire dialoguer le respect des valeurs partagées avec la quête d'accomplissement personnel. L'art d'<strong>Ahmed Sefrioui</strong> enseigne que la véritable sagesse naît précisément de cette tension maîtrisée entre enracinement communautaire et liberté de l'esprit.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En somme</strong>, ce débat transcende les circonstances contingentes pour rappeler que la dignité humaine se forge dans la conciliation souveraine de la lucidité et du cœur. Par-delà les doutes et les déchirements, la fidélité à des valeurs fraternelles ouvre la voie à un avenir plus solidaire, plus équitable et plus juste. Ne revient-il pas dès lors à chaque génération d'accomplir ce perpétuel dépassement éthique au service de l'homme ?</p>
+<p><strong>En somme</strong>, ce parcours réflexif démontre que la dignité humaine se forge dans l'alliance souveraine de la fidélité aux siens et du courage de la lucidité. Par-delà les tiraillements de l'existence, l'harmonie entre exigence intérieure et générosité envers autrui ouvre la voie à un épanouissement authentique et durable. Ne revient-il pas dès lors à chacun d'accomplir ce dépassement harmonieux au service de la vie ?</p>
 </div>`;
+  } else if (isA) {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par « ${topic.slice(0, 80)} » oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'exercice de la responsabilité politique impose parfois des décisions sévères pour préserver la paix civile et garantir la survie de la cité. Le personnage de <strong>Créon</strong> dans l'œuvre de <strong>Jean Anouilh</strong> défend avec gravité la nécessité d'un État solide, capable d'endiguer le chaos né des guerres intestines entre <strong>Étéocle et Polynice</strong>. De même, la prudence d'<strong>Ismène</strong> rappelle que la transgression unilatérale de la loi risque de plonger la communauté entière dans le deuil et l'anarchie. Ainsi, la stabilité civique exige un consentement pragmatique aux règles instituées.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'autorité temporelle devient tyrannique lorsqu'elle prétend asservir la liberté morale et fouler aux pieds les devoirs imprescriptibles du cœur. L'affrontement mené par <strong>l'héroïne Antigone</strong> proclame avec force que nulle raison d'État ne saurait effacer l'amour fraternel et l'honneur de la sépulture. En préférant le martyre aux décrets de son oncle, la princesse démontre que la pureté du refus protège l'essence même de l'humanité contre la déchéance des compromis médiocres. Dès lors, le courage de s'insurger contre l'iniquité fonde la noblesse inaltérable de la conscience.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la leçon tragique d'Anouilh réside dans l'impérieuse nécessité d'une politique éclairée qui ne sacrifie jamais l'idéal éthique à la froide mécanique du pouvoir. Le véritable art de gouverner consiste à respecter la liberté spirituelle des citoyens sans abdiquer la fermeté de l'ordre républicain. C'est dans ce dialogue vigilant entre autorité et respect des droits fondamentaux que se préserve l'équilibre démocratique.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, le conflit thébain enseigne que la dignité humaine grandit lorsque la conscience refuse d'abdiquer devant l'arbitraire. Par-delà le drame antique, l'idéal d'intégrité porté par Antigone demeure une balise vivante pour toute jeunesse éprise de liberté et de vérité. En définitive, la mémoire des héros du refus n'est-elle pas le plus sûr rempart contre la barbarie ?</p>
+</div>`;
+  } else {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on s'aperçoit que la question soulevée par « ${topic.slice(0, 80)} » confronte deux conceptions antagonistes de la justice et de la morale. D'un côté, la défense de l'ordre légal invoque la nécessité de punir pour prévenir le crime et protéger la collectivité. D'un autre côté, la conscience humaniste dénonce l'injustice d'une violence institutionnalisée qui détruit la vie même qu'elle prétend défendre. Dès lors, comment concilier l'exigence de la sécurité publique et le respect sacré de la dignité humaine ? Il s'agira d'examiner dans un premier temps la portée de la loi pénale, d'analyser dans un deuxième temps l'urgence de l'abolitionnisme moral, pour enfin dégager une synthèse sur la justice de demain.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'existence d'un code pénal et de sanctions formelles découle du besoin légitime de réguler la vie en communauté et d'empêcher les dérives de la vengeance privée. Les représentants de la justice dépeints par <strong>Victor Hugo</strong> agissent initialement pour faire respecter l'ordre public et maintenir la cohésion de l'édifice social face aux transgressions criminelles. Dès lors, la fonction punitive cherche à réaffirmer l'autorité de la règle commune pour préserver la sécurité de tous.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, la société abdique sa mission civilisatrice dès lors qu'elle utilise le meurtre légal comme instrument de dissuasion. Les confessions bouleversantes du <strong>condamné à mort</strong> dans son cachot de <strong>Bicêtre</strong> puis à <strong>la Conciergerie</strong> mettent à nu l'atrocité inhumaine de <strong>la peine de mort</strong> et de <strong>la guillotine</strong> sur <strong>la place de Grève</strong>. Hugo démontre avec une vigueur impérissable que la vengeance institutionnelle ensauvage la foule au lieu de l'édifier, tout en infligeant un supplice indicible à des innocents comme <strong>la petite Marie</strong>. Ainsi, le progrès éthique impose de rejeter la barbarie répressive.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la véritable justice doit substituer la rédemption, l'instruction et la réinsertion à la logique archaïque du talion. Loin de renoncer à punir, une société moderne doit chercher à corriger le coupable tout en protégeant inconditionnellement sa vie et sa dignité. L'humanisation du droit constitue l'horizon indépassable de tout régime civilisé.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, le combat de Victor Hugo nous exhorte à construire une justice guidée par la raison et la miséricorde plutôt que par la haine. La dignité humaine ne se négocie pas et s'impose comme une limite absolue à l'action de l'État. En définitive, n'appartient-il pas à chaque époque d'étendre la lumière de l'humanisme face aux ténèbres de la cruauté ?</p>
+</div>`;
+  }
+})()}`;
 }
 
 // Dev & static serving
