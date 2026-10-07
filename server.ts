@@ -486,6 +486,7 @@ STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
 ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
 - Le candidat a rédigé une copie structurée en paragraphes distincts : tu DOIS OBLIGATOIREMENT reproduire fidèlement cette même structure.
 - Encadre CHAQUE paragraphe du candidat dans sa propre balise <p>...</p>.
+- RÈGLE CRUCIALE SUR LE DÉBUT DU DÉVELOPPEMENT : Si l'élève utilise une formule de prise de position ou de point de vue (« Personnellement... », « Pour ma part... », « À mon avis... »), ELLE DOIT OBLIGATOIREMENT COMMENCER UN NOUVEAU PARAGRAPHE DISTINCT (<p><strong>Personnellement</strong>...</p>) AU DÉBUT DU DÉVELOPPEMENT avec son propre alinéa, et ne JAMAIS être rattachée ou fusionnée à la fin de l'introduction !
 - INTERDICTION FORMELLE de compacter ou fusionner les paragraphes en un seul bloc continu !
 - Sur cette transcription intégrale, applique EXCLUSIVEMENT ET UNIQUEMENT ces deux balisages :
   1. Les erreurs en rouge vif : <span class="err-highlight">erreur [correction]</span>
@@ -801,19 +802,27 @@ OPINION
     topic.toLowerCase().includes("phénomène");
 
   // Format the candidate's actual text into faithful paragraphs with bold connectors and highlighted faults
-  const paragraphs = rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()) : [rawCopy];
+  // Séparer impérativement « Personnellement... » ou « Pour ma part... » dans son propre paragraphe au début du développement
+  const splitRaw = (rawCopy || '').replace(/([.!?])\s*(Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1\n\n$2');
+  const paragraphs = splitRaw ? splitRaw.split(/\n\s*\n/).filter(p => p.trim()) : [rawCopy];
   const highlightedCopy = paragraphs.map(p => {
     let formatted = p.trim();
     // Highlight all argumentative connectors in bold
     const connectors = [
       'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
       'D’ailleurs', "D'ailleurs", 'Par ailleurs', 'En d’autres termes', "En d'autres termes", 'Autrement dit',
-      'En guise de conclusion', 'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
-      'Personnellement', 'Pour ma part', 'À mon avis', "A mon avis", 'Selon moi',
-      'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Puis', 'Enfin',
-      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant',
+      'En guise de conclusion', 'En définitive', 'En somme', 'En résumé', 'En conclusion', 'Pour conclure', 'Finalement',
+      'Personnellement', 'Pour ma part', 'À mon avis', "A mon avis", 'Selon moi', "D'après moi", 'D’après moi', 'En ce qui me concerne',
+      'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Premièrement', 'Deuxièmement', 'Troisièmement',
+      'Ensuite', 'Puis', 'Enfin',
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre',
       'Par conséquent', 'En conséquence', 'C’est pourquoi', "C'est pourquoi", 'Dès lors', 'Ainsi',
-      'En effet', 'De plus', 'En outre', 'De surcroît', 'De surcroit', 'D’une part', "D'une part", 'D’autre part', "D'autre part"
+      'En effet', 'En réalité', 'De fait', 'En fait',
+      'De plus', 'En outre', 'De surcroît', 'De surcroit',
+      'D’une part', "D'une part", 'D’autre part', "D'autre part",
+      "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté', "De l'autre côté", 'De l’autre côté',
+      'Non seulement', 'Mais aussi', 'Mais encore',
+      'De ce fait', "D'où", 'D’où', 'Certes', 'Sans doute', 'Aussi'
     ];
     for (const c of connectors) {
       const escaped = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -924,6 +933,25 @@ ${(() => {
   const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
   const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon');
   const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo');
+  const isSolitude = tLow.includes('solitude') || tLow.includes('isolement') || tLow.includes('faiblesse') || tLow.includes('épanouissement') || tLow.includes('epanouissement');
+
+  if (isSolitude && (isB || (!isA && !isC))) {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion engagée autour de la solitude et de l'épanouissement de l'individu touche au cœur même de la condition humaine. Dès lors, convient-il d'appréhender l'isolement comme une faiblesse aliénante ou importe-t-il au contraire de le concevoir comme une étape féconde de maturation intérieure et de découverte de soi ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe en quoi la solitude subie peut fragiliser l'être humain, avant de démontrer dans un second axe comment la solitude choisie peut constituer un puissant levier d'épanouissement personnel.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, lorsque la solitude résulte de l'incompréhension de l'entourage ou de l'incapacité à communiquer, elle devient une souffrance douloureuse qui isole l'individu et entrave son épanouissement. C'est précisément le drame éprouvé par <strong>Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui</strong> : confronté aux querelles mesquines de <strong>Dar Chouafa</strong> et à la sévérité oppressante du fqih au <strong>Msid</strong>, l'enfant ressent un profond sentiment d'abandon qui assombrit ses journées. De plus, les difficultés matérielles qui frappent le foyer lors de la ruine soudaine de son père <strong>Maâlem Abdeslam</strong> accentuent l'angoisse d'un dénuement où la cellule familiale semble livrée à elle-même face à l'adversité. Ainsi, l'enfermement involontaire et le manque de communication sincère risquent d'enfermer l'être dans un repli anxieux et destructeur.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette même solitude peut se métamorphoser en une source inestimable de libération intérieure dès lors qu'elle devient le lieu privilégié de la réflexion et de la création imaginaire. Loin de sombrer dans le désespoir, le jeune narrateur marocain trouve dans le secret de <strong>sa boîte à merveilles</strong> un asile enchanté où des objets insignifiants se transforment en fabuleux compagnons d'évasion, sauvegardant la pureté de son regard face au conformisme des adultes. Par ailleurs, la retraite spirituelle partagée avec sa mère <strong>Lalla Zoubida</strong> au sanctuaire de <strong>Sidi Ali Boughaleb</strong> et les paroles apaisantes du sage <strong>Sidi El Arafi</strong> rappellent que le silence intérieur offre un recul salvateur pour discerner l'essentiel. Dès lors, la solitude lucide permet à l'esprit de se réconcilier avec lui-même et de bâtir une authentique autonomie morale.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, ce parcours réflexif démontre avec éclat que la solitude possède une double nature : destructrice lorsqu'elle est subie comme une exclusion, elle se révèle profondément féconde lorsqu'elle est vécue comme une respiration intérieure et un dialogue fécond avec soi-même. L'épanouissement véritable de l'individu ne consiste donc pas à fuir autrui, mais à cultiver cette précieuse liberté d'esprit qui donne son sens à la vie en société. En définitive, ne convient-il pas à chacun d'entre nous d'apprivoiser ses moments de solitude pour y puiser la force d'un regard lucide et serein sur le monde ?</p>
+</div>`;
+  }
 
   if (isB || (!isA && !isC)) {
     return `<div class="model-intro">
