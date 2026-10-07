@@ -39,7 +39,7 @@ export default function App() {
   const [hasReport, setHasReport] = useState(false);
   const [isHorsSujet, setIsHorsSujet] = useState(false);
   const [offTopicType, setOffTopicType] = useState<'THEMATIQUE' | 'METHODOLOGIQUE' | 'GENERAL'>('GENERAL');
-  const [detectedPlanType, setDetectedPlanType] = useState<'OPINION' | 'ANALYTIQUE' | ''>('OPINION');
+  const [detectedPlanType, setDetectedPlanType] = useState<'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' | ''>('SIMPLE');
 
   // Compteur officiel des lignes manuscrites (Norme Bac : 20 à 25 lignes)
   const lineCount = React.useMemo(() => {
@@ -713,6 +713,20 @@ export default function App() {
 
     // Mise en page soignée pour Section B : Texte Intégral Réécrit & Fluidifié
     parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?<\/h[1-4]>)([\s\S]*?)$/i, (m, hTag, content) => {
+      // 1. Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
+      let cleanContent = content
+        .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix peuvent être graves)/gi,
+          '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Par conséquent</strong>, $1')
+        .replace(/Cependant\s*,\s*les conséquences/gi, '<strong>Par conséquent</strong>, les conséquences')
+        .replace(/Cependant\s*,\s*les répercussions/gi, '<strong>Par conséquent</strong>, les répercussions');
+
+      // 2. "En premier lieu," doit être obligatoirement au début du développement avec un saut de ligne et un alinéa distinct
+      cleanContent = cleanContent.replace(/([.!?])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b)/gi,
+        '$1</p>\n\n<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$2</strong>');
+
+      // 3. Stylisation des paragraphes avec alinéa
+      cleanContent = cleanContent.replace(/<p(?![^>]*text-indent)/gi, '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"');
+
       return `
         <div style="margin-top:28px; background:#ffffff; border:2px solid #0b1528; border-radius:16px; padding:22px; box-shadow:0 4px 14px rgba(11,21,40,0.08);">
           <div style="background:#0b1528; border-radius:12px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
@@ -720,10 +734,10 @@ export default function App() {
               <span style="font-size:1.15rem;">🏆</span>
               <span style="color:#ffffff; font-weight:900; font-size:0.85rem; letter-spacing:0.04em;">B. TEXTE INTÉGRAL RÉÉCRIT & FLUIDIFIÉ (VERSION CONTINUE D'EXCELLENCE)</span>
             </div>
-            <span style="background:#059669; color:#ffffff; font-size:0.72rem; font-weight:800; padding:3px 10px; border-radius:9999px;">EXEMPLES DES ŒUVRES EN GRAS • CONNECTEURS EN BLEU</span>
+            <span style="background:#059669; color:#ffffff; font-size:0.72rem; font-weight:800; padding:3px 10px; border-radius:9999px;">EXEMPLES EN GRAS • CONNECTEURS EN BLEU</span>
           </div>
           <div style="color:#1e293b; line-height:2.05; text-align:justify; font-size:0.95rem;">
-            ${content}
+            ${cleanContent}
           </div>
         </div>
       `;
@@ -801,49 +815,82 @@ export default function App() {
     raw = raw.replace(/Pour tout sujet demandant un avis ou un point de vue personnel[^\n<]*/gi, '').trim();
 
     const isDialectique = planType === 'DIALECTIQUE';
+    const isAnalytique = planType === 'ANALYTIQUE';
+
+    // Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
+    raw = raw
+      .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix peuvent être graves)/gi,
+        '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Par conséquent</strong>, $1')
+      .replace(/Cependant\s*,\s*les conséquences/gi, '<strong>Par conséquent</strong>, les conséquences')
+      .replace(/Cependant\s*,\s*les répercussions/gi, '<strong>Par conséquent</strong>, les répercussions');
 
     // Mise en page responsive garantie SUR LA MÊME LIGNE (flex-nowrap, aucun retour à la ligne)
-    const planHeaderHtml = isDialectique ? `
-      <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:4px; margin-bottom:18px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box;">
-        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          1. INTRODUCTION (ORANGE)
-        </span>
-        <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
-        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          2. AXE 1 / THÈSE (BLEU)
-        </span>
-        <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🔄</span>
-        <span style="background:#9333ea; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          3. AXE 2 / ANTITHÈSE (VIOLET)
-        </span>
-        <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
-        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          4. SYNTHÈSE (SARCELLE)
-        </span>
-        <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
-        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          CONCLUSION (VERT ÉMERAUDE)
-        </span>
-      </div>
-    ` : `
-      <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:4px; margin-bottom:18px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box;">
-        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          1. INTRODUCTION (ORANGE)
-        </span>
-        <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
-        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          2. PREMIER AXE (BLEU)
-        </span>
-        <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
-        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          3. SECOND AXE (SARCELLE)
-        </span>
-        <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
-        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:1; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-          CONCLUSION (VERT ÉMERAUDE)
-        </span>
-      </div>
-    `;
+    let planHeaderHtml = '';
+    if (isDialectique) {
+      planHeaderHtml = `
+        <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:18px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+          <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            1. INTRODUCTION (ORANGE)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
+          <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            2. AXE 1 / THÈSE (BLEU)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🔄</span>
+          <span style="background:#9333ea; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            3. AXE 2 / ANTITHÈSE (VIOLET)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
+          <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            4. SYNTHÈSE (SARCELLE)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
+          <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            CONCLUSION (VERT ÉMERAUDE)
+          </span>
+        </div>
+      `;
+    } else if (isAnalytique) {
+      planHeaderHtml = `
+        <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:18px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+          <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            1. INTRODUCTION (ORANGE)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
+          <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            2. PREMIER AXE / CAUSES (BLEU)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
+          <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            3. SECOND AXE / CONSÉQUENCES (SARCELLE)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
+          <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            CONCLUSION (VERT ÉMERAUDE)
+          </span>
+        </div>
+      `;
+    } else {
+      planHeaderHtml = `
+        <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:18px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+          <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            1. INTRODUCTION (ORANGE)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
+          <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            2. PREMIER AXE (BLEU)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
+          <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            3. SECOND AXE (SARCELLE)
+          </span>
+          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
+          <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+            CONCLUSION (VERT ÉMERAUDE)
+          </span>
+        </div>
+      `;
+    }
 
     // Découpage et identification des parties
     let introMatch = raw.match(/<div class="model-intro">([\s\S]*?)<\/div>/i);
@@ -922,12 +969,12 @@ export default function App() {
     let bodyHtml = '';
     bodyHtml += wrapSection('1. INTRODUCTION (ORANGE)', '#ea580c', '#ea580c', '#fff7ed', introContent);
     if (axe1Content) {
-      const badgeTitle = isDialectique ? '2. AXE 1 / THÈSE (BLEU)' : '2. PREMIER AXE (BLEU)';
+      const badgeTitle = isDialectique ? '2. AXE 1 / THÈSE (BLEU)' : (isAnalytique ? '2. PREMIER AXE / CAUSES (BLEU)' : '2. PREMIER AXE (BLEU)');
       bodyHtml += wrapSection(badgeTitle, '#2563eb', '#2563eb', '#eff6ff', axe1Content);
     }
     if (axe2Content) {
       const badgeColor = isDialectique ? '#9333ea' : '#0d9488';
-      const badgeTitle = isDialectique ? '3. AXE 2 / ANTITHÈSE (VIOLET)' : '3. SECOND AXE (SARCELLE)';
+      const badgeTitle = isDialectique ? '3. AXE 2 / ANTITHÈSE (VIOLET)' : (isAnalytique ? '3. SECOND AXE / CONSÉQUENCES (SARCELLE)' : '3. SECOND AXE (SARCELLE)');
       const bg = isDialectique ? '#faf5ff' : '#f0fdfa';
       bodyHtml += wrapSection(badgeTitle, badgeColor, badgeColor, bg, axe2Content);
     }
@@ -977,41 +1024,13 @@ export default function App() {
       'De ce fait', "D'où", 'D’où', 'Certes', 'Sans doute', 'De même'
     ];
 
-    // Extraire les extraits fautifs du tableau pour garantir leur surlignage en rouge
-    const tableErrors: string[] = [];
-    if (tableRaw) {
-      const sanitizedTable = cleanTableMarkdown(tableRaw);
-      const lines = sanitizedTable.split('\n');
-      for (const line of lines) {
-        if (line.includes('|')) {
-          const cells = line.split('|').map(c => c.trim()).filter(Boolean);
-          if (cells.length >= 3 && !cells[0].toLowerCase().includes('extrait') && !cells[0].includes('---')) {
-            const cleanErr = cells[0].replace(/<[^>]*>/g, '').replace(/\[[^\]]*\]/g, '').trim();
-            if (cleanErr && cleanErr.length >= 2 && !tableErrors.includes(cleanErr)) {
-              tableErrors.push(cleanErr);
-            }
-          }
-        }
-      }
-    }
-
     const applyHighlights = (str: string) => {
       let res = str;
 
-      // 1. Surligner en rouge les erreurs extraites du tableau (triées de la plus longue à la plus courte)
-      const sortedErrors = [...tableErrors].sort((a, b) => b.length - a.length);
-      for (const err of sortedErrors) {
-        try {
-          const escaped = err.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`(?<!<span class="err-highlight"[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/span>)`, 'gi');
-          res = res.replace(regex, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;">$1</span>');
-        } catch (e) {}
-      }
-
-      // 2. Transformer les éventuelles notations [faute -> correction] ou [faute] en erreurs rouges
+      // 1. Transformer les éventuelles notations explicites [faute -> correction] ou [faute] en erreurs rouges
       res = res.replace(/(?<!<span class="err-highlight"[^>]*>)(\[[^\]]+\])(?!<\/span>)/g, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;">$1</span>');
 
-      // 3. Connecteurs en gras s'ils ne le sont pas déjà (triés du plus long au plus court)
+      // 2. Connecteurs en gras s'ils ne le sont pas déjà (triés du plus long au plus court)
       const sortedConnectors = [...connectors].sort((a, b) => b.length - a.length);
       for (const c of sortedConnectors) {
         const escaped = c
@@ -1021,21 +1040,21 @@ export default function App() {
         res = res.replace(regex, '<strong>$1</strong>');
       }
 
-      // 4. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
+      // 3. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
       res = res.replace(/<span class="err-highlight"(?! style)/gi, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;"');
 
       return res;
     };
 
-    // RÈGLE MÉTHODOLOGIQUE MAJEURE : « Personnellement... » ou « Pour ma part... » doit être placé au début du développement
-    // dans un paragraphe distinct avec son propre alinéa.
+    // RÈGLE MÉTHODOLOGIQUE MAJEURE : « En premier lieu... », « Personnellement... » ou « Pour ma part... » doit être placé au début du développement
+    // dans un paragraphe distinct avec son propre alinéa et saut de ligne franc.
     const splitAtDevelopment = (str: string) => {
       if (!str) return '';
       let s = str;
       // 1. Scission si à l'intérieur d'une balise <p>...</p>
-      s = s.replace(/([.!?])\s*(Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1</p>\n\n<p>$2');
+      s = s.replace(/([.!?])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1</p>\n\n<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$2</strong>');
       // 2. Scission si en texte brut ou markdown
-      s = s.replace(/([.!?])\s*(?!\n\s*\n)\s*(Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1\n\n$2');
+      s = s.replace(/([.!?])\s*(?!\n\s*\n)\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1\n\n$2');
       return s;
     };
 
@@ -1532,12 +1551,33 @@ export default function App() {
       const isExplicitAnalytic = (sNorm.includes('causes et solutions') ||
         sNorm.includes('causes et conséquences') ||
         sNorm.includes('causes et consequences') ||
+        sNorm.includes('causes') ||
+        sNorm.includes('conséquence') ||
+        sNorm.includes('consequence') ||
+        sNorm.includes('guérisseur') ||
+        sNorm.includes('guerisseur') ||
+        sNorm.includes('charlatan') ||
+        sNorm.includes('tradipraticien') ||
         sNorm.includes('quelles sont les causes') ||
-        sNorm.includes('analyser les causes')) && !isExplicitOpinion;
+        sNorm.includes('analyser les causes'));
 
-      const isAnalytic = isExplicitAnalytic || (typePlan.includes('ANALYTIQUE') && !isExplicitOpinion);
+      const isDialecticRequested = (sNorm.includes('pour ou contre') ||
+        sNorm.includes('thèse et antithèse') ||
+        sNorm.includes('these et antithese')) && !isExplicitAnalytic;
 
-      setDetectedPlanType(isAnalytic ? 'ANALYTIQUE' : 'OPINION');
+      const isAnalytic = isExplicitAnalytic || typePlan.includes('ANALYTIQUE');
+      const isDialectic = isDialecticRequested || (typePlan.includes('DIALECTIQUE') && !isExplicitAnalytic);
+
+      let finalPlanType: 'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' = 'SIMPLE';
+      if (isAnalytic) {
+        finalPlanType = 'ANALYTIQUE';
+      } else if (isDialectic) {
+        finalPlanType = 'DIALECTIQUE';
+      } else {
+        finalPlanType = 'SIMPLE';
+      }
+
+      setDetectedPlanType(finalPlanType);
 
       const planAExtracted = extract('PLAN_A');
       const planBExtracted = extract('PLAN_B');
@@ -1548,6 +1588,26 @@ export default function App() {
       const isC = sLow.includes('dernier jour') || sLow.includes('condamné') || sLow.includes('condamne') || sLow.includes('victor hugo');
 
       const buildDefaultPlanA = () => {
+        const isGuerisseur = sLow.includes('guérisseur') || sLow.includes('guerisseur') || sLow.includes('charlatan') || sLow.includes('tradipraticien') || (sLow.includes('cause') && (sLow.includes('conséquence') || sLow.includes('consequence')));
+
+        if (isGuerisseur) {
+          return `<div class="model-intro">
+<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, et quelles en sont les répercussions alarmantes sur la santé publique ? Pour répondre avec rigueur à cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce phénomène, avant de mettre en évidence dans un second axe les conséquences redoutables qu'il engendre pour la collectivité.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de praticiens traditionnels qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences mystiques ou surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de cette pratique ancestrale.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>Par conséquent</strong>, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes archaïques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Pour enrayer ce fléau destructeur, il apparaît urgent de démocratiser la couverture médicale, de sanctionner sévèrement les charlatans et de multiplier les campagnes de sensibilisation scientifique. En définitive, le triomphe de la médecine moderne et de la dignité humaine ne passe-t-il pas par l'éradication définitive de l'obscurantisme médical ?</p>
+</div>`;
+        }
+
         const isSolitude = sLow.includes('solitude') || sLow.includes('isolement') || sLow.includes('faiblesse') || sLow.includes('épanouissement') || sLow.includes('epanouissement');
 
         if (isSolitude && (isB || (!isA && !isC))) {
@@ -1697,7 +1757,7 @@ export default function App() {
 
       const tabSelectors = document.getElementById('tabSelectors');
       if (tabSelectors) {
-        tabSelectors.style.display = 'flex';
+        tabSelectors.style.display = finalPlanType === 'DIALECTIQUE' ? 'flex' : 'none';
       }
 
       displayM('A');
@@ -2696,25 +2756,34 @@ export default function App() {
                     <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèles Rédigés d'Excellence (Norme Al Akhawayn • Min. 18 lignes)
                   </h3>
                   
-                  {/* Sélecteur de plan simple vs dialectique */}
-                  <div id="tabSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={() => displayM('A')}
-                      id="ts"
-                      className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
-                    >
-                      Option 1 : Plan Simple
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => displayM('B')}
-                      id="td"
-                      className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
-                    >
-                      Option 2 : Variante Dialectique
-                    </button>
-                  </div>
+                  {/* Sélecteur de plan simple vs dialectique : UNIQUEMENT pour les sujets dialectiques */}
+                  {detectedPlanType === 'DIALECTIQUE' ? (
+                    <div id="tabSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => displayM('A')}
+                        id="ts"
+                        className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      >
+                        Option 1 : Plan Simple
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => displayM('B')}
+                        id="td"
+                        className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      >
+                        Option 2 : Variante Dialectique
+                      </button>
+                    </div>
+                  ) : (
+                    <div id="tabSelectors" className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs border border-slate-800">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wide">
+                        {detectedPlanType === 'ANALYTIQUE' ? 'Modèle Certifié : Plan Analytique (Causes & Conséquences)' : 'Modèle Certifié : Plan Simple (Arguments Convergents)'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div id="outModel" className="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-sm sm:text-base leading-relaxed space-y-4"></div>
