@@ -111,6 +111,7 @@ export default function App() {
   const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
   const [changeFeedback, setChangeFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isChanging, setIsChanging] = useState(false);
+  const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
 
   // Modal Mot de passe Candidat (sert à introduire le mot de passe actuel)
   const [showCandidateModal, setShowCandidateModal] = useState(false);
@@ -176,12 +177,37 @@ export default function App() {
 
     fetchArchives();
 
+    // Système de présence instantané en direct (utilisateurs actifs)
+    let clientId = sessionStorage.getItem('akhawayn_client_id');
+    if (!clientId) {
+      clientId = 'usr_' + Math.random().toString(36).substring(2, 9);
+      sessionStorage.setItem('akhawayn_client_id', clientId);
+    }
+    const pingHeartbeat = async () => {
+      try {
+        const res = await fetch('/api/heartbeat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data.count === 'number') {
+            setActiveUsersCount(data.count);
+          }
+        }
+      } catch {}
+    };
+    pingHeartbeat();
+    const heartbeatTimer = setInterval(pingHeartbeat, 10000);
+
     // Bloquer le clic droit sur toute la page
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
     };
     document.addEventListener('contextmenu', handleContextMenu);
     return () => {
+      clearInterval(heartbeatTimer);
       document.removeEventListener('contextmenu', handleContextMenu);
     };
   }, []);
@@ -327,6 +353,10 @@ export default function App() {
       if (res.ok && data.success) {
         setPasswordChangeStep('PASSWORDS');
         setChangeFeedback({ type: 'success', message: 'Identité direction validée avec succès ! Vous pouvez maintenant mettre à jour le mot de passe.' });
+        fetch('/api/active-users')
+          .then(r => r.json())
+          .then(d => { if (d && typeof d.count === 'number') setActiveUsersCount(d.count); })
+          .catch(() => {});
       } else {
         setChangeFeedback({ type: 'error', message: data.message || 'Clé secrète d’habilitation incorrecte.' });
       }
@@ -489,11 +519,14 @@ export default function App() {
 
   const highlightConnectors = (html: string) => {
     const connectors = [
-      // Centre Al Akhawayn : Énumération, classement & progression
-      'En premier lieu', 'En second lieu', 'En troisième lieu', 'En deuxième lieu', 'En dernier lieu',
+      // Énumération, classement & progression
+      'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+      "D'ailleurs", 'D’ailleurs', 'Par ailleurs',
+      "En d'autres termes", 'En d’autres termes', 'Autrement dit',
       'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Puis', 'Enfin',
-      'De plus', 'En outre', 'Par ailleurs', 'De surcroît', 'De surcroit',
+      'De plus', 'En outre', 'De surcroît', 'De surcroit',
       'D’une part', "D'une part", 'D’autre part', "D'autre part",
+      "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté',
       'À ce premier avantage s’ajoute', "A ce premier avantage s'ajoute", "À ce premier argument s'ajoute",
       'Si l’on ajoute enfin', "Si l'on ajoute enfin", 'Non seulement', 'Mais aussi', 'Mais encore',
 
@@ -506,9 +539,10 @@ export default function App() {
       'Venons-en à présent à la question de',
 
       // Cause & conséquence
-      'En effet', 'Par conséquent', 'En conséquence', 'C’est pourquoi', "C'est pourquoi",
+      'En effet', 'En réalité', 'De fait', 'En fait',
+      'Par conséquent', 'En conséquence', 'C’est pourquoi', "C'est pourquoi",
       'Dès lors', 'Il en résulte que', 'Ainsi', 'D’où', "D'où", 'Du fait que', 'Étant donné que',
-      'Puisque', 'Sous prétexte que',
+      'Puisque', 'Sous prétexte que', 'De ce fait',
 
       // Concession & opposition
       'Certes', 'Il est exact que', 'S’il est certain que', "S'il est certain que",
@@ -525,16 +559,20 @@ export default function App() {
       'De même', 'Notons que', 'Précisons que', 'C’est-à-dire', "C'est-à-dire", 'À cet égard', "A cet égard",
 
       // Point de vue
-      'Selon moi', 'À mon avis', "A mon avis", 'D’après moi', "D'après moi", 'En ce qui me concerne',
+      'Personnellement', 'Pour ma part', 'Selon moi', 'À mon avis', "A mon avis", 'D’après moi', "D'après moi", 'En ce qui me concerne',
       'Je pense que', 'Il me semble que',
 
       // Conclusion & clôture
-      'En somme', 'En définitive', 'En résumé', 'Il résulte de ce qui précède que',
-      'En conclusion', 'Pour conclure', 'Finalement'
+      'En guise de conclusion', 'En définitive', 'En somme', 'En résumé', 'Il résulte de ce qui précède que',
+      'En conclusion', 'Pour conclure', 'Finalement',
+      'Aussi donne-t-elle', 'Aussi permet-elle', 'Aussi convient-il', 'Aussi importe-t-il'
     ];
+    const sorted = [...connectors].sort((a, b) => b.length - a.length);
     let res = html;
-    for (const c of connectors) {
-      const escaped = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const c of sorted) {
+      const escaped = c
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        .replace(/['’]/g, "['’]");
       const regex = new RegExp(`(?<!<strong class="conn-student"[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
       res = res.replace(regex, '<strong class="conn-student" style="color:#1d4ed8 !important; font-weight:800 !important; background-color:#eff6ff !important; padding:2px 7px !important; border-radius:4px !important; border:1px solid #bfdbfe !important; display:inline-block !important; margin:1px 2px !important;">$1</strong>');
     }
@@ -606,8 +644,11 @@ export default function App() {
     if (!rawMd) return '';
     // Nettoyer toute injection intempestive de structure de plan dans la section 5
     let cleanedMd = rawMd
-      .replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique)[^\n]*/gim, '')
+      .replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique|Modèle Actif)[^\n]*/gim, '')
       .replace(/💡?\s*Note méthodologique officielle\s*:?[^\n]*/gi, '')
+      .replace(/🎯?\s*(?:Modèle Actif|STRUCTURE DU PLAN RETENU)\s*:?[^\n]*/gi, '')
+      .replace(/Modèles de référence certifiés conformes[^\n]*/gi, '')
+      .replace(/Pour tout sujet demandant un avis ou un point de vue personnel[^\n]*/gi, '')
       .trim();
 
     let parsed = marked.parse(cleanedMd) as string;
@@ -615,37 +656,37 @@ export default function App() {
 
     // Remplacement et stylisation chromatique stricte des cartes de phrases de l'élève (Section 5.A)
     // Phrase 1 : Thème Indigo
-    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?1\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2|<h[1-4]>|<hr|$)/i, (m, content) => {
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?1\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2|<h[1-4]>|<hr|$)/i, (m, content) => {
       let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
       return `<div class="phrase-card-indigo" style="background:#eef2ff !important; border:2px solid #818cf8 !important; border-left:6px solid #4f46e5 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(79,70,229,0.08) !important;">
-        <div style="margin-bottom:10px;"><span style="background:#4f46e5 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(79,70,229,0.3) !important;">📌 1. PHRASE DE L’ÉLÈVE N°1 (INDIGO)</span></div>
+        <div style="margin-bottom:10px;"><span style="background:#4f46e5 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(79,70,229,0.3) !important;">📌 1. PHRASE FAIBLE N°1 (INDIGO) • REFORMULATION PUISSANTE</span></div>
         <div style="color:#1e293b;">${cleanContent}</div>
       </div>`;
     });
 
     // Phrase 2 : Thème Ambre / Orange
-    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3|<h[1-4]>|<hr|$)/i, (m, content) => {
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3|<h[1-4]>|<hr|$)/i, (m, content) => {
       let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
       return `<div class="phrase-card-amber" style="background:#fffbeb !important; border:2px solid #fcd34d !important; border-left:6px solid #d97706 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(217,119,6,0.08) !important;">
-        <div style="margin-bottom:10px;"><span style="background:#d97706 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(217,119,6,0.3) !important;">📌 2. PHRASE DE L’ÉLÈVE N°2 (AMBRE)</span></div>
+        <div style="margin-bottom:10px;"><span style="background:#d97706 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(217,119,6,0.3) !important;">📌 2. PHRASE FAIBLE N°2 (AMBRE) • REFORMULATION PUISSANTE</span></div>
         <div style="color:#1e293b;">${cleanContent}</div>
       </div>`;
     });
 
     // Phrase 3 : Thème Émeraude / Sarcelle
-    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4|<h[1-4]>|<hr|$)/i, (m, content) => {
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4|<h[1-4]>|<hr|$)/i, (m, content) => {
       let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
       return `<div class="phrase-card-emerald" style="background:#ecfdf5 !important; border:2px solid #86efac !important; border-left:6px solid #059669 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(5,150,105,0.08) !important;">
-        <div style="margin-bottom:10px;"><span style="background:#059669 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(5,150,105,0.3) !important;">📌 3. PHRASE DE L’ÉLÈVE N°3 (ÉMERAUDE)</span></div>
+        <div style="margin-bottom:10px;"><span style="background:#059669 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(5,150,105,0.3) !important;">📌 3. PHRASE FAIBLE N°3 (ÉMERAUDE) • REFORMULATION PUISSANTE</span></div>
         <div style="color:#1e293b;">${cleanContent}</div>
       </div>`;
     });
 
     // Phrase 4 (si présente) : Thème Pourpre / Violet
-    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4\s*:?<\/strong>([\s\S]*?)(?=<h[1-4]>|<hr|$)/i, (m, content) => {
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4\s*:?<\/strong>([\s\S]*?)(?=<h[1-4]>|<hr|$)/i, (m, content) => {
       let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
       return `<div class="phrase-card-purple" style="background:#faf5ff !important; border:2px solid #d8b4fe !important; border-left:6px solid #9333ea !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(147,51,234,0.08) !important;">
-        <div style="margin-bottom:10px;"><span style="background:#9333ea !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(147,51,234,0.3) !important;">📌 4. PHRASE DE L’ÉLÈVE N°4 (POURPRE)</span></div>
+        <div style="margin-bottom:10px;"><span style="background:#9333ea !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(147,51,234,0.3) !important;">📌 4. PHRASE FAIBLE N°4 (POURPRE) • REFORMULATION PUISSANTE</span></div>
         <div style="color:#1e293b;">${cleanContent}</div>
       </div>`;
     });
@@ -654,8 +695,8 @@ export default function App() {
     parsed = parsed.replace(/<strong>Diagnostic didactique\s*:?<\/strong>/gi, 
       '<span style="background:#f1f5f9; color:#334155; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1px solid #cbd5e1; display:inline-flex; align-items:center; gap:4px; margin-right:6px;">🔍 Diagnostic didactique :</span>');
 
-    parsed = parsed.replace(/<strong>Reformulation claire et naturelle(?:\s*\([^)]*\))?\s*:?<\/strong>/gi, 
-      '<span style="background:#ecfdf5; color:#047857; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1.5px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px; margin-right:6px; box-shadow:0 1px 2px rgba(4,120,87,0.08);">✨ Reformulation certifiée (1ère Bac) :</span>');
+    parsed = parsed.replace(/<strong>Reformulation(?:\s+(?:claire|puissante)(?:\s+et\s+naturelle)?)?(?:\s*\([^)]*\))?\s*:?<\/strong>/gi, 
+      '<span style="background:#ecfdf5; color:#047857; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1.5px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px; margin-right:6px; box-shadow:0 1px 2px rgba(4,120,87,0.08);">✨ Reformulation puissante certifiée (1ère Bac) :</span>');
 
     // Mise en page soignée pour Section B : Texte Intégral Réécrit & Fluidifié
     parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?<\/h[1-4]>)([\s\S]*?)$/i, (m, hTag, content) => {
@@ -738,51 +779,54 @@ export default function App() {
 
     // Nettoyer rigoureusement tout bandeau sombre, texte d'annonce de structure ou note méthodologique
     raw = raw.replace(/<div[^>]*style="[^"]*background:\s*#0b1528[^"]*"[\s\S]*?<\/div>\s*<\/div>/gi, '').trim();
-    raw = raw.replace(/<div[^>]*>[\s\S]*?(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique officielle)[\s\S]*?<\/div>/gi, '').trim();
-    raw = raw.replace(/<h[1-6][^>]*>[\s\S]*?(?:STRUCTURE DU PLAN|PLAN DIALECTIQUE|PLAN SIMPLE|PLAN THÉMATIQUE)[\s\S]*?<\/h[1-6]>/gi, '').trim();
-    raw = raw.replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique)[^\n<]*/gim, '').trim();
+    raw = raw.replace(/<div[^>]*>[\s\S]*?(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique officielle|Modèle Actif)[\s\S]*?<\/div>/gi, '').trim();
+    raw = raw.replace(/<h[1-6][^>]*>[\s\S]*?(?:STRUCTURE DU PLAN|PLAN DIALECTIQUE|PLAN SIMPLE|PLAN THÉMATIQUE|MODÈLE ACTIF)[\s\S]*?<\/h[1-6]>/gi, '').trim();
+    raw = raw.replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique|Modèle Actif)[^\n<]*/gim, '').trim();
     raw = raw.replace(/💡?\s*Note méthodologique officielle\s*:?[\s\S]*?(?=📌|<div|$)/gi, '').trim();
+    raw = raw.replace(/🎯?\s*(?:Modèle Actif|STRUCTURE DU PLAN RETENU)\s*:?[^\n<]*/gi, '').trim();
+    raw = raw.replace(/Modèles de référence certifiés conformes[^\n<]*/gi, '').trim();
+    raw = raw.replace(/Pour tout sujet demandant un avis ou un point de vue personnel[^\n<]*/gi, '').trim();
 
     const isDialectique = planType === 'DIALECTIQUE';
 
     // Mise en page simple avec uniquement les jetons épurés demandés par l'utilisateur
     const planHeaderHtml = isDialectique ? `
-      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid #e2e8f0; font-family:system-ui, sans-serif;">
-        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+      <div style="display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 10px; margin-bottom:18px; padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto;">
+        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           1. INTRODUCTION (ORANGE)
         </span>
-        <span style="color:#64748b; font-size:0.9rem;">⚖️</span>
-        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="color:#64748b; font-size:0.85rem; flex-shrink:0;">⚖️</span>
+        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           2. AXE 1 / THÈSE (BLEU)
         </span>
-        <span style="color:#64748b; font-size:0.9rem;">🔄</span>
-        <span style="background:#9333ea; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="color:#64748b; font-size:0.85rem; flex-shrink:0;">🔄</span>
+        <span style="background:#9333ea; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           3. AXE 2 / ANTITHÈSE (VIOLET)
         </span>
-        <span style="color:#64748b; font-size:0.9rem;">💡</span>
-        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="color:#64748b; font-size:0.85rem; flex-shrink:0;">💡</span>
+        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           4. SYNTHÈSE CRITIQUE (SARCELLE)
         </span>
-        <span style="color:#64748b; font-size:0.9rem;">🎯</span>
-        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="color:#64748b; font-size:0.85rem; flex-shrink:0;">🎯</span>
+        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           CONCLUSION (VERT ÉMERAUDE)
         </span>
       </div>
     ` : `
-      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid #e2e8f0; font-family:system-ui, sans-serif;">
-        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+      <div style="display:flex; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px 10px; margin-bottom:18px; padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto;">
+        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           1. INTRODUCTION (ORANGE)
         </span>
-        <span style="color:#64748b; font-size:0.9rem;">⚖️</span>
-        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="color:#64748b; font-size:0.85rem; flex-shrink:0;">⚖️</span>
+        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           2. PREMIER AXE / PREMIER ARGUMENT (BLEU)
         </span>
-        <span style="color:#64748b; font-size:0.9rem;">💡</span>
-        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="color:#64748b; font-size:0.85rem; flex-shrink:0;">💡</span>
+        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           3. SECOND AXE / SECOND ARGUMENT (SARCELLE)
         </span>
-        <span style="color:#64748b; font-size:0.9rem;">🎯</span>
-        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+        <span style="color:#64748b; font-size:0.85rem; flex-shrink:0;">🎯</span>
+        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
           CONCLUSION (VERT ÉMERAUDE)
         </span>
       </div>
@@ -893,15 +937,21 @@ export default function App() {
   const formatTranscription = (transText: string, originalText: string, tableRaw?: string): string => {
     const cleaned = transText ? transText.replace(/<span class="struct-missing">[^<]*<\/span>/gi, '').trim() : '';
     
-    // Connecteurs logiques officiels à mettre en gras
+    // Connecteurs logiques officiels à mettre en gras (exhaustif selon Cadre Officiel)
     const connectors = [
-      'En premier lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
-      'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Puis', 'Enfin',
-      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant',
-      'Par conséquent', 'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En outre',
-      'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
-      'D’une part', "D'une part", 'D’autre part', "D'autre part", 'Ainsi',
-      'C\'est pourquoi', 'C’est pourquoi'
+      'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+      "D'ailleurs", 'D’ailleurs', 'Par ailleurs',
+      "En d'autres termes", 'En d’autres termes', 'Autrement dit',
+      'En guise de conclusion', 'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
+      'Personnellement', 'Pour ma part', 'À mon avis', 'A mon avis', 'Selon moi', "D'après moi", 'D’après moi',
+      'Tout d’abord', "Tout d'abord", 'D’abord', "D'abord", 'Ensuite', 'Puis', 'Enfin',
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre',
+      'Par conséquent', 'En conséquence', "C'est pourquoi", 'C’est pourquoi', 'Dès lors', 'Ainsi',
+      'En effet', 'En réalité', 'De fait', 'En fait',
+      'De plus', 'En outre', 'De surcroît', 'De surcroit',
+      'D’une part', "D'une part", 'D’autre part', "D'autre part", "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté',
+      'Aussi donne-t-elle', 'Aussi permet-elle', 'Aussi convient-il', 'Aussi importe-t-il', 'Aussi',
+      'De ce fait', "D'où", 'D’où', 'Certes', 'Sans doute'
     ];
 
     // Extraire les extraits fautifs du tableau pour garantir leur surlignage en rouge
@@ -938,10 +988,13 @@ export default function App() {
       // 2. Transformer les éventuelles notations [faute -> correction] ou [faute] en erreurs rouges
       res = res.replace(/(?<!<span class="err-highlight"[^>]*>)(\[[^\]]+\])(?!<\/span>)/g, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;">$1</span>');
 
-      // 3. Connecteurs en gras s'ils ne le sont pas déjà
-      for (const c of connectors) {
-        const escaped = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(?<!<strong>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
+      // 3. Connecteurs en gras s'ils ne le sont pas déjà (triés du plus long au plus court)
+      const sortedConnectors = [...connectors].sort((a, b) => b.length - a.length);
+      for (const c of sortedConnectors) {
+        const escaped = c
+          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          .replace(/['’]/g, "['’]");
+        const regex = new RegExp(`(?<!<strong>)(?<!<strong[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
         res = res.replace(regex, '<strong>$1</strong>');
       }
 
@@ -1099,6 +1152,132 @@ export default function App() {
     }
 
     return { isOff: false, type: 'GENERAL' };
+  };
+
+  const getDefaultPlanA = (topicSujet: string) => {
+    const sLow = (topicSujet || '').toLowerCase();
+    const isB = sLow.includes('boîte') || sLow.includes('boite') || sLow.includes('sefrioui') || sLow.includes('merveilles') || sLow.includes('sidi mohammed');
+    const isA = sLow.includes('antigone') || sLow.includes('anouilh') || sLow.includes('créon') || sLow.includes('creon');
+    const isC = sLow.includes('dernier jour') || sLow.includes('condamné') || sLow.includes('condamne') || sLow.includes('victor hugo');
+
+    if (isB || (!isA && !isC)) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que la question posée par « ${topicSujet.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante pour chaque conscience en formation. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par l'entourage ou importe-t-il d'affirmer un recul critique face aux faux-semblants du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs de la lucidité intérieure, avant de mettre en lumière dans un second axe les bienfaits d'une solidarité authentique.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des repères personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, le jeune narrateur <strong>Sidi Mohammed</strong> oppose aux querelles mesquines de <strong>Dar Chouafa</strong> le sanctuaire secret de <strong>sa boîte à merveilles</strong>, où ses menus objets deviennent les symboles purs d'une poésie spirituelle inaccessible aux adultes. De plus, les rites familiaux et les visites réconfortantes au sanctuaire de <strong>Sidi Ali Boughaleb</strong> partagés avec sa mère <strong>Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la solitude. Ainsi, la conscience de ses valeurs intimes consolide les fondations morales indispensables à toute vie sereine.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette indispensable fidélité à sa vérité intérieure ne saurait toutefois se muer en un assujettissement passif ou en un repli frileux qui étoufferait la générosité et l'esprit de partage. Dans le roman de Fès, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent avec émotion que la dignité au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et le désespoir. Par ailleurs, la sollicitude admirable de la voisine <strong>Rahma</strong> lors de la disparition de Zineb et la communion fraternelle unissant <strong>Lalla Zoubida et Lalla Aïcha</strong> aux côtés du sage <strong>Sidi El Arafi</strong> démontrent que l'épreuve humaine trouve sa rédemption dans la compassion agissante. Dès lors, le discernement critique et la tendresse humaine s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence de la rectitude personnelle avec le souffle vivifiant de la bienveillance fraternelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de son authenticité morale ?</p>
+</div>`;
+    } else if (isA) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la tragédie moderne <em>Antigone</em> de Jean Anouilh, on se rend compte que la réflexion engagée autour de « ${topicSujet.slice(0, 80)} » soulève une interrogation fondamentale sur la liberté et le pouvoir. Dès lors, convient-il d'accepter les compromis dictés par l'ordre établi ou importe-t-il d'affirmer un refus catégorique au nom de l'intégrité morale ? Pour répondre avec rigueur à cette question, il s'agira d'analyser dans un premier axe les impératifs de la responsabilité civique, avant d'examiner dans un second axe la grandeur souveraine de la conscience individuelle.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, le respect des règles institutionnelles constitue la condition indispensable pour maintenir la paix publique et éviter la violence destructrice au sein de la cité. Dans la tragédie de <strong>Jean Anouilh</strong>, le roi <strong>Créon</strong> démontre avec une fermeté inébranlable que gouverner <strong>Thèbes</strong> exige d'assumer des décisions austères pour prévenir l'anarchie qui menacerait le salut de tous les citoyens. De plus, les avertissements mesurés d'<strong>Ismène</strong> rappellent que la prudence et la soumission raisonnée aux lois communes permettent de préserver l'harmonie sociale face aux passions aveugles. Ainsi, la subordination consentie à l'autorité légitime forme un rempart nécessaire pour protéger la vie commune.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette indispensable discipline collective ne saurait justifier l'écrasement des principes éthiques les plus sacrés de l'être humain. C'est précisément l'héroïsme immortel de <strong>l'héroïne Antigone</strong>, qui préfère affronter la mort plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, la douleur d'<strong>Hémon</strong> et les condamnations du Chœur mettent en évidence qu'un pouvoir sourd à la miséricorde conduit inéluctablement à l'anéantissement de l'homme et au remords éternel. Dès lors, le refus inflexible de l'arbitraire s'affirme comme le garant ultime de la dignité et de la justice.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, l'affrontement thébain rappelle que la véritable grandeur humaine réside dans le refus permanent de la tyrannie et le respect sacré des valeurs éthiques. Loin d'être un caprice immature, la révolte d'Antigone réaffirme que la conscience demeure supérieure à toute loi temporelle injuste. En définitive, ne revient-il pas à chaque génération d'affirmer ce courage de la vérité pour édifier un monde plus humain et équitable ?</p>
+</div>`;
+    } else {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman à thèse <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on constate que le débat engagé par « ${topicSujet.slice(0, 80)} » touche aux racines mêmes de la justice et de la dignité. Dès lors, convient-il d'accepter aveuglément les châtiments imposés par la loi ou importe-t-il d'exercer un discernement critique pour humaniser la société ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe les fonctions traditionnelles du système pénal, avant d'analyser dans un second axe l'impératif moral de réformer la justice par la compassion.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'institution des lois pénales vise à dissuader le crime et à protéger les membres de la société contre le désordre et l'injustice. À travers le tableau de la justice institutionnelle évoqué par <strong>Victor Hugo</strong>, la condamnation des coupables apparaît comme une tentative de restaurer l'ordre moral bafoué et de garantir la paix publique. La société cherche ainsi à marquer sa réprobation face aux actes qui menacent la vie et la sécurité de ses concitoyens. Dès lors, l'application de la règle de droit répond à une exigence première de régulation et de sécurité collective.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, la justice humaine devient coupable à son tour lorsqu'elle recourt à des châtiments irréversibles et sanglants qui renient l'humanité du condamné. Claquemuré dans les ténèbres du cachot de <strong>Bicêtre</strong> puis transféré à <strong>la Conciergerie</strong>, <strong>le condamné à mort</strong> éprouve une agonie morale indicible face à l'échafaud dressé sur <strong>la place de Grève</strong>, dénonçant l'hypocrisie de <strong>la peine de mort</strong>. De plus, l'évocation bouleversante de son innocente fillette, <strong>la petite Marie</strong>, démontre avec force que la guillotine punit aveuglément les innocents et dégrade la conscience de la nation entière. Ainsi, l'éthique véritable commande de substituer la réhabilitation et l'éducation à la vengeance sanguinaire de l'État.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, le chef-d'œuvre de Victor Hugo démontre avec éclat que la légitimité d'une société se mesure à sa capacité à promouvoir la compassion et le respect absolu de la vie. Loin de cautionner la barbarie légalisée, le progrès démocratique exige d'élever la justice vers un idéal de rédemption et de fraternité. En définitive, n'est-ce pas ce combat universel pour la dignité humaine qui doit guider toute conscience éclairée ?</p>
+</div>`;
+    }
+  };
+
+  const getDefaultPlanB = (topicSujet: string) => {
+    const sLow = (topicSujet || '').toLowerCase();
+    const isB = sLow.includes('boîte') || sLow.includes('boite') || sLow.includes('sefrioui') || sLow.includes('merveilles') || sLow.includes('sidi mohammed');
+    const isA = sLow.includes('antigone') || sLow.includes('anouilh') || sLow.includes('créon') || sLow.includes('creon');
+    const isC = sLow.includes('dernier jour') || sLow.includes('condamné') || sLow.includes('condamne') || sLow.includes('victor hugo');
+
+    if (isB || (!isA && !isC)) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de « ${topicSujet.slice(0, 80)} » fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ? Il conviendra d'examiner dans un premier temps la valeur protectrice des devoirs partagés, d'envisager dans un deuxième temps la légitimité de l'émancipation personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une harmonie durable.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'acceptation des devoirs familiaux et la fidélité aux coutumes établies constituent le garant fondamental de la cohésion civique et de la sécurité matérielle du foyer. Dans le quotidien de Fès peint avec acuité par <strong>Ahmed Sefrioui</strong>, le courage inébranlable du chef de famille <strong>Maâlem Abdeslam</strong> face à la ruine financière illustre avec grandeur que le sens des responsabilités et le labeur acharné sont les véritables remparts contre la misère. De plus, la piété partagée et les visites réconfortantes de <strong>Lalla Zoubida</strong> auprès des sanctuaires consolident un tissu d'entraide indispensable pour surmonter les vicissitudes de l'existence. Ainsi, la loyauté envers les exigences collectives protège la cellule sociale des périls de la dispersion et du désarroi.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, cette indispensable soumission aux impératifs sociaux trouve sa limite naturelle là où commence l'étouffement de la singularité, de la sensibilité poétique et du libre arbitre. L'itinéraire du jeune <strong>Sidi Mohammed</strong> témoigne avec éclat que l'esprit humain ne saurait s'épanouir dans la seule répétition machinale des habitudes adultes. En s'évadant dans l'univers mystérieux de <strong>sa boîte à merveilles</strong>, l'enfant affirme le droit inaliénable de chaque individu à cultiver son imaginaire secret et son autonomie morale face aux mesquineries de <strong>Dar Chouafa</strong>. De surcroît, les consultations apaisantes du voyant <strong>Sidi El Arafi</strong> démontrent que la recherche sincère de la vérité transcende les formalismes rigides du quotidien. Dès lors, la liberté de conscience et le regard critique s'avèrent indispensables pour éviter l'engourdissement moral.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse féconde, où la solidarité extérieure s'enrichit en permanence de la lucidité intérieure de l'être. Il ne s'agit ni de basculer dans une révolte stérile contre son milieu d'origine, ni de se résigner à une soumission aveugle, mais de faire dialoguer le respect des valeurs partagées avec la quête d'accomplissement personnel. L'art d'<strong>Ahmed Sefrioui</strong> enseigne que la véritable sagesse naît précisément de cette tension maîtrisée entre enracinement communautaire et liberté de l'esprit.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, ce parcours réflexif démontre que la dignité humaine se forge dans l'alliance souveraine de la fidélité aux siens et du courage de la lucidité. Par-delà les tiraillements de l'existence, l'harmonie entre exigence intérieure et générosité envers autrui ouvre la voie à un épanouissement authentique et durable. Ne revient-il pas dès lors à chacun d'accomplir ce dépassement harmonieux au service de la vie ?</p>
+</div>`;
+    } else if (isA) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par « ${topicSujet.slice(0, 80)} » oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'exercice de la responsabilité politique impose parfois des décisions sévères pour préserver la paix civile et garantir la survie de la cité. Le personnage de <strong>Créon</strong> dans l'œuvre de <strong>Jean Anouilh</strong> défend avec gravité la nécessité d'un État solide, capable d'endiguer le chaos né des guerres intestines entre <strong>Étéocle et Polynice</strong>. De même, la prudence d'<strong>Ismène</strong> rappelle que la transgression unilatérale de la loi risque de plonger la communauté entière dans le deuil et l'anarchie. Ainsi, la stabilité civique exige un consentement pragmatique aux règles instituées.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'autorité temporelle devient tyrannique lorsqu'elle prétend asservir la liberté morale et fouler aux pieds les devoirs imprescriptibles du cœur. L'affrontement mené par <strong>l'héroïne Antigone</strong> proclame avec force que nulle raison d'État ne saurait effacer l'amour fraternel et l'honneur de la sépulture. En préférant le martyre aux décrets de son oncle, la princesse démontre que la pureté du refus protège l'essence même de l'humanité contre la déchéance des compromis médiocres. Dès lors, le courage de s'insurger contre l'iniquité fonde la noblesse inaltérable de la conscience.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la leçon tragique d'Anouilh réside dans l'impérieuse nécessité d'une politique éclairée qui ne sacrifie jamais l'idéal éthique à la froide mécanique du pouvoir. Le véritable art de gouverner consiste à respecter la liberté spirituelle des citoyens sans abdiquer la fermeté de l'ordre républicain. C'est dans ce dialogue vigilant entre autorité et respect des droits fondamentaux que se préserve l'équilibre démocratique.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, le conflit thébain enseigne que la dignité humaine grandit lorsque la conscience refuse d'abdiquer devant l'arbitraire. Par-delà le drame antique, l'idéal d'intégrité porté par Antigone demeure une balise vivante pour toute jeunesse éprise de liberté et de vérité. En définitive, la mémoire des héros du refus n'est-elle pas le plus sûr rempart contre la barbarie ?</p>
+</div>`;
+    } else {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on s'aperçoit que la question soulevée par « ${topicSujet.slice(0, 80)} » confronte deux conceptions antagonistes de la justice et de la morale. D'un côté, la défense de l'ordre légal invoque la nécessité de punir pour prévenir le crime et protéger la collectivité. D'un autre côté, la conscience humaniste dénonce l'injustice d'une violence institutionnalisée qui détruit la vie même qu'elle prétend défendre. Dès lors, comment concilier l'exigence de la sécurité publique et le respect sacré de la dignité humaine ? Il s'agira d'examiner dans un premier temps la portée de la loi pénale, d'analyser dans un deuxième temps l'urgence de l'abolitionnisme moral, pour enfin dégager une synthèse sur la justice de demain.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'existence d'un code pénal et de sanctions formelles découle du besoin légitime de réguler la vie en communauté et d'empêcher les dérives de la vengeance privée. Les représentants de la justice dépeints par <strong>Victor Hugo</strong> agissent initialement pour faire respecter l'ordre public et maintenir la cohésion de l'édifice social face aux transgressions criminelles. Dès lors, la fonction punitive cherche à réaffirmer l'autorité de la règle commune pour préserver la sécurité de tous.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, la société abdique sa mission civilisatrice dès lors qu'elle utilise le meurtre légal comme instrument de dissuasion. Les confessions bouleversantes du <strong>condamné à mort</strong> dans son cachot de <strong>Bicêtre</strong> puis à <strong>la Conciergerie</strong> mettent à nu l'atrocité inhumaine de <strong>la peine de mort</strong> et de <strong>la guillotine</strong> sur <strong>la place de Grève</strong>. Hugo démontre avec une vigueur impérissable que la vengeance institutionnelle ensauvage la foule au lieu de l'édifier, tout en infligeant un supplice indicible à des innocents comme <strong>la petite Marie</strong>. Ainsi, le progrès éthique impose de rejeter la barbarie répressive.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la véritable justice doit substituer la rédemption, l'instruction et la réinsertion à la logique archaïque du talion. Loin de renoncer à punir, une société moderne doit chercher à corriger le coupable tout en protégeant inconditionnellement sa vie et sa dignité. L'humanisation du droit constitue l'horizon indépassable de tout régime civilisé.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, le combat de Victor Hugo nous exhorte à construire une justice guidée par la raison et la miséricorde plutôt que par la haine. La dignité humaine ne se négocie pas et s'impose comme une limite absolue à l'action de l'État. En définitive, n'appartient-il pas à chaque époque d'étendre la lumière de l'humanisme face aux ténèbres de la cruauté ?</p>
+</div>`;
+    }
   };
 
   const runExpertise = async () => {
@@ -1303,41 +1482,126 @@ export default function App() {
       const planAExtracted = extract('PLAN_A');
       const planBExtracted = extract('PLAN_B');
 
-      const buildDefaultPlanA = () => `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme du Baccalauréat, on se rend compte que la réflexion autour de « ${sujet.slice(0, 75)} » constitue un enjeu littéraire, humain et moral fondamental pour chaque conscience en formation. En effet, tandis que certains perçoivent les épreuves et les traditions comme de simples contraintes extérieures, une analyse plus lucide révèle qu'elles forgent au contraire le caractère et affermissent le discernement éthique de l'individu. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par la conscience ou importe-t-il d'affirmer un recul critique face aux illusions du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs structurants de la lucidité personnelle, avant de mettre en lumière dans un second axe les bienfaits d'une émancipation fraternelle et solidaire.</p>
+      const sLow = (sujet || '').toLowerCase();
+      const isB = sLow.includes('boîte') || sLow.includes('boite') || sLow.includes('sefrioui') || sLow.includes('merveilles') || sLow.includes('sidi mohammed');
+      const isA = sLow.includes('antigone') || sLow.includes('anouilh') || sLow.includes('créon') || sLow.includes('creon');
+      const isC = sLow.includes('dernier jour') || sLow.includes('condamné') || sLow.includes('condamne') || sLow.includes('victor hugo');
+
+      const buildDefaultPlanA = () => {
+        if (isB || (!isA && !isC)) {
+          return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que la question posée par « ${sujet.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante pour chaque conscience en formation. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par l'entourage ou importe-t-il d'affirmer un recul critique face aux faux-semblants du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs de la lucidité intérieure, avant de mettre en lumière dans un second axe les bienfaits d'une solidarité authentique.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes moraux partagés permet à l'individu de construire un ancrage intérieur solide et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les solidarités de voisinage et les rituels familiaux partagés par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la misère. De même, dans la tragédie classique de <strong>Jean Anouilh</strong>, le personnage de <strong>Créon</strong> rappelle avec une solennité indéniable que le maintien de l'ordre civique et la paix civile exigent le respect de règles communes sans lesquelles la cité s'effondre dans l'anarchie sanglante. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie sereine en communauté.</p>
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des repères personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, le jeune narrateur <strong>Sidi Mohammed</strong> oppose aux querelles mesquines de <strong>Dar Chouafa</strong> le sanctuaire secret de <strong>sa boîte à merveilles</strong>, où ses menus objets deviennent les symboles purs d'une poésie spirituelle inaccessible aux adultes. De plus, les rites familiaux et les visites réconfortantes au sanctuaire de <strong>Sidi Ali Boughaleb</strong> partagés avec sa mère <strong>Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la solitude. Ainsi, la conscience de ses valeurs intimes consolide les fondations morales indispensables à toute vie sereine.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>En second lieu</strong>, cette fidélité aux valeurs fondamentales ne saurait toutefois se muer en un assujettissement passif ou aveugle qui étoufferait la singularité, l'esprit critique et la quête de justice de l'être pensant. C'est précisément ce que revendique avec une grandeur tragique incomparable <strong>l'héroïne Antigone</strong>, qui préfère affronter la mort plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> dénonce avec une virulence universelle l'inhumanité des châtiments institutionnalisés à travers les angoisses d'un homme claquemuré dans <strong>le cachot de Bicêtre</strong>, démontrant que la véritable équité commande de réformer les lois lorsque celles-ci heurtent frontalement la dignité humaine. Dès lors, le discernement critique et le courage personnel s'affirment comme le moteur vital du progrès humain et de la justice.</p>
+<p><strong>En second lieu</strong>, cette indispensable fidélité à sa vérité intérieure ne saurait toutefois se muer en un assujettissement passif ou en un repli frileux qui étoufferait la générosité et l'esprit de partage. Dans le roman de Fès, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent avec émotion que la dignité au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et le désespoir. Par ailleurs, la sollicitude admirable de la voisine <strong>Rahma</strong> lors de la disparition de Zineb et la communion fraternelle unissant <strong>Lalla Zoubida et Lalla Aïcha</strong> aux côtés du sage <strong>Sidi El Arafi</strong> démontrent que l'épreuve humaine trouve sa rédemption dans la compassion agissante. Dès lors, le discernement critique et la tendresse humaine s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence des devoirs sociaux avec le souffle vivifiant de la conscience individuelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de sa rectitude morale et de sa dignité ?</p>
+<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence de la rectitude personnelle avec le souffle vivifiant de la bienveillance fraternelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de son authenticité morale ?</p>
 </div>`;
-
-      const buildDefaultPlanB = () => `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${sujet.slice(0, 75)} » confronte deux visions complémentaires et indispensables de l'expérience humaine. D'un côté, une perspective pragmatique souligne la nécessité d'une discipline collective et d'un réalisme lucide face aux contingences sévères de l'existence. D'un autre côté, une exigence morale supérieure refuse tout asservissement et place l'intégrité de la conscience au-dessus des facilités matérielles et des compromis mesquins. Dès lors, face à cette féconde polarité, comment concilier le réalisme des devoirs quotidiens et l'idéal inaliénable de liberté ? Il conviendra d'examiner dans une première partie la valeur pragmatique des devoirs collectifs, d'envisager dans une deuxième partie la légitimité du refus éthique, pour enfin dégager dans une synthèse souveraine les conditions d'un équilibre harmonieux.</p>
+        } else if (isA) {
+          return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la tragédie moderne <em>Antigone</em> de Jean Anouilh, on se rend compte que la réflexion engagée autour de « ${sujet.slice(0, 80)} » soulève une interrogation fondamentale sur la liberté et le pouvoir. Dès lors, convient-il d'accepter les compromis dictés par l'ordre établi ou importe-t-il d'affirmer un refus catégorique au nom de l'intégrité morale ? Pour répondre avec rigueur à cette question, il s'agira d'analyser dans un premier axe les impératifs de la responsabilité civique, avant d'examiner dans un second axe la grandeur souveraine de la conscience individuelle.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>D'une part</strong>, l'acceptation des nécessités concrètes et le respect scrupuleux des normes sociales constituent le garant fondamental de la cohésion civique et de la sécurité matérielle du groupe. Dans <strong>La Boîte à Merveilles</strong>, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent que la persévérance au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et l'effondrement familial. De même, les arguments d'État défendus par <strong>Créon dans Antigone</strong> soulignent avec réalisme que diriger des hommes impose parfois des décisions austères afin de préserver la paix civile et d'éviter les désastres de la guerre. L'individu ne peut donc s'affranchir unilatéralement des contraintes qui assurent la sauvegarde collective.</p>
+<p><strong>En premier lieu</strong>, le respect des règles institutionnelles constitue la condition indispensable pour maintenir la paix publique et éviter la violence destructrice au sein de la cité. Dans la tragédie de <strong>Jean Anouilh</strong>, le roi <strong>Créon</strong> démontre avec une fermeté inébranlable que gouverner <strong>Thèbes</strong> exige d'assumer des décisions austères pour prévenir l'anarchie qui menacerait le salut de tous les citoyens. De plus, les avertissements mesurés d'<strong>Ismène</strong> rappellent que la prudence et la soumission raisonnée aux lois communes permettent de préserver l'harmonie sociale face aux passions aveugles. Ainsi, la subordination consentie à l'autorité légitime forme un rempart nécessaire pour protéger la vie commune.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>D'autre part</strong>, l'obéissance aux impératifs sociaux trouve sa limite imprescriptible là où commence l'avilissement de la conscience et la négation des droits sacrés de la personne humaine. La voix vibrante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> retentit pour proclamer avec force que nulle société civilisée ne peut s'arroger le droit de tuer froidement un semblable sur <strong>la place de Grève</strong> au nom d'une prétendue exemplarité judiciaire. De même, <strong>Antigone</strong> oppose à la raison d'État la supériorité des lois non écrites du cœur et de l'amour fraternel. L'honneur de l'humanité réside dans cette capacité suprême à dire non à l'injustice institutionnalisée lorsque la morale est bafouée.</p>
+<p><strong>En second lieu</strong>, cette indispensable discipline collective ne saurait justifier l'écrasement des principes éthiques les plus sacrés de l'être humain. C'est précisément l'héroïsme immortel de <strong>l'héroïne Antigone</strong>, qui préfère affronter la mort plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, la douleur d'<strong>Hémon</strong> et les condamnations du Chœur mettent en évidence qu'un pouvoir sourd à la miséricorde conduit inéluctablement à l'anéantissement de l'homme et au remords éternel. Dès lors, le refus inflexible de l'arbitraire s'affirme comme le garant ultime de la dignité et de la justice.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, l'affrontement thébain rappelle que la véritable grandeur humaine réside dans le refus permanent de la tyrannie et le respect sacré des valeurs éthiques. Loin d'être un caprice immature, la révolte d'Antigone réaffirme que la conscience demeure supérieure à toute loi temporelle injuste. En définitive, ne revient-il pas à chaque génération d'affirmer ce courage de la vérité pour édifier un monde plus humain et équitable ?</p>
+</div>`;
+        } else {
+          return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman à thèse <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on constate que le débat engagé par « ${sujet.slice(0, 80)} » touche aux racines mêmes de la justice et de la dignité. Dès lors, convient-il d'accepter aveuglément les châtiments imposés par la loi ou importe-t-il d'exercer un discernement critique pour humaniser la société ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe les fonctions traditionnelles du système pénal, avant d'analyser dans un second axe l'impératif moral de réformer la justice par la compassion.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'institution des lois pénales vise à dissuader le crime et à protéger les membres de la société contre le désordre et l'injustice. À travers le tableau de la justice institutionnelle évoqué par <strong>Victor Hugo</strong>, la condamnation des coupables apparaît comme une tentative de restaurer l'ordre moral bafoué et de garantir la paix publique. La société cherche ainsi à marquer sa réprobation face aux actes qui menacent la vie et la sécurité de ses concitoyens. Dès lors, l'application de la règle de droit répond à une exigence première de régulation et de sécurité collective.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, la justice humaine devient coupable à son tour lorsqu'elle recourt à des châtiments irréversibles et sanglants qui renient l'humanité du condamné. Claquemuré dans les ténèbres du cachot de <strong>Bicêtre</strong> puis transféré à <strong>la Conciergerie</strong>, <strong>le condamné à mort</strong> éprouve une agonie morale indicible face à l'échafaud dressé sur <strong>la place de Grève</strong>, dénonçant l'hypocrisie de <strong>la peine de mort</strong>. De plus, l'évocation bouleversante de son innocente fillette, <strong>la petite Marie</strong>, démontre avec force que la guillotine punit aveuglément les innocents et dégrade la conscience de la nation entière. Ainsi, l'éthique véritable commande de substituer la réhabilitation et l'éducation à la vengeance sanguinaire de l'État.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, le chef-d'œuvre de Victor Hugo démontre avec éclat que la légitimité d'une société se mesure à sa capacité à promouvoir la compassion et le respect absolu de la vie. Loin de cautionner la barbarie légalisée, le progrès démocratique exige d'élever la justice vers un idéal de rédemption et de fraternité. En définitive, n'est-ce pas ce combat universel pour la dignité humaine qui doit guider toute conscience éclairée ?</p>
+</div>`;
+        }
+      };
+
+      const buildDefaultPlanB = () => {
+        if (isB || (!isA && !isC)) {
+          return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de « ${sujet.slice(0, 80)} » fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ? Il conviendra d'examiner dans un premier temps la valeur protectrice des devoirs partagés, d'envisager dans un deuxième temps la légitimité de l'émancipation personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une harmonie durable.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'acceptation des devoirs familiaux et la fidélité aux coutumes établies constituent le garant fondamental de la cohésion civique et de la sécurité matérielle du foyer. Dans le quotidien de Fès peint avec acuité par <strong>Ahmed Sefrioui</strong>, le courage inébranlable du chef de famille <strong>Maâlem Abdeslam</strong> face à la ruine financière illustre avec grandeur que le sens des responsabilités et le labeur acharné sont les véritables remparts contre la misère. De plus, la piété partagée et les visites réconfortantes de <strong>Lalla Zoubida</strong> auprès des sanctuaires consolident un tissu d'entraide indispensable pour surmonter les vicissitudes de l'existence. Ainsi, la loyauté envers les exigences collectives protège la cellule sociale des périls de la dispersion et du désarroi.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, cette indispensable soumission aux impératifs sociaux trouve sa limite naturelle là où commence l'étouffement de la singularité, de la sensibilité poétique et du libre arbitre. L'itinéraire du jeune <strong>Sidi Mohammed</strong> témoigne avec éclat que l'esprit humain ne saurait s'épanouir dans la seule répétition machinale des habitudes adultes. En s'évadant dans l'univers mystérieux de <strong>sa boîte à merveilles</strong>, l'enfant affirme le droit inaliénable de chaque individu à cultiver son imaginaire secret et son autonomie morale face aux mesquineries de <strong>Dar Chouafa</strong>. De surcroît, les consultations apaisantes du voyant <strong>Sidi El Arafi</strong> démontrent que la recherche sincère de la vérité transcende les formalismes rigides du quotidien. Dès lors, la liberté de conscience et le regard critique s'avèrent indispensables pour éviter l'engourdissement moral.</p>
 </div>
 
 <div class="model-axe3">
-<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse éclairée, où l'ordre extérieur s'ajuste en permanence aux progrès de la sensibilité morale et du respect de la dignité. Il ne s'agit ni de basculer dans une révolte stérile, ni de se résigner à une soumission servile, mais de faire dialoguer le sens des responsabilités avec l'esprit de compassion et d'équité. L'art littéraire enseigne que les grandes avancées civiques naissent toujours de cette tension maîtrisée entre respect de la règle et courage de l'idéal.</p>
+<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse féconde, où la solidarité extérieure s'enrichit en permanence de la lucidité intérieure de l'être. Il ne s'agit ni de basculer dans une révolte stérile contre son milieu d'origine, ni de se résigner à une soumission aveugle, mais de faire dialoguer le respect des valeurs partagées avec la quête d'accomplissement personnel. L'art d'<strong>Ahmed Sefrioui</strong> enseigne que la véritable sagesse naît précisément de cette tension maîtrisée entre enracinement communautaire et liberté de l'esprit.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En somme</strong>, ce débat transcende les circonstances contingentes pour rappeler que la dignité humaine se forge dans la conciliation souveraine de la lucidité et du cœur. Par-delà les doutes et les déchirements, la fidélité à des valeurs fraternelles ouvre la voie à un avenir plus solidaire, plus équitable et plus juste. Ne revient-il pas dès lors à chaque génération d'accomplir ce perpétuel dépassement éthique au service de l'homme ?</p>
+<p><strong>En somme</strong>, ce parcours réflexif démontre que la dignité humaine se forge dans l'alliance souveraine de la fidélité aux siens et du courage de la lucidité. Par-delà les tiraillements de l'existence, l'harmonie entre exigence intérieure et générosité envers autrui ouvre la voie à un épanouissement authentique et durable. Ne revient-il pas dès lors à chacun d'accomplir ce dépassement harmonieux au service de la vie ?</p>
 </div>`;
+        } else if (isA) {
+          return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par « ${sujet.slice(0, 80)} » oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'exercice de la responsabilité politique impose parfois des décisions sévères pour préserver la paix civile et garantir la survie de la cité. Le personnage de <strong>Créon</strong> dans l'œuvre de <strong>Jean Anouilh</strong> défend avec gravité la nécessité d'un État solide, capable d'endiguer le chaos né des guerres intestines entre <strong>Étéocle et Polynice</strong>. De même, la prudence d'<strong>Ismène</strong> rappelle que la transgression unilatérale de la loi risque de plonger la communauté entière dans le deuil et l'anarchie. Ainsi, la stabilité civique exige un consentement pragmatique aux règles instituées.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'autorité temporelle devient tyrannique lorsqu'elle prétend asservir la liberté morale et fouler aux pieds les devoirs imprescriptibles du cœur. L'affrontement mené par <strong>l'héroïne Antigone</strong> proclame avec force que nulle raison d'État ne saurait effacer l'amour fraternel et l'honneur de la sépulture. En préférant le martyre aux décrets de son oncle, la princesse démontre que la pureté du refus protège l'essence même de l'humanité contre la déchéance des compromis médiocres. Dès lors, le courage de s'insurger contre l'iniquité fonde la noblesse inaltérable de la conscience.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la leçon tragique d'Anouilh réside dans l'impérieuse nécessité d'une politique éclairée qui ne sacrifie jamais l'idéal éthique à la froide mécanique du pouvoir. Le véritable art de gouverner consiste à respecter la liberté spirituelle des citoyens sans abdiquer la fermeté de l'ordre républicain. C'est dans ce dialogue vigilant entre autorité et respect des droits fondamentaux que se préserve l'équilibre démocratique.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, le conflit thébain enseigne que la dignité humaine grandit lorsque la conscience refuse d'abdiquer devant l'arbitraire. Par-delà le drame antique, l'idéal d'intégrité porté par Antigone demeure une balise vivante pour toute jeunesse éprise de liberté et de vérité. En définitive, la mémoire des héros du refus n'est-elle pas le plus sûr rempart contre la barbarie ?</p>
+</div>`;
+        } else {
+          return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on s'aperçoit que la question soulevée par « ${sujet.slice(0, 80)} » confronte deux conceptions antagonistes de la justice et de la morale. D'un côté, la défense de l'ordre légal invoque la nécessité de punir pour prévenir le crime et protéger la collectivité. D'un autre côté, la conscience humaniste dénonce l'injustice d'une violence institutionnalisée qui détruit la vie même qu'elle prétend défendre. Dès lors, comment concilier l'exigence de la sécurité publique et le respect sacré de la dignité humaine ? Il s'agira d'examiner dans un premier temps la portée de la loi pénale, d'analyser dans un deuxième temps l'urgence de l'abolitionnisme moral, pour enfin dégager une synthèse sur la justice de demain.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'existence d'un code pénal et de sanctions formelles découle du besoin légitime de réguler la vie en communauté et d'empêcher les dérives de la vengeance privée. Les représentants de la justice dépeints par <strong>Victor Hugo</strong> agissent initialement pour faire respecter l'ordre public et maintenir la cohésion de l'édifice social face aux transgressions criminelles. Dès lors, la fonction punitive cherche à réaffirmer l'autorité de la règle commune pour préserver la sécurité de tous.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, la société abdique sa mission civilisatrice dès lors qu'elle utilise le meurtre légal comme instrument de dissuasion. Les confessions bouleversantes du <strong>condamné à mort</strong> dans son cachot de <strong>Bicêtre</strong> puis à <strong>la Conciergerie</strong> mettent à nu l'atrocité inhumaine de <strong>la peine de mort</strong> et de <strong>la guillotine</strong> sur <strong>la place de Grève</strong>. Hugo démontre avec une vigueur impérissable que la vengeance institutionnelle ensauvage la foule au lieu de l'édifier, tout en infligeant un supplice indicible à des innocents comme <strong>la petite Marie</strong>. Ainsi, le progrès éthique impose de rejeter la barbarie répressive.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la véritable justice doit substituer la rédemption, l'instruction et la réinsertion à la logique archaïque du talion. Loin de renoncer à punir, une société moderne doit chercher à corriger le coupable tout en protégeant inconditionnellement sa vie et sa dignité. L'humanisation du droit constitue l'horizon indépassable de tout régime civilisé.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, le combat de Victor Hugo nous exhorte à construire une justice guidée par la raison et la miséricorde plutôt que par la haine. La dignité humaine ne se négocie pas et s'impose comme une limite absolue à l'action de l'État. En définitive, n'appartient-il pas à chaque époque d'étendre la lumière de l'humanisme face aux ténèbres de la cruauté ?</p>
+</div>`;
+        }
+      };
 
       planARef.current = (planAExtracted && planAExtracted.trim().length > 150) ? planAExtracted : buildDefaultPlanA();
       planBRef.current = (planBExtracted && planBExtracted.trim().length > 150) ? planBExtracted : buildDefaultPlanB();
@@ -1369,10 +1633,10 @@ export default function App() {
         if (tabSelectors) tabSelectors.style.display = 'flex';
 
         if (!planARef.current) {
-          planARef.current = buildDefaultPlanA();
+          planARef.current = getDefaultPlanA(sujet);
         }
         if (!planBRef.current) {
-          planBRef.current = buildDefaultPlanB();
+          planBRef.current = getDefaultPlanB(sujet);
         }
 
         displayM('A');
@@ -1487,27 +1751,51 @@ export default function App() {
   const renderPasswordChangeModal = () => (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 text-left">
       <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-        <div className="p-5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-amber-400" />
-            <div>
-              <h3 className="font-outfit font-bold text-base leading-tight">Accès réservé à la direction</h3>
-              <span className="text-[11px] text-slate-400 font-medium">
+        <div className="p-4 sm:p-5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <KeyRound className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="min-w-0">
+              <h3 className="font-outfit font-bold text-sm sm:text-base leading-tight truncate">Accès réservé à la direction</h3>
+              <span className="text-[11px] text-slate-400 font-medium block">
                 {passwordChangeStep === 'KEY' ? 'Étape 1 : Habilitation confidentielle' : 'Étape 2 : Nouveau mot de passe'}
               </span>
             </div>
           </div>
-          <button
-            onClick={() => {
-              setShowChangeModal(false);
-              setPasswordChangeStep('KEY');
-              setMasterKeyInput('');
-              setChangeFeedback(null);
-            }}
-            className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer"
-          >
-            ✕
-          </button>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Barre / Badge rouge des utilisateurs en direct (Zone entourée en rouge sur l'image) */}
+            <div
+              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border transition-all shadow-xs ${
+                passwordChangeStep === 'PASSWORDS'
+                  ? 'bg-red-600/30 border-red-500 text-red-100 ring-2 ring-red-500/40 animate-pulse'
+                  : 'bg-red-950/70 border-red-500/70 text-red-200'
+              }`}
+              title="Nombre d'utilisateurs connectés à cette interface instantanément"
+            >
+              <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-80"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-red-500"></span>
+              </span>
+              <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs">
+                <span className="font-black uppercase tracking-wider text-red-300 hidden sm:inline">En direct :</span>
+                <span className="font-outfit font-black text-white">
+                  {activeUsersCount} {activeUsersCount > 1 ? 'utilisateurs' : 'utilisateur'}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setShowChangeModal(false);
+                setPasswordChangeStep('KEY');
+                setMasterKeyInput('');
+                setChangeFeedback(null);
+              }}
+              className="text-slate-400 hover:text-white text-xl leading-none px-2 py-1 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* ÉTAPE 1 : HABILITATION PAR CLÉ SECRÈTE DIRECTION */}
@@ -1752,12 +2040,12 @@ export default function App() {
               {isVerifying ? (
                 <>
                   <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
-                  <span>Vérification & Mémorisation...</span>
+                  <span>Vérification...</span>
                 </>
               ) : (
                 <>
                   <Unlock className="w-4 h-4" />
-                  <span>Valider & Mémoriser sur ce navigateur</span>
+                  <span>Valider l'Accès</span>
                 </>
               )}
             </button>
@@ -2741,16 +3029,6 @@ export default function App() {
             </div>
 
             <form onSubmit={handleVerifyCandidatePassword} className="p-6 space-y-4">
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-start gap-2.5">
-                <span className="text-lg">🛡️</span>
-                <div>
-                  <span className="font-bold block text-sm text-emerald-900">Enregistrement Garanti dans votre Navigateur</span>
-                  <span className="text-[11px] text-emerald-800 leading-relaxed block mt-0.5">
-                    Votre mot de passe est enregistré et mémorisé de façon permanente dans votre navigateur (localStorage). Vos sessions et vos boîtes d'œuvres restent accessibles sans avoir à le ressaisir à chaque fois.
-                  </span>
-                </div>
-              </div>
-
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Mot de passe actuel
