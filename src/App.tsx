@@ -698,18 +698,23 @@ export default function App() {
     raw = raw.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
     const isDialectique = planType === 'DIALECTIQUE';
+    const isAnalytique = planType === 'ANALYTIQUE';
     const bannerTitle = isDialectique
       ? 'PLAN DIALECTIQUE (THÈSE / ANTITHÈSE / SYNTHÈSE)'
-      : (planType === 'ANALYTIQUE' ? 'PLAN ANALYTIQUE (CAUSES & SOLUTIONS)' : 'PLAN THÉMATIQUE (PROGRESSION PAR AXES)');
+      : (isAnalytique ? 'PLAN ANALYTIQUE (CAUSES & SOLUTIONS)' : 'PLAN SIMPLE (PRISE DE POSITION NETTE & POINT DE VUE DÉFENDU)');
 
     // 1. Structure du plan en haut avec jetons de couleur correspondants (Orange, Bleu, Violet, Sarcelle, Vert)
     const planHeaderHtml = `
       <div style="background:#0b1528; border-radius:14px; padding:16px 20px; margin-bottom:22px; border:1px solid #1e293b; box-shadow:0 4px 12px rgba(11,21,40,0.15);">
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px; border-bottom:1px solid #1e293b; padding-bottom:10px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:1.15rem;">🎯</span>
-            <span style="font-weight:900; font-size:0.85rem; color:#ffffff; letter-spacing:0.06em; text-transform:uppercase;">STRUCTURE DU PLAN RETENU :</span>
-            <span style="background:#b45309; color:#fef3c7; font-size:0.75rem; font-weight:800; padding:2px 10px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.04em;">${bannerTitle}</span>
+            <span style="font-size:1.15rem;">${isDialectique ? '🔄' : '🎯'}</span>
+            <span style="font-weight:900; font-size:0.85rem; color:#ffffff; letter-spacing:0.06em; text-transform:uppercase;">
+              ${isDialectique ? 'VARIANTE COMPARATIVE :' : 'STRUCTURE DU PLAN RETENU :'}
+            </span>
+            <span style="background:${isDialectique ? '#475569' : '#b45309'}; color:#fef3c7; font-size:0.75rem; font-weight:800; padding:2px 10px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.04em;">
+              ${bannerTitle}
+            </span>
           </div>
           <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">(Correspondance chromatique directe avec les parties du texte ci-dessous)</span>
         </div>
@@ -719,7 +724,7 @@ export default function App() {
             <span>📌</span> 1. INTRODUCTION (ORANGE)
           </div>
           <div style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(37,99,235,0.25);">
-            <span>⚖️</span> 2. AXE 1 / THÈSE (BLEU)
+            <span>⚖️</span> 2. AXE 1 / ${isDialectique ? 'THÈSE' : 'PREMIER ARGUMENT'} (BLEU)
           </div>
           ${isDialectique ? `
           <div style="background:#9333ea; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(147,51,234,0.25);">
@@ -729,12 +734,17 @@ export default function App() {
             <span>💡</span> 4. SYNTHÈSE CRITIQUE (SARCELLE)
           </div>` : `
           <div style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(13,148,136,0.25);">
-            <span>🔍</span> 3. SECOND AXE D'ANALYSE (SARCELLE)
+            <span>🔍</span> 3. SECOND AXE / SECOND ARGUMENT (SARCELLE)
           </div>`}
           <div style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(5,150,105,0.25);">
             <span>🎯</span> CONCLUSION (VERT ÉMERAUDE)
           </div>
         </div>
+
+        ${isDialectique ? `
+        <div style="font-size:0.73rem; color:#cbd5e1; font-weight:600; line-height:1.45; margin-top:10px; padding-top:8px; border-top:1px dashed #334155;">
+          💡 <strong style="color:#fef08a;">Note méthodologique officielle :</strong> Pour tout sujet demandant un avis ou un point de vue personnel (« Partagez-vous ce point de vue ? », « Pensez-vous que... », « Êtes-vous d'accord ? »), le <strong style="color:#ffffff;">PLAN SIMPLE (Option 1)</strong> est le plan de référence officiel retenu pour défendre votre point de vue sans contradiction. Cette Option 2 est une variante dialectique comparative pour enrichir la réflexion.
+        </div>` : ''}
       </div>
     `;
 
@@ -808,11 +818,12 @@ export default function App() {
     if (introContent) {
       bodyHtml += wrapSection('📌 1. INTRODUCTION (ORANGE)', '#ea580c', '#ea580c', '#fff7ed', introContent);
       if (axe1Content) {
-        bodyHtml += wrapSection('⚖️ 2. PREMIER AXE / THÈSE (BLEU)', '#2563eb', '#2563eb', '#eff6ff', axe1Content);
+        const badgeTitle = isDialectique ? '⚖️ 2. PREMIER AXE / THÈSE (BLEU)' : '⚖️ 2. PREMIER AXE / PREMIER ARGUMENT (BLEU)';
+        bodyHtml += wrapSection(badgeTitle, '#2563eb', '#2563eb', '#eff6ff', axe1Content);
       }
       if (axe2Content) {
         const badgeColor = isDialectique ? '#9333ea' : '#0d9488';
-        const badgeTitle = isDialectique ? '🔄 3. SECOND AXE / ANTITHÈSE (VIOLET)' : '🔍 3. SECOND AXE D\'ANALYSE (SARCELLE)';
+        const badgeTitle = isDialectique ? '🔄 3. SECOND AXE / ANTITHÈSE (VIOLET)' : '🔍 3. SECOND AXE / SECOND ARGUMENT (SARCELLE)';
         const bg = isDialectique ? '#faf5ff' : '#f0fdfa';
         bodyHtml += wrapSection(badgeTitle, badgeColor, badgeColor, bg, axe2Content);
       }
@@ -1256,39 +1267,39 @@ export default function App() {
       const planBExtracted = extract('PLAN_B');
 
       const buildDefaultPlanA = () => `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme, on se rend compte que la réflexion autour de « ${sujet.slice(0, 75)} » constitue un enjeu littéraire, humain et moral fondamental. En effet, tandis que certains perçoivent les épreuves et les traditions comme des contraintes pesantes, d'autres y découvrent un socle structurant indispensable à l'édification de la conscience personnelle. Dès lors, convient-il d'appréhender cette réalité comme un carcan aliénant ou au contraire comme un cheminement formateur vers la maturité ? Pour répondre avec rigueur à cette problématique, il conviendra d'examiner dans un premier axe la valeur émancipatrice de la lucidité intérieure, avant d'analyser dans un second axe les impératifs de la solidarité humaine.</p>
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme du Baccalauréat, on se rend compte que la réflexion autour de « ${sujet.slice(0, 75)} » constitue un enjeu littéraire, humain et moral fondamental pour chaque conscience en formation. En effet, tandis que certains perçoivent les épreuves et les traditions comme de simples contraintes extérieures, une analyse plus lucide révèle qu'elles forgent au contraire le caractère et affermissent le discernement éthique de l'individu. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par la conscience ou importe-t-il d'affirmer un recul critique face aux illusions du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs structurants de la lucidité personnelle, avant de mettre en lumière dans un second axe les bienfaits d'une émancipation fraternelle et solidaire.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'affirmation d'une pensée autonome permet à l'individu de préserver son authenticité face aux pressions extérieures et aux illusions du monde social. C'est précisément ce que révèle l'univers poétique de <strong>Sidi Mohammed dans La Boîte à Merveilles</strong> : face aux querelles de <strong>Dar Chouafa</strong> et aux déceptions du réel, sa boîte magique et son imaginaire constituent un sanctuaire inviolable de liberté spirituelle. De même, dans la tragédie moderne, <strong>l'héroïne Antigone de Jean Anouilh</strong> proclame avec une grandeur sublime son refus des faux compromis, préférant périr plutôt que de salir la pureté de son idéal moral. Ainsi, la fidélité à ses convictions intimes confère à l'être une dignité inaliénable.</p>
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes moraux partagés permet à l'individu de construire un ancrage intérieur solide et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les solidarités de voisinage et les rituels familiaux partagés par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la misère. De même, dans la tragédie classique de <strong>Jean Anouilh</strong>, le personnage de <strong>Créon</strong> rappelle avec une solennité indéniable que le maintien de l'ordre civique et la paix civile exigent le respect de règles communes sans lesquelles la cité s'effondre dans l'anarchie sanglante. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie sereine en communauté.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>En second lieu</strong>, cette quête d'indépendance ne saurait toutefois faire oublier la fragilité inhérente à la condition humaine lorsque les liens collectifs viennent à se rompre. L'œuvre bouleversante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> en administre la preuve la plus saisissante : séquestré dans l'obscurité de <strong>Bicêtre</strong>, le captif mesure combien l'isolement forcé détruit l'esprit et combien le respect de la vie humaine exige une compassion universelle. De plus, l'épreuve de la ruine financière vécue par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> démontre que seule l'entraide fraternelle permet de triompher des vicissitudes du sort. Dès lors, l'autonomie ne trouve son plein sens que dans l'harmonie avec autrui.</p>
+<p><strong>En second lieu</strong>, cette fidélité aux valeurs fondamentales ne saurait toutefois se muer en un assujettissement passif ou aveugle qui étoufferait la singularité, l'esprit critique et la quête de justice de l'être pensant. C'est précisément ce que revendique avec une grandeur tragique incomparable <strong>l'héroïne Antigone</strong>, qui préfère affronter la mort plutôt que de renier sa piété fraternelle envers Polynice et ses idéaux les plus purs. Par ailleurs, <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> dénonce avec une virulence universelle l'inhumanité des châtiments institutionnalisés à travers les angoisses d'un homme claquemuré dans <strong>le cachot de Bicêtre</strong>, démontrant que la véritable équité commande de réformer les lois lorsque celles-ci heurtent frontalement la dignité humaine. Dès lors, le discernement critique et le courage personnel s'affirment comme le moteur vital du progrès humain et de la justice.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En conclusion</strong>, la réflexion menée met en lumière la nécessité d'allier souveraineté morale et bienveillance communautaire. Loin de s'opposer, la force de l'esprit critique et la chaleur des solidarités humaines se fécondent mutuellement pour façonner une personnalité éclairée. En définitive, la véritable sagesse ne réside-t-elle pas dans cet équilibre souverain entre liberté intérieure et générosité envers son prochain ?</p>
+<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence des devoirs sociaux avec le souffle vivifiant de la conscience individuelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de sa rectitude morale et de sa dignité ?</p>
 </div>`;
 
       const buildDefaultPlanB = () => `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${sujet.slice(0, 75)} » confronte deux exigences complémentaires de l'existence. D'une part, une vision pragmatique impose le respect des devoirs établis et la soumission aux nécessités sociales pour garantir la cohésion du groupe. D'autre part, une conscience exigeante revendique le droit inaliénable de questionner l'ordre existant au nom d'un idéal de justice supérieur. Dès lors, comment concilier le réalisme des contraintes partagées et l'aspiration légitime à la liberté morale ? Il conviendra d'analyser dans une première partie le bien-fondé des impératifs collectifs, d'envisager dans une deuxième partie la légitimité du sursaut individuel, afin de dégager dans une troisième partie les voies d'une synthèse équilibrée.</p>
+<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${sujet.slice(0, 75)} » confronte deux visions complémentaires et indispensables de l'expérience humaine. D'un côté, une perspective pragmatique souligne la nécessité d'une discipline collective et d'un réalisme lucide face aux contingences sévères de l'existence. D'un autre côté, une exigence morale supérieure refuse tout asservissement et place l'intégrité de la conscience au-dessus des facilités matérielles et des compromis mesquins. Dès lors, face à cette féconde polarité, comment concilier le réalisme des devoirs quotidiens et l'idéal inaliénable de liberté ? Il conviendra d'examiner dans une première partie la valeur pragmatique des devoirs collectifs, d'envisager dans une deuxième partie la légitimité du refus éthique, pour enfin dégager dans une synthèse souveraine les conditions d'un équilibre harmonieux.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>D'une part</strong>, l'inscription sincère dans la communauté et l'acceptation de ses règles fondent la sécurité et la continuité morale de l'existence. Dans <strong>La Boîte à Merveilles</strong>, le courage discret du tisserand <strong>Maâlem Abdeslam</strong> qui part travailler aux moissons pour subvenir aux besoins des siens prouve que la fidélité au devoir familial surmonte les plus rudes crises. De même, les arguments d'État présentés par <strong>Créon dans Antigone</strong> rappellent avec gravité que la sauvegarde de la cité requiert l'obéissance aux lois communes afin de prémunir les hommes contre l'anarchie. L'intérêt général commande donc une discipline loyale.</p>
+<p><strong>D'une part</strong>, l'acceptation des nécessités concrètes et le respect scrupuleux des normes sociales constituent le garant fondamental de la cohésion civique et de la sécurité matérielle du groupe. Dans <strong>La Boîte à Merveilles</strong>, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent que la persévérance au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et l'effondrement familial. De même, les arguments d'État défendus par <strong>Créon dans Antigone</strong> soulignent avec réalisme que diriger des hommes impose parfois des décisions austères afin de préserver la paix civile et d'éviter les désastres de la guerre. L'individu ne peut donc s'affranchir unilatéralement des contraintes qui assurent la sauvegarde collective.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>D'autre part</strong>, l'obéissance aveugle devient inacceptable lorsqu'elle bafoue les valeurs sacrées de la conscience et de l'équité. La voix passionnée de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> s'élève pour dénoncer l'atrocité de la guillotine dressée sur <strong>la place de Grève</strong>, démontrant qu'aucune institution ne peut s'arroger le droit de massacrer un être humain. Parallèlement, <strong>Antigone</strong> oppose le devoir fraternel et l'amour immortel aux décrets tyranniques, incarnant le refus héroïque de l'injustice. L'honneur humain réside dans cette résistance sacrée de la conscience morale.</p>
+<p><strong>D'autre part</strong>, l'obéissance aux impératifs sociaux trouve sa limite imprescriptible là où commence l'avilissement de la conscience et la négation des droits sacrés de la personne humaine. La voix vibrante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> retentit pour proclamer avec force que nulle société civilisée ne peut s'arroger le droit de tuer froidement un semblable sur <strong>la place de Grève</strong> au nom d'une prétendue exemplarité judiciaire. De même, <strong>Antigone</strong> oppose à la raison d'État la supériorité des lois non écrites du cœur et de l'amour fraternel. L'honneur de l'humanité réside dans cette capacité suprême à dire non à l'injustice institutionnalisée lorsque la morale est bafouée.</p>
 </div>
 
 <div class="model-axe3">
-<p><strong>Dès lors</strong>, la solution féconde réside dans une synthèse souveraine où les règles de la société se perfectionnent au contact des aspirations éthiques. Il s'agit d'édifier un ordre juste qui ne repose pas sur la contrainte aveugle mais sur l'adhésion lucide et le respect absolu de la dignité humaine. C'est à ce point de rencontre entre devoir et liberté que s'épanouit une citoyenneté responsable et généreuse.</p>
+<p><strong>Dès lors</strong>, la conciliation de ces deux exigences réside dans une synthèse éclairée, où l'ordre extérieur s'ajuste en permanence aux progrès de la sensibilité morale et du respect de la dignité. Il ne s'agit ni de basculer dans une révolte stérile, ni de se résigner à une soumission servile, mais de faire dialoguer le sens des responsabilités avec l'esprit de compassion et d'équité. L'art littéraire enseigne que les grandes avancées civiques naissent toujours de cette tension maîtrisée entre respect de la règle et courage de l'idéal.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En somme</strong>, ce débat invite à dépasser les clivages superficiels pour affirmer la suprématie de la lucidité et de l'empathie. Les leçons tirées de nos chefs-d'œuvre littéraires rappellent que la véritable grandeur humaine s'accomplit dans la conciliation courageuse de l'idéal éthique et du respect d'autrui. Ne revient-il pas dès lors à chacun d'œuvrer quotidiennement à cette exigeante concorde ?</p>
+<p><strong>En somme</strong>, ce débat transcende les circonstances contingentes pour rappeler que la dignité humaine se forge dans la conciliation souveraine de la lucidité et du cœur. Par-delà les doutes et les déchirements, la fidélité à des valeurs fraternelles ouvre la voie à un avenir plus solidaire, plus équitable et plus juste. Ne revient-il pas dès lors à chaque génération d'accomplir ce perpétuel dépassement éthique au service de l'homme ?</p>
 </div>`;
 
       planARef.current = (planAExtracted && planAExtracted.trim().length > 150) ? planAExtracted : buildDefaultPlanA();
@@ -1321,42 +1332,10 @@ export default function App() {
         if (tabSelectors) tabSelectors.style.display = 'flex';
 
         if (!planARef.current) {
-          planARef.current = `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui ainsi que des œuvres majeures au programme, on se rend compte que la réflexion autour de « ${sujet.slice(0, 75)} » constitue un enjeu littéraire, humain et moral fondamental. En effet, tandis que certains perçoivent les épreuves et les traditions comme des contraintes pesantes, d'autres y découvrent un socle structurant indispensable à l'édification de la conscience personnelle. Dès lors, convient-il d'appréhender cette réalité comme un carcan aliénant ou au contraire comme un cheminement formateur vers la maturité ? Pour répondre avec rigueur à cette problématique, il conviendra d'examiner dans un premier axe la valeur émancipatrice de la lucidité intérieure, avant d'analyser dans un second axe les impératifs de la solidarité humaine.</p>
-</div>
-
-<div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'affirmation d'une pensée autonome permet à l'individu de préserver son authenticité face aux pressions extérieures et aux illusions du monde social. C'est précisément ce que révèle l'univers poétique de <strong>Sidi Mohammed dans La Boîte à Merveilles</strong> : face aux querelles de Dar Chouafa et aux déceptions du réel, sa boîte magique et son imaginaire constituent un sanctuaire inviolable de liberté spirituelle. De même, dans la tragédie moderne, <strong>l'héroïne Antigone de Jean Anouilh</strong> proclame avec une grandeur sublime son refus des faux compromis, préférant périr plutôt que de salir la pureté de son idéal moral. Ainsi, la fidélité à ses convictions intimes confère à l'être une dignité inaliénable.</p>
-</div>
-
-<div class="model-axe2">
-<p><strong>En second lieu</strong>, cette quête d'indépendance ne saurait toutefois faire oublier la fragilité inhérente à la condition humaine lorsque les liens collectifs viennent à se rompre. L'œuvre bouleversante de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> en administre la preuve la plus saisissante : séquestré dans l'obscurité de <strong>Bicêtre</strong>, le captif mesure combien l'isolement forcé détruit l'esprit et combien le respect de la vie humaine exige une compassion universelle. De plus, l'épreuve de la ruine financière vécue par <strong>Maâlem Abdeslam et Lalla Zoubida</strong> démontre que seule l'entraide fraternelle permet de triompher des vicissitudes du sort. Dès lors, l'autonomie ne trouve son plein sens que dans l'harmonie avec autrui.</p>
-</div>
-
-<div class="model-concl">
-<p><strong>En conclusion</strong>, la réflexion menée met en lumière la nécessité d'allier souveraineté morale et bienveillance communautaire. Loin de s'opposer, la force de l'esprit critique et la chaleur des solidarités humaines se fécondent mutuellement pour façonner une personnalité éclairée. En définitive, la véritable sagesse ne réside-t-elle pas dans cet équilibre souverain entre liberté intérieure et générosité envers son prochain ?</p>
-</div>`;
+          planARef.current = buildDefaultPlanA();
         }
         if (!planBRef.current) {
-          planBRef.current = `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive des œuvres littéraires au programme du Baccalauréat, on se rend compte que le débat suscité par « ${sujet.slice(0, 75)} » confronte deux exigences complémentaires de l'existence. D'une part, une vision pragmatique impose le respect des devoirs établis et la soumission aux nécessités sociales pour garantir la cohésion du groupe. D'autre part, une conscience exigeante revendique le droit inaliénable de questionner l'ordre existant au nom d'un idéal de justice supérieur. Dès lors, comment concilier le réalisme des contraintes partagées et l'aspiration légitime à la liberté morale ? Il conviendra d'analyser dans une première partie le bien-fondé des impératifs collectifs, d'envisager dans une deuxième partie la légitimité du sursaut individuel, afin de dégager dans une troisième partie les voies d'une synthèse équilibrée.</p>
-</div>
-
-<div class="model-axe1">
-<p><strong>D'une part</strong>, l'inscription sincère dans la communauté et l'acceptation de ses règles fondent la sécurité et la continuité morale de l'existence. Dans <strong>La Boîte à Merveilles</strong>, le courage discret du tisserand <strong>Maâlem Abdeslam</strong> qui part travailler aux moissons pour subvenir aux besoins des siens prouve que la fidélité au devoir familial surmonte les plus rudes crises. De même, les arguments d'État présentés par <strong>Créon dans Antigone</strong> rappellent avec gravité que la sauvegarde de la cité requiert l'obéissance aux lois communes afin de prémunir les hommes contre l'anarchie. L'intérêt général commande donc une discipline loyale.</p>
-</div>
-
-<div class="model-axe2">
-<p><strong>D'autre part</strong>, l'obéissance aveugle devient inacceptable lorsqu'elle bafoue les valeurs sacrées de la conscience et de l'équité. La voix passionnée de <strong>Victor Hugo dans Le Dernier Jour d'un Condamné</strong> s'élève pour dénoncer l'atrocité de la guillotine dressée sur <strong>la place de Grève</strong>, démontrant qu'aucune institution ne peut s'arroger le droit de massacrer un être humain. Parallèlement, <strong>Antigone</strong> oppose le devoir fraternel et l'amour immortel aux décrets tyranniques, incarnant le refus héroïque de l'injustice. L'honneur humain réside dans cette résistance sacrée de la conscience morale.</p>
-</div>
-
-<div class="model-axe3">
-<p><strong>Dès lors</strong>, la solution féconde réside dans une synthèse souveraine où les règles de la société se perfectionnent au contact des aspirations éthiques. Il s'agit d'édifier un ordre juste qui ne repose pas sur la contrainte aveugle mais sur l'adhésion lucide et le respect absolu de la dignité humaine. C'est à ce point de rencontre entre devoir et liberté que s'épanouit une citoyenneté responsable et généreuse.</p>
-</div>
-
-<div class="model-concl">
-<p><strong>En somme</strong>, ce débat invite à dépasser les clivages superficiels pour affirmer la suprématie de la lucidité et de l'empathie. Les leçons tirées de nos chefs-d'œuvre littéraires rappellent que la véritable grandeur humaine s'accomplit dans la conciliation courageuse de l'idéal éthique et du respect d'autrui. Ne revient-il pas dès lors à chacun d'œuvrer quotidiennement à cette exigeante concorde ?</p>
-</div>`;
+          planBRef.current = buildDefaultPlanB();
         }
 
         displayM('A');
@@ -2296,7 +2275,7 @@ export default function App() {
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-950 text-xs font-black uppercase tracking-wider shadow-2xs">
                       <span>🎯 Modèle Actif :</span>
                       <span className="text-[#b45309]">
-                        {activePlan === 'A' ? 'Option 1 : Plan Simple (Thématique) • Min. 18 lignes' : 'Option 2 : Plan Dialectique (Thèse / Antithèse) • Min. 18 lignes'}
+                        {activePlan === 'A' ? 'Option 1 : Plan Simple (Point de vue défendu • Min. 18 lignes)' : 'Option 2 : Variante Dialectique (Thèse / Antithèse • Min. 18 lignes)'}
                       </span>
                     </span>
                   </div>
@@ -2309,7 +2288,7 @@ export default function App() {
                       id="ts"
                       className={`tab-trigger px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
-                      Option 1 : Plan Simple (Thématique)
+                      Option 1 : Plan Simple (Recommandé)
                     </button>
                     <button
                       type="button"
@@ -2317,7 +2296,7 @@ export default function App() {
                       id="td"
                       className={`tab-trigger px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
-                      Option 2 : Plan Dialectique (Thèse / Antithèse)
+                      Option 2 : Variante Dialectique
                     </button>
                   </div>
                 </div>
@@ -2547,7 +2526,7 @@ export default function App() {
                               archiveModelPlanTab === 'A' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
                             }`}
                           >
-                            Option 1 : Plan Simple (Min. 18 lignes)
+                            Option 1 : Plan Simple (Recommandé • Min. 18 lignes)
                           </button>
                           <button
                             type="button"
@@ -2556,7 +2535,7 @@ export default function App() {
                               archiveModelPlanTab === 'B' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
                             }`}
                           >
-                            Option 2 : Plan Dialectique (Min. 18 lignes)
+                            Option 2 : Variante Dialectique (Min. 18 lignes)
                           </button>
                         </div>
                       )}
