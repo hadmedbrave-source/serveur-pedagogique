@@ -489,15 +489,48 @@ export default function App() {
 
   const highlightConnectors = (html: string) => {
     const connectors = [
-      'En premier lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+      // Centre Al Akhawayn : Énumération, classement & progression
+      'En premier lieu', 'En second lieu', 'En troisième lieu', 'En deuxième lieu', 'En dernier lieu',
       'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Puis', 'Enfin',
-      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant',
-      'Par conséquent', 'Dès lors', 'En effet', 'De plus', 'Par ailleurs', 'En outre',
-      'De surcroît', 'De surcroit',
-      'En définitive', 'En somme', 'En conclusion', 'Pour conclure', 'Finalement',
-      'D’une part', "D'une part", 'D’autre part', "D'autre part", 'Ainsi',
-      'C\'est pourquoi', 'C’est pourquoi', 'Non seulement', 'Mais encore',
-      'À cet égard', "A cet égard", 'Il en résulte que'
+      'De plus', 'En outre', 'Par ailleurs', 'De surcroît', 'De surcroit',
+      'D’une part', "D'une part", 'D’autre part', "D'autre part",
+      'À ce premier avantage s’ajoute', "A ce premier avantage s'ajoute", "À ce premier argument s'ajoute",
+      'Si l’on ajoute enfin', "Si l'on ajoute enfin", 'Non seulement', 'Mais aussi', 'Mais encore',
+
+      // Entrée en matière & étapes
+      'Depuis un certain temps', 'D’année en année', "D'année en année", 'Il est fortement question de',
+      'On parle beaucoup en ce moment de', 'Il faut d’abord rappeler que', "Il faut d'abord rappeler que",
+      'On commencera d’abord par', "On commencera d'abord par", 'Il faut souligner que', 'Rappelons que',
+      'Il ne faut pas oublier que', 'Il faut insister sur le fait que', 'On notera que',
+      'D’autant plus que', "D'autant plus que", 'Passons à présent à la question de',
+      'Venons-en à présent à la question de',
+
+      // Cause & conséquence
+      'En effet', 'Par conséquent', 'En conséquence', 'C’est pourquoi', "C'est pourquoi",
+      'Dès lors', 'Il en résulte que', 'Ainsi', 'D’où', "D'où", 'Du fait que', 'Étant donné que',
+      'Puisque', 'Sous prétexte que',
+
+      // Concession & opposition
+      'Certes', 'Il est exact que', 'S’il est certain que', "S'il est certain que",
+      'Il n’en reste pas moins vrai que', "Il n'en reste pas moins vrai que",
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre',
+      'Bien loin de',
+
+      // Exemples
+      'Considérons par exemple le cas de', 'Tel est le cas, par exemple, de', 'Prenons le cas de',
+      'Si l’on prend le cas de', "Si l'on prend le cas de", 'L’exemple le plus significatif', "L'exemple le plus significatif",
+
+      // Modalisation & Relief
+      'Il est certain que', 'Il est indéniable que', 'Il va de soi que', 'Sans aucun doute',
+      'De même', 'Notons que', 'Précisons que', 'C’est-à-dire', "C'est-à-dire", 'À cet égard', "A cet égard",
+
+      // Point de vue
+      'Selon moi', 'À mon avis', "A mon avis", 'D’après moi', "D'après moi", 'En ce qui me concerne',
+      'Je pense que', 'Il me semble que',
+
+      // Conclusion & clôture
+      'En somme', 'En définitive', 'En résumé', 'Il résulte de ce qui précède que',
+      'En conclusion', 'Pour conclure', 'Finalement'
     ];
     let res = html;
     for (const c of connectors) {
@@ -571,7 +604,13 @@ export default function App() {
 
   const formatReformulation = (rawMd: string): string => {
     if (!rawMd) return '';
-    let parsed = marked.parse(rawMd) as string;
+    // Nettoyer toute injection intempestive de structure de plan dans la section 5
+    let cleanedMd = rawMd
+      .replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique)[^\n]*/gim, '')
+      .replace(/💡?\s*Note méthodologique officielle\s*:?[^\n]*/gi, '')
+      .trim();
+
+    let parsed = marked.parse(cleanedMd) as string;
     parsed = parsed.replace(/&#39;/g, "'");
 
     // Remplacement et stylisation chromatique stricte des cartes de phrases de l'élève (Section 5.A)
@@ -697,59 +736,57 @@ export default function App() {
     // Conversion préalable des balises Markdown en HTML
     raw = raw.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
+    // Nettoyer rigoureusement tout bandeau sombre, texte d'annonce de structure ou note méthodologique
+    raw = raw.replace(/<div[^>]*style="[^"]*background:\s*#0b1528[^"]*"[\s\S]*?<\/div>\s*<\/div>/gi, '').trim();
+    raw = raw.replace(/<div[^>]*>[\s\S]*?(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique officielle)[\s\S]*?<\/div>/gi, '').trim();
+    raw = raw.replace(/<h[1-6][^>]*>[\s\S]*?(?:STRUCTURE DU PLAN|PLAN DIALECTIQUE|PLAN SIMPLE|PLAN THÉMATIQUE)[\s\S]*?<\/h[1-6]>/gi, '').trim();
+    raw = raw.replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique)[^\n<]*/gim, '').trim();
+    raw = raw.replace(/💡?\s*Note méthodologique officielle\s*:?[\s\S]*?(?=📌|<div|$)/gi, '').trim();
+
     const isDialectique = planType === 'DIALECTIQUE';
-    const isAnalytique = planType === 'ANALYTIQUE';
-    const bannerTitle = isDialectique
-      ? 'PLAN DIALECTIQUE (THÈSE / ANTITHÈSE / SYNTHÈSE)'
-      : (isAnalytique ? 'PLAN ANALYTIQUE (CAUSES & SOLUTIONS)' : 'PLAN SIMPLE (PRISE DE POSITION NETTE & POINT DE VUE DÉFENDU)');
 
-    // 1. Structure du plan en haut avec jetons de couleur correspondants (Orange, Bleu, Violet, Sarcelle, Vert)
-    const planHeaderHtml = `
-      <div style="background:#0b1528; border-radius:14px; padding:16px 20px; margin-bottom:22px; border:1px solid #1e293b; box-shadow:0 4px 12px rgba(11,21,40,0.15);">
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px; border-bottom:1px solid #1e293b; padding-bottom:10px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:1.15rem;">${isDialectique ? '🔄' : '🎯'}</span>
-            <span style="font-weight:900; font-size:0.85rem; color:#ffffff; letter-spacing:0.06em; text-transform:uppercase;">
-              ${isDialectique ? 'VARIANTE COMPARATIVE :' : 'STRUCTURE DU PLAN RETENU :'}
-            </span>
-            <span style="background:${isDialectique ? '#475569' : '#b45309'}; color:#fef3c7; font-size:0.75rem; font-weight:800; padding:2px 10px; border-radius:9999px; text-transform:uppercase; letter-spacing:0.04em;">
-              ${bannerTitle}
-            </span>
-          </div>
-          <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">(Correspondance chromatique directe avec les parties du texte ci-dessous)</span>
-        </div>
-        
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <div style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(234,88,12,0.25);">
-            <span>📌</span> 1. INTRODUCTION (ORANGE)
-          </div>
-          <div style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(37,99,235,0.25);">
-            <span>⚖️</span> 2. AXE 1 / ${isDialectique ? 'THÈSE' : 'PREMIER ARGUMENT'} (BLEU)
-          </div>
-          ${isDialectique ? `
-          <div style="background:#9333ea; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(147,51,234,0.25);">
-            <span>🔄</span> 3. AXE 2 / ANTITHÈSE (VIOLET)
-          </div>
-          <div style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(13,148,136,0.25);">
-            <span>💡</span> 4. SYNTHÈSE CRITIQUE (SARCELLE)
-          </div>` : `
-          <div style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(13,148,136,0.25);">
-            <span>🔍</span> 3. SECOND AXE / SECOND ARGUMENT (SARCELLE)
-          </div>`}
-          <div style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:5px 12px; border-radius:7px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 4px rgba(5,150,105,0.25);">
-            <span>🎯</span> CONCLUSION (VERT ÉMERAUDE)
-          </div>
-        </div>
-
-        ${isDialectique ? `
-        <div style="font-size:0.73rem; color:#cbd5e1; font-weight:600; line-height:1.45; margin-top:10px; padding-top:8px; border-top:1px dashed #334155;">
-          💡 <strong style="color:#fef08a;">Note méthodologique officielle :</strong> Pour tout sujet demandant un avis ou un point de vue personnel (« Partagez-vous ce point de vue ? », « Pensez-vous que... », « Êtes-vous d'accord ? »), le <strong style="color:#ffffff;">PLAN SIMPLE (Option 1)</strong> est le plan de référence officiel retenu pour défendre votre point de vue sans contradiction. Cette Option 2 est une variante dialectique comparative pour enrichir la réflexion.
-        </div>` : ''}
+    // Mise en page simple avec uniquement les jetons épurés demandés par l'utilisateur
+    const planHeaderHtml = isDialectique ? `
+      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid #e2e8f0; font-family:system-ui, sans-serif;">
+        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          1. INTRODUCTION (ORANGE)
+        </span>
+        <span style="color:#64748b; font-size:0.9rem;">⚖️</span>
+        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          2. AXE 1 / THÈSE (BLEU)
+        </span>
+        <span style="color:#64748b; font-size:0.9rem;">🔄</span>
+        <span style="background:#9333ea; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          3. AXE 2 / ANTITHÈSE (VIOLET)
+        </span>
+        <span style="color:#64748b; font-size:0.9rem;">💡</span>
+        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          4. SYNTHÈSE CRITIQUE (SARCELLE)
+        </span>
+        <span style="color:#64748b; font-size:0.9rem;">🎯</span>
+        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          CONCLUSION (VERT ÉMERAUDE)
+        </span>
+      </div>
+    ` : `
+      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid #e2e8f0; font-family:system-ui, sans-serif;">
+        <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          1. INTRODUCTION (ORANGE)
+        </span>
+        <span style="color:#64748b; font-size:0.9rem;">⚖️</span>
+        <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          2. PREMIER AXE / PREMIER ARGUMENT (BLEU)
+        </span>
+        <span style="color:#64748b; font-size:0.9rem;">💡</span>
+        <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          3. SECOND AXE / SECOND ARGUMENT (SARCELLE)
+        </span>
+        <span style="color:#64748b; font-size:0.9rem;">🎯</span>
+        <span style="background:#059669; color:#ffffff; font-weight:800; font-size:0.75rem; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+          CONCLUSION (VERT ÉMERAUDE)
+        </span>
       </div>
     `;
-
-    // Retirer d'anciens bandeaux si réinjectés
-    raw = raw.replace(/<div style="background:#0b1528;[\s\S]*?<\/div>\s*<\/div>/gi, '').trim();
 
     // Découpage et identification des parties
     let introMatch = raw.match(/<div class="model-intro">([\s\S]*?)<\/div>/i);
@@ -816,22 +853,22 @@ export default function App() {
 
     let bodyHtml = '';
     if (introContent) {
-      bodyHtml += wrapSection('📌 1. INTRODUCTION (ORANGE)', '#ea580c', '#ea580c', '#fff7ed', introContent);
+      bodyHtml += wrapSection('1. INTRODUCTION (ORANGE)', '#ea580c', '#ea580c', '#fff7ed', introContent);
       if (axe1Content) {
-        const badgeTitle = isDialectique ? '⚖️ 2. PREMIER AXE / THÈSE (BLEU)' : '⚖️ 2. PREMIER AXE / PREMIER ARGUMENT (BLEU)';
+        const badgeTitle = isDialectique ? '2. AXE 1 / THÈSE (BLEU)' : '2. PREMIER AXE / PREMIER ARGUMENT (BLEU)';
         bodyHtml += wrapSection(badgeTitle, '#2563eb', '#2563eb', '#eff6ff', axe1Content);
       }
       if (axe2Content) {
         const badgeColor = isDialectique ? '#9333ea' : '#0d9488';
-        const badgeTitle = isDialectique ? '🔄 3. SECOND AXE / ANTITHÈSE (VIOLET)' : '🔍 3. SECOND AXE / SECOND ARGUMENT (SARCELLE)';
+        const badgeTitle = isDialectique ? '3. AXE 2 / ANTITHÈSE (VIOLET)' : '3. SECOND AXE / SECOND ARGUMENT (SARCELLE)';
         const bg = isDialectique ? '#faf5ff' : '#f0fdfa';
         bodyHtml += wrapSection(badgeTitle, badgeColor, badgeColor, bg, axe2Content);
       }
       if (axe3Content) {
-        bodyHtml += wrapSection('💡 4. TROISIÈME AXE / SYNTHÈSE (SARCELLE)', '#0d9488', '#0d9488', '#f0fdfa', axe3Content);
+        bodyHtml += wrapSection('4. SYNTHÈSE CRITIQUE (SARCELLE)', '#0d9488', '#0d9488', '#f0fdfa', axe3Content);
       }
       if (conclContent) {
-        bodyHtml += wrapSection('🎯 5. CONCLUSION (VERT ÉMERAUDE)', '#059669', '#059669', '#ecfdf5', conclContent);
+        bodyHtml += wrapSection('CONCLUSION (VERT ÉMERAUDE)', '#059669', '#059669', '#ecfdf5', conclContent);
       }
     } else {
       bodyHtml = raw;
@@ -1707,11 +1744,6 @@ export default function App() {
               </div>
             )}
 
-            <div className="flex items-center gap-2 text-[11px] text-amber-300/90 bg-amber-950/40 p-2.5 rounded-xl border border-amber-900/60">
-              <span className="text-sm">💾</span>
-              <span>Enregistrement direct et garanti dans ce navigateur : vous n'aurez plus besoin de le ressaisir à chaque visite.</span>
-            </div>
-
             <button
               type="submit"
               disabled={isVerifying}
@@ -2267,42 +2299,30 @@ export default function App() {
 
               {/* 6. Modèle de Référence Certifié (Norme Al Akhawayn) */}
               <div className="mb-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
-                      <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèles Rédigés d'Excellence (Norme Al Akhawayn • Min. 18 lignes)
-                    </h3>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-950 text-xs font-black uppercase tracking-wider shadow-2xs">
-                      <span>🎯 Modèle Actif :</span>
-                      <span className="text-[#b45309]">
-                        {activePlan === 'A' ? 'Option 1 : Plan Simple (Point de vue défendu • Min. 18 lignes)' : 'Option 2 : Variante Dialectique (Thèse / Antithèse • Min. 18 lignes)'}
-                      </span>
-                    </span>
-                  </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèles Rédigés d'Excellence (Norme Al Akhawayn • Min. 18 lignes)
+                  </h3>
                   
-                  {/* Sélecteur de plan simple vs dialectique TOUJOURS PRÉSENT et accessible */}
-                  <div id="tabSelectors" className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
+                  {/* Sélecteur de plan simple vs dialectique */}
+                  <div id="tabSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => displayM('A')}
                       id="ts"
-                      className={`tab-trigger px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
-                      Option 1 : Plan Simple (Recommandé)
+                      Option 1 : Plan Simple
                     </button>
                     <button
                       type="button"
                       onClick={() => displayM('B')}
                       id="td"
-                      className={`tab-trigger px-3.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
                     >
                       Option 2 : Variante Dialectique
                     </button>
                   </div>
-                </div>
-
-                <div className="mb-3 text-[11px] font-semibold text-slate-500">
-                  <span>Modèles de référence certifiés conformes au Cadre de Référence officiel. Les deux options (Plan Simple et Plan Dialectique) comportent au minimum 18 lignes de texte rédigé avec des liens logiques puissants (en bleu), des exemples précis en gras tirés des œuvres au programme (en vert émeraude) et un langage fort sans registre soutenu artificiel.</span>
                 </div>
 
                 <div id="outModel" className="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-sm sm:text-base leading-relaxed space-y-4"></div>
@@ -2526,7 +2546,7 @@ export default function App() {
                               archiveModelPlanTab === 'A' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
                             }`}
                           >
-                            Option 1 : Plan Simple (Recommandé • Min. 18 lignes)
+                            Option 1 : Plan Simple
                           </button>
                           <button
                             type="button"
@@ -2535,7 +2555,7 @@ export default function App() {
                               archiveModelPlanTab === 'B' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
                             }`}
                           >
-                            Option 2 : Variante Dialectique (Min. 18 lignes)
+                            Option 2 : Variante Dialectique
                           </button>
                         </div>
                       )}
