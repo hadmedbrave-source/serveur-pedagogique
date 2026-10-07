@@ -486,10 +486,11 @@ STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
 ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
 - Le candidat a rédigé une copie structurée en paragraphes distincts : tu DOIS OBLIGATOIREMENT reproduire fidèlement cette même structure.
 - Encadre CHAQUE paragraphe du candidat dans sa propre balise <p>...</p>.
-- RÈGLE CRUCIALE SUR LE DÉBUT DU DÉVELOPPEMENT : Si l'élève utilise une formule de prise de position ou de point de vue (« Personnellement... », « Pour ma part... », « À mon avis... »), ELLE DOIT OBLIGATOIREMENT COMMENCER UN NOUVEAU PARAGRAPHE DISTINCT (<p><strong>Personnellement</strong>...</p>) AU DÉBUT DU DÉVELOPPEMENT avec son propre alinéa, et ne JAMAIS être rattachée ou fusionnée à la fin de l'introduction !
+- RÈGLE CRUCIALE SUR LE DÉBUT DU DÉVELOPPEMENT : Si l'élève utilise une formule d'amorce ou de prise de position (« En premier lieu... », « D'abord... », « Personnellement... », « Pour ma part... », « À mon avis... »), ELLE DOIT OBLIGATOIREMENT COMMENCER UN NOUVEAU PARAGRAPHE DISTINCT AVEC SAUT DE LIGNE ET ALINÉA (<p><strong>En premier lieu</strong>...</p> ou <p><strong>Personnellement</strong>...</p>) AU DÉBUT DU DÉVELOPPEMENT, et ne JAMAIS être rattachée ou fusionnée à la fin de l'introduction !
 - INTERDICTION FORMELLE de compacter ou fusionner les paragraphes en un seul bloc continu !
+- RÈGLE CAPITAL SUR LES ERREURS : NE JAMAIS SURLIGNER EN ROUGE DES MOTS CORRECTS ! Seules les vraies erreurs réelles et objectives sont balisées en rouge : <span class="err-highlight">erreur [correction]</span>. Les mots normaux, corrects et bien écrits de la langue française doivent STRICTEMENT RESTER EN TEXTE NORMAL, sans aucune balise rouge !
 - Sur cette transcription intégrale, applique EXCLUSIVEMENT ET UNIQUEMENT ces deux balisages :
-  1. Les erreurs en rouge vif : <span class="err-highlight">erreur [correction]</span>
+  1. Les vraies erreurs objectives en rouge vif : <span class="err-highlight">erreur [correction]</span> (si le mot est correct, pas de rouge !).
   2. TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !)
 INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou toute autre mention intrusive.)
 
@@ -565,17 +566,24 @@ Le texte optimisé DOIT OBLIGATOIREMENT être structuré en paragraphes distinct
    - Présentation sobre du sujet et formulation directe de la problématique et des axes.
    - INTERDICTION STRICTE ET ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION !
    - AUCUNE EXPLICATION D'ARGUMENT DANS L'INTRODUCTION : l'introduction se contente de poser le sujet et la problématique ; toute explication et argumentation se font exclusivement dans le développement !
+   - L'introduction se clôture obligatoirement par un point, suivi d'un VÉRITABLE SAUT DE PARAGRAPHE pour ouvrir le développement !
+
 2. PARAGRAPHES DU DÉVELOPPEMENT (au moins 2 à 3 grands paragraphes, 12 à 15 lignes) :
+   - LE PREMIER PARAGRAPHE DU DÉVELOPPEMENT DOIT OBLIGATOIREMENT COMMENCER SUR UN NOUVEAU PARAGRAPHE DISTINCT AVEC SAUT DE LIGNE ET ALINÉA :
+     * Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**. (Il est formellement interdit de le coller à la fin de l'introduction !)
+   - RÈGLE ESSENTIELLE SUR LES CONNECTEURS DU PARAGRAPHE DES CONSÉQUENCES (PLAN ANALYTIQUE / CAUSES-CONSÉQUENCES) :
+     * ⚠️ **INTERDICTION FORMELLE ET STRICTE D'UTILISER « Cependant » (ou « Toutefois », « Néanmoins ») POUR COMMENCER LE PARAGRAPHE DES CONSÉQUENCES !**
+       « Cependant » est un connecteur d'opposition/concession, et non de conséquence !
+     * Pour introduire le paragraphe des conséquences, tu DOIS OBLIGATOIREMENT utiliser des connecteurs de conséquence certifiés selon le Cadre Officiel / PDF des Connecteurs :
+       **Par conséquent**, **En conséquence**, **De ce fait**, **Dès lors, les conséquences de ce choix...**, ou **Il en résulte que...** !
    - CHAQUE paragraphe du développement DOIT COMMENCER PAR UN LIEN LOGIQUE PUISSANT EN GRAS :
-     * Premier paragraphe de développement : Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**.
-     * Second paragraphe de développement : Commence obligatoirement par **En second lieu**, **Ensuite**, ou **Par ailleurs**.
-     * Éventuel troisième paragraphe : Commence obligatoirement par **En outre** ou **De plus**.
-   - EXCLUSIVITÉ STRICTE DE L'ŒUVRE MENTIONNÉE DANS LE SUJET :
-     * Si le sujet mentionne expressément une œuvre (ex: La Boîte à Merveilles d'Ahmed Sefrioui), TOUS les arguments et TOUS les exemples doivent être tirés STRICTEMENT ET EXCLUSIVEMENT de cette œuvre mentionnée (La Boîte à Merveilles : Sidi Mohammed, Maâlem Abdeslam, Lalla Zoubida, la boîte aux merveilles, Dar Chouafa, etc.) !
-     * IL EST STRICTEMENT INTERDIT de mentionner Antigone ou Le Dernier Jour d'un Condamné si le sujet porte sur La Boîte à Merveilles !
-     * De même, si le sujet porte sur Antigone, se concentrer EXCLUSIVEMENT sur Antigone.
-     * Si le sujet porte sur Le Dernier Jour d'un Condamné, se concentrer EXCLUSIVEMENT sur Le Dernier Jour d'un Condamné.
-   - Les exemples précis tirés de l'œuvre doivent être EN GRAS : **exemple tiré de l'œuvre**.
+     * Premier axe (Causes ou 1er argument) : Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**.
+     * Second axe (Conséquences ou 2d argument) : Si conséquences, commence obligatoirement par **Par conséquent**, **En conséquence**, ou **De ce fait**. Si second argument convergent, commence par **En second lieu**, **Ensuite**, ou **Par ailleurs**.
+     * Éventuel troisième axe : Commence obligatoirement par **En outre** ou **De plus**.
+   - ANCRAGE DANS LE SUJET :
+     * Si le sujet mentionne expressément une œuvre (ex: La Boîte à Merveilles d'Ahmed Sefrioui), TOUS les arguments et TOUS les exemples doivent être tirés STRICTEMENT ET EXCLUSIVEMENT de cette œuvre mentionnée !
+     * Si le sujet est un sujet de société général (ex: recours aux guérisseurs / tradipraticiens, travail des enfants, etc.), développer des arguments et faits concrets de société avec rigueur et précision.
+   - Les exemples précis doivent être EN GRAS : **exemple précis**.
 3. DERNIER PARAGRAPHE - CONCLUSION (3 à 4 lignes rédigées) :
    - Commence obligatoirement par un connecteur logique de conclusion en gras : **En conclusion**, **En définitive**, ou **En somme**.
    - Bilan synthétique des arguments et ouverture de la réflexion.
@@ -896,6 +904,17 @@ ${(() => {
   const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
   const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon') || tLow.includes('ismène');
   const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo') || tLow.includes('bicêtre');
+  const isGuerisseur = tLow.includes('guérisseur') || tLow.includes('guerisseur') || tLow.includes('charlatan') || tLow.includes('tradipraticien') || (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence')));
+
+  if (isGuerisseur) {
+    return `> **Dans de nombreuses sociétés traditionnelles comme au Maroc**, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population en quête de soulagement. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, et quelles en sont les répercussions alarmantes sur la santé publique ? Pour aborder avec méthode et rigueur cette problématique, il conviendra d'examiner dans un premier axe les causes majeures de ce phénomène, avant de mettre en lumière dans un second axe les conséquences redoutables qu'il engendre pour la collectivité.
+
+> **En premier lieu**, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de figures traditionnelles qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de ce choix archaïque.
+
+> **Par conséquent**, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes empiriques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.
+
+> **En conclusion**, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Pour enrayer ce fléau destructeur, il apparaît urgent de démocratiser la couverture médicale, de sanctionner sévèrement les charlatans et de multiplier les campagnes de sensibilisation scientifique. En définitive, le triomphe de la médecine moderne et de la dignité humaine ne passe-t-il pas par l'éradication définitive de l'obscurantisme médical ?`;
+  }
 
   if (isB || (!isA && !isC)) {
     return `> **Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur de l'expérience humaine et de la conscience morale. Dès lors, convient-il d'épouser aveuglément les contraintes de son environnement ou importe-t-il au contraire d'affirmer un regard lucide et une autonomie intérieure ? Pour répondre avec rigueur à cette problématique, il s'agira d'examiner dans un premier temps la nécessité de préserver son authenticité personnelle, avant d'analyser dans un second temps la force irremplaçable de la solidarité familiale et communautaire.
@@ -925,7 +944,7 @@ ${(() => {
 })()}
 
 [[TYPE]]
-${isAnalytic ? 'ANALYTIQUE' : 'OPINION'}
+${isAnalytic || (topic && (topic.toLowerCase().includes('guérisseur') || topic.toLowerCase().includes('guerisseur') || (topic.toLowerCase().includes('cause') && topic.toLowerCase().includes('conséquence')))) ? 'ANALYTIQUE' : 'OPINION'}
 
 [[PLAN_A]]
 ${(() => {
@@ -933,6 +952,26 @@ ${(() => {
   const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
   const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon');
   const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo');
+  const isGuerisseur = tLow.includes('guérisseur') || tLow.includes('guerisseur') || tLow.includes('charlatan') || tLow.includes('tradipraticien') || (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence')));
+
+  if (isGuerisseur) {
+    return `<div class="model-intro">
+<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, et quelles en sont les répercussions alarmantes sur la santé publique ? Pour répondre avec rigueur à cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce phénomène, avant de mettre en évidence dans un second axe les conséquences redoutables qu'il engendre pour la collectivité.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de praticiens traditionnels qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences mystiques ou surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de cette pratique ancestrale.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>Par conséquent</strong>, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes archaïques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Pour enrayer ce fléau destructeur, il apparaît urgent de démocratiser la couverture médicale, de sanctionner sévèrement les charlatans et de multiplier les campagnes de sensibilisation scientifique. En définitive, le triomphe de la médecine moderne et de la dignité humaine ne passe-t-il pas par l'éradication définitive de l'obscurantisme médical ?</p>
+</div>`;
+  }
+
   const isSolitude = tLow.includes('solitude') || tLow.includes('isolement') || tLow.includes('faiblesse') || tLow.includes('épanouissement') || tLow.includes('epanouissement');
 
   if (isSolitude && (isB || (!isA && !isC))) {
