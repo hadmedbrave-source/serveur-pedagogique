@@ -523,20 +523,32 @@ Structure obligatoire de cette section en deux volets indissociables :
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
 (Rédige l'intégralité de la copie du candidat réécrite et optimisée du début à la fin.
+
+STRUCTURE STRICTE DU TEXTE ARGUMENTATIF OPTIMISÉ (OBLIGATION ABSOLUE) :
+Le texte optimisé DOIT OBLIGATOIREMENT être structuré en paragraphes distincts selon les trois temps canoniques du texte argumentatif, et CHAQUE PARAGRAPHE DOIT OBLIGATOIREMENT COMMENCER PAR UN LIEN LOGIQUE PUISSANT :
+1. PARAGRAPHE 1 - INTRODUCTION COMPLETE (au moins 4 à 5 lignes rédigées) :
+   - Commence par un connecteur d'amorce ou d'immersion attentive : « **Quand on plonge dans la lecture attentive...** » ou « **D'emblée** ».
+   - Présentation du sujet, problématique et prise de position claire.
+2. PARAGRAPHES 2 ET 3 (ET 4) - DÉVELOPPEMENT ARGUMENTÉ (au moins 10 à 14 lignes rédigées) :
+   - CHAQUE paragraphe du développement DOIT COMMENCER PAR UN LIEN LOGIQUE PUISSANT EN GRAS :
+     * Premier paragraphe de développement : Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**.
+     * Second paragraphe de développement : Commence obligatoirement par **En second lieu**, **Ensuite**, ou **Par ailleurs**.
+     * Éventuel troisième paragraphe : Commence obligatoirement par **En outre** ou **De plus**.
+   - CHAQUE paragraphe doit développer 1 argument percutant soutenu par au moins UN EXEMPLE PRÉCIS ET CONCRET TIRÉ DE L'ŒUVRE mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné), et cet exemple doit être EN GRAS : **exemple tiré de l'œuvre**.
+3. DERNIER PARAGRAPHE - CONCLUSION (au moins 3 à 4 lignes rédigées) :
+   - Commence obligatoirement par un connecteur logique de conclusion en gras : **En conclusion**, **En définitive**, ou **En somme**.
+   - Bilan synthétique des arguments et ouverture de la réflexion.
+
 RÈGLE D'OR MÉTHODOLOGIQUE POUR LES SUJETS DEMANDANT UN POINT DE VUE :
 - SI LE SUJET DEMANDE UN POINT DE VUE (« Partagez-vous ce point de vue ? », « Donnez votre avis », « Êtes-vous d'accord ? », « Pensez-vous que... ») :
-  CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT ADOPTER LE PLAN SIMPLE (PRISE DE POSITION NETTE ET ARGUMENTS CONVERGENTS). L'élève affirme et défend son point de vue avec clarté, SANS JAMAIS SE CONTREDIRE DANS UN PLAN DIALECTIQUE QUI DÉTRUIRAIT SON POINT DE VUE !
+  CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT ADOPTER LE PLAN SIMPLE (PRISE DE POSITION NETTE ET ARGUMENTS CONVERGENTS DÉFENDANT CE POINT DE VUE). Ne JAMAIS déclarer ou adopter un plan dialectique qui viendrait contredire et anéantir le point de vue personnel de l'élève !
+  INTERDICTION FORMELLE D'ÉCRIRE « STRUCTURE DU PLAN RETENU : PLAN DIALECTIQUE » OU TOUTE FORMULE DU GENRE !
+
 RÈGLE D'OR DE LONGUEUR FORMELLE :
-- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total, soit au moins 280 à 350 mots) ! Un texte court ou condensé est strictement rejeté.
-- EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE :
-  Si une œuvre au programme est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), TU DOIS OBLIGATOIREMENT insérer des exemples précis, concrets et développés tirés de l'œuvre (personnages, scènes, citations, péripéties) et CHAQUE EXEMPLE DOIT ÊTRE MIS EN GRAS : **exemple précis tiré de l'œuvre**.
-- LIENS LOGIQUES PUISSANTS :
-  Structure l'essai avec des connecteurs logiques forts (En premier lieu, En second lieu, D'une part, D'autre part, En effet, Dès lors, Néanmoins, Cependant, Par conséquent, En somme, En définitive...) qui ouvrent et relient chaque paragraphe, et doivent être en gras : <strong>connecteur</strong>.
-- LANGAGE FORT SANS REGISTRE SOUTENU :
-  Une langue forte, persuasive et solide, sans afféterie, sans formules précieuses ou pompeuses.
-- L'Introduction doit former un paragraphe autonome (au moins 4-5 lignes).
-- LE DÉVELOPPEMENT DOIT COMPORTER AU MOINS 2 OU 3 GRANDS PARAGRAPHES TRÈS SUBSTANTIELS (au moins 5 à 6 lignes chacun), chaque paragraphe développant 1 argument fort avec 1 exemple précis de l'œuvre en gras.
-- La Conclusion doit former un paragraphe autonome (au moins 3-4 lignes).)
+- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT DÉPASSER 18 LIGNES DE TEXTE RÉDIGÉ (viser entre 19 et 25 lignes au total, soit 300 à 380 mots) ! Un texte court ou condensé est strictement rejeté.
+
+LANGAGE FORT SANS REGISTRE SOUTENU :
+- Employer un langage fort, solide, rigoureux et percutant, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL (bannir tout style précieux, ampoulé ou désuet ; privilégier un français moderne, clair et persuasif).)
 
 [[TYPE]]
 (Détermine la nature exacte du sujet :
@@ -635,7 +647,12 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
    - Les liens logiques et connecteurs en gras : <strong>lien logique</strong>
    Ne mets AUCUNE balise d'avertissement.
 2. Dans [[BILAN]], [[TABLEAU]] et [[REFORMULATION]], traite EXCLUSIVEMENT ET DIRECTEMENT les phrases réelles, les arguments et les erreurs de la copie ci-dessus.
-   - Dans [[REFORMULATION]] Volet B (Texte Intégral Réécrit - Version Continue) : Rédige le texte optimisé d'AU MOINS 18 LIGNES rédigées, structuré avec des liens logiques puissants en gras, un langage fort sans registre soutenu artificiel, et des exemples en gras tirés de l'œuvre si elle est mentionnée dans le sujet.
+   - Dans [[REFORMULATION]] Volet B (Texte Intégral Réécrit - Version Continue) :
+     * RÈGLE DE PLAN : Si le sujet demande un avis ou point de vue personnel (« Partagez-vous », « Pensez-vous que », etc.), CE TEXTE OPTIMISÉ ADOPTE STRICTEMENT LE PLAN SIMPLE pour défendre ce point de vue de manière univoque sans aucune contradiction. Interdiction formelle d'y mettre un plan dialectique ou d'écrire « PLAN DIALECTIQUE » !
+     * STRUCTURE DU TEXTE ARGUMENTATIF : Diviser en 4 paragraphes distincts (1 introduction, 2 grands paragraphes de développement, 1 conclusion). CHAQUE paragraphe commence OBLIGATOIREMENT par un lien logique puissant (ex: D'abord, En premier lieu, En second lieu, En définitive).
+     * EXEMPLES DE L'ŒUVRE EN GRAS : Insère des exemples précis et développés tirés de l'œuvre en gras (**exemple précis**).
+     * LONGUEUR OBLIGATOIRE : DÉPASSER IMPÉRATIVEMENT 18 LIGNES rédigées (entre 19 et 25 lignes au total).
+     * STYLE : Langage fort, solide et percutant, sans registre soutenu artificiel.
 3. Dans [[PLAN_A]] (Option 1 : Plan Simple) et [[PLAN_B]] (Option 2 : Plan Dialectique) :
    - EXIGENCE DE LONGUEUR FORMELLE : CHACUNE DES DEUX OPTIONS DOIT IMPÉRATIVEMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total). Ne jamais abréger ni laisser vide !
    - EXEMPLES EN GRAS TIRÉS DE L'ŒUVRE : Si une œuvre est mentionnée dans le sujet (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné, ou thème d'une œuvre), insère OBLIGATOIREMENT des exemples précis tirés de l'œuvre en gras (**exemple précis**).
