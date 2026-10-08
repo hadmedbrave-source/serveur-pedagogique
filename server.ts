@@ -467,13 +467,20 @@ RÈGLES D'OR ABSOLUES :
 - L'analyse doit être d'une rigueur didactique chirurgicale, adaptée aux exigences du Baccalauréat marocain (œuvres au programme : La Boîte à Merveilles d'Ahmed Sefrioui, Antigone de Jean Anouilh, Le Dernier Jour d'un Condamné de Victor Hugo).
 - EXIGENCE DE COHÉRENCE ABSOLUE POUR LES INTRODUCTIONS & MODÈLES :
   L'introduction doit rigoureusement respecter la progression logique en entonnoir sans rupture conceptuelle :
-  1. Amorce littéraire attentive : Débuter par une formule d'immersion littéraire soignée, par exemple :
-     * « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que la solitude occupe une place centrale dans l'univers du jeune narrateur... »
-     * « Quand on plonge dans la lecture attentive de la tragédie moderne de Jean Anouilh, on se rend compte que le devoir moral et le refus du compromis s'imposent comme le moteur du destin tragique... »
-     * « Quand on plonge dans la lecture attentive du roman à thèse de Victor Hugo, on se rend compte que l'angoisse de l'échafaud et la dénonciation de la peine de mort constituent le cœur du plaidoyer... »
-  2. Transition logique & Tension du sujet : Ne JAMAIS sauter à une conclusion dogmatique prématurée ou à un jargon abstrait artificiel (proscrire absolument les formules creuses ou pseudo-mystiques comme « laboratoire mystique » ou « sanctifier la liberté »). Poser la contradiction ou le paradoxe propre au sujet (ex. : la solitude comme souffrance de l'isolement face au monde vs refuge fécond pour l'imaginaire enfantin).
-  3. Problématique claire et limpide : Formuler une question centrale accessible et directrice.
-  4. Annonce explicite et équilibrée du plan : Annoncer les deux ou trois axes de manière fluide et symétrique (ex. : « Dès lors, il s'agira d'analyser dans un premier temps... avant de démontrer dans un second temps que... »).
+  1. DÉTECTION DU THÈME PRINCIPAL DU SUJET (OBLIGATION FORMELLE) :
+     Tu DOIS IMPÉRATIVEMENT détecter et formuler avec clarté le THÈME PRINCIPAL DU SUJET (exemples : « la question de l'autorité parentale et de l'autonomie des jeunes enfants », « la réflexion engagée autour de la solitude et de l'épanouissement personnel », « le recours aux guérisseurs et aux tradipraticiens », etc.).
+     ⚠️ INTERDICTION STRICTE ET ABSOLUE D'INJECTER UNE CITATION BRUTE OU TRONQUÉE DU SUJET dans l'amorce (comme « la question posée par « « Il est temps que les parents arrêtent... en » »). L'amorce DOIT FORMULER LE VÉRITABLE THÈME DU SUJET !
+  2. CHOIX DU TYPE D'AMORCE :
+     * SI LE SUJET SE RATTACHE À UNE ŒUVRE AU PROGRAMME (La Boîte à Merveilles pour les rapports parents-enfants / la famille / la solitude ; Antigone pour la liberté / le devoir / la révolte des jeunes ; Le Dernier Jour d'un Condamné pour la justice / la peine de mort) :
+       Débuter obligatoirement par la formule d'immersion littéraire soignée :
+       - « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que [THÈME DU SUJET FORMULÉ AVEC PRÉCISION] constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation... »
+       - « Quand on plonge dans la lecture attentive de la pièce Antigone de Jean Anouilh, on constate que [THÈME DU SUJET] oppose deux visions inconciliables de l'existence... »
+       - « Quand on plonge dans la lecture attentive du chef-d'œuvre Le Dernier Jour d'un Condamné de Victor Hugo, on constate que [THÈME DU SUJET] confronte deux conceptions antagonistes de la justice... »
+     * ⚠️ RÈGLE D'OR FORMELLE : SI LE SUJET EST UN PHÉNOMÈNE DE SOCIÉTÉ GÉNÉRAL OU UN PLAN ANALYTIQUE (CAUSES, CONSÉQUENCES, SOLUTIONS) SANS RAPPORT AVEC UNE ŒUVRE AU PROGRAMME (ex: le recours aux guérisseurs, les nouvelles technologies, l'environnement) :
+       IL EST FORMELLEMENT ET STRICTEMENT INTERDIT DE COMMENCER PAR « Quand on plonge dans la lecture attentive... » !
+       Tu DOIS OBLIGATOIREMENT débuter par une amorce sociétale ou philosophique adaptée (ex. : « Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter... » ou « Dans nos sociétés contemporaines, la question de [thème] suscite de vives réflexions... »).
+  3. Transition logique & Problématique : Poser la contradiction propre au sujet sans jargon pseudo-mystique.
+  4. Annonce explicite et équilibrée du plan : Annoncer les deux ou trois axes de manière fluide et symétrique (ex. : « Dès lors, il s'agira d'analyser dans un premier axe... avant de démontrer dans un second axe que... »).
   Dans tes diagnostics de l'introduction ([[BILAN]]) et dans tes modèles rédigés ([[PLAN_A]] et [[PLAN_B]]), applique scrupuleusement cette progression sans aucune faille de cohérence.
 
 STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
@@ -713,6 +720,8 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
      * Produis une REFORMULATION PUISSANTE ET NATURELLE (niveau 1ère Bac) avec des liens logiques solides, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL.
    - Dans [[REFORMULATION]] Volet B (Texte Intégral Réécrit - Version Continue) :
      * RÈGLE DE PLAN : Si le sujet demande un avis ou point de vue personnel (« Partagez-vous », « Pensez-vous que », etc.), CE TEXTE OPTIMISÉ ADOPTE STRICTEMENT LE PLAN SIMPLE pour défendre ce point de vue de manière univoque sans aucune contradiction. Interdiction formelle d'y mettre un plan dialectique ou d'écrire « PLAN DIALECTIQUE » !
+     * DÉTECTION DU THÈME PRINCIPAL DU SUJET (OBLIGATION FORMELLE) : Détecter et formuler avec précision le véritable thème (ex: « la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants », « le recours aux guérisseurs », etc.). ⚠️ INTERDICTION STRICTE D'INJECTER UNE CITATION BRUTE OU TRONQUÉE DU SUJET dans l'amorce (comme « la question posée par « « Il est temps que les parents arrêtent... en » ») !
+     * AMORCE SOIGNÉE : Si le sujet se rattache à une œuvre (ex: La Boîte à Merveilles), débuter obligatoirement par « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que [THÈME DU SUJET DÉTECTÉ ET FORMULÉ AVEC PRÉCISION] constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation... ». Si le sujet est un phénomène de société général sans rapport avec une œuvre au programme (ex: guérisseurs), IL EST STRICTEMENT INTERDIT DE COMMENCER PAR « Quand on plonge... » ! Débuter par une amorce sociétale adaptée.
      * INTRODUCTION CONCISE SANS « En effet » (3 à 4 lignes max) : Poser le sujet, la problématique et les axes. INTERDICTION FORMELLE D'UTILISER « En effet » DANS L'INTRODUCTION ! L'explication se fait exclusivement au développement.
      * STRUCTURE DU TEXTE ARGUMENTATIF : Diviser en 4 paragraphes distincts (1 intro, 2 grands paragraphes de développement, 1 conclusion). CHAQUE paragraphe commence OBLIGATOIREMENT par un lien logique puissant en gras (ex: **En premier lieu**, **En second lieu**, **En définitive**).
      * ANCRAGE EXCLUSIF DANS L'ŒUVRE DU SUJET : Si le sujet mentionne La Boîte à Merveilles, TOUS les exemples sont tirés STRICTEMENT de La Boîte à Merveilles en gras (**exemple précis**). Interdiction formelle de citer Antigone ou Le Dernier Jour d'un Condamné !
@@ -785,6 +794,98 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
     return res.json({ result: fallback });
   }
 });
+
+function detectSubjectAnalysis(topic: string) {
+  const tLow = (topic || '').toLowerCase();
+  
+  const isParentsKids = tLow.includes('parent') || 
+    tLow.includes('décider à la place') || 
+    tLow.includes('decider a la place') || 
+    tLow.includes('rapport parents') || 
+    tLow.includes('autorité parentale') || 
+    tLow.includes('autorite parentale') ||
+    (tLow.includes('enfant') && (tLow.includes('jeune') || tLow.includes('adulte') || tLow.includes('décid') || tLow.includes('decid')));
+
+  const isGuerisseur = tLow.includes('guérisseur') || 
+    tLow.includes('guerisseur') || 
+    tLow.includes('charlatan') || 
+    tLow.includes('tradipraticien') || 
+    (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence')));
+
+  const isSolitude = tLow.includes('solitude') || 
+    tLow.includes('isolement') || 
+    tLow.includes('faiblesse') || 
+    tLow.includes('épanouissement') || 
+    tLow.includes('epanouissement');
+
+  const isAntigone = tLow.includes('antigone') || 
+    tLow.includes('anouilh') || 
+    tLow.includes('créon') || 
+    tLow.includes('creon') || 
+    tLow.includes('ismène') || 
+    tLow.includes('ismene') ||
+    tLow.includes('hémon') ||
+    tLow.includes('hemon');
+
+  const isCondamne = tLow.includes('dernier jour') || 
+    tLow.includes('condamné') || 
+    tLow.includes('condamne') || 
+    tLow.includes('victor hugo') || 
+    tLow.includes('peine de mort') || 
+    tLow.includes('échafaud') || 
+    tLow.includes('echafaud') || 
+    tLow.includes('guillotine') ||
+    tLow.includes('bicêtre');
+
+  const isBoiteMentioned = tLow.includes('boîte') || 
+    tLow.includes('boite') || 
+    tLow.includes('sefrioui') || 
+    tLow.includes('merveilles') || 
+    tLow.includes('sidi mohammed');
+
+  let work: 'boite' | 'antigone' | 'condamne' | 'general' = 'general';
+  if (isParentsKids || isSolitude || isBoiteMentioned) {
+    work = 'boite';
+  } else if (isAntigone) {
+    work = 'antigone';
+  } else if (isCondamne) {
+    work = 'condamne';
+  } else {
+    work = 'general';
+  }
+
+  let themeTitle = '';
+  if (isParentsKids) {
+    themeTitle = "la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants face aux décisions de leurs parents";
+  } else if (isGuerisseur) {
+    themeTitle = "le recours aux tradipraticiens et aux guérisseurs traditionnels";
+  } else if (isSolitude) {
+    themeTitle = "la réflexion engagée autour de la solitude et de l'épanouissement de l'individu";
+  } else if (isAntigone) {
+    themeTitle = "le conflit tragique entre l'obéissance aux impératifs de la loi et la liberté sacrée de la conscience";
+  } else if (isCondamne) {
+    themeTitle = "la légitimité de la justice répressive et l'exigence morale de l'abolition de la peine de mort";
+  } else {
+    const cleaned = topic
+      .replace(/[«»"“”]/g, '')
+      .replace(/déclare\s+un\s+[a-zA-ZÀ-ÿ]+/gi, '')
+      .replace(/partagez-vous\s+cette\s+idée\s*\??/gi, '')
+      .replace(/dans\s+un\s+texte\s+argumentatif[\s\S]*/gi, '')
+      .replace(/vous\s+présenterez[\s\S]*/gi, '')
+      .trim();
+    themeTitle = cleaned ? `la réflexion suscitée par « ${cleaned.slice(0, 75)} »` : "cette question éthique et sociétale";
+  }
+
+  return {
+    isParentsKids,
+    isGuerisseur,
+    isSolitude,
+    isAntigone,
+    isCondamne,
+    work,
+    themeTitle,
+  };
+}
 
 function generateFallbackExpertise(sujetStr: string, texteStr: string, nom?: string, filiere?: string): string {
   const candidate = nom || "Candidat";
@@ -922,13 +1023,9 @@ ${highlightedCopy || `<p>${rawCopy}</p>`}
 
 ### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
 ${(() => {
-  const tLow = (topic || '').toLowerCase();
-  const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
-  const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon') || tLow.includes('ismène');
-  const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo') || tLow.includes('bicêtre');
-  const isGuerisseur = tLow.includes('guérisseur') || tLow.includes('guerisseur') || tLow.includes('charlatan') || tLow.includes('tradipraticien') || (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence')));
+  const analysis = detectSubjectAnalysis(topic || '');
 
-  if (isGuerisseur) {
+  if (analysis.isGuerisseur) {
     return `> **Dans de nombreuses sociétés traditionnelles comme au Maroc**, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population en quête de soulagement. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ? Pour aborder avec méthode et rigueur cette problématique, il conviendra d'examiner dans un premier axe les causes majeures de ce phénomène, de mettre en lumière dans un second axe les conséquences redoutables qu'il engendre pour la collectivité, avant de formuler dans un troisième axe les solutions indispensables pour y remédier durablement.
 
 > **En premier lieu**, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de figures traditionnelles qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de ce choix archaïque.
@@ -940,24 +1037,38 @@ ${(() => {
 > **En conclusion**, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Si les causes demeurent enracinées dans la précarité et les superstitions, les conséquences néfastes appellent un sursaut civique et institutionnel fondé sur l'éducation et la solidarité nationale. En définitive, le triomphe de la médecine scientifique et de la dignité humaine ne constitue-t-il pas le premier devoir d'une société soucieuse de la santé et de l'avenir de ses citoyens ?`;
   }
 
-  if (isB || (!isA && !isC)) {
-    return `> **Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur de l'expérience humaine et de la conscience morale. Dès lors, convient-il d'épouser aveuglément les contraintes de son environnement ou importe-t-il au contraire d'affirmer un regard lucide et une autonomie intérieure ? Pour répondre avec rigueur à cette problématique, il s'agira d'examiner dans un premier temps la nécessité de préserver son authenticité personnelle, avant d'analyser dans un second temps la force irremplaçable de la solidarité familiale et communautaire.
+  if (analysis.isParentsKids) {
+    return `> **Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui**, on se rend compte que la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation. Dès lors, convient-il d'estimer que les parents doivent impérativement décider à la place de leurs enfants pour assurer leur protection, ou importe-t-il au contraire de leur accorder une véritable liberté dans leurs choix personnels ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier temps la légitimité du rôle protecteur et régulateur des parents, avant de mettre en lumière dans un second temps la nécessité d'encourager le libre arbitre et le sens des responsabilités chez les jeunes.
 
-> **En premier lieu**, la préservation de son libre arbitre permet à l'être de résister aux facilités trompeuses de la conformité aveugle et de protéger son authenticité. C'est précisément la leçon émouvante qui se dégage du parcours de **Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui** : confronté à la solitude enfantine et aux querelles mesquines qui agitent **Dar Chouafa**, l'enfant trouve dans son univers intime et **sa boîte à merveilles** un refuge préservé qui sauvegarde la pureté de son regard face aux déceptions du monde adulte. De plus, les visites rituelles au sanctuaire de **Sidi Ali Boughaleb** en compagnie de sa mère **Lalla Zoubida** offrent au jeune narrateur un ancrage réconfortant dans les croyances protectrices de son enfance. Ainsi, la richesse du monde intérieur et l'attachement à ses repères intimes constituent un rempart inaltérable pour surmonter l'adversité et l'incompréhension des adultes.
+> **En premier lieu**, l'intervention directrice des parents s'impose comme une nécessité éducative indispensable pour préserver la sécurité morale et matérielle des jeunes enfants face aux périls d'un monde complexe. En raison de leur manque d'expérience, de leur immaturité affective et de leur incapacité à anticiper les conséquences lointaines de leurs actes, les enfants ont un besoin vital d'une autorité bienveillante qui leur serve de repère. C'est précisément ce que révèle avec tendresse le roman autobiographique **La Boîte à Merveilles d'Ahmed Sefrioui** : les décisions fermes prises par le père **Maâlem Abdeslam** et l'encadrement vigilant de sa mère **Lalla Zoubida** constituent pour le jeune narrateur **Sidi Mohammed** un rempart protecteur inestimable contre les égarements de l'enfance et les déceptions du quotidien de **Dar Chouafa**. Ainsi, décider pour l'enfant ne relève pas de la tyrannie, mais d'un devoir sacré d'amour et de responsabilité parentale.
 
-> **En second lieu**, cette indispensable liberté de penser ne saurait toutefois se transformer en un repli égoïste ou stérile qui ignorerait la douleur d'autrui et la nécessité vitale de l'entraide. Dans le chef-d'œuvre marocain, le sacrifice admirable de **Maâlem Abdeslam**, partant courageusement travailler comme moissonneur dans les champs lointains pour restaurer la sécurité financière de son foyer aux côtés de **Lalla Zoubida**, témoigne de ce que l'amour familial et la responsabilité partagée donnent son véritable sens à la vie en société. Par ailleurs, la compassion manifeste de la voisine **Rahma** lors du drame de la disparition de Zineb, ainsi que la fidélité de l'amitié unissant **Lalla Zoubida et Lalla Aïcha** ou les paroles apaisantes du sage voyant **Sidi El Arafi**, rappellent avec éclat que l'existence ne s'épanouit pleinement que dans la fraternité. Dès lors, l'autonomie personnelle ne s'accomplit véritablement que lorsqu'elle se met au service du soutien mutuel.
+> **En second lieu**, cette autorité protectrice ne saurait toutefois se transformer en une tutelle étouffante qui anéantirait toute initiative personnelle et empêcherait l'épanouissement du jeune esprit. Pour grandir et forger sa propre personnalité, l'enfant doit progressivement expérimenter la liberté de choix, apprendre de ses erreurs et se sentir écouté par ses aînés. Lorsque les adultes imposent systématiquement leur volonté sans dialogue, ils risquent d'engendrer un sentiment d'incompréhension et de repli douloureux. Dans l'œuvre de Sefrioui, c'est précisément dans le sanctuaire secret de **sa boîte à merveilles** que le jeune **Sidi Mohammed** cherche refuge pour échapper au conformisme et au carcan des adultes qui ignorent sa sensibilité poétique. De surcroît, la tragédie d'**Antigone de Jean Anouilh** démontre avec force les ravages de l'autoritarisme aveugle incarné par le roi **Créon**, qui refuse d'entendre la voix de la jeunesse. Dès lors, l'apprentissage de l'autonomie et l'écoute mutuelle s'avèrent indispensables pour bâtir un adulte responsable.
 
-> **En définitive**, ce parcours réflexif démontre avec clarté que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité de cœur. Loin de s'exclure mutuellement, la force de conviction personnelle et l'attention fraternelle envers ses semblables se complètent pour bâtir une vie équilibrée, harmonieuse et profondément digne. En conclusion, ne revient-il pas dès lors à chacun d'entre nous d'assumer ce double devoir d'exigence intérieure et de bienveillance active au quotidien pour grandir avec sagesse ?`;
-  } else if (isA) {
-    return `> **Quand on plonge dans la lecture attentive de la tragédie moderne Antigone de Jean Anouilh**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur de l'expérience humaine et de la conscience morale. Dès lors, convient-il de se soumettre aux compromis pragmatiques imposés par la société ou importe-t-il au contraire de préserver l'intégrité absolue de ses idéaux éthiques ? Pour répondre avec rigueur à cette problématique, il s'agira d'examiner dans un premier temps le devoir d'obéissance aux règles garantissant l'ordre collectif, avant d'analyser dans un second temps la supériorité inaliénable du refus moral face à l'injustice.
+> **En définitive**, le rapport parents/jeunes ne saurait se réduire à un dilemme binaire entre soumission aveugle et émancipation anarchique, mais appelle un équilibre harmonieux fondé sur la confiance réciproque et le dialogue bienveillant. Si l'orientation des parents demeure indispensable durant les premières années de la vie, elle doit s'adoucir progressivement pour faire place à une écoute attentive et à un accompagnement éclairé vers la liberté. En conclusion, le véritable rôle d'un parent n'est-il pas d'offrir à son enfant des racines solides pour grandir, tout en lui donnant des ailes pour conquérir son propre destin ?`;
+  }
+
+  if (analysis.isSolitude) {
+    return `> **Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui**, on constate que la réflexion engagée autour de la solitude et de l'épanouissement de l'individu touche au cœur même de la condition humaine. Dès lors, convient-il d'appréhender l'isolement comme une faiblesse aliénante ou importe-t-il au contraire de le concevoir comme une étape féconde de maturation intérieure et de découverte de soi ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe en quoi la solitude subie peut fragiliser l'être humain, avant de démontrer dans un second axe comment la solitude choisie peut constituer un puissant levier d'épanouissement personnel.
+
+> **En premier lieu**, lorsque la solitude résulte de l'incompréhension de l'entourage ou de l'incapacité à communiquer, elle devient une souffrance douloureuse qui isole l'individu et entrave son épanouissement. C'est précisément le drame éprouvé par **Sidi Mohammed dans La Boîte à Merveilles d'Ahmed Sefrioui** : confronté aux querelles mesquines de **Dar Chouafa** et à la sévérité oppressante du fqih au **Msid**, l'enfant ressent un profond sentiment d'abandon qui assombrit ses journées. De plus, les difficultés matérielles qui frappent le foyer lors de la ruine soudaine de son père **Maâlem Abdeslam** accentuent l'angoisse d'un dénuement où la cellule familiale semble livrée à elle-même face à l'adversité. Ainsi, l'enfermement involontaire et le manque de communication sincère risquent d'enfermer l'être dans un repli anxieux et destructeur.
+
+> **En second lieu**, cette même solitude peut se métamorphoser en une source inestimable de libération intérieure dès lors qu'elle devient le lieu privilégié de la réflexion et de la création imaginaire. Loin de sombrer dans le désespoir, le jeune narrateur marocain trouve dans le secret de **sa boîte à merveilles** un asile enchanté où des objets insignifiants se transforment en fabuleux compagnons d'évasion, sauvegardant la pureté de son regard face au conformisme des adultes. Par ailleurs, la retraite spirituelle partagée avec sa mère **Lalla Zoubida** au sanctuaire de **Sidi Ali Boughaleb** et les paroles apaisantes du sage **Sidi El Arafi** rappellent que le silence intérieur offre un recul salvateur pour discerner l'essentiel. Dès lors, la solitude lucide permet à l'esprit de se réconcilier avec lui-même et de bâtir une authentique autonomie morale.
+
+> **En définitive**, ce parcours réflexif démontre avec éclat que la solitude possède une double nature : destructrice lorsqu'elle est subie comme une exclusion, elle se révèle profondément féconde lorsqu'elle est vécue comme une respiration intérieure et un dialogue fécond avec soi-même. L'épanouissement véritable de l'individu ne consiste donc pas à fuir autrui, mais à cultiver cette précieuse liberté d'esprit qui donne son sens à la vie en société. En conclusion, ne convient-il pas à chacun d'entre nous d'apprivoiser ses moments de solitude pour y puiser la force d'un regard lucide et serein sur le monde ?`;
+  }
+
+  if (analysis.isAntigone) {
+    return `> **Quand on plonge dans la lecture attentive de la tragédie moderne Antigone de Jean Anouilh**, on se rend compte que la réflexion engagée autour de ${analysis.themeTitle} soulève une interrogation fondamentale sur la liberté et le pouvoir. Dès lors, convient-il de se soumettre aux compromis pragmatiques imposés par la société ou importe-t-il au contraire de préserver l'intégrité absolue de ses idéaux éthiques ? Pour répondre avec rigueur à cette problématique, il s'agira d'examiner dans un premier temps le devoir d'obéissance aux règles garantissant l'ordre collectif, avant d'analyser dans un second temps la supériorité inaliénable du refus moral face à l'injustice.
 
 > **En premier lieu**, l'adhésion lucide à des principes régulateurs partagés et le respect des normes sociales constituent le garant fondamental de la concorde civile. Dans la cité de **Thèbes**, le roi **Créon** rappelle avec insistance que gouverner les hommes exige un sens aigu du réel et l'acceptation de devoirs austères pour préserver la paix publique après la guerre civile sanglante entre **Étéocle et Polynice**. De même, la retenue prudente d'**Ismène** met en lumière la nécessité de peser les conséquences concrètes de nos actes avant d'ébranler les équilibres nécessaires à la survie de la collectivité. Ainsi, l'exercice de la responsabilité politique et l'obéissance civique forment un pilier indispensable pour protéger la communauté du désordre.
 
 > **En second lieu**, cette indispensable discipline sociale trouve sa limite infranchissable lorsque le pouvoir bafoue les principes moraux les plus sacrés de la condition humaine. C'est précisément l'héroïsme immortel incarné par **l'héroïne Antigone de Jean Anouilh** : refusant avec une grandeur sublime les arrangements hypocrites et le bonheur tiède proposés par son oncle, la jeune princesse choisit d'accomplir le rite de sépulture pour son frère au nom des lois imprescriptibles du cœur et de la piété familiale. Par ailleurs, la fidélité éperdue d'**Hémon** et les avertissements prophétiques du Chœur soulignent que nulle raison d'État ne peut étouffer la justice authentique sans conduire la cité à la ruine et au désespoir tragique. Dès lors, le courage de dire non s'impose comme l'expression suprême de la dignité humaine.
 
 > **En définitive**, la tragédie de Jean Anouilh prouve avec intensité que la concorde humaine exige de concilier la fermeté de l'ordre public avec le respect scrupuleux de la liberté morale de chaque individu. Loin de s'opposer aveuglément, la loi civique et la voix de la conscience doivent constamment dialoguer pour prévenir toute dérive tyrannique. En conclusion, ne revient-il pas à toute société civilisée d'honorer les impératifs de la justice tout en veillant à sauvegarder la noblesse des idéaux de sa jeunesse ?`;
-  } else {
-    return `> **Quand on plonge dans la lecture attentive du roman à thèse Le Dernier Jour d'un Condamné de Victor Hugo**, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 75)} » touche au cœur de l'existence humaine et de la conscience morale. Dès lors, convient-il d'adhérer passivement aux lois et aux coutumes d'une époque ou importe-t-il au contraire de promouvoir un examen critique pour faire progresser la dignité universelle ? Pour répondre avec méthode à cette problématique, il conviendra d'examiner dans un premier axe les nécessités de la justice institutionnelle, avant d'analyser dans un second axe l'urgence morale de réformer la société par la compassion humaine.
+  }
+
+  if (analysis.isCondamne) {
+    return `> **Quand on plonge dans la lecture attentive du roman à thèse Le Dernier Jour d'un Condamné de Victor Hugo**, on se rend compte que la réflexion engagée autour de ${analysis.themeTitle} touche au cœur de l'existence humaine et de la conscience morale. Dès lors, convient-il d'adhérer passivement aux lois et aux coutumes d'une époque ou importe-t-il au contraire de promouvoir un examen critique pour faire progresser la dignité universelle ? Pour répondre avec méthode à cette problématique, il conviendra d'examiner dans un premier axe les nécessités de la justice institutionnelle, avant d'analyser dans un second axe l'urgence morale de réformer la société par la compassion humaine.
 
 > **En premier lieu**, l'existence d'une institution judiciaire organisée répond au besoin universel de garantir la sécurité des citoyens et de prévenir l'arbitraire du châtiment privé. Dans la société décrite par **Victor Hugo**, les tribunaux et les décrets législatifs sont initialement conçus pour punir le crime et dissuader les comportements destructeurs de l'ordre social. L'organisation du système répressif vise théoriquement à réparer le tort causé à la communauté et à préserver la sécurité de tous contre les transgressions violentes. Ainsi, le respect de lois communes constitue une condition fondamentale pour préserver la paix publique.
 
@@ -965,6 +1076,15 @@ ${(() => {
 
 > **En définitive**, le plaidoyer vibrant de Victor Hugo démontre avec une force éclatante que les lois humaines doivent s'harmoniser constamment avec les exigences supérieures de l'éthique et de l'humanité. Loin de figer le droit dans une rigueur implacable, les sociétés ont le devoir historique d'adoucir les peines et d'éclairer les consciences par la tolérance et l'éducation. En conclusion, ne revient-il pas à chaque génération d'affirmer le primat inconditionnel de la vie et de la dignité humaine face à tous les obscurantismes ?`;
   }
+
+  // RÈGLE FORMELLE : SI CE N'EST PAS UNE ŒUVRE AU PROGRAMME, NE PAS COMMENCER PAR "Quand on plonge..."
+  return `> **Dans le débat contemporain**, ${analysis.themeTitle} suscite de vives réflexions et s'impose comme une préoccupation éthique et civique déterminante pour chaque conscience éclairée. Dès lors, convient-il d'adopter sans réserve les préceptes imposés par l'opinion commune ou importe-t-il au contraire d'affirmer un recul critique et un discernement responsable ? Pour aborder avec rigueur et méthode cette problématique, il conviendra d'examiner dans un premier temps les fondements de la responsabilité partagée, avant de mettre en lumière dans un second temps l'impératif moral de préserver son autonomie de jugement.
+
+> **En premier lieu**, l'adhésion lucide à des principes personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. La vie en société exige en effet des repères partagés et une discipline consentie pour maintenir la paix civile et garantir la cohésion entre les citoyens. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie sereine.
+
+> **En second lieu**, cette indispensable fidélité aux impératifs sociaux ne saurait toutefois se muer en un assujettissement passif ou en un conformisme frileux qui étoufferait le libre arbitre et la liberté de pensée. L'esprit humain ne saurait s'épanouir dans la seule répétition machinale des habitudes établies. Dès lors, le discernement critique et la liberté intérieure s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.
+
+> **En définitive**, ce parcours réflexif démontre avec clarté que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité envers autrui. Loin de s'exclure mutuellement, la force de conviction personnelle et l'attention fraternelle envers ses semblables se complètent pour bâtir une société équilibrée, harmonieuse et profondément humaine. En conclusion, ne revient-il pas dès lors à chacun d'entre nous d'assumer ce double devoir d'exigence intérieure et de bienveillance active au quotidien ?`;
 })()}
 
 [[TYPE]]
@@ -972,13 +1092,9 @@ ${isAnalytic || (topic && (topic.toLowerCase().includes('guérisseur') || topic.
 
 [[PLAN_A]]
 ${(() => {
-  const tLow = (topic || '').toLowerCase();
-  const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
-  const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon');
-  const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo');
-  const isGuerisseur = tLow.includes('guérisseur') || tLow.includes('guerisseur') || tLow.includes('charlatan') || tLow.includes('tradipraticien') || (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence')));
+  const analysis = detectSubjectAnalysis(topic || '');
 
-  if (isGuerisseur) {
+  if (analysis.isGuerisseur) {
     return `<div class="model-intro">
 <p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ? Pour aborder avec rigueur cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce fléau, de mettre en évidence dans un deuxième axe ses conséquences sanitaires dramatiques, avant de formuler dans un troisième axe les solutions indispensables pour y remédier durablement.</p>
 </div>
@@ -1000,9 +1116,25 @@ ${(() => {
 </div>`;
   }
 
-  const isSolitude = tLow.includes('solitude') || tLow.includes('isolement') || tLow.includes('faiblesse') || tLow.includes('épanouissement') || tLow.includes('epanouissement');
+  if (analysis.isParentsKids) {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation. Dès lors, convient-il d'estimer que les parents doivent impérativement décider à la place de leurs enfants pour assurer leur protection, ou importe-t-il au contraire de leur accorder une véritable liberté dans leurs choix personnels ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe la légitimité du rôle protecteur et régulateur des parents, avant de mettre en lumière dans un second axe la nécessité d'encourager le libre arbitre et le sens des responsabilités chez les jeunes.</p>
+</div>
 
-  if (isSolitude && (isB || (!isA && !isC))) {
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'intervention directrice des parents s'impose comme une nécessité éducative indispensable pour préserver la sécurité morale et matérielle des jeunes enfants face aux périls d'un monde complexe. En raison de leur manque d'expérience, de leur immaturité affective et de leur incapacité à anticiper les conséquences lointaines de leurs actes, les enfants ont un besoin vital d'une autorité bienveillante qui leur serve de repère. C'est précisément ce que révèle avec tendresse le roman autobiographique <strong>La Boîte à Merveilles d'Ahmed Sefrioui</strong> : les décisions fermes prises par le père <strong>Maâlem Abdeslam</strong> et l'encadrement vigilant de sa mère <strong>Lalla Zoubida</strong> constituent pour le jeune narrateur <strong>Sidi Mohammed</strong> un rempart protecteur inestimable contre les égarements de l'enfance et les déceptions du quotidien de <strong>Dar Chouafa</strong>. Ainsi, décider pour l'enfant ne relève pas de la tyrannie, mais d'un devoir sacré d'amour et de responsabilité parentale.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette autorité protectrice ne saurait toutefois se transformer en une tutelle étouffante qui anéantirait toute initiative personnelle et empêcherait l'épanouissement du jeune esprit. Pour grandir et forger sa propre personnalité, l'enfant doit progressivement expérimenter la liberté de choix, apprendre de ses erreurs et se sentir écouté par ses aînés. Lorsque les adultes imposent systématiquement leur volonté sans dialogue, ils risquent d'engendrer un sentiment d'incompréhension et de repli douloureux. Dans l'œuvre de Sefrioui, c'est précisément dans le sanctuaire secret de <strong>sa boîte à merveilles</strong> que le jeune <strong>Sidi Mohammed</strong> cherche refuge pour échapper au conformisme et au carcan des adultes qui ignorent sa sensibilité poétique. De surcroît, la tragédie d'<strong>Antigone de Jean Anouilh</strong> démontre avec force les ravages de l'autoritarisme aveugle incarné par le roi <strong>Créon</strong>, qui refuse d'entendre la voix de la jeunesse. Dès lors, l'apprentissage de l'autonomie et l'écoute mutuelle s'avèrent indispensables pour bâtir un adulte responsable.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, le rapport parents/jeunes ne saurait se réduire à un dilemme binaire entre soumission aveugle et émancipation anarchique, mais appelle un équilibre harmonieux fondé sur la confiance réciproque et le dialogue bienveillant. Si l'orientation des parents demeure indispensable durant les premières années de la vie, elle doit s'adoucir progressivement pour faire place à une écoute attentive et à un accompagnement éclairé vers la liberté. En définitive, le véritable rôle d'un parent n'est-il pas d'offrir à son enfant des racines solides pour grandir, tout en lui donnant des ailes pour conquérir son propre destin ?</p>
+</div>`;
+  }
+
+  if (analysis.isSolitude) {
     return `<div class="model-intro">
 <p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion engagée autour de la solitude et de l'épanouissement de l'individu touche au cœur même de la condition humaine. Dès lors, convient-il d'appréhender l'isolement comme une faiblesse aliénante ou importe-t-il au contraire de le concevoir comme une étape féconde de maturation intérieure et de découverte de soi ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe en quoi la solitude subie peut fragiliser l'être humain, avant de démontrer dans un second axe comment la solitude choisie peut constituer un puissant levier d'épanouissement personnel.</p>
 </div>
@@ -1020,25 +1152,9 @@ ${(() => {
 </div>`;
   }
 
-  if (isB || (!isA && !isC)) {
+  if (analysis.isAntigone) {
     return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que la question posée par « ${topic.slice(0, 80)} » constitue une interrogation existentielle et éthique déterminante pour la jeunesse contemporaine. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par l'entourage ou importe-t-il d'affirmer un recul critique face aux faux-semblants du monde ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe les impératifs de la lucidité intérieure, avant de mettre en lumière dans un second axe les bienfaits d'une solidarité authentique.</p>
-</div>
-
-<div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, le jeune narrateur <strong>Sidi Mohammed</strong> oppose aux querelles mesquines de <strong>Dar Chouafa</strong> le sanctuaire secret de <strong>sa boîte à merveilles</strong>, où les objets hétéroclites deviennent les symboles purs d'une poésie spirituelle inaccessible aux adultes. De plus, les rites familiaux et les visites réconfortantes au sanctuaire de <strong>Sidi Ali Boughaleb</strong> partagés avec <strong>Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la solitude. Ainsi, la conscience de ses valeurs intimes consolide les fondations morales indispensables à toute vie sereine.</p>
-</div>
-
-<div class="model-axe2">
-<p><strong>En second lieu</strong>, cette indispensable fidélité à sa vérité intérieure ne saurait toutefois se muer en un assujettissement passif ou en un repli frileux qui étoufferait la générosité et l'esprit de partage. Dans le roman de Fès, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent avec émotion que la dignité au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et le désespoir. Par ailleurs, la sollicitude admirable de la voisine <strong>Rahma</strong> et la communion fraternelle unissant <strong>Lalla Zoubida et Lalla Aïcha</strong> aux côtés du sage <strong>Sidi El Arafi</strong> démontrent que l'épreuve humaine trouve sa rédemption dans la compassion agissante. Dès lors, le discernement critique et la tendresse humaine s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.</p>
-</div>
-
-<div class="model-concl">
-<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence de la rectitude personnelle avec le souffle vivifiant de la bienveillance fraternelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de son authenticité morale ?</p>
-</div>`;
-  } else if (isA) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive de la tragédie moderne <em>Antigone</em> de Jean Anouilh, on se rend compte que la réflexion engagée autour de « ${topic.slice(0, 80)} » soulève une interrogation fondamentale sur la liberté et le pouvoir. Dès lors, convient-il d'accepter les compromis dictés par l'ordre établi ou importe-t-il d'affirmer un refus catégorique au nom de l'intégrité morale ? Pour répondre avec rigueur à cette question, il s'agira d'analyser dans un premier axe les impératifs de la responsabilité civique, avant d'examiner dans un second axe la grandeur souveraine de la conscience individuelle.</p>
+<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par ${analysis.themeTitle} oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
 </div>
 
 <div class="model-axe1">
@@ -1052,9 +1168,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En conclusion</strong>, l'affrontement thébain rappelle que la véritable grandeur humaine réside dans le refus permanent de la tyrannie et le respect sacré des valeurs éthiques. Loin d'être un caprice immature, la révolte d'Antigone réaffirme que la conscience demeure supérieure à toute loi temporelle injuste. En définitive, ne revient-il pas à chaque génération d'affirmer ce courage de la vérité pour édifier un monde plus humain et équitable ?</p>
 </div>`;
-  } else {
+  }
+
+  if (analysis.isCondamne) {
     return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman à thèse <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on constate que le débat engagé par « ${topic.slice(0, 80)} » touche aux racines mêmes de la justice et de la dignité. Dès lors, convient-il d'accepter aveuglément les châtiments imposés par la loi ou importe-t-il d'exercer un discernement critique pour humaniser la société ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe les fonctions traditionnelles du système pénal, avant d'analyser dans un second axe l'impératif moral de réformer la justice par la compassion.</p>
+<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on constate que le débat engagé par ${analysis.themeTitle} touche aux racines mêmes de la justice et de la dignité. Dès lors, convient-il d'accepter aveuglément les châtiments imposés par la loi ou importe-t-il d'exercer un discernement critique pour humaniser la société ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe les fonctions traditionnelles du système pénal, avant d'analyser dans un second axe l'impératif moral de réformer la justice par la compassion.</p>
 </div>
 
 <div class="model-axe1">
@@ -1069,18 +1187,54 @@ ${(() => {
 <p><strong>En conclusion</strong>, le chef-d'œuvre de Victor Hugo démontre avec éclat que la légitimité d'une société se mesure à sa capacité à promouvoir la compassion et le respect absolu de la vie. Loin de cautionner la barbarie légalisée, le progrès démocratique exige d'élever la justice vers un idéal de rédemption et de fraternité. En définitive, n'est-ce pas ce combat universel pour la dignité humaine qui doit guider toute conscience éclairée ?</p>
 </div>`;
   }
+
+  // RÈGLE FORMELLE : SI CE N'EST PAS UNE ŒUVRE AU PROGRAMME, NE PAS COMMENCER PAR "Quand on plonge..."
+  return `<div class="model-intro">
+<p>Dans le débat contemporain, ${analysis.themeTitle} suscite de vives réflexions et s'impose comme une préoccupation éthique et civique déterminante pour chaque conscience éclairée. Dès lors, convient-il d'adopter sans réserve les préceptes imposés par l'opinion commune ou importe-t-il au contraire d'affirmer un recul critique et un discernement responsable ? Pour aborder avec méthode et rigueur cette problématique, il conviendra d'examiner dans un premier axe les fondements de la responsabilité partagée, avant de mettre en lumière dans un second axe l'impératif moral de préserver son autonomie de jugement.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des principes personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. La vie en société exige en effet des repères partagés et une discipline consentie pour maintenir la paix civile et garantir la cohésion entre les citoyens. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie sereine.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette indispensable fidélité aux impératifs sociaux ne saurait toutefois se muer en un assujettissement passif ou en un conformisme frileux qui étoufferait le libre arbitre et la liberté de pensée. L'esprit humain ne saurait s'épanouir dans la seule répétition machinale des habitudes établies. Dès lors, le discernement critique et la liberté intérieure s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence de la rectitude personnelle avec le souffle vivifiant de la solidarité humaine. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de son authenticité morale ?</p>
+</div>`;
 })()}
 
 [[PLAN_B]]
 ${(() => {
-  const tLow = (topic || '').toLowerCase();
-  const isB = tLow.includes('boîte') || tLow.includes('boite') || tLow.includes('sefrioui') || tLow.includes('merveilles') || tLow.includes('sidi mohammed');
-  const isA = tLow.includes('antigone') || tLow.includes('anouilh') || tLow.includes('créon') || tLow.includes('creon');
-  const isC = tLow.includes('dernier jour') || tLow.includes('condamné') || tLow.includes('condamne') || tLow.includes('victor hugo');
+  const analysis = detectSubjectAnalysis(topic || '');
 
-  if (isB || (!isA && !isC)) {
+  if (analysis.isParentsKids) {
     return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de « ${topic.slice(0, 80)} » fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ? Il conviendra d'examiner dans un premier temps la valeur protectrice des devoirs partagés, d'envisager dans un deuxième temps la légitimité de l'émancipation personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une harmonie durable.</p>
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion engagée autour de la décision des parents à la place des jeunes enfants fait dialoguer deux approches complémentaires de l'autorité éducative. D'un côté, l'obligation pour les parents de guider et de décider apparaît comme une garantie indispensable pour la sécurité et la formation morale du jeune être. D'un autre côté, le droit de l'enfant à affirmer sa singularité et à exprimer ses préférences constitue le moteur fondamental de son émancipation future. Dès lors, comment concilier le devoir de guidance des parents et le besoin légitime de liberté des jeunes ? Il conviendra d'examiner dans un premier temps la portée protectrice des décisions parentales, d'envisager dans un deuxième temps la valeur émancipatrice de l'autonomie personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une éducation partagée et dialoguée.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'acceptation de la tutelle parentale et le respect des orientations décidées par les aînés constituent un rempart nécessaire contre les périls d'un monde complexe. Dans le quotidien de Fès peint avec émotion par <strong>Ahmed Sefrioui</strong>, le dévouement silencieux du père <strong>Maâlem Abdeslam</strong> et l'encadrement vigilant de <strong>Lalla Zoubida</strong> démontrent avec force que les décisions d'un adulte sont d'abord dictées par l'amour et la volonté de prémunir l'enfant contre le danger. L'autorité parentale forge ainsi les premiers repères moraux nécessaires à la stabilité émotionnelle de la jeunesse.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, cette indispensable autorité trouve sa limite là où commence l'étouffement de la personnalité, de la créativité et de la confiance en soi. L'itinéraire du jeune <strong>Sidi Mohammed</strong> témoigne avec éclat que l'âme enfantine a besoin d'un espace d'évasion et d'expression propre, symbolisé par <strong>sa boîte à merveilles</strong>, loin du carcan des injonctions imposées. De même, dans <strong>Antigone</strong> de <strong>Jean Anouilh</strong>, le refus du dialogue et l'inflexibilité du roi <strong>Créon</strong> envers la jeunesse conduisent à une impasse tragique. Dès lors, écouter les aspirations des jeunes s'avère vital pour leur maturation.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la véritable sagesse éducative réside dans une synthèse harmonieuse où l'autorité parentale ne s'exerce pas comme un pouvoir autoritaire, mais comme un accompagnement bienveillant et progressif vers la maturité. Il s'agit d'instaurer un climat de dialogue continu où l'adulte guide fermement tout en accordant une confiance croissante aux choix de l'enfant. C'est dans cette dialectique féconde entre protection et écoute que se construit une relation parents/jeunes épanouie et durable.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, ce parcours réflexif démontre que le rapport parents/jeunes gagne à dépasser l'opposition stérile entre autoritarisme et laxisme. Par-delà les tiraillements de l'existence, l'harmonie entre exigence protectrice et respect de la liberté naissante ouvre la voie à un épanouissement authentique. En définitive, préparer l'avenir des jeunes n'exige-t-il pas de les rendre capables de décider par eux-mêmes en femmes et hommes libres ?</p>
+</div>`;
+  }
+
+  if (analysis.isSolitude || (analysis.work === 'boite' && !analysis.isAntigone && !analysis.isCondamne)) {
+    return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de ${analysis.themeTitle} fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ? Il conviendra d'examiner dans un premier temps la valeur protectrice des devoirs partagés, d'envisager dans un deuxième temps la légitimité de l'émancipation personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une harmonie durable.</p>
 </div>
 
 <div class="model-axe1">
@@ -1098,9 +1252,9 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En somme</strong>, ce parcours réflexif démontre que la dignité humaine se forge dans l'alliance souveraine de la fidélité aux siens et du courage de la lucidité. Par-delà les tiraillements de l'existence, l'harmonie entre exigence intérieure et générosité envers autrui ouvre la voie à un épanouissement authentique et durable. Ne revient-il pas dès lors à chacun d'accomplir ce dépassement harmonieux au service de la vie ?</p>
 </div>`;
-  } else if (isA) {
+  } else if (analysis.isAntigone) {
     return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par « ${topic.slice(0, 80)} » oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
+<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par ${analysis.themeTitle} oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
 </div>
 
 <div class="model-axe1">
@@ -1118,9 +1272,9 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En somme</strong>, le conflit thébain enseigne que la dignité humaine grandit lorsque la conscience refuse d'abdiquer devant l'arbitraire. Par-delà le drame antique, l'idéal d'intégrité porté par Antigone demeure une balise vivante pour toute jeunesse éprise de liberté et de vérité. En définitive, la mémoire des héros du refus n'est-elle pas le plus sûr rempart contre la barbarie ?</p>
 </div>`;
-  } else {
+  } else if (analysis.isCondamne) {
     return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on s'aperçoit que la question soulevée par « ${topic.slice(0, 80)} » confronte deux conceptions antagonistes de la justice et de la morale. D'un côté, la défense de l'ordre légal invoque la nécessité de punir pour prévenir le crime et protéger la collectivité. D'un autre côté, la conscience humaniste dénonce l'injustice d'une violence institutionnalisée qui détruit la vie même qu'elle prétend défendre. Dès lors, comment concilier l'exigence de la sécurité publique et le respect sacré de la dignité humaine ? Il s'agira d'examiner dans un premier temps la portée de la loi pénale, d'analyser dans un deuxième temps l'urgence de l'abolitionnisme moral, pour enfin dégager une synthèse sur la justice de demain.</p>
+<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on s'aperçoit que la question soulevée par ${analysis.themeTitle} confronte deux conceptions antagonistes de la justice et de la morale. D'un côté, la défense de l'ordre légal invoque la nécessité de punir pour prévenir le crime et protéger la collectivité. D'un autre côté, la conscience humaniste dénonce l'injustice d'une violence institutionnalisée qui détruit la vie même qu'elle prétend défendre. Dès lors, comment concilier l'exigence de la sécurité publique et le respect sacré de la dignité humaine ? Il s'agira d'examiner dans un premier temps la portée de la loi pénale, d'analyser dans un deuxième temps l'urgence de l'abolitionnisme moral, pour enfin dégager une synthèse sur la justice de demain.</p>
 </div>
 
 <div class="model-axe1">
@@ -1137,6 +1291,27 @@ ${(() => {
 
 <div class="model-concl">
 <p><strong>En somme</strong>, le combat de Victor Hugo nous exhorte à construire une justice guidée par la raison et la miséricorde plutôt que par la haine. La dignité humaine ne se négocie pas et s'impose comme une limite absolue à l'action de l'État. En définitive, n'appartient-il pas à chaque époque d'étendre la lumière de l'humanisme face aux ténèbres de la cruauté ?</p>
+</div>`;
+  } else {
+    // General subject
+    return `<div class="model-intro">
+<p>Dans le débat contemporain, ${analysis.themeTitle} confronte deux visions complémentaires du progrès moral et social. D'un côté, le respect des normes instituées garantit la cohésion nécessaire au vivre-ensemble. D'un autre côté, le recul critique s'affirme comme une condition indispensable pour préserver la dignité et la liberté de penser. Dès lors, comment concilier les devoirs collectifs et l'aspiration à l'autonomie personnelle ? Il s'agira d'étudier dans un premier axe la valeur régulatrice des devoirs partagés, d'analyser dans un second axe la légitimité de l'émancipation personnelle, pour enfin formuler une synthèse sur les conditions d'un équilibre harmonieux.</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, l'adhésion à des règles communes assure la concorde civile et protège la communauté des dérives de l'arbitraire ou du repli individuel. Toute collectivité a besoin de repères stables et de principes partagés pour surmonter l'adversité.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, la soumission aux exigences extérieures ne saurait conduire à l'étouffement du libre arbitre ou à la perte de l'esprit critique. La véritable maturité exige de cultiver sa liberté de conscience pour résister aux conformismes stériles.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, la conciliation réside dans un dialogue constant entre fidélité aux valeurs communes et affirmation d'un discernement personnel éclairé.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En somme</strong>, la grandeur citoyenne se forge dans l'alliance féconde de la solidarité et de la lucidité d'esprit, assurant le progrès continu de la société.</p>
 </div>`;
   }
 })()}`;
