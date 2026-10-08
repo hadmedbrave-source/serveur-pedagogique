@@ -576,6 +576,13 @@ Le texte optimisé DOIT OBLIGATOIREMENT être structuré en paragraphes distinct
        « Cependant » est un connecteur d'opposition/concession, et non de conséquence !
      * Pour introduire le paragraphe des conséquences, tu DOIS OBLIGATOIREMENT utiliser des connecteurs de conséquence certifiés selon le Cadre Officiel / PDF des Connecteurs :
        **Par conséquent**, **En conséquence**, **De ce fait**, **Dès lors, les conséquences de ce choix...**, ou **Il en résulte que...** !
+   - ⚠️ RÈGLE ABSOLUE SUR LE RESPECT STRICT DU SUJET (CAUSES, CONSÉQUENCES ET SOLUTIONS) :
+     Si le sujet demande les causes, les conséquences ET les solutions (ou remèdes) :
+     Tu DOIS OBLIGATOIREMENT traiter les TROIS VOLETS du sujet dans des paragraphes distincts et substantiels :
+     * Premier axe (Causes) : commence par **En premier lieu**, **D'abord**, ou **D'une part**.
+     * Second axe (Conséquences) : commence obligatoirement par **Par conséquent**, **En conséquence**, ou **Dès lors** (JAMAIS « Cependant » !).
+     * Troisième axe (Solutions / Remèdes) : commence obligatoirement par **Enfin, pour remédier à ce fléau**, **Afin d'endiguer cette situation, des solutions concrètes doivent être adoptées : d'une part... d'autre part...**, ou **En outre, pour surmonter ce défi...**.
+     Ne JAMAIS omettre les solutions si le sujet les demande !
    - CHAQUE paragraphe du développement DOIT COMMENCER PAR UN LIEN LOGIQUE PUISSANT EN GRAS :
      * Premier axe (Causes ou 1er argument) : Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**.
      * Second axe (Conséquences ou 2d argument) : Si conséquences, commence obligatoirement par **Par conséquent**, **En conséquence**, ou **De ce fait**. Si second argument convergent, commence par **En second lieu**, **Ensuite**, ou **Par ailleurs**.
@@ -602,12 +609,26 @@ LANGAGE FORT SANS REGISTRE SOUTENU :
 [[TYPE]]
 (Détermine la nature exacte du sujet :
 RÈGLE D'OR FORMELLE :
-- TOUT sujet portant sur une œuvre littéraire au programme (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné) ou demandant d'examiner une tension, un avis, une alternative ("est-elle une faiblesse ou une source d'épanouissement", "partagez-vous", "pensez-vous", "faut-il", "peut-on", "développez votre réflexion", etc.) est STRICTEMENT UN SUJET D'OPINION ! Écris UNIQUEMENT "OPINION".
-- Un sujet est "ANALYTIQUE" UNIQUEMENT ET STRICTEMENT s'il s'agit d'un phénomène de société sans lien avec les œuvres ET demandant expressément dans sa consigne officielle d'analyser les CAUSES et de proposer des SOLUTIONS.)
+- TOUT sujet demandant d'analyser les CAUSES, les CONSÉQUENCES et/ou les SOLUTIONS d'un phénomène de société sans solliciter expressément une prise de position personnelle (« partagez-vous », « votre avis », etc.) est STRICTEMENT DE TYPE "ANALYTIQUE" ! Écris UNIQUEMENT "ANALYTIQUE".
+- TOUT sujet portant sur une œuvre littéraire au programme (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné) ou demandant un avis, une alternative ("est-elle une faiblesse ou une source d'épanouissement", "partagez-vous", "pensez-vous", "faut-il", "peut-on", "développez votre réflexion", etc.) est STRICTEMENT UN SUJET D'OPINION ! Écris UNIQUEMENT "OPINION".
+- Un sujet est "DIALECTIQUE" UNIQUEMENT s'il demande formellement d'opposer deux points de vue contradictoires (« pour ou contre », « thèse et antithèse »).)
 
 [[PLAN_A]]
-(OPTION 1 : MODÈLE RÉDIGÉ SELON LE PLAN SIMPLE (Plan Thématique ou Prise de Position).
-ATTENTION RÈGLE DIDACTIQUE MAJEURE : POUR UN SUJET DEMANDANT UN POINT DE VUE (« Partagez-vous ce point de vue ? », « Pensez-vous que », etc.), LE PLAN SIMPLE EST LE PLAN OFFICIEL RETENU PAR EXCELLENCE !
+(OPTION 1 : MODÈLE RÉDIGÉ OFFICIEL (Norme Al Akhawayn • Min. 18 lignes de texte rédigé).
+ATTENTION RÈGLE DIDACTIQUE MAJEURE :
+1. POUR UN SUJET ANALYTIQUE (causes, conséquences, solutions) :
+   - Rédige le Modèle selon le PLAN ANALYTIQUE en développant les 3 axes dans des conteneurs séparés :
+     * <div class="model-intro"><p>...</p></div> (Introduction concise : sujet, problématique, annonce : causes, conséquences, solutions)
+     * <div class="model-axe1"><p><strong>En premier lieu</strong>, ... (Causes majeures)</p></div>
+     * <div class="model-axe2"><p><strong>Par conséquent</strong>, ... (Conséquences sanitaires/sociales - INTERDICTION ABSOLUE de « Cependant » !)</p></div>
+     * <div class="model-axe3"><p><strong>Enfin, pour remédier à ce fléau</strong>, ... (Solutions concrètes indispensables)</p></div>
+     * <div class="model-concl"><p><strong>En conclusion</strong>, ... (Bilan et ouverture)</p></div>
+2. POUR UN SUJET D'OPINION (« Partagez-vous ce point de vue ? », etc.) :
+   - LE PLAN SIMPLE EST LE PLAN OFFICIEL RETENU PAR EXCELLENCE !
+     * Introduction dans <div class="model-intro"><p>...</p></div>
+     * Premier axe dans <div class="model-axe1"><p>...</p></div>
+     * Second axe dans <div class="model-axe2"><p>...</p></div>
+     * Conclusion dans <div class="model-concl"><p>...</p></div>
 RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
 - EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Tout texte court ou incomplet est strictement inadmissible.
 - INTRODUCTION CONCISE (3 à 4 lignes max) :
@@ -615,17 +636,18 @@ RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
   INTERDICTION ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION ! Aucune explication dans l'introduction (toute explication se fait au développement).
 - STRUCTURE DU DÉVELOPPEMENT :
   Au moins 2 ou 3 grands paragraphes très substantiels (au moins 6 à 7 lignes chacun) :
-  - Chaque paragraphe commence obligatoirement par un LIEN LOGIQUE PUISSANT en gras (<strong>En premier lieu</strong>, <strong>En second lieu</strong>, <strong>Par ailleurs</strong>, etc.).
-  - ANCRAGE EXCLUSIF DANS L'ŒUVRE DU SUJET : Si le sujet porte sur La Boîte à Merveilles, TOUS les exemples sont tirés UNIQUEMENT de La Boîte à Merveilles ! Interdiction formelle de citer Antigone ou Le Dernier Jour d'un Condamné. Chaque exemple précis de l'œuvre est en gras : **exemple précis de l'œuvre**.
+  - Chaque paragraphe commence obligatoirement par un LIEN LOGIQUE PUISSANT en gras (<strong>En premier lieu</strong>, <strong>Par conséquent</strong>, <strong>Enfin, pour remédier...</strong>, etc.).
+  - ANCRAGE EXCLUSIF DANS L'ŒUVRE DU SUJET si sujet sur une œuvre : Si le sujet porte sur La Boîte à Merveilles, TOUS les exemples sont tirés UNIQUEMENT de La Boîte à Merveilles ! Chaque exemple précis de l'œuvre est en gras : **exemple précis de l'œuvre**.
 - CONCLUSION :
   Un paragraphe de 3 à 4 lignes commençant obligatoirement par un connecteur de conclusion en gras (<strong>En conclusion</strong> ou <strong>En définitive</strong>).
 - BALISAGE CHROMATIQUE :
   - L'introduction dans <div class="model-intro"><p>...</p></div>
   - Le premier axe dans <div class="model-axe1"><p>...</p></div>
   - Le second axe dans <div class="model-axe2"><p>...</p></div>
+  - Le troisième axe (si solutions ou 3e argument) dans <div class="model-axe3"><p>...</p></div>
   - La conclusion dans <div class="model-concl"><p>...</p></div>
   - Les liens logiques en gras : <strong>lien logique</strong>.
-  - Les exemples de l'œuvre en gras : <strong>exemple précis de l'œuvre</strong> ou **exemple précis**.
+  - Les exemples précis en gras : <strong>exemple précis</strong> ou **exemple précis**.
   - Ne JAMAIS écrire d'étiquette scolaire comme "Introduction :" ou "I. Thèse".)
 
 [[PLAN_B]]
@@ -907,13 +929,15 @@ ${(() => {
   const isGuerisseur = tLow.includes('guérisseur') || tLow.includes('guerisseur') || tLow.includes('charlatan') || tLow.includes('tradipraticien') || (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence')));
 
   if (isGuerisseur) {
-    return `> **Dans de nombreuses sociétés traditionnelles comme au Maroc**, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population en quête de soulagement. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, et quelles en sont les répercussions alarmantes sur la santé publique ? Pour aborder avec méthode et rigueur cette problématique, il conviendra d'examiner dans un premier axe les causes majeures de ce phénomène, avant de mettre en lumière dans un second axe les conséquences redoutables qu'il engendre pour la collectivité.
+    return `> **Dans de nombreuses sociétés traditionnelles comme au Maroc**, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population en quête de soulagement. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ? Pour aborder avec méthode et rigueur cette problématique, il conviendra d'examiner dans un premier axe les causes majeures de ce phénomène, de mettre en lumière dans un second axe les conséquences redoutables qu'il engendre pour la collectivité, avant de formuler dans un troisième axe les solutions indispensables pour y remédier durablement.
 
 > **En premier lieu**, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de figures traditionnelles qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de ce choix archaïque.
 
 > **Par conséquent**, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes empiriques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.
 
-> **En conclusion**, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Pour enrayer ce fléau destructeur, il apparaît urgent de démocratiser la couverture médicale, de sanctionner sévèrement les charlatans et de multiplier les campagnes de sensibilisation scientifique. En définitive, le triomphe de la médecine moderne et de la dignité humaine ne passe-t-il pas par l'éradication définitive de l'obscurantisme médical ?`;
+> **Enfin, pour remédier à ce fléau**, la mise en œuvre d'une stratégie globale articulée autour de la prévention, de la fermeté juridique et de la démocratisation des soins s'impose avec une impérieuse nécessité. D'un côté, les pouvoirs publics et la société civile doivent intensifier les campagnes de sensibilisation dans les médias et les établissements scolaires afin de démystifier le charlatanisme et d'inculquer les réflexes de la médecine préventive aux citoyens. D'autre part, il convient de durcir l'arsenal législatif pour sanctionner sévèrement les faux praticiens qui exercent illégalement, tout en étendant la couverture médicale universelle et les dispensaires de proximité afin de rendre les consultations médicales accessibles aux foyers les plus modestes. Dès lors, seule une action solidaire, éducative et résolue permettra de tarir définitivement la clientèle de ces charlatans.
+
+> **En conclusion**, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Si les causes demeurent enracinées dans la précarité et les superstitions, les conséquences néfastes appellent un sursaut civique et institutionnel fondé sur l'éducation et la solidarité nationale. En définitive, le triomphe de la médecine scientifique et de la dignité humaine ne constitue-t-il pas le premier devoir d'une société soucieuse de la santé et de l'avenir de ses citoyens ?`;
   }
 
   if (isB || (!isA && !isC)) {
@@ -956,19 +980,23 @@ ${(() => {
 
   if (isGuerisseur) {
     return `<div class="model-intro">
-<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, et quelles en sont les répercussions alarmantes sur la santé publique ? Pour répondre avec rigueur à cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce phénomène, avant de mettre en évidence dans un second axe les conséquences redoutables qu'il engendre pour la collectivité.</p>
+<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ? Pour aborder avec rigueur cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce fléau, de mettre en évidence dans un deuxième axe ses conséquences sanitaires dramatiques, avant de formuler dans un troisième axe les solutions indispensables pour y remédier durablement.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de praticiens traditionnels qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences mystiques ou surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de cette pratique ancestrale.</p>
+<p><strong>En premier lieu</strong>, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de figures traditionnelles qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences mystiques ou surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de cette pratique archaïque.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>Par conséquent</strong>, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes archaïques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.</p>
+<p><strong>Par conséquent</strong>, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes empiriques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Enfin, pour remédier à ce fléau</strong>, la mise en œuvre d'une stratégie globale articulée autour de la prévention, de la fermeté juridique et de la démocratisation des soins s'impose avec une impérieuse nécessité. D'un côté, les pouvoirs publics et la société civile doivent intensifier les campagnes de sensibilisation dans les médias et les établissements scolaires afin de démystifier le charlatanisme et d'inculquer les réflexes de la médecine préventive aux citoyens. D'autre part, il convient de durcir l'arsenal législatif pour sanctionner sévèrement les faux praticiens qui exercent illégalement, tout en étendant la couverture médicale universelle et les dispensaires de proximité afin de rendre les consultations médicales accessibles aux foyers les plus modestes. Dès lors, seule une action solidaire, éducative et résolue permettra de tarir définitivement la clientèle de ces charlatans.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En conclusion</strong>, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Pour enrayer ce fléau destructeur, il apparaît urgent de démocratiser la couverture médicale, de sanctionner sévèrement les charlatans et de multiplier les campagnes de sensibilisation scientifique. En définitive, le triomphe de la médecine moderne et de la dignité humaine ne passe-t-il pas par l'éradication définitive de l'obscurantisme médical ?</p>
+<p><strong>En conclusion</strong>, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et le dénuement, tout en infligeant des désastres sanitaires inacceptables à la communauté. Si les causes demeurent enracinées dans la précarité et les superstitions, les conséquences néfastes appellent un sursaut civique et institutionnel fondé sur l'éducation et la solidarité nationale. En définitive, le triomphe de la médecine scientifique et de la dignité humaine ne constitue-t-il pas le premier devoir d'une société soucieuse de la santé et de l'avenir de ses citoyens ?</p>
 </div>`;
   }
 
