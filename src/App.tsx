@@ -715,16 +715,32 @@ export default function App() {
     parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?<\/h[1-4]>)([\s\S]*?)$/i, (m, hTag, content) => {
       // 1. Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
       let cleanContent = content
-        .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix peuvent être graves)/gi,
+        .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi,
           '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Par conséquent</strong>, $1')
+        .replace(/\bCependant\s*,\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi, '<strong>Par conséquent</strong>, $1')
         .replace(/Cependant\s*,\s*les conséquences/gi, '<strong>Par conséquent</strong>, les conséquences')
         .replace(/Cependant\s*,\s*les répercussions/gi, '<strong>Par conséquent</strong>, les répercussions');
 
       // 2. "En premier lieu," doit être obligatoirement au début du développement avec un saut de ligne et un alinéa distinct
-      cleanContent = cleanContent.replace(/([.!?])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b)/gi,
+      cleanContent = cleanContent.replace(/([.!?…:])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b)/gi,
         '$1</p>\n\n<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$2</strong>');
+      cleanContent = cleanContent.replace(/(?<=[a-zA-ZÀ-ÿ0-9])\s+(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b)/gi,
+        '.</p>\n\n<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$1</strong>');
 
-      // 3. Stylisation des paragraphes avec alinéa
+      // 3. Respect absolu de la consigne du sujet : Si le sujet demande les causes, conséquences ET solutions (ex: guérisseurs), garantir la présence des solutions
+      const isAnalyticTopic = cleanContent.includes('guérisseur') || cleanContent.includes('guerisseur') || cleanContent.includes('charlatan') || (cleanContent.includes('causes') && (cleanContent.includes('conséquence') || cleanContent.includes('consequence')));
+      const hasSolutions = cleanContent.includes('remédier') || cleanContent.includes('solutions') || cleanContent.includes('prévention') || cleanContent.includes('démocratiser');
+      if (isAnalyticTopic && !hasSolutions) {
+        const conclRegex = /(<p[^>]*>.*?<strong>\s*(?:En conclusion|En définitive|En somme)[\s\S]*?<\/p>)/i;
+        const solutionsPara = `<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Enfin, pour remédier à ce fléau</strong>, la mise en œuvre d'une stratégie globale articulée autour de la prévention, de la fermeté juridique et de la démocratisation des soins s'impose avec une impérieuse nécessité. D'un côté, les pouvoirs publics et la société civile doivent intensifier les campagnes de sensibilisation dans les médias et les établissements scolaires afin de démystifier le charlatanisme et d'inculquer les réflexes de la médecine préventive aux citoyens. D'autre part, il convient de durcir l'arsenal législatif pour sanctionner sévèrement les faux praticiens qui exercent illégalement, tout en étendant la couverture médicale universelle et les dispensaires de proximité afin de rendre les consultations médicales accessibles aux foyers les plus modestes. Dès lors, seule une action solidaire, éducative et résolue permettra de tarir définitivement la clientèle de ces charlatans.</p>`;
+        if (conclRegex.test(cleanContent)) {
+          cleanContent = cleanContent.replace(conclRegex, `${solutionsPara}\n\n$1`);
+        } else {
+          cleanContent += `\n\n${solutionsPara}`;
+        }
+      }
+
+      // 4. Stylisation des paragraphes avec alinéa
       cleanContent = cleanContent.replace(/<p(?![^>]*text-indent)/gi, '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"');
 
       return `
@@ -819,77 +835,61 @@ export default function App() {
 
     // Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
     raw = raw
-      .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix peuvent être graves)/gi,
+      .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi,
         '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Par conséquent</strong>, $1')
-      .replace(/Cependant\s*,\s*les conséquences/gi, '<strong>Par conséquent</strong>, les conséquences')
-      .replace(/Cependant\s*,\s*les répercussions/gi, '<strong>Par conséquent</strong>, les répercussions');
+      .replace(/\bCependant\s*,\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi, '<strong>Par conséquent</strong>, $1');
 
-    // Mise en page responsive garantie SUR LA MÊME LIGNE (flex-nowrap, aucun retour à la ligne)
+    // Détection de la présence d'un 3ème axe (ex: solutions ou synthèse)
+    const hasAxe3InRaw = !!(raw.match(/<div class="model-axe3">/i) || raw.match(/<div class="model-solutions?">/i) || (isAnalytique && (raw.includes('solutions') || raw.includes('remédier') || raw.includes('démocratisation'))));
+
+    // Fonction de génération d'une barre d'étapes RESPONSIVE ET STRICTEMENT SUR LA MÊME LIGNE
+    const renderStepBar = (steps: { label: string; bg: string }[]) => {
+      const items = steps.map(s => `
+        <span style="background:${s.bg}; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.72rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06); letter-spacing:0.02em;">
+          ${s.label}
+        </span>
+      `).join('<span style="color:#94a3b8; font-size:0.7rem; flex-shrink:0; padding:0 2px;">→</span>');
+
+      return `
+        <div class="model-step-bar" style="display:flex; flex-direction:row; flex-wrap:nowrap !important; align-items:center; justify-content:space-between; gap:4px; margin-bottom:18px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, -apple-system, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+          ${items}
+        </div>
+      `;
+    };
+
     let planHeaderHtml = '';
     if (isDialectique) {
-      planHeaderHtml = `
-        <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:18px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
-          <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            1. INTRODUCTION (ORANGE)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
-          <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            2. AXE 1 / THÈSE (BLEU)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🔄</span>
-          <span style="background:#9333ea; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            3. AXE 2 / ANTITHÈSE (VIOLET)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
-          <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            4. SYNTHÈSE (SARCELLE)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
-          <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            CONCLUSION (VERT ÉMERAUDE)
-          </span>
-        </div>
-      `;
+      planHeaderHtml = renderStepBar([
+        { label: '1. INTRODUCTION', bg: '#ea580c' },
+        { label: '2. THÈSE', bg: '#2563eb' },
+        { label: '3. ANTITHÈSE', bg: '#9333ea' },
+        { label: '4. SYNTHÈSE', bg: '#0d9488' },
+        { label: 'CONCLUSION', bg: '#059669' }
+      ]);
     } else if (isAnalytique) {
-      planHeaderHtml = `
-        <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:18px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
-          <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            1. INTRODUCTION (ORANGE)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
-          <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            2. PREMIER AXE / CAUSES (BLEU)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
-          <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            3. SECOND AXE / CONSÉQUENCES (SARCELLE)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
-          <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            CONCLUSION (VERT ÉMERAUDE)
-          </span>
-        </div>
-      `;
+      if (hasAxe3InRaw) {
+        planHeaderHtml = renderStepBar([
+          { label: '1. INTRODUCTION', bg: '#ea580c' },
+          { label: '2. CAUSES', bg: '#2563eb' },
+          { label: '3. CONSÉQUENCES', bg: '#0d9488' },
+          { label: '4. SOLUTIONS', bg: '#d97706' },
+          { label: 'CONCLUSION', bg: '#059669' }
+        ]);
+      } else {
+        planHeaderHtml = renderStepBar([
+          { label: '1. INTRODUCTION', bg: '#ea580c' },
+          { label: '2. CAUSES', bg: '#2563eb' },
+          { label: '3. CONSÉQUENCES', bg: '#0d9488' },
+          { label: 'CONCLUSION', bg: '#059669' }
+        ]);
+      }
     } else {
-      planHeaderHtml = `
-        <div style="display:flex; flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:6px; margin-bottom:18px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
-          <span style="background:#ea580c; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            1. INTRODUCTION (ORANGE)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">⚖️</span>
-          <span style="background:#2563eb; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            2. PREMIER AXE (BLEU)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">💡</span>
-          <span style="background:#0d9488; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            3. SECOND AXE (SARCELLE)
-          </span>
-          <span style="color:#64748b; font-size:0.75rem; flex-shrink:0;">🎯</span>
-          <span style="background:#059669; color:#ffffff; font-weight:800; font-size:clamp(0.6rem, 0.85vw, 0.74rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-            CONCLUSION (VERT ÉMERAUDE)
-          </span>
-        </div>
-      `;
+      planHeaderHtml = renderStepBar([
+        { label: '1. INTRODUCTION', bg: '#ea580c' },
+        { label: '2. PREMIER AXE', bg: '#2563eb' },
+        { label: '3. SECOND AXE', bg: '#0d9488' },
+        { label: 'CONCLUSION', bg: '#059669' }
+      ]);
     }
 
     // Découpage et identification des parties
@@ -979,7 +979,11 @@ export default function App() {
       bodyHtml += wrapSection(badgeTitle, badgeColor, badgeColor, bg, axe2Content);
     }
     if (axe3Content) {
-      bodyHtml += wrapSection('4. SYNTHÈSE (SARCELLE)', '#0d9488', '#0d9488', '#f0fdfa', axe3Content);
+      if (isAnalytique) {
+        bodyHtml += wrapSection('4. TROISIÈME AXE / SOLUTIONS & REMÈDES (AMBRE)', '#d97706', '#d97706', '#fffbeb', axe3Content);
+      } else {
+        bodyHtml += wrapSection('4. SYNTHÈSE (SARCELLE)', '#0d9488', '#0d9488', '#f0fdfa', axe3Content);
+      }
     }
     if (conclContent) {
       bodyHtml += wrapSection('CONCLUSION (VERT ÉMERAUDE)', '#059669', '#059669', '#ecfdf5', conclContent);
@@ -1052,9 +1056,11 @@ export default function App() {
       if (!str) return '';
       let s = str;
       // 1. Scission si à l'intérieur d'une balise <p>...</p>
-      s = s.replace(/([.!?])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1</p>\n\n<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$2</strong>');
-      // 2. Scission si en texte brut ou markdown
-      s = s.replace(/([.!?])\s*(?!\n\s*\n)\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1\n\n$2');
+      s = s.replace(/([.!?…:])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1</p>\n\n<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$2</strong>');
+      // 2. Scission si en texte brut ou markdown avec ponctuation
+      s = s.replace(/([.!?…:])\s*(?!\n\s*\n)\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1\n\n$2');
+      // 3. Scission même si aucune ponctuation n'a été saisie à la fin de l'introduction
+      s = s.replace(/(?<=[a-zA-ZÀ-ÿ0-9])\s+(?!\n\s*\n)(?=(?:Personnellement|En premier lieu|D'abord|D’abord|D'une part|D’une part|Pour ma part|À mon avis|A mon avis|Selon moi)\b)/gi, '.\n\n');
       return s;
     };
 
@@ -1588,23 +1594,27 @@ export default function App() {
       const isC = sLow.includes('dernier jour') || sLow.includes('condamné') || sLow.includes('condamne') || sLow.includes('victor hugo');
 
       const buildDefaultPlanA = () => {
-        const isGuerisseur = sLow.includes('guérisseur') || sLow.includes('guerisseur') || sLow.includes('charlatan') || sLow.includes('tradipraticien') || (sLow.includes('cause') && (sLow.includes('conséquence') || sLow.includes('consequence')));
+        const isGuerisseur = sLow.includes('guérisseur') || sLow.includes('guerisseur') || sLow.includes('charlatan') || sLow.includes('tradipraticien') || (sLow.includes('cause') && (sLow.includes('conséquence') || sLow.includes('consequence') || sLow.includes('solution')));
 
         if (isGuerisseur) {
           return `<div class="model-intro">
-<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, et quelles en sont les répercussions alarmantes sur la santé publique ? Pour répondre avec rigueur à cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce phénomène, avant de mettre en évidence dans un second axe les conséquences redoutables qu'il engendre pour la collectivité.</p>
+<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ? Pour aborder avec rigueur cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce fléau, de mettre en évidence dans un deuxième axe ses conséquences sanitaires dramatiques, avant de formuler dans un troisième axe les solutions indispensables pour y remédier durablement.</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>En premier lieu</strong>, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de praticiens traditionnels qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences mystiques ou surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de cette pratique ancestrale.</p>
+<p><strong>En premier lieu</strong>, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de figures traditionnelles qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences mystiques ou surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de cette pratique archaïque.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>Par conséquent</strong>, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes archaïques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.</p>
+<p><strong>Par conséquent</strong>, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes empiriques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Enfin, pour remédier à ce fléau</strong>, la mise en œuvre d'une stratégie globale articulée autour de la prévention, de la fermeté juridique et de la démocratisation des soins s'impose avec une impérieuse nécessité. D'un côté, les pouvoirs publics et la société civile doivent intensifier les campagnes de sensibilisation dans les médias et les établissements scolaires afin de démystifier le charlatanisme et d'inculquer les réflexes de la médecine préventive aux citoyens. D'un autre côté, il convient de durcir l'arsenal législatif pour sanctionner sévèrement les faux praticiens qui exercent illégalement, tout en étendant la couverture médicale universelle et les dispensaires de proximité afin de rendre les consultations médicales accessibles aux foyers les plus modestes. Dès lors, seule une action solidaire, éducative et résolue permettra de tarir définitivement la clientèle de ces charlatans.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En conclusion</strong>, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Pour enrayer ce fléau destructeur, il apparaît urgent de démocratiser la couverture médicale, de sanctionner sévèrement les charlatans et de multiplier les campagnes de sensibilisation scientifique. En définitive, le triomphe de la médecine moderne et de la dignité humaine ne passe-t-il pas par l'éradication définitive de l'obscurantisme médical ?</p>
+<p><strong>En conclusion</strong>, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et le dénuement, tout en infligeant des désastres sanitaires inacceptables à la communauté. Si les causes demeurent enracinées dans la précarité et les superstitions, les conséquences néfastes appellent un sursaut civique et institutionnel fondé sur l'éducation et la solidarité nationale. En définitive, le triomphe de la médecine scientifique et de la dignité humaine ne constitue-t-il pas le premier devoir d'une société soucieuse de la santé et de l'avenir de ses citoyens ?</p>
 </div>`;
         }
 
@@ -1755,11 +1765,6 @@ export default function App() {
       planARef.current = isPlanValid(planAExtracted) ? planAExtracted : buildDefaultPlanA();
       planBRef.current = isPlanValid(planBExtracted) ? planBExtracted : buildDefaultPlanB();
 
-      const tabSelectors = document.getElementById('tabSelectors');
-      if (tabSelectors) {
-        tabSelectors.style.display = finalPlanType === 'DIALECTIQUE' ? 'flex' : 'none';
-      }
-
       displayM('A');
 
       if (reportSection) {
@@ -1777,9 +1782,9 @@ export default function App() {
         if (rNom) rNom.innerText = (studentName.trim() || 'CANDIDAT').toUpperCase();
         if (rFil) rFil.innerText = filiere;
 
-        setDetectedPlanType('OPINION');
-        const tabSelectors = document.getElementById('tabSelectors');
-        if (tabSelectors) tabSelectors.style.display = 'flex';
+        const sNormFallback = (sujet || '').toLowerCase();
+        const isFallbackAnalytic = sNormFallback.includes('guérisseur') || sNormFallback.includes('guerisseur') || sNormFallback.includes('cause') || sNormFallback.includes('conséquence') || sNormFallback.includes('solution');
+        setDetectedPlanType(isFallbackAnalytic ? 'ANALYTIQUE' : 'SIMPLE');
 
         if (!planARef.current) {
           planARef.current = getDefaultPlanA(sujet);
@@ -2758,7 +2763,7 @@ export default function App() {
                   
                   {/* Sélecteur de plan simple vs dialectique : UNIQUEMENT pour les sujets dialectiques */}
                   {detectedPlanType === 'DIALECTIQUE' ? (
-                    <div id="tabSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
+                    <div id="tabDialecticSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => displayM('A')}
@@ -2777,10 +2782,14 @@ export default function App() {
                       </button>
                     </div>
                   ) : (
-                    <div id="tabSelectors" className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs border border-slate-800">
+                    <div id="planBadgeContainer" className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs border border-slate-800">
                       <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                       <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wide">
-                        {detectedPlanType === 'ANALYTIQUE' ? 'Modèle Certifié : Plan Analytique (Causes & Conséquences)' : 'Modèle Certifié : Plan Simple (Arguments Convergents)'}
+                        {detectedPlanType === 'ANALYTIQUE' ? (
+                          (sujet && (sujet.toLowerCase().includes('solution') || sujet.toLowerCase().includes('guérisseur') || sujet.toLowerCase().includes('guerisseur') || sujet.toLowerCase().includes('remède') || sujet.toLowerCase().includes('remede')))
+                            ? 'Modèle Certifié : Plan Analytique (Causes, Conséquences & Solutions)'
+                            : 'Modèle Certifié : Plan Analytique (Causes & Conséquences)'
+                        ) : 'Modèle Certifié : Plan Simple (Arguments Convergents)'}
                       </span>
                     </div>
                   )}
