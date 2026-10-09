@@ -3913,8 +3913,8 @@ export default function App() {
                     <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèles Rédigés d'Excellence (Norme Al Akhawayn • Min. 18 lignes)
                   </h3>
                   
-                  {/* Sélecteur de plan simple vs dialectique : UNIQUEMENT pour les sujets dialectiques */}
-                  {detectedPlanType === 'DIALECTIQUE' ? (
+                  {/* Sélecteur de plan : Les deux options (Plan Simple & Variante Dialectique) sont TOUJOURS disponibles pour les sujets d'opinion ou de réflexion, seul le sujet purement analytique (causes/conséquences/solutions) a son badge dédié */}
+                  {detectedPlanType !== 'ANALYTIQUE' ? (
                     <div id="tabDialecticSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
                       <button
                         type="button"
@@ -3937,11 +3937,9 @@ export default function App() {
                     <div id="planBadgeContainer" className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs border border-slate-800">
                       <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                       <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wide">
-                        {detectedPlanType === 'ANALYTIQUE' ? (
-                          (sujet && (sujet.toLowerCase().includes('solution') || sujet.toLowerCase().includes('guérisseur') || sujet.toLowerCase().includes('guerisseur') || sujet.toLowerCase().includes('remède') || sujet.toLowerCase().includes('remede')))
-                            ? 'Modèle Certifié : Plan Analytique (Causes, Conséquences & Solutions)'
-                            : 'Modèle Certifié : Plan Analytique (Causes & Conséquences)'
-                        ) : 'Modèle Certifié : Plan Simple (Arguments Convergents)'}
+                        {(sujet && (sujet.toLowerCase().includes('solution') || sujet.toLowerCase().includes('guérisseur') || sujet.toLowerCase().includes('guerisseur') || sujet.toLowerCase().includes('remède') || sujet.toLowerCase().includes('remede')))
+                          ? 'Modèle Certifié : Plan Analytique (Causes, Conséquences & Solutions)'
+                          : 'Modèle Certifié : Plan Analytique (Causes & Conséquences)'}
                       </span>
                     </div>
                   )}
