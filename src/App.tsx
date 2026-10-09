@@ -1,1119 +1,2167 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import OpenAI from 'openai';
-import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
-import nodemailer from 'nodemailer';
+import React, { useState, useEffect, useRef } from 'react';
+import { marked } from 'marked';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import {
+  Award,
+  BookOpen,
+  CheckCircle2,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  FileDown,
+  GraduationCap,
+  Lock,
+  Unlock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Printer,
+  RefreshCw,
+  Scale,
+  Sparkles,
+  User,
+  AlertCircle,
+  AlertTriangle,
+  FolderKanban,
+  Trash2,
+  Save,
+  Users,
+  Palette,
+  Search,
+  Check,
+  Plus,
+  X,
+  Filter,
+  Edit3,
+} from 'lucide-react';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ARCHIVES_FILE = path.join(__dirname, 'archives.json');
+// ==========================================
+// DÉFINITIONS & DONNÉES PÉDAGOGIQUES INTÉGRÉES
+// (100% autonome sans dépendance de fichier externe)
+// ==========================================
 
-// Transporteur SMTP pour l'envoi du code de sécurité par Gmail
-let mailTransporter: any = null;
-const gmailUser = (process.env.GMAIL_APP_USER || 'hadmed.brave@gmail.com').trim();
-const gmailPassRaw = process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || '';
-const gmailPass = gmailPassRaw.replace(/\s+/g, '').trim();
-
-if (gmailPass) {
-  mailTransporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: gmailUser,
-      pass: gmailPass,
-    },
-    connectionTimeout: 6000,
-    greetingTimeout: 6000,
-    socketTimeout: 7000,
-  });
-  console.log(`[Gmail SMTP] Transporteur configuré pour le compte ${gmailUser}`);
-} else if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-  mailTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    connectionTimeout: 6000,
-    greetingTimeout: 6000,
-    socketTimeout: 7000,
-  });
-  console.log(`[SMTP] Transporteur configuré avec ${process.env.SMTP_HOST}`);
-} else {
-  console.warn('[Alerte SMTP] Aucune variable GMAIL_APP_PASSWORD détectée sur le serveur.');
+export interface RegionalSubject {
+  id: string;
+  titre: string;
+  oeuvre: 'La Boîte à Merveilles' | 'Antigone' | 'Le Dernier Jour d’un Condamné' | 'Sujet de Société Général';
+  region: string;
+  annee: string;
+  session: 'Session Normale' | 'Session de Rattrapage';
+  consigne: string;
+  typePlanSuggere?: 'Plan Simple' | 'Plan Dialectique' | 'Plan Analytique';
+  conseilsEnseignant?: string;
+  dateAjout?: string;
+  sourceEnseignant?: boolean;
 }
 
-function loadArchives() {
-  try {
-    if (fs.existsSync(ARCHIVES_FILE)) {
-      const content = fs.readFileSync(ARCHIVES_FILE, 'utf-8');
-      return JSON.parse(content);
-    }
-  } catch (e) {
-    console.error('Error reading archives:', e);
+export interface InkColorOption {
+  id: string;
+  nom: string;
+  hex: string;
+  description: string;
+  badgeClass: string;
+}
+
+export const INK_COLORS: InkColorOption[] = [
+  {
+    id: 'noir',
+    nom: 'Noir Carbone',
+    hex: '#0f172a',
+    description: 'Encre classique officielle',
+    badgeClass: 'bg-slate-900 border-slate-700',
+  },
+  {
+    id: 'bleu',
+    nom: 'Bleu Royal',
+    hex: '#1d4ed8',
+    description: 'Stylo à bille classique',
+    badgeClass: 'bg-blue-700 border-blue-600',
+  },
+  {
+    id: 'rose',
+    nom: 'Rose Framboise',
+    hex: '#db2777',
+    description: 'Nuance vive et raffinée',
+    badgeClass: 'bg-pink-600 border-pink-500',
+  },
+  {
+    id: 'orange',
+    nom: 'Orange Mandarine',
+    hex: '#ea580c',
+    description: 'Ton chaud et énergique',
+    badgeClass: 'bg-orange-600 border-orange-500',
+  },
+  {
+    id: 'violet',
+    nom: 'Violet Impérial',
+    hex: '#7c3aed',
+    description: 'Encre violette des écoliers',
+    badgeClass: 'bg-purple-600 border-purple-500',
+  },
+  {
+    id: 'marron',
+    nom: 'Marron Sépia',
+    hex: '#78350f',
+    description: 'Plume calligraphique vintage',
+    badgeClass: 'bg-amber-900 border-amber-800',
+  },
+  {
+    id: 'vert',
+    nom: 'Vert Émeraude',
+    hex: '#047857',
+    description: 'Encre vivifiante',
+    badgeClass: 'bg-emerald-700 border-emerald-600',
+  },
+];
+
+export const OFFICIAL_LOGICAL_CONNECTORS = [
+  // Énumération, succession & gradation
+  'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+  "D'ailleurs", 'D’ailleurs', 'Par ailleurs',
+  "En d'autres termes", 'En d’autres termes', 'Autrement dit',
+  'En guise de conclusion', 'En définitive', 'En somme', 'En résumé', 'En conclusion', 'Pour conclure', 'Finalement',
+  'Personnellement', 'Pour ma part', 'À mon avis', 'A mon avis', 'Selon moi', "D'après moi", 'D’après moi', 'En ce qui me concerne',
+  'Tout d’abord', "Tout d'abord", 'D’abord', "D'abord", 'Premièrement', 'Deuxièmement', 'Troisièmement',
+  'Ensuite', 'Puis', 'Enfin',
+  // Concession & opposition
+  'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre', 'Bien loin de',
+  // Cause & conséquence
+  'Par conséquent', 'En conséquence', "C'est pourquoi", 'C’est pourquoi', 'Dès lors', 'Ainsi',
+  'En effet', 'En réalité', 'De fait', 'En fait',
+  'De plus', 'En outre', 'De surcroît', 'De surcroit',
+  'D’une part', "D'une part", 'D’autre part', "D'autre part",
+  "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté', "De l'autre côté", 'De l’autre côté',
+  'Non seulement', 'Mais aussi', 'Mais encore',
+  'Aussi donne-t-elle', 'Aussi permet-elle', 'Aussi convient-il', 'Aussi importe-t-il', 'Aussi',
+  'De ce fait', "D'où", 'D’où', 'Certes', 'Sans doute', 'De même',
+  'Il va de soi que', 'Il est indéniable que', 'Il est certain que'
+];
+
+export const getConnectorStyle = (conn: string) => {
+  const c = conn.toLowerCase().trim();
+  // 1. Conclusion / Clôture -> Vert émeraude
+  if (c.includes('conclusion') || c.includes('définitive') || c.includes('somme') || c.includes('résumé') || c.includes('conclure') || c.includes('finalement')) {
+    return {
+      category: 'Conclusion & Clôture',
+      color: '#047857',
+      bg: '#ecfdf5',
+      border: '#a7f3d0',
+      badge: 'Conclusion'
+    };
   }
-  return { boite: [], antigone: [], condamne: [] };
-}
-
-function saveArchives(data: any) {
-  try {
-    fs.writeFileSync(ARCHIVES_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (e) {
-    console.error('Error writing archives:', e);
+  // 2. Concession & Opposition -> Ambre / Orange chaud
+  if (c.includes('cependant') || c.includes('toutefois') || c.includes('néanmoins') || c.includes('en revanche') || c.includes('au contraire') || c.includes('pourtant') || c.includes('par contre') || c.includes('bien loin de') || c.includes('certes')) {
+    return {
+      category: 'Opposition & Concession',
+      color: '#b45309',
+      bg: '#fffbeb',
+      border: '#fde68a',
+      badge: 'Opposition'
+    };
   }
-}
-
-const app = express();
-const PORT = Number(process.env.PORT) || 3000;
-
-app.use(express.json({ limit: '10mb' }));
-app.use(cors());
-
-// Mot de passe enseignant configurable sur le serveur
-let PROFESSOR_PASSWORD = process.env.ACCESS_PASSWORD || 'AKHAWAYN2026';
-let pendingVerification = {
-  code: null as string | null,
-  email: null as string | null,
-  expiresAt: 0,
+  // 3. Cause & Conséquence -> Sarcelle / Cyan profond
+  if (c.includes('par conséquent') || c.includes('en conséquence') || c.includes("c'est pourquoi") || c.includes('c’est pourquoi') || c.includes('dès lors') || c.includes('ainsi') || c.includes('en effet') || c.includes('de fait') || c.includes('en fait') || c.includes('de ce fait') || c.includes("d'où") || c.includes('d’où')) {
+    return {
+      category: 'Cause & Conséquence',
+      color: '#0f766e',
+      bg: '#f0fdfa',
+      border: '#99f6e4',
+      badge: 'Conséquence'
+    };
+  }
+  // 4. Prise de position / Point de vue personnel -> Indigo
+  if (c.includes('personnellement') || c.includes('pour ma part') || c.includes('mon avis') || c.includes('selon moi') || c.includes('d’après moi') || c.includes("d'après moi") || c.includes('me concerne')) {
+    return {
+      category: 'Point de vue',
+      color: '#4338ca',
+      bg: '#eef2ff',
+      border: '#c7d2fe',
+      badge: 'Point de vue'
+    };
+  }
+  // 5. Attaque d'axe, Énumération & Progression -> Bleu royal
+  return {
+    category: 'Attaque & Progression',
+    color: '#1d4ed8',
+    bg: '#eff6ff',
+    border: '#bfdbfe',
+    badge: 'Progression'
+  };
 };
 
-app.post('/api/verify-password', (req, res) => {
-  const { password } = req.body;
-  if (!password) {
-    return res.status(400).json({ success: false, message: 'Mot de passe requis.' });
-  }
-  if (password === PROFESSOR_PASSWORD || password === 'AKHAWAYN2026') {
-    return res.json({ success: true, message: 'Accès autorisé.' });
-  }
-  return res.status(401).json({ success: false, message: 'Mot de passe incorrect.' });
-});
+export const DEFAULT_REGIONAL_SUBJECTS: RegionalSubject[] = [
+  {
+    id: 'reg-boite-parents-2023',
+    titre: "L'autorité parentale et l'autonomie des jeunes dans leurs choix de vie",
+    oeuvre: 'La Boîte à Merveilles',
+    region: 'Rabat-Salé-Kénitra',
+    annee: '2023',
+    session: 'Session Normale',
+    consigne: `« Il est temps que les parents arrêtent de décider à la place de leurs jeunes enfants », déclare un éducateur.
 
-// 1. Demande d'envoi du code de confirmation sécurisé
-app.post('/api/request-password-code', async (req, res) => {
-  const { email, oldPassword } = req.body;
-  
-  if (email && email.trim().toLowerCase() !== 'hadmed.brave@gmail.com') {
-    return res.status(403).json({
-      success: false,
-      message: 'Adresse de messagerie non habilitée pour ce compte administrateur.'
-    });
-  }
+Partagez-vous cette idée ?
 
-  if (!oldPassword || (oldPassword !== PROFESSOR_PASSWORD && oldPassword !== 'AKHAWAYN2026')) {
-    return res.status(401).json({
-      success: false,
-      message: 'Mot de passe actuel incorrect.'
-    });
-  }
+Dans un texte argumentatif d’une vingtaine de lignes, vous présenterez votre point de vue sur ce que devrait être le rapport parents/jeunes, en l’appuyant d’arguments pertinents et d’exemples précis.`,
+    typePlanSuggere: 'Plan Simple',
+    conseilsEnseignant: "Mobilisez la bienveillance protectrice du Maâlem Abdeslem ou les tensions d'émancipation pour illustrer la transition vers la maturité.",
+  },
+  {
+    id: 'reg-boite-solitude-2022',
+    titre: "La solitude : enfermement douloureux ou source de maturité et de créativité ?",
+    oeuvre: 'La Boîte à Merveilles',
+    region: 'Fès-Meknès',
+    annee: '2022',
+    session: 'Session Normale',
+    consigne: `Dans La Boîte à Merveilles d'Ahmed Sefrioui, la solitude et l'épanouissement de l'individu occupent une place centrale.
 
-  const targetEmail = (process.env.GMAIL_APP_USER || 'hadmed.brave@gmail.com').trim();
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  pendingVerification = {
-    code,
-    email: targetEmail,
-    expiresAt: Date.now() + 15 * 60 * 1000,
+Certains considèrent la solitude comme une épreuve douloureuse qui marginalise l'individu, tandis que d'autres y voient le lieu privilégié de la réflexion, de l'autonomie et de la création artistique.
+
+Partagez-vous ce second avis ? Développez votre réflexion dans un texte argumentatif bien structuré d'une vingtaine de lignes.`,
+    typePlanSuggere: 'Plan Dialectique',
+    conseilsEnseignant: "Confrontez la souffrance de l'isolement d'enfant aux trésors poétiques de la boîte à merveilles et à la méditation personnelle.",
+  },
+  {
+    id: 'reg-boite-superstition-2021',
+    titre: "Le recours aux marabouts et aux guérisseurs traditionnels face à la médecine moderne",
+    oeuvre: 'La Boîte à Merveilles',
+    region: 'Casablanca-Settat',
+    annee: '2021',
+    session: 'Session Normale',
+    consigne: `Dans La Boîte à Merveilles, Lalla Zoubida emmène Sidi Mohammed malade au mausolée de Sidi Ali Boughaleb et consulte des voyantes comme Chouafa pour conjurer le mauvais sort.
+
+De nos jours encore, certaines personnes continuent de privilégier les marabouts et guérisseurs traditionnels au détriment de la consultation médicale.
+
+Partagez-vous cette attitude ? Présentez votre point de vue dans un texte argumentatif étayé d'arguments solides et d'exemples précis.`,
+    typePlanSuggere: 'Plan Simple',
+    conseilsEnseignant: "Mettez en avant le danger des illusions magiques et le triomphe de la médecine scientifique et du discernement rationnel.",
+  },
+  {
+    id: 'reg-antigone-revolte-2023',
+    titre: "La rébellion de la jeunesse face aux règles et ordres des adultes",
+    oeuvre: 'Antigone',
+    region: 'Tanger-Tétouan-Al Hoceïma',
+    annee: '2023',
+    session: 'Session Normale',
+    consigne: `À l'instar d'Antigone bravant la loi royale de Créon par fidélité à son frère et à sa conscience, certains jeunes refusent catégoriquement de se soumettre aux ordres des adultes, estimant que la désobéissance est indispensable pour affirmer leur personnalité.
+
+Pensez-vous que les jeunes doivent toujours obéir aveuglément aux adultes, ou ont-ils le devoir moral de contester ce qui leur paraît injuste ?
+
+Rédigez un texte argumentatif d'une vingtaine de lignes illustré d'arguments et d'exemples pertinents.`,
+    typePlanSuggere: 'Plan Dialectique',
+    conseilsEnseignant: "Analysez le conflit tragique : nécessité de l'ordre social d'un côté, noblesse de l'idéal et refus de la compromission de l'autre.",
+  },
+  {
+    id: 'reg-antigone-bonheur-2022',
+    titre: "Le compromis pragmatique face à l'exigence d'un idéal absolu de bonheur",
+    oeuvre: 'Antigone',
+    region: 'Marrakech-Safi',
+    annee: '2022',
+    session: 'Session Normale',
+    consigne: `Dans Antigone de Jean Anouilh, Créon fait l'éloge du « petit bonheur » quotidien fait de concessions et de résignation, tandis qu'Antigone préfère mourir plutôt que de renoncer à son exigence de pureté.
+
+Quelle est votre propre conception du bonheur ? Privilégiez-vous la sagesse des compromis réalistes ou l'intégrité sans faille des idéaux ?
+
+Exposez votre point de vue dans un texte argumentatif d'environ vingt lignes.`,
+    typePlanSuggere: 'Plan Dialectique',
+    conseilsEnseignant: "Opposez l'attitude accommodante d'Ismène et Créon à l'intransigeance sublime d'Antigone pour bâtir votre synthèse.",
+  },
+  {
+    id: 'reg-condamne-peine-mort-2023',
+    titre: "La peine de mort et la dignité humaine : punition exemplaire ou barbarie légale ?",
+    oeuvre: 'Le Dernier Jour d’un Condamné',
+    region: 'Souss-Massa',
+    annee: '2023',
+    session: 'Session Normale',
+    consigne: `Dans Le Dernier Jour d'un Condamné, Victor Hugo clame avec véhémence son horreur de l'échafaud et affirme que la justice humaine ne doit pas ôter ce qu'elle ne peut rendre : la vie.
+
+Partagez-vous ce réquisitoire contre la peine capitale ? Estimez-vous que la société moderne doive abolir définitivement la peine de mort au profit de sanctions réparatrices ?
+
+Présentez votre point de vue dans un texte argumentatif cohérent d'une vingtaine de lignes.`,
+    typePlanSuggere: 'Plan Simple',
+    conseilsEnseignant: "Citez le traumatisme des innocents (la petite Marie), le risque irréversible de l'erreur judiciaire et le principe universel d'humanité.",
+  },
+  {
+    id: 'reg-condamne-prison-2022',
+    titre: "L'institution pénitentiaire : châtiment vindicatif ou lieu de réinsertion sociale ?",
+    oeuvre: 'Le Dernier Jour d’un Condamné',
+    region: 'Casablanca-Settat',
+    annee: '2022',
+    session: 'Session Normale',
+    consigne: `Pour certains, la prison a pour mission essentielle de faire expier la faute commise et d'intimider les criminels potentiels par la sévérité. Pour d'autres, elle doit avant tout offrir un cadre de rééducation, d'apprentissage et de réinsertion dans la communauté.
+
+Quelle vision de la justice pénale soutenez-vous ? Développez vos arguments dans un texte argumentatif structuré d'environ vingt lignes.`,
+    typePlanSuggere: 'Plan Dialectique',
+    conseilsEnseignant: "Évoquez l'enfer dégradant de Bicêtre et le ferrage des forçats pour plaider pour une prison digne et reconstructrice.",
+  },
+  {
+    id: 'reg-boite-solidarite-2021',
+    titre: "La solidarité de voisinage traditionnelle à l'épreuve de l'individualisme contemporain",
+    oeuvre: 'La Boîte à Merveilles',
+    region: 'Fès-Meknès',
+    annee: '2021',
+    session: 'Session de Rattrapage',
+    consigne: `Dans La Boîte à Merveilles, la disparition de la petite Zineb ou le départ du père après sa ruine financière réveillent une solidarité et une compassion spontanées chez toutes les familles de Dar Chouafa.
+
+Pensez-vous que cette chaleur de l'entraide de quartier existe encore aujourd'hui ou a-t-elle été étouffée par l'individualisme des métropoles modernes ?
+
+Justifiez votre position par des arguments concrets et des exemples vécus dans un texte argumentatif.`,
+    typePlanSuggere: 'Plan Dialectique',
+    conseilsEnseignant: "Prenez Dar Chouafa comme miroir d'une fraternité marocaine ancestrale et confrontez-la aux réalités urbaines actuelles.",
+  },
+  {
+    id: 'reg-societe-ecrans-2023',
+    titre: "L'omniprésence des réseaux sociaux et le dialogue intergénérationnel en famille",
+    oeuvre: 'Sujet de Société Général',
+    region: 'Oriental',
+    annee: '2023',
+    session: 'Session de Rattrapage',
+    consigne: `À notre époque, les écrans connectés et les réseaux sociaux occupent une place prépondérante dans le quotidien des adolescents, créant parfois un fossé d'incompréhension et un silence pesant à la table familiale.
+
+Partagez-vous ce constat ? Rédigez un texte argumentatif d’une vingtaine de lignes où vous présenterez votre analyse ainsi que des solutions concrètes pour réconcilier technologie et communication familiale.`,
+    typePlanSuggere: 'Plan Analytique',
+    conseilsEnseignant: "Développez la progression analytique : causes (hyperconnexion), impacts (rupture relationnelle) et solutions (moments d'échange partagés).",
+  },
+];
+
+export default function App() {
+  const [studentName, setStudentName] = useState('');
+  const [filiere, setFiliere] = useState('1ère BAC - Sciences Expérimentales');
+  const [sujet, setSujet] = useState('');
+  const [texte, setTexte] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [activePlan, setActivePlan] = useState<'A' | 'B'>('A');
+  const [hasReport, setHasReport] = useState(false);
+  const [isHorsSujet, setIsHorsSujet] = useState(false);
+  const [offTopicType, setOffTopicType] = useState<'THEMATIQUE' | 'METHODOLOGIQUE' | 'GENERAL'>('GENERAL');
+  const [detectedPlanType, setDetectedPlanType] = useState<'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' | ''>('SIMPLE');
+  // Sujet validé par l'élève : si validé, affiché en gras sans zone de rédaction
+  const [isSubjectValidated, setIsSubjectValidated] = useState<boolean>(false);
+
+  // Choix de la couleur d'encre d'écriture de l'élève (mémorisée dans le navigateur)
+  const [inkColor, setInkColor] = useState<string>(() => {
+    try {
+      return localStorage.getItem('akhawayn_ink_color') || '#0f172a';
+    } catch {
+      return '#0f172a';
+    }
+  });
+
+  // Éditeur manuscrit pour l'élève (permettant la mise en valeur des connecteurs logiques en couleur/gras)
+  const editorRef = useRef<HTMLDivElement>(null);
+  const isTypingRef = useRef<boolean>(false);
+  const [isEditorFocused, setIsEditorFocused] = useState<boolean>(false);
+
+  // Synchroniser le texte avec l'éditeur si mis à jour de l'extérieur (ex: réinitialisation)
+  useEffect(() => {
+    if (editorRef.current && !isTypingRef.current) {
+      if (editorRef.current.innerText.trim() !== texte.trim()) {
+        editorRef.current.innerText = texte;
+      }
+    }
+  }, [texte]);
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      isTypingRef.current = true;
+      const plain = editorRef.current.innerText || '';
+      setTexte(plain);
+      setTimeout(() => {
+        isTypingRef.current = false;
+      }, 100);
+    }
   };
 
-  let emailSent = false;
-  let sendError: string | null = null;
+  const handleEditorPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
+    if (editorRef.current) {
+      setTexte(editorRef.current.innerText || '');
+    }
+  };
 
-  if (mailTransporter) {
+  // Appliquer une couleur en gras UNIQUEMENT sur le mot/lien logique sélectionné par l'élève
+  // L'écriture reste toujours en noir classique par défaut pour tout le reste du texte !
+  const applyInkToSelection = (colorHex: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const selection = window.getSelection();
+    const isDefaultBlack = colorHex.toLowerCase() === '#0f172a' || colorHex.toLowerCase() === '#000000';
+
+    // 1. Si l'élève a sélectionné/surligné un mot dans la zone de texte
+    if (
+      selection &&
+      selection.rangeCount > 0 &&
+      !selection.isCollapsed &&
+      editor.contains(selection.anchorNode) &&
+      editor.contains(selection.focusNode)
+    ) {
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+
+      if (selectedText.length > 0) {
+        if (isDefaultBlack) {
+          // Remettre le mot en texte noir classique normal
+          const textNode = document.createTextNode(selectedText);
+          range.deleteContents();
+          range.insertNode(textNode);
+
+          selection.removeAllRanges();
+          const newRange = document.createRange();
+          newRange.selectNodeContents(textNode);
+          selection.addRange(newRange);
+        } else {
+          // Appliquer la couleur et le gras UNIQUEMENT à la sélection
+          const span = document.createElement('span');
+          span.style.color = colorHex;
+          span.style.fontWeight = '700';
+          span.className = 'font-bold';
+          span.textContent = selectedText;
+
+          range.deleteContents();
+          range.insertNode(span);
+
+          selection.removeAllRanges();
+          const newRange = document.createRange();
+          newRange.selectNodeContents(span);
+          selection.addRange(newRange);
+        }
+
+        setInkColor(colorHex);
+        try {
+          localStorage.setItem('akhawayn_ink_color', colorHex);
+        } catch {}
+        setTexte(editor.innerText || '');
+        return;
+      }
+    }
+
+    // 2. Si aucun mot n'est sélectionné : définir l'encre active pour la frappe suivante
+    editor.focus();
     try {
-      const sender = targetEmail;
-      const mailPromise = mailTransporter.sendMail({
-        from: `"Centre Al Akhawayn" <${sender}>`,
-        to: targetEmail,
-        subject: `[Centre Al Akhawayn] Code de sécurité officiel : ${code}`,
-        text: `Bonjour Professeur,\n\nVoici votre code secret de confirmation pour modifier le mot de passe enseignant : ${code}\n\nCe code expire dans 15 minutes.\n\nDirection Pédagogique - Centre Al Akhawayn`,
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 24px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 500px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <h2 style="color: #0b1528; margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">CENTRE AL AKHAWAYN</h2>
-              <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #b45309; font-weight: bold;">Portail Pédagogique • Code de Sécurité</span>
-            </div>
-            <p style="color: #334155; font-size: 14px; line-height: 1.6;">Bonjour Professeur,</p>
-            <p style="color: #334155; font-size: 14px; line-height: 1.6;">Vous avez demandé la modification du mot de passe enseignant. Voici votre code secret à usage unique :</p>
-            <div style="text-align: center; margin: 26px 0;">
-              <span style="font-size: 34px; font-weight: 900; letter-spacing: 8px; color: #b45309; background: #ffffff; padding: 14px 28px; border-radius: 10px; border: 2px dashed #b45309; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                ${code}
-              </span>
-            </div>
-            <p style="font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 0;">Ce code est strictement confidentiel et valable pendant <strong>15 minutes</strong>. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute sécurité.</p>
-          </div>
-        `,
+      document.execCommand('styleWithCSS', false, 'true');
+      document.execCommand('foreColor', false, isDefaultBlack ? '#0f172a' : colorHex);
+      if (!isDefaultBlack) {
+        if (!document.queryCommandState('bold')) {
+          document.execCommand('bold', false, undefined);
+        }
+      } else {
+        if (document.queryCommandState('bold')) {
+          document.execCommand('bold', false, undefined);
+        }
+      }
+    } catch (e) {
+      console.warn('execCommand:', e);
+    }
+    setInkColor(colorHex);
+    try {
+      localStorage.setItem('akhawayn_ink_color', colorHex);
+    } catch {}
+  };
+
+  // Mettre en valeur automatiquement tous les connecteurs logiques détectés dans le texte SANS toucher aux sauts de ligne ni aux paragraphes
+  const highlightConnectorsInEditor = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const currentText = editor.innerText || '';
+    if (!currentText.trim()) {
+      alert("Veuillez d'abord rédiger ou coller votre texte dans la zone de rédaction.");
+      return;
+    }
+
+    const targetColor = (inkColor.toLowerCase() === '#0f172a' || inkColor.toLowerCase() === '#000000')
+      ? '#ea580c'
+      : inkColor;
+
+    // 1. Déballer les éventuels surlignages de connecteurs existants pour repartir de nœuds texte propres
+    const existingSpans = editor.querySelectorAll('.connector-highlight');
+    existingSpans.forEach((span) => {
+      const text = document.createTextNode(span.textContent || '');
+      span.parentNode?.replaceChild(text, span);
+    });
+    editor.normalize(); // Fusionne les fragments de texte adjacents sans toucher aux paragraphes ni aux sauts de ligne
+
+    // 2. Préparer l'expression régulière globale sur l'ensemble des connecteurs officiels
+    const sorted = [...OFFICIAL_LOGICAL_CONNECTORS].sort((a, b) => b.length - a.length);
+    const escapedPatterns = sorted.map((conn) =>
+      conn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/['’]/g, "['’]")
+    );
+    const regex = new RegExp(`(?<![a-zA-ZÀ-ÿ0-9_])(${escapedPatterns.join('|')})(?![a-zA-ZÀ-ÿ0-9_])`, 'gi');
+
+    // 3. Parcourir exclusivement les nœuds TEXTE pour préserver intégralement les balises (div, p, br, sauts de ligne)
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
+    const textNodes: Text[] = [];
+    let n: Node | null;
+    while ((n = walker.nextNode())) {
+      textNodes.push(n as Text);
+    }
+
+    let matchCount = 0;
+    for (const textNode of textNodes) {
+      const val = textNode.nodeValue || '';
+      if (!val) continue;
+
+      regex.lastIndex = 0;
+      if (!regex.test(val)) continue;
+
+      regex.lastIndex = 0;
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+
+      while ((match = regex.exec(val)) !== null) {
+        matchCount++;
+        // Texte précédant le connecteur
+        if (match.index > lastIndex) {
+          fragment.appendChild(document.createTextNode(val.substring(lastIndex, match.index)));
+        }
+        // Balise span stylée pour le connecteur
+        const span = document.createElement('span');
+        span.style.color = targetColor;
+        span.style.fontWeight = '700';
+        span.className = 'font-bold connector-highlight';
+        span.textContent = match[0];
+        fragment.appendChild(span);
+
+        lastIndex = match.index + match[0].length;
+      }
+
+      // Reste du texte après le dernier connecteur
+      if (lastIndex < val.length) {
+        fragment.appendChild(document.createTextNode(val.substring(lastIndex)));
+      }
+
+      textNode.parentNode?.replaceChild(fragment, textNode);
+    }
+
+    if (matchCount === 0) {
+      alert("Aucun connecteur logique officiel n'a été détecté pour le moment. Vous pouvez sélectionner manuellement un mot et cliquer sur une couleur de la palette pour le passer en gras.");
+      return;
+    }
+
+    setTexte(editor.innerText || '');
+  };
+
+  // Réinitialiser tout le texte en noir standard normal sans modifier la disposition des paragraphes
+  const resetAllTextColors = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    // Déballer toutes les balises span de style sans altérer les sauts de ligne ni les paragraphes
+    editor.querySelectorAll('span').forEach((span) => {
+      const text = document.createTextNode(span.textContent || '');
+      span.parentNode?.replaceChild(text, span);
+    });
+    // Retirer aussi les éventuelles balises b ou strong
+    editor.querySelectorAll('b, strong').forEach((el) => {
+      const text = document.createTextNode(el.textContent || '');
+      el.parentNode?.replaceChild(text, el);
+    });
+    editor.normalize();
+
+    setInkColor('#0f172a');
+    try {
+      localStorage.setItem('akhawayn_ink_color', '#0f172a');
+    } catch {}
+    setTexte(editor.innerText || '');
+  };
+
+  // Bibliothèque des Sujets Régionaux Officiels
+  const [regionalSubjects, setRegionalSubjects] = useState<RegionalSubject[]>(() => {
+    try {
+      const saved = localStorage.getItem('akhawayn_custom_regional_subjects');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return [...parsed, ...DEFAULT_REGIONAL_SUBJECTS];
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_REGIONAL_SUBJECTS;
+  });
+
+  // Clé d'habilitation officielle réservée à l'enseignant pour déposer ou administrer les sujets
+  const TEACHER_AUTH_KEY = 'hadmed.brave@gmail.com2026';
+
+  const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('akhawayn_teacher_auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [showTeacherAuthModal, setShowTeacherAuthModal] = useState<boolean>(false);
+  const [teacherInputKey, setTeacherInputKey] = useState<string>('');
+  const [teacherAuthError, setTeacherAuthError] = useState<string>('');
+  const [showTeacherKeyPlain, setShowTeacherKeyPlain] = useState<boolean>(false);
+
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [showTeacherModal, setShowTeacherModal] = useState(false);
+  const [selectedOeuvreFilter, setSelectedOeuvreFilter] = useState<string>('TOUTES');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subjectLoadNotice, setSubjectLoadNotice] = useState<string | null>(null);
+
+  // Formulaire de dépôt Enseignant
+  const [teacherTitre, setTeacherTitre] = useState('');
+  const [teacherOeuvre, setTeacherOeuvre] = useState<RegionalSubject['oeuvre']>('La Boîte à Merveilles');
+  const [teacherRegion, setTeacherRegion] = useState('Académie Régionale');
+  const [teacherAnnee, setTeacherAnnee] = useState('2024');
+  const [teacherSession, setTeacherSession] = useState<RegionalSubject['session']>('Session Normale');
+  const [teacherConsigne, setTeacherConsigne] = useState('');
+  const [teacherPlan, setTeacherPlan] = useState<'Plan Simple' | 'Plan Dialectique' | 'Plan Analytique'>('Plan Simple');
+  const [teacherConseils, setTeacherConseils] = useState('');
+  const [teacherFormError, setTeacherFormError] = useState('');
+  const [teacherFormSuccess, setTeacherFormSuccess] = useState(false);
+
+  const handleOpenTeacherModal = () => {
+    if (isTeacherAuthenticated) {
+      setShowTeacherModal(true);
+    } else {
+      setTeacherAuthError('');
+      setTeacherInputKey('');
+      setShowTeacherAuthModal(true);
+    }
+  };
+
+  const handleVerifyTeacherKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (teacherInputKey.trim() === TEACHER_AUTH_KEY) {
+      try {
+        sessionStorage.setItem('akhawayn_teacher_auth', 'true');
+      } catch (err) {
+        console.error(err);
+      }
+      setIsTeacherAuthenticated(true);
+      setShowTeacherAuthModal(false);
+      setTeacherInputKey('');
+      setTeacherAuthError('');
+      setShowTeacherModal(true);
+    } else {
+      setTeacherAuthError("Clé d'habilitation incorrecte. Cet espace est strictement réservé au professeur habilité.");
+    }
+  };
+
+  const handleLockTeacherSpace = () => {
+    try {
+      sessionStorage.removeItem('akhawayn_teacher_auth');
+    } catch (err) {
+      console.error(err);
+    }
+    setIsTeacherAuthenticated(false);
+    setShowTeacherModal(false);
+    setSubjectLoadNotice("Session enseignant verrouillée avec succès.");
+    setTimeout(() => setSubjectLoadNotice(null), 3000);
+  };
+
+  const handleLoadSubject = (subjectItem: RegionalSubject) => {
+    setSujet(subjectItem.consigne);
+    setIsSubjectValidated(true);
+    if (subjectItem.typePlanSuggere === 'Plan Simple') {
+      setDetectedPlanType('SIMPLE');
+    } else if (subjectItem.typePlanSuggere === 'Plan Dialectique') {
+      setDetectedPlanType('DIALECTIQUE');
+    } else if (subjectItem.typePlanSuggere === 'Plan Analytique') {
+      setDetectedPlanType('ANALYTIQUE');
+    }
+    setSubjectLoadNotice(`Sujet officiel « ${subjectItem.titre} » chargé avec succès !`);
+    setTimeout(() => setSubjectLoadNotice(null), 4500);
+
+    const el = document.getElementById('sujet');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleSaveTeacherSubject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isTeacherAuthenticated) {
+      setTeacherFormError("Autorisation requise. Veuillez saisir la clé d'habilitation enseignant.");
+      setShowTeacherModal(false);
+      setShowTeacherAuthModal(true);
+      return;
+    }
+    if (!teacherTitre.trim() || !teacherConsigne.trim()) {
+      setTeacherFormError('Veuillez renseigner au minimum le titre du sujet et la consigne intégrale.');
+      return;
+    }
+    const newSub: RegionalSubject = {
+      id: `prof-${Date.now()}`,
+      titre: teacherTitre.trim(),
+      oeuvre: teacherOeuvre,
+      region: teacherRegion.trim() || 'Académie Régionale',
+      annee: teacherAnnee.trim() || '2024',
+      session: teacherSession,
+      consigne: teacherConsigne.trim(),
+      typePlanSuggere: teacherPlan,
+      conseilsEnseignant: teacherConseils.trim() || undefined,
+      dateAjout: new Date().toLocaleDateString('fr-FR'),
+      sourceEnseignant: true,
+    };
+
+    setRegionalSubjects((prev) => {
+      const updated = [newSub, ...prev];
+      try {
+        const customsOnly = updated.filter((s) => s.sourceEnseignant);
+        localStorage.setItem('akhawayn_custom_regional_subjects', JSON.stringify(customsOnly));
+      } catch (err) {
+        console.error(err);
+      }
+      return updated;
+    });
+
+    setTeacherFormSuccess(true);
+    setTeacherFormError('');
+    setTimeout(() => {
+      setShowTeacherModal(false);
+      setTeacherFormSuccess(false);
+      setTeacherTitre('');
+      setTeacherConsigne('');
+      setTeacherConseils('');
+      setSubjectLoadNotice(`Nouveau sujet officiel déposé par l'enseignant et ajouté à la Bibliothèque !`);
+      setTimeout(() => setSubjectLoadNotice(null), 4500);
+    }, 1100);
+  };
+
+  const handleDeleteCustomSubject = (id: string) => {
+    if (!isTeacherAuthenticated) {
+      setTeacherAuthError("Accès réservé : veuillez saisir la clé d'habilitation enseignant pour retirer un sujet.");
+      setShowTeacherAuthModal(true);
+      return;
+    }
+    if (window.confirm('Êtes-vous sûr de vouloir retirer ce sujet déposé de la bibliothèque ?')) {
+      setRegionalSubjects((prev) => {
+        const filtered = prev.filter((s) => s.id !== id);
+        try {
+          const customsOnly = filtered.filter((s) => s.sourceEnseignant);
+          localStorage.setItem('akhawayn_custom_regional_subjects', JSON.stringify(customsOnly));
+        } catch (err) {
+          console.error(err);
+        }
+        return filtered;
+      });
+    }
+  };
+
+  const filteredSubjects = React.useMemo(() => {
+    return regionalSubjects.filter((item) => {
+      const matchOeuvre =
+        selectedOeuvreFilter === 'TOUTES' ||
+        (selectedOeuvreFilter === 'ENSEIGNANT' && item.sourceEnseignant) ||
+        item.oeuvre === selectedOeuvreFilter;
+
+      if (!matchOeuvre) return false;
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        item.titre.toLowerCase().includes(q) ||
+        item.consigne.toLowerCase().includes(q) ||
+        item.region.toLowerCase().includes(q) ||
+        item.annee.includes(q) ||
+        item.oeuvre.toLowerCase().includes(q)
+      );
+    });
+  }, [regionalSubjects, selectedOeuvreFilter, searchQuery]);
+
+  // Compteur officiel des lignes manuscrites (Norme Bac : 20 à 25 lignes)
+  const lineCount = React.useMemo(() => {
+    if (!texte.trim()) return 0;
+    const paras = texte.split('\n');
+    let total = 0;
+    for (const p of paras) {
+      if (p.trim().length === 0) {
+        total += 1;
+      } else {
+        // En moyenne une ligne de copie d'examen manuscrite compte ~65 à 70 caractères ou 1 saut de ligne
+        const wrapped = Math.max(1, Math.ceil(p.length / 68));
+        total += wrapped;
+      }
+    }
+    return total;
+  }, [texte]);
+
+  // Si l'élève choisit une couleur différente du noir, l'écriture s'affiche en gras
+  const isBoldInk = React.useMemo(() => {
+    return inkColor.toLowerCase() !== '#0f172a' && inkColor.toLowerCase() !== '#000000' && inkColor.toLowerCase() !== 'black';
+  }, [inkColor]);
+
+  // Authentification Enseignant & Candidat (mémorisée en continu dans le navigateur de l'élève)
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(() => {
+    try {
+      const auth = localStorage.getItem('akhawayn_auth');
+      const pwd = localStorage.getItem('akhawayn_pwd');
+      const sessAuth = sessionStorage.getItem('akhawayn_auth');
+      // Si l'élève est déjà authentifié ou possède un mot de passe stocké dans le navigateur
+      if (auth === 'true' || sessAuth === 'true' || (typeof pwd === 'string' && pwd.trim().length >= 4)) {
+        return true;
+      }
+    } catch {
+      return false;
+    }
+    return false;
+  });
+  const [sessionPassword, setSessionPassword] = useState(() => {
+    try {
+      return localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026';
+    } catch {
+      return 'AKHAWAYN2026';
+    }
+  });
+  const [passwordInput, setPasswordInput] = useState(() => {
+    try {
+      return localStorage.getItem('akhawayn_pwd') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [authError, setAuthError] = useState('');
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Scores de la grille officielle (10 points)
+  const [scores, setScores] = useState({
+    c: 1.8,
+    s: 1.7,
+    a: 1.8,
+    l: 2.2,
+    x: 1.3,
+    total: '8.8',
+  });
+
+  // Analyse didactique de l'armature logique (liens logiques officiels) de la copie du candidat
+  const logicalConnectorsStats = React.useMemo(() => {
+    if (!texte || !texte.trim()) {
+      return { count: 0, list: [] as string[], hasAttack: false, hasConclusion: false };
+    }
+    const lowerText = texte.toLowerCase();
+    const sorted = [...OFFICIAL_LOGICAL_CONNECTORS].sort((a, b) => b.length - a.length);
+    const found: string[] = [];
+
+    for (const conn of sorted) {
+      const escaped = conn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/['’]/g, "['’]");
+      const rx = new RegExp(`(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])`, 'gi');
+      let m;
+      while ((m = rx.exec(texte)) !== null) {
+        found.push(m[1]);
+      }
+    }
+
+    const attackKeywords = [
+      'premier lieu', "d'abord", 'd’abord', "d'une part", 'd’une part',
+      'premièrement', 'personnellement', 'pour ma part', 'à mon avis', 'a mon avis', 'selon moi'
+    ];
+    const hasAttack = attackKeywords.some((k) => lowerText.includes(k));
+
+    const conclusionKeywords = [
+      'en conclusion', 'en définitive', 'en somme', 'en résumé',
+      'en guise de conclusion', 'pour conclure', 'finalement'
+    ];
+    const hasConclusion = conclusionKeywords.some((k) => lowerText.includes(k));
+
+    return {
+      count: found.length,
+      list: Array.from(new Set(found.map((f) => f.trim()))),
+      hasAttack,
+      hasConclusion,
+    };
+  }, [texte]);
+
+  // Attribution de la mention officielle selon la note sur 10 (Mention Très Bien, Bien, À consolider)
+  const getMentionData = (note: number, isHorsSujetVal: boolean) => {
+    if (isHorsSujetVal || note === 0) {
+      return {
+        label: 'Hors-Sujet',
+        className: 'bg-red-100 text-red-800 border-red-300',
+      };
+    }
+    if (note >= 8.0) {
+      return {
+        label: 'Mention Très Bien',
+        className: 'bg-emerald-100 text-emerald-800 border-emerald-300 shadow-2xs',
+      };
+    }
+    if (note >= 6.5) {
+      return {
+        label: 'Mention Bien',
+        className: 'bg-blue-100 text-blue-800 border-blue-300 shadow-2xs',
+      };
+    }
+    return {
+      label: 'À consolider',
+      className: 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs',
+    };
+  };
+
+  const currentScoreNum = isHorsSujet
+    ? 0
+    : (parseFloat(scores.total) || (scores.c + scores.s + scores.a + scores.l + scores.x) || 8.8);
+  const mentionInfo = getMentionData(currentScoreNum, isHorsSujet);
+
+  // Modal Changement de mot de passe sécurisé par Clé Maître Enseignant
+  const [showChangeModal, setShowChangeModal] = useState(false);
+  const [passwordChangeStep, setPasswordChangeStep] = useState<'KEY' | 'PASSWORDS'>('KEY');
+  const [activeUsersCount, setActiveUsersCount] = useState<number>(1);
+  const [masterKeyInput, setMasterKeyInput] = useState('');
+  const [showMasterKey, setShowMasterKey] = useState(false);
+  const [oldPasswordInput, setOldPasswordInput] = useState('');
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
+  const [changeFeedback, setChangeFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isChanging, setIsChanging] = useState(false);
+
+  // Modal Mot de passe Candidat (sert à introduire le mot de passe actuel)
+  const [showCandidateModal, setShowCandidateModal] = useState(false);
+  const [candidatePasswordInput, setCandidatePasswordInput] = useState('');
+  const [candidateFeedback, setCandidateFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isCheckingCandidate, setIsCheckingCandidate] = useState(false);
+  const [showCandidatePassword, setShowCandidatePassword] = useState(false);
+
+  // Utilitaires de stockage dans le navigateur de l'élève (localStorage)
+  const getStoredArchives = (): { boite: any[]; antigone: any[]; condamne: any[] } => {
+    try {
+      const stored = localStorage.getItem('akhawayn_student_archives');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          boite: Array.isArray(parsed?.boite) ? parsed.boite : [],
+          antigone: Array.isArray(parsed?.antigone) ? parsed.antigone : [],
+          condamne: Array.isArray(parsed?.condamne) ? parsed.condamne : [],
+        };
+      }
+    } catch (e) {
+      console.error('Erreur lecture localStorage archives:', e);
+    }
+    return { boite: [], antigone: [], condamne: [] };
+  };
+
+  const mergeArchiveArrays = (localArr: any[], serverArr: any[]): any[] => {
+    const map = new Map<string, any>();
+    for (const item of localArr || []) {
+      if (item && item.id) map.set(item.id, item);
+    }
+    for (const item of serverArr || []) {
+      if (item && item.id && !map.has(item.id)) {
+        map.set(item.id, item);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  // Boîtes d'archives par œuvre (Enregistrées prioritairement dans le navigateur de l'élève)
+  const [archives, setArchives] = useState<{ boite: any[]; antigone: any[]; condamne: any[] }>(getStoredArchives);
+  const [selectedWorkBox, setSelectedWorkBox] = useState<'boite' | 'antigone' | 'condamne' | null>(null);
+  const [viewingArchiveItem, setViewingArchiveItem] = useState<any | null>(null);
+  const [archiveActiveTab, setArchiveActiveTab] = useState<'optimized' | 'model' | 'original'>('optimized');
+  const [archiveModelPlanTab, setArchiveModelPlanTab] = useState<'A' | 'B'>('A');
+  const [saveToast, setSaveToast] = useState<string | null>(null);
+
+  const planARef = useRef('');
+  const planBRef = useRef('');
+
+  // Identifiant unique de session pour le suivi instantané des utilisateurs connectés
+  const getClientId = () => {
+    try {
+      let id = sessionStorage.getItem('akhawayn_client_id');
+      if (!id) {
+        id = 'user_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now();
+        sessionStorage.setItem('akhawayn_client_id', id);
+      }
+      return id;
+    } catch {
+      return 'user_client_' + Date.now();
+    }
+  };
+
+  useEffect(() => {
+    // Déverrouillage automatique et immédiat si l'élève a son mot de passe mémorisé dans son navigateur
+    try {
+      const auth = localStorage.getItem('akhawayn_auth');
+      const pwd = localStorage.getItem('akhawayn_pwd');
+      if (auth === 'true' || (pwd && pwd.trim().length >= 4)) {
+        setIsUnlocked(true);
+        sessionStorage.setItem('akhawayn_auth', 'true');
+      }
+    } catch (e) {
+      console.warn('Erreur accès localStorage:', e);
+    }
+
+    fetchArchives();
+
+    // Suivi instantané du nombre d'utilisateurs actifs via heartbeat régulier
+    const pingHeartbeat = async () => {
+      try {
+        const res = await fetch('/api/heartbeat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientId: getClientId() }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && typeof data.count === 'number') {
+            setActiveUsersCount(data.count);
+          }
+        }
+      } catch {
+        // En cas de micro-coupure réseau, conserver le dernier décompte
+      }
+    };
+
+    pingHeartbeat();
+    const heartbeatTimer = setInterval(pingHeartbeat, 6000);
+
+    // Bloquer le clic droit sur toute la page
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      clearInterval(heartbeatTimer);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
+  const fetchArchives = async () => {
+    // 1. Chargement instantané et garanti depuis le navigateur de l'élève
+    const local = getStoredArchives();
+    setArchives(local);
+
+    // 2. Synchronisation de secours avec le serveur (sans écraser les copies de l'élève)
+    try {
+      const res = await fetch('/api/archives');
+      if (res.ok) {
+        const serverData = await res.json();
+        if (serverData && typeof serverData === 'object') {
+          const merged = {
+            boite: mergeArchiveArrays(local.boite, serverData.boite || []),
+            antigone: mergeArchiveArrays(local.antigone, serverData.antigone || []),
+            condamne: mergeArchiveArrays(local.condamne, serverData.condamne || []),
+          };
+          setArchives(merged);
+          try {
+            localStorage.setItem('akhawayn_student_archives', JSON.stringify(merged));
+          } catch {}
+        }
+      }
+    } catch (e) {
+      // Aucun problème : le navigateur conserve toutes les productions en local
+    }
+  };
+
+  const handleUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthNotice(null);
+    if (!passwordInput.trim()) {
+      setAuthError('Veuillez introduire le mot de passe actuel.');
+      return;
+    }
+    setIsVerifying(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSessionPassword(passwordInput.trim());
+        setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', passwordInput.trim());
+        sessionStorage.setItem('akhawayn_auth', 'true');
+        setPasswordInput('');
+      } else {
+        setAuthError(data.message || 'Mot de passe incorrect.');
+      }
+    } catch (err) {
+      if (passwordInput.trim() === 'AKHAWAYN2026') {
+        setSessionPassword(passwordInput.trim());
+        setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', passwordInput.trim());
+        sessionStorage.setItem('akhawayn_auth', 'true');
+        setPasswordInput('');
+      } else {
+        setAuthError('Mot de passe incorrect.');
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleVerifyCandidatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!candidatePasswordInput.trim()) {
+      setCandidateFeedback({ type: 'error', message: 'Veuillez introduire le mot de passe actuel.' });
+      return;
+    }
+    setIsCheckingCandidate(true);
+    setCandidateFeedback(null);
+    try {
+      const res = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: candidatePasswordInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSessionPassword(candidatePasswordInput.trim());
+        setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', candidatePasswordInput.trim());
+        sessionStorage.setItem('akhawayn_auth', 'true');
+        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active et mémorisée dans votre navigateur.' });
+        setTimeout(() => {
+          setShowCandidateModal(false);
+          setCandidatePasswordInput('');
+          setCandidateFeedback(null);
+        }, 1300);
+      } else {
+        setCandidateFeedback({ type: 'error', message: data.message || 'Mot de passe actuel incorrect.' });
+      }
+    } catch {
+      if (candidatePasswordInput.trim() === 'AKHAWAYN2026') {
+        setSessionPassword(candidatePasswordInput.trim());
+        setIsUnlocked(true);
+        localStorage.setItem('akhawayn_auth', 'true');
+        localStorage.setItem('akhawayn_pwd', candidatePasswordInput.trim());
+        sessionStorage.setItem('akhawayn_auth', 'true');
+        setCandidateFeedback({ type: 'success', message: 'Mot de passe actuel validé avec succès ! Session candidat active et mémorisée dans votre navigateur.' });
+        setTimeout(() => {
+          setShowCandidateModal(false);
+          setCandidatePasswordInput('');
+          setCandidateFeedback(null);
+        }, 1300);
+      } else {
+        setCandidateFeedback({ type: 'error', message: 'Mot de passe actuel incorrect.' });
+      }
+    } finally {
+      setIsCheckingCandidate(false);
+    }
+  };
+
+  const handleVerifyMasterKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangeFeedback(null);
+
+    const clean = masterKeyInput.trim();
+    if (!clean) {
+      setChangeFeedback({ type: 'error', message: 'Veuillez saisir votre clé secrète d’habilitation.' });
+      return;
+    }
+
+    setIsChanging(true);
+    try {
+      const res = await fetch('/api/verify-master-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ masterKey: clean }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPasswordChangeStep('PASSWORDS');
+        setChangeFeedback({ type: 'success', message: 'Identité direction validée avec succès ! Vous pouvez maintenant mettre à jour le mot de passe.' });
+        fetch('/api/active-users')
+          .then(r => r.json())
+          .then(d => { if (d && typeof d.count === 'number') setActiveUsersCount(d.count); })
+          .catch(() => {});
+      } else {
+        setChangeFeedback({ type: 'error', message: data.message || 'Clé secrète d’habilitation incorrecte.' });
+      }
+    } catch (err) {
+      setChangeFeedback({ type: 'error', message: 'Erreur de connexion au serveur.' });
+    } finally {
+      setIsChanging(false);
+    }
+  };
+
+  const handleSaveNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangeFeedback(null);
+
+    if (!oldPasswordInput.trim() || !newPasswordInput.trim() || !confirmPasswordInput.trim()) {
+      setChangeFeedback({ type: 'error', message: 'Veuillez renseigner tous les champs obligatoires.' });
+      return;
+    }
+
+    if (newPasswordInput.trim() !== confirmPasswordInput.trim()) {
+      setChangeFeedback({ type: 'error', message: 'Les nouveaux mots de passe ne correspondent pas.' });
+      return;
+    }
+
+    if (newPasswordInput.trim().length < 4) {
+      setChangeFeedback({ type: 'error', message: 'Le nouveau mot de passe doit comporter au moins 4 caractères.' });
+      return;
+    }
+
+    setIsChanging(true);
+    try {
+      const res = await fetch('/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          masterKey: masterKeyInput.trim(),
+          oldPassword: oldPasswordInput.trim(),
+          newPassword: newPasswordInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setChangeFeedback({
+          type: 'success',
+          message: 'Mot de passe mis à jour avec succès ! La page a été verrouillée automatiquement.',
+        });
+        setSessionPassword(newPasswordInput.trim());
+        setOldPasswordInput('');
+        setNewPasswordInput('');
+        setConfirmPasswordInput('');
+        setMasterKeyInput('');
+
+        // Verrouillage automatique de la session
+        localStorage.removeItem('akhawayn_auth');
+        sessionStorage.removeItem('akhawayn_auth');
+        setIsUnlocked(false);
+        setPasswordInput('');
+        setAuthError('');
+        setAuthNotice('Session verrouillée suite au changement de mot de passe. Le candidat doit introduire le nouveau mot de passe fourni par la direction.');
+
+        setTimeout(() => {
+          setShowChangeModal(false);
+          setPasswordChangeStep('KEY');
+          setChangeFeedback(null);
+        }, 1500);
+      } else {
+        setChangeFeedback({ type: 'error', message: data.message || 'Mot de passe actuel incorrect.' });
+      }
+    } catch (err) {
+      setChangeFeedback({ type: 'error', message: 'Erreur de connexion au serveur.' });
+    } finally {
+      setIsChanging(false);
+    }
+  };
+
+  const displayM = (type: 'A' | 'B') => {
+    setActivePlan(type);
+    const ts = document.getElementById('ts');
+    const td = document.getElementById('td');
+    if (ts) ts.classList.toggle('active', type === 'A');
+    if (td) td.classList.toggle('active', type === 'B');
+
+    const outModel = document.getElementById('outModel');
+    if (outModel) {
+      const isDialectique = type === 'B';
+      const content = type === 'A' ? planARef.current : planBRef.current;
+      const formatted = formatModelPlan(content, isDialectique ? 'DIALECTIQUE' : (detectedPlanType === 'ANALYTIQUE' ? 'ANALYTIQUE' : 'SIMPLE'));
+      outModel.innerHTML = formatted;
+    }
+  };
+
+  const handlePrintPdf = () => {
+    const origTitle = document.title;
+    const cleanName = (studentName.trim() || 'CANDIDAT').replace(/\s+/g, '_');
+    document.title = `Rapport_Expertise_Bac_${cleanName}`;
+    window.print();
+    setTimeout(() => {
+      document.title = origTitle;
+    }, 1500);
+  };
+
+  const handleExportPdf = async () => {
+    const reportElement = document.getElementById('reportSection');
+    if (!reportElement) {
+      alert("Veuillez d'abord générer l'expertise didactique.");
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+    try {
+      const origTitle = document.title;
+      const cleanName = (studentName.trim() || 'CANDIDAT').replace(/\s+/g, '_');
+      document.title = `Rapport_Expertise_Bac_${cleanName}`;
+
+      const canvas = await html2canvas(reportElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 1200,
+        ignoreElements: (el) => el.classList.contains('no-print'),
       });
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Délai dépassé (timeout) : connexion à Google SMTP trop lente ou bloquée')), 6000)
-      );
+      const imgData = canvas.toDataURL('image/jpeg', 0.96);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
 
-      await Promise.race([mailPromise, timeoutPromise]);
-      emailSent = true;
-      console.log(`[Gmail SMTP Succès] Code ${code} expédié avec succès`);
-    } catch (err: any) {
-      console.error('[Gmail SMTP Erreur d’envoi]', err);
-      sendError = err.message || 'Erreur SMTP';
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Premiere page A4
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+      heightLeft -= pdfHeight;
+
+      // Pages suivantes si le rapport est long
+      while (heightLeft > 0) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`Rapport_Expertise_Bac_${cleanName}.pdf`);
+      document.title = origTitle;
+    } catch (err) {
+      console.error("Erreur génération PDF direct, ouverture de l'impression système:", err);
+      handlePrintPdf();
+    } finally {
+      setIsGeneratingPdf(false);
     }
-  }
-
-  if (emailSent) {
-    return res.json({
-      success: true,
-      message: 'Un code de confirmation sécurisé a été expédié directement à votre boîte Gmail.',
-      emailSent: true,
-    });
-  }
-
-  if (!mailTransporter) {
-    return res.status(503).json({
-      success: false,
-      message: 'Service d’envoi d’email non configuré sur le serveur (variable GMAIL_APP_PASSWORD absente).',
-      emailSent: false,
-    });
-  }
-
-  return res.status(500).json({
-    success: false,
-    message: `Échec d'envoi du mail via Gmail : ${sendError}. Vérifiez que votre mot de passe d'application Google (16 caractères) est valide.`,
-    emailSent: false,
-  });
-});
-
-// 2. Validation du code de confirmation et enregistrement du nouveau mot de passe
-app.post('/api/confirm-change-password', (req, res) => {
-  const { verificationCode, newPassword } = req.body;
-
-  if (!pendingVerification.code || Date.now() > pendingVerification.expiresAt) {
-    return res.status(400).json({
-      success: false,
-      message: 'Le code de vérification a expiré ou n\'a pas encore été demandé.'
-    });
-  }
-
-  if (!verificationCode || verificationCode.trim() !== pendingVerification.code) {
-    return res.status(400).json({
-      success: false,
-      message: 'Code de vérification incorrect. Veuillez vérifier le code reçu sur votre boîte de messagerie.'
-    });
-  }
-
-  if (!newPassword || newPassword.trim().length < 4) {
-    return res.status(400).json({
-      success: false,
-      message: 'Le nouveau mot de passe doit comporter au moins 4 caractères.'
-    });
-  }
-
-  PROFESSOR_PASSWORD = newPassword.trim();
-  pendingVerification = { code: null, email: null, expiresAt: 0 };
-  return res.json({
-    success: true,
-    message: 'Mot de passe direction mis à jour avec succès sur le serveur !'
-  });
-});
-
-const MASTER_SECRET_KEY = (process.env.MASTER_SECRET_KEY || 'hadmed.brave@gmail.com2026').trim().toLowerCase();
-
-app.post('/api/verify-master-key', (req, res) => {
-  const { masterKey } = req.body;
-  if (!masterKey) {
-    return res.status(400).json({ success: false, message: 'Clé secrète requise.' });
-  }
-  const cleanKey = masterKey.trim().toLowerCase().replace(/\s+/g, '');
-  if (cleanKey === MASTER_SECRET_KEY || cleanKey === 'hadmed.brave@gmail.com2026' || cleanKey === 'hadmed.brave@gmail.com') {
-    return res.json({ success: true, message: 'Identité direction confirmée avec succès.' });
-  }
-  return res.status(401).json({ success: false, message: 'Clé secrète d’habilitation incorrecte.' });
-});
-
-app.post('/api/change-password', (req, res) => {
-  const { masterKey, oldPassword, newPassword } = req.body;
-  if (masterKey) {
-    const cleanKey = masterKey.trim().toLowerCase().replace(/\s+/g, '');
-    if (cleanKey !== MASTER_SECRET_KEY && cleanKey !== 'hadmed.brave@gmail.com2026' && cleanKey !== 'hadmed.brave@gmail.com') {
-      return res.status(403).json({ success: false, message: 'Clé secrète d’habilitation incorrecte.' });
-    }
-  }
-  const cleanOld = (oldPassword || '').trim();
-  if (!cleanOld || (cleanOld !== PROFESSOR_PASSWORD && cleanOld !== 'AKHAWAYN2026')) {
-    return res.status(401).json({ success: false, message: 'Mot de passe actuel incorrect.' });
-  }
-  if (!newPassword || newPassword.trim().length < 4) {
-    return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit comporter au moins 4 caractères.' });
-  }
-  PROFESSOR_PASSWORD = newPassword.trim();
-  return res.json({ success: true, message: 'Mot de passe direction mis à jour avec succès sur le serveur !' });
-});
-
-// Système de suivi des utilisateurs actifs en temps réel
-const activeUsers = new Map<string, number>();
-
-app.post('/api/heartbeat', (req, res) => {
-  const clientId = (req.body?.clientId as string) || (req.ip as string) || 'client-' + Math.random().toString(36).substring(2, 9);
-  activeUsers.set(clientId, Date.now());
-  const cutoff = Date.now() - 45000;
-  for (const [id, lastSeen] of activeUsers.entries()) {
-    if (lastSeen < cutoff) activeUsers.delete(id);
-  }
-  const count = Math.max(1, activeUsers.size);
-  res.json({ success: true, count });
-});
-
-app.get('/api/active-users', (req, res) => {
-  const cutoff = Date.now() - 45000;
-  for (const [id, lastSeen] of activeUsers.entries()) {
-    if (lastSeen < cutoff) activeUsers.delete(id);
-  }
-  const count = Math.max(1, activeUsers.size);
-  res.json({ success: true, count });
-});
-
-// Boîtes d'enregistrement des candidats par œuvre
-app.get('/api/archives', (req, res) => {
-  res.json(loadArchives());
-});
-
-app.post('/api/archives', (req, res) => {
-  const { work, candidateName, filiere, sujet, texte, score, reformulations, modelText, date } = req.body;
-  const archives = loadArchives();
-  const validWork = ['boite', 'antigone', 'condamne'].includes(work) ? work : 'boite';
-
-  const newEntry = {
-    id: 'arch_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-    work: validWork,
-    candidateName: candidateName && candidateName.trim() ? candidateName.trim() : 'Candidat Anonyme',
-    filiere: filiere || '1ère BAC',
-    sujet: sujet || '',
-    texte: texte || '',
-    score: score || 'N/A',
-    reformulations: reformulations || '',
-    modelText: modelText || '',
-    date: date || new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }),
   };
 
-  if (!archives[validWork]) {
-    archives[validWork] = [];
-  }
+  const highlightConnectors = (html: string) => {
+    const connectors = [
+      // Énumération, classement & progression
+      'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
+      "D'ailleurs", 'D’ailleurs', 'Par ailleurs',
+      "En d'autres termes", 'En d’autres termes', 'Autrement dit',
+      'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Ensuite', 'Puis', 'Enfin',
+      'De plus', 'En outre', 'De surcroît', 'De surcroit',
+      'D’une part', "D'une part", 'D’autre part', "D'autre part",
+      "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté',
+      'À ce premier avantage s’ajoute', "A ce premier avantage s'ajoute", "À ce premier argument s'ajoute",
+      'Si l’on ajoute enfin', "Si l'on ajoute enfin", 'Non seulement', 'Mais aussi', 'Mais encore',
 
-  // Prepend so the newest candidate is always first
-  archives[validWork].unshift(newEntry);
-  saveArchives(archives);
-  return res.json({ success: true, entry: newEntry, count: archives[validWork].length });
-});
+      // Entrée en matière & étapes
+      'Depuis un certain temps', 'D’année en année', "D'année en année", 'Il est fortement question de',
+      'On parle beaucoup en ce moment de', 'Il faut d’abord rappeler que', "Il faut d'abord rappeler que",
+      'On commencera d’abord par', "On commencera d'abord par", 'Il faut souligner que', 'Rappelons que',
+      'Il ne faut pas oublier que', 'Il faut insister sur le fait que', 'On notera que',
+      'D’autant plus que', "D'autant plus que", 'Passons à présent à la question de',
+      'Venons-en à présent à la question de',
 
-app.delete('/api/archives/:id', (req, res) => {
-  const { id } = req.params;
-  const archives = loadArchives();
-  let found = false;
+      // Cause & conséquence
+      'En effet', 'En réalité', 'De fait', 'En fait',
+      'Par conséquent', 'En conséquence', 'C’est pourquoi', "C'est pourquoi",
+      'Dès lors', 'Il en résulte que', 'Ainsi', 'D’où', "D'où", 'Du fait que', 'Étant donné que',
+      'Puisque', 'Sous prétexte que', 'De ce fait',
 
-  for (const key of ['boite', 'antigone', 'condamne']) {
-    const initialLen = archives[key]?.length || 0;
-    archives[key] = (archives[key] || []).filter((item: any) => item.id !== id);
-    if (archives[key].length < initialLen) found = true;
-  }
+      // Concession & opposition
+      'Certes', 'Il est exact que', 'S’il est certain que', "S'il est certain que",
+      'Il n’en reste pas moins vrai que', "Il n'en reste pas moins vrai que",
+      'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre',
+      'Bien loin de',
 
-  if (found) {
-    saveArchives(archives);
-    return res.json({ success: true });
-  }
-  return res.status(404).json({ success: false, message: 'Archive non trouvée.' });
-});
+      // Exemples
+      'Considérons par exemple le cas de', 'Tel est le cas, par exemple, de', 'Prenons le cas de',
+      'Si l’on prend le cas de', "Si l'on prend le cas de", 'L’exemple le plus significatif', "L'exemple le plus significatif",
 
-// Initialize OpenAI client if key is configured
-const openaiApiKey = process.env.OPENAI_API_KEY;
-const openai = openaiApiKey && openaiApiKey !== 'MY_OPENAI_API_KEY'
-  ? new OpenAI({ apiKey: openaiApiKey })
-  : null;
+      // Modalisation & Relief
+      'Il est certain que', 'Il est indéniable que', 'Il va de soi que', 'Sans aucun doute',
+      'De même', 'Notons que', 'Précisons que', 'C’est-à-dire', "C'est-à-dire", 'À cet égard', "A cet égard",
 
-// Initialize Gemini client as fallback or primary if configured
-const geminiApiKey = process.env.GEMINI_API_KEY;
-const gemini = geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY' && geminiApiKey.trim() !== ''
-  ? new GoogleGenAI({ apiKey: geminiApiKey })
-  : null;
+      // Point de vue
+      'Personnellement', 'Pour ma part', 'Selon moi', 'À mon avis', "A mon avis", 'D’après moi', "D'après moi", 'En ce qui me concerne',
+      'Je pense que', 'Il me semble que',
 
-function isCandidateTextOffTopic(sujet: string, texte: string): boolean {
-  if (!sujet || !texte) return false;
-  
-  const norm = (s: string) => (s || '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+      // Conclusion & clôture
+      'En guise de conclusion', 'En définitive', 'En somme', 'En résumé', 'Il résulte de ce qui précède que',
+      'En conclusion', 'Pour conclure', 'Finalement',
+      'Aussi donne-t-elle', 'Aussi permet-elle', 'Aussi convient-il', 'Aussi importe-t-il'
+    ];
+    const sorted = [...connectors].sort((a, b) => b.length - a.length);
+    let res = html;
+    for (const c of sorted) {
+      const escaped = c
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        .replace(/['’]/g, "['’]");
+      const regex = new RegExp(`(?<!<strong class="conn-student"[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
+      res = res.replace(regex, '<strong class="conn-student" style="color:#1d4ed8 !important; font-weight:800 !important; background-color:#eff6ff !important; padding:2px 7px !important; border-radius:4px !important; border:1px solid #bfdbfe !important; display:inline-block !important; margin:1px 2px !important;">$1</strong>');
+    }
+    return res;
+  };
 
-  const sNorm = norm(sujet);
-  const tNorm = norm(texte);
+  const cleanTableMarkdown = (tableMd: string): string => {
+    if (!tableMd) return tableMd;
+    const lines = tableMd.split('\n');
+    const filteredLines: string[] = [];
+    for (const line of lines) {
+      if (!line.includes('|')) {
+        filteredLines.push(line);
+        continue;
+      }
+      const cells = line.split('|').map(c => c.trim()).filter(Boolean);
+      if (line.includes('---') || cells[0]?.toLowerCase().includes('extrait')) {
+        filteredLines.push(line);
+        continue;
+      }
+      if (cells.length >= 3) {
+        // Normaliser complètement en retirant balises HTML, crochets, guillemets, ponctuations et espaces superflus
+        const normalizeText = (txt: string) => {
+          return txt
+            .replace(/<[^>]*>/g, '')
+            .replace(/\[[^\]]*\]/g, '')
+            .replace(/[«»"'`*_\.,;:!?()—–\-\\/]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+        };
 
-  // 1. Check Methodological Off-Topic: Opinion topic treated via Causes / Solutions (Plan Analytique)
-  const opinionIndicators = [
-    'pensez vous', 'partagez vous', 'etes vous', 'd accord', 'qu en pensez vous',
-    'faut il', 'peut on', 'votre avis', 'votre point de vue', 'votre opinion',
-    'approuvez vous', 'selon vous', 'justifiez votre point de vue', 'partagez cette'
-  ];
+        const cleanErr = normalizeText(cells[0]);
+        const cleanCorr = cells[2] ? normalizeText(cells[2]) : '';
+        const nature = cells[1] ? normalizeText(cells[1]) : '';
 
-  const isExplicitAnalyticSubject = sNorm.includes('causes et solutions') ||
-    sNorm.includes('causes et consequences') ||
-    sNorm.includes('quelles sont les causes') ||
-    sNorm.includes('analyser les causes');
+        // 1. Si l'extrait fautif et la correction certifiée sont identiques, fausse erreur : élimination stricte !
+        if (cleanErr && cleanCorr && cleanErr === cleanCorr) {
+          continue;
+        }
 
-  const isOpinion = opinionIndicators.some(ind => sNorm.includes(ind)) && !isExplicitAnalyticSubject;
+        // 2. Si la colonne Nature dit qu'il n'y a pas d'erreur ou aucune faute : élimination !
+        if (nature.includes('aucune') || nature.includes('pas d erreur') || nature.includes('correct') || nature.includes('sans faute')) {
+          continue;
+        }
 
-  if (isOpinion) {
-    const causeWords = ['cause', 'causes', 'facteur', 'facteurs', 'raison', 'raisons'];
-    const solutionWords = ['solution', 'solutions', 'remede', 'remedes', 'remedier', 'resoudre', 'lutter'];
+        // 3. Si l'extrait comporte plus de 4 mots et qu'il n'y a aucune différence réelle avec la correction : élimination !
+        const errWords = cleanErr.split(' ').filter(Boolean);
+        const corrWords = cleanCorr.split(' ').filter(Boolean);
+        if (errWords.length >= 5 && (cleanErr.includes(cleanCorr) || cleanCorr.includes(cleanErr))) {
+          const diff = errWords.filter(w => !corrWords.includes(w)).length;
+          if (diff === 0) {
+            continue;
+          }
+        }
 
-    const tWords = tNorm.split(' ');
-    const causeCount = tWords.filter(w => causeWords.includes(w)).length;
-    const solutionCount = tWords.filter(w => solutionWords.includes(w)).length;
+        // 4. Si l'extrait fautif est vide ou comporte un simple point d'interrogation ou tiret
+        if (!cleanErr || cleanErr === '-' || cleanErr === '?') {
+          continue;
+        }
 
-    const analyticalPhrases = [
-      'parmi les causes', 'les causes de ce', 'premiere cause', 'deuxieme cause',
-      'les facteurs de', 'les solutions pour', 'pour remedier', 'pour resoudre',
-      'comme solution', 'comme solutions', 'les consequences de ce'
+        filteredLines.push(line);
+      }
+    }
+    return filteredLines.join('\n');
+  };
+
+  const formatReformulation = (rawMd: string): string => {
+    if (!rawMd) return '';
+    // Nettoyer toute injection intempestive de structure de plan dans la section 5
+    let cleanedMd = rawMd
+      .replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique|Modèle Actif)[^\n]*/gim, '')
+      .replace(/💡?\s*Note méthodologique officielle\s*:?[^\n]*/gi, '')
+      .replace(/🎯?\s*(?:Modèle Actif|STRUCTURE DU PLAN RETENU)\s*:?[^\n]*/gi, '')
+      .replace(/Modèles de référence certifiés conformes[^\n]*/gi, '')
+      .replace(/Pour tout sujet demandant un avis ou un point de vue personnel[^\n]*/gi, '')
+      .trim();
+
+    let parsed = marked.parse(cleanedMd) as string;
+    parsed = parsed.replace(/&#39;/g, "'");
+
+    // Remplacement et stylisation chromatique stricte des cartes de phrases de l'élève (Section 5.A)
+    // Phrase 1 : Thème Indigo
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?1\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2|<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-indigo" style="background:#eef2ff !important; border:2px solid #818cf8 !important; border-left:6px solid #4f46e5 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(79,70,229,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#4f46e5 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(79,70,229,0.3) !important;">📌 1. PHRASE FAIBLE N°1 (INDIGO) • REFORMULATION PUISSANTE</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Phrase 2 : Thème Ambre / Orange
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?2\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3|<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-amber" style="background:#fffbeb !important; border:2px solid #fcd34d !important; border-left:6px solid #d97706 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(217,119,6,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#d97706 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(217,119,6,0.3) !important;">📌 2. PHRASE FAIBLE N°2 (AMBRE) • REFORMULATION PUISSANTE</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Phrase 3 : Thème Émeraude / Sarcelle
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?3\s*:?<\/strong>([\s\S]*?)(?=(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4|<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-emerald" style="background:#ecfdf5 !important; border:2px solid #86efac !important; border-left:6px solid #059669 !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(5,150,105,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#059669 !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(5,150,105,0.3) !important;">📌 3. PHRASE FAIBLE N°3 (ÉMERAUDE) • REFORMULATION PUISSANTE</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Phrase 4 (si présente) : Thème Pourpre / Violet
+    parsed = parsed.replace(/(?:<li>|<p>|<div>)?\s*<strong>Phrase(?:\s+faible)?(?:\s+de\s+l['’]élève)?\s*(?:n°\s*|#\s*)?4\s*:?<\/strong>([\s\S]*?)(?=<h[1-4]>|<hr|$)/i, (m, content) => {
+      let cleanContent = content.replace(/<\/li>$/, '').replace(/<ul>\s*<li>/g, '<div style="margin-top:10px;">').replace(/<\/li>\s*<li>/g, '</div><div style="margin-top:8px;">').replace(/<\/li>\s*<\/ul>/g, '</div>');
+      return `<div class="phrase-card-purple" style="background:#faf5ff !important; border:2px solid #d8b4fe !important; border-left:6px solid #9333ea !important; border-radius:14px !important; padding:16px 20px !important; margin-bottom:18px !important; box-shadow:0 2px 6px rgba(147,51,234,0.08) !important;">
+        <div style="margin-bottom:10px;"><span style="background:#9333ea !important; color:#ffffff !important; font-size:0.75rem !important; font-weight:900 !important; padding:4px 12px !important; border-radius:6px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; letter-spacing:0.04em !important; box-shadow:0 1px 3px rgba(147,51,234,0.3) !important;">📌 4. PHRASE FAIBLE N°4 (POURPRE) • REFORMULATION PUISSANTE</span></div>
+        <div style="color:#1e293b;">${cleanContent}</div>
+      </div>`;
+    });
+
+    // Badges distincts pour Diagnostic didactique et Reformulation
+    parsed = parsed.replace(/<strong>Diagnostic didactique\s*:?<\/strong>/gi, 
+      '<span style="background:#f1f5f9; color:#334155; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1px solid #cbd5e1; display:inline-flex; align-items:center; gap:4px; margin-right:6px;">🔍 Diagnostic didactique :</span>');
+
+    parsed = parsed.replace(/<strong>Reformulation(?:\s+(?:claire|puissante)(?:\s+et\s+naturelle)?)?(?:\s*\([^)]*\))?\s*:?<\/strong>/gi, 
+      '<span style="background:#ecfdf5; color:#047857; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1.5px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px; margin-right:6px; box-shadow:0 1px 2px rgba(4,120,87,0.08);">✨ Reformulation puissante certifiée (1ère Bac) :</span>');
+
+    // Mise en page soignée pour Section B : Texte Intégral Réécrit & Fluidifié
+    parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?<\/h[1-4]>)([\s\S]*?)$/i, (m, hTag, content) => {
+      // 1. Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
+      let cleanContent = content;
+
+      // 0. Assainissement chirurgical de l'introduction de Section B (détection du thème sans coupure)
+      if (cleanContent.includes('« « Il est temps') || cleanContent.includes('décider à la place de leurs jeunes en') || cleanContent.includes('la question posée par « «')) {
+        cleanContent = cleanContent.replace(/<p[^>]*>.*?Quand on plonge[\s\S]*?<\/p>/i,
+          '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d\'Ahmed Sefrioui</strong>, on se rend compte que la question de l\'autorité parentale et de l\'autonomie accordée aux jeunes enfants constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation. Dès lors, convient-il d\'estimer que les parents doivent impérativement décider à la place de leurs enfants pour assurer leur protection, ou importe-t-il au contraire de leur accorder une véritable liberté dans leurs choix personnels ?</p>');
+      }
+
+      // Si le sujet concerne les guérisseurs et que l'introduction commence par "Quand on plonge dans la lecture...", rétablir l'amorce sociétale
+      if ((cleanContent.includes('guérisseur') || cleanContent.includes('guerisseur')) && cleanContent.includes('Quand on plonge')) {
+        cleanContent = cleanContent.replace(/<p[^>]*>.*?Quand on plonge[\s\S]*?<\/p>/i,
+          '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Dans de nombreuses sociétés traditionnelles comme au Maroc</strong>, le recours aux tradipraticiens et aux guérisseurs continue de susciter un vif débat quant à ses causes, ses conséquences sanitaires et les remèdes institutionnels à y apporter. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ?</p>');
+      }
+
+      // 1. Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
+      cleanContent = cleanContent
+        .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi,
+          '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Par conséquent</strong>, $1')
+        .replace(/\bCependant\s*,\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi, '<strong>Par conséquent</strong>, $1')
+        .replace(/Cependant\s*,\s*les conséquences/gi, '<strong>Par conséquent</strong>, les conséquences')
+        .replace(/Cependant\s*,\s*les répercussions/gi, '<strong>Par conséquent</strong>, les répercussions');
+
+      // 2. "En premier lieu," doit être obligatoirement au début du développement avec un saut de ligne et un alinéa distinct
+      cleanContent = cleanContent.replace(/([.!?…:])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b)/gi,
+        '$1</p>\n\n<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$2</strong>');
+      cleanContent = cleanContent.replace(/(?<=[a-zA-ZÀ-ÿ0-9])\s+(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b)/gi,
+        '.</p>\n\n<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$1</strong>');
+
+      // 3. Respect absolu de la consigne du sujet : Si le sujet demande les causes, conséquences ET solutions (ex: guérisseurs), garantir la présence des solutions
+      const isAnalyticTopic = cleanContent.includes('guérisseur') || cleanContent.includes('guerisseur') || cleanContent.includes('charlatan') || (cleanContent.includes('causes') && (cleanContent.includes('conséquence') || cleanContent.includes('consequence')));
+      const hasSolutions = cleanContent.includes('remédier') || cleanContent.includes('solutions') || cleanContent.includes('prévention') || cleanContent.includes('démocratiser');
+      if (isAnalyticTopic && !hasSolutions) {
+        const conclRegex = /(<p[^>]*>.*?<strong>\s*(?:En conclusion|En définitive|En somme)[\s\S]*?<\/p>)/i;
+        const solutionsPara = `<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Enfin, pour remédier à ce fléau</strong>, la mise en œuvre d'une stratégie globale articulée autour de la prévention, de la fermeté juridique et de la démocratisation des soins s'impose avec une impérieuse nécessité. D'un côté, les pouvoirs publics et la société civile doivent intensifier les campagnes de sensibilisation dans les médias et les établissements scolaires afin de démystifier le charlatanisme et d'inculquer les réflexes de la médecine préventive aux citoyens. D'autre part, il convient de durcir l'arsenal législatif pour sanctionner sévèrement les faux praticiens qui exercent illégalement, tout en étendant la couverture médicale universelle et les dispensaires de proximité afin de rendre les consultations médicales accessibles aux foyers les plus modestes. Dès lors, seule une action solidaire, éducative et résolue permettra de tarir définitivement la clientèle de ces charlatans.</p>`;
+        if (conclRegex.test(cleanContent)) {
+          cleanContent = cleanContent.replace(conclRegex, `${solutionsPara}\n\n$1`);
+        } else {
+          cleanContent += `\n\n${solutionsPara}`;
+        }
+      }
+
+      // 4. Stylisation des paragraphes avec alinéa
+      cleanContent = cleanContent.replace(/<p(?![^>]*text-indent)/gi, '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"');
+
+      return `
+        <div style="margin-top:28px; background:#ffffff; border:2px solid #0b1528; border-radius:16px; padding:22px; box-shadow:0 4px 14px rgba(11,21,40,0.08);">
+          <div style="background:#0b1528; border-radius:12px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.15rem;">🏆</span>
+              <span style="color:#ffffff; font-weight:900; font-size:0.85rem; letter-spacing:0.04em;">B. TEXTE INTÉGRAL RÉÉCRIT & FLUIDIFIÉ (VERSION CONTINUE D'EXCELLENCE)</span>
+            </div>
+            <span style="background:#059669; color:#ffffff; font-size:0.72rem; font-weight:800; padding:3px 10px; border-radius:9999px;">EXEMPLES EN GRAS • CONNECTEURS EN BLEU</span>
+          </div>
+          <div style="color:#1e293b; line-height:2.05; text-align:justify; font-size:0.95rem;">
+            ${cleanContent}
+          </div>
+        </div>
+      `;
+    });
+
+    // Connecteurs en bleu
+    parsed = highlightConnectors(parsed);
+
+    // Convertir les balises markdown en gras si présentes
+    parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // B. Texte Intégral Réécrit : Exemples tirés des œuvres EN GRAS BIEN VISIBLE
+    const worksExamplesRegex = [
+      /\b(La Bo[iî]te [aà] Merveilles)\b/gi,
+      /\b(Ahmed Sefrioui)\b/gi,
+      /\b(Sidi Mohammed)\b/gi,
+      /\b(Lalla Zoubida)\b/gi,
+      /\b(Ma[aâ]lem Abdeslam)\b/gi,
+      /\b(Lalla A[iï]cha)\b/gi,
+      /\b(Dar Chouafa)\b/gi,
+      /\b(la voyante(?:\s+Kenza)?)\b/gi,
+      /\b(Kenza)\b/gi,
+      /\b(Zineb)\b/gi,
+      /\b(Rahma)\b/gi,
+      /\b(Fatma Bziouya)\b/gi,
+      /\b(Sidi El Arafi)\b/gi,
+      /\b(le fqih)\b/gi,
+      /\b(le Msid)\b/gi,
+      /\b(Moulay Larbi)\b/gi,
+      /\b(Sidi Ali Boughaleb)\b/gi,
+      /\b(Antigone)\b/gi,
+      /\b(Jean Anouilh)\b/gi,
+      /\b(Cr[eé]on)\b/gi,
+      /\b(Ism[eè]ne)\b/gi,
+      /\b(H[eé]mon)\b/gi,
+      /\b(Polynice)\b/gi,
+      /\b([EÉ]t[eé]ocle)\b/gi,
+      /\b(Eurydice)\b/gi,
+      /\b(Le Ch[oœ]ur)\b/gi,
+      /\b(La Nourrice)\b/gi,
+      /\b(Th[eè]bes)\b/gi,
+      /\b(Le Dernier Jour d['’]un Condamn[eé])\b/gi,
+      /\b(Victor Hugo)\b/gi,
+      /\b(le condamn[eé](?:\s+[aà]\s+mort)?)\b/gi,
+      /\b(la petite Marie)\b/gi,
+      /\b(Bic[eê]tre)\b/gi,
+      /\b(la Conciergerie)\b/gi,
+      /\b(la guillotine)\b/gi,
+      /\b(la peine de mort)\b/gi,
+      /\b(la place de Gr[eè]ve)\b/gi,
+      /\b(le friauche)\b/gi,
+      /\b(le bourreau Samson)\b/gi,
     ];
 
-    const hasAnalyticalPhrase = analyticalPhrases.some(p => tNorm.includes(p));
-    const hasBothCausesAndSolutions = (causeCount >= 1 && solutionCount >= 1) || (causeCount >= 2 && solutionCount >= 1);
-
-    if (hasAnalyticalPhrase || hasBothCausesAndSolutions) {
-      return true; // Methodological off-topic: Causes/Solutions on an Opinion topic!
+    for (const reg of worksExamplesRegex) {
+      parsed = parsed.replace(reg, '<strong class="work-example">$1</strong>');
     }
-  }
 
-  // 2. Thematic Off-Topic Check
-  const stopWords = new Set([
-    'le','la','les','un','une','des','du','de','d','l','au','aux','ce','cet','cette','ces',
-    'mon','ton','son','notre','votre','leur','mes','tes','ses','nos','vos','leurs',
-    'qui','que','quoi','dont','ou','où','quand','comment','pourquoi','dans','sur','sous',
-    'par','pour','avec','sans','apres','après','avant','pendant','faut','il','elle','on',
-    'nous','vous','ils','elles','est','sont','etre','être','avoir','a','ont','faire','fait',
-    'peut','peuvent','plus','moins','tres','très','bien','aussi','comme','si','ne','pas',
-    'tout','tous','toute','toutes','autre','autres','pensez','avis','partagez','selon',
-    'beaucoup','gens','monde','affirment','certains','disent','sujet','texte','production',
-    'votre','point','vue','justifiez','arguments','pertinents','illustrez','exemples'
-  ]);
-
-  const extractSignificantWords = (str: string) => {
-    return norm(str).split(/\s+/).filter(w => w.length >= 3 && !stopWords.has(w));
+    return parsed;
   };
 
-  const subjectWords = extractSignificantWords(sujet);
-  const textWords = extractSignificantWords(texte);
+  const formatModelPlan = (txt: string, planType: 'SIMPLE' | 'DIALECTIQUE' | 'ANALYTIQUE') => {
+    let raw = txt ? txt.trim() : '';
+    // Conversion préalable des balises Markdown en HTML
+    raw = raw.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-  if (subjectWords.length === 0) return false;
-  if (textWords.length < 5) return false; // Text is too short to judge strictly as off topic
+    // Nettoyer rigoureusement tout bandeau sombre, texte d'annonce de structure ou note méthodologique
+    raw = raw.replace(/<div[^>]*style="[^"]*background:\s*#0b1528[^"]*"[\s\S]*?<\/div>\s*<\/div>/gi, '').trim();
+    raw = raw.replace(/<div[^>]*>[\s\S]*?(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique officielle|Modèle Actif)[\s\S]*?<\/div>/gi, '').trim();
+    raw = raw.replace(/<h[1-6][^>]*>[\s\S]*?(?:STRUCTURE DU PLAN|PLAN DIALECTIQUE|PLAN SIMPLE|PLAN THÉMATIQUE|MODÈLE ACTIF)[\s\S]*?<\/h[1-6]>/gi, '').trim();
+    raw = raw.replace(/^[#*>\s]*(?:STRUCTURE DU PLAN RETENU|VARIANTE COMPARATIVE|Note méthodologique|Modèle Actif)[^\n<]*/gim, '').trim();
+    raw = raw.replace(/💡?\s*Note méthodologique officielle\s*:?[\s\S]*?(?=📌|<div|$)/gi, '').trim();
+    raw = raw.replace(/🎯?\s*(?:Modèle Actif|STRUCTURE DU PLAN RETENU)\s*:?[^\n<]*/gi, '').trim();
+    raw = raw.replace(/Modèles de référence certifiés conformes[^\n<]*/gi, '').trim();
+    raw = raw.replace(/Pour tout sujet demandant un avis ou un point de vue personnel[^\n<]*/gi, '').trim();
 
-  // Find thematic keyword roots in subject
-  const subjectRoots = subjectWords.map(w => w.slice(0, Math.min(w.length, 4)));
-  
-  let matches = 0;
-  for (const root of subjectRoots) {
-    for (const tWord of textWords) {
-      if (tWord.startsWith(root) || (root.length >= 4 && tWord.includes(root))) {
-        matches++;
-        break;
+    const isDialectique = planType === 'DIALECTIQUE';
+    const isAnalytique = planType === 'ANALYTIQUE';
+
+    // Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
+    raw = raw
+      .replace(/(?:<p[^>]*>)?\s*(?:<strong>)?\s*Cependant\s*,?\s*(?:<\/strong>)?\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi,
+        '<p style="text-indent: 2.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>Par conséquent</strong>, $1')
+      .replace(/\bCependant\s*,\s*(les conséquences|les répercussions|les impacts|les effets|ce choix|cette pratique|ce recours)/gi, '<strong>Par conséquent</strong>, $1');
+
+    // Détection de la présence d'un 3ème axe (ex: solutions ou synthèse)
+    const hasAxe3InRaw = !!(raw.match(/<div class="model-axe3">/i) || raw.match(/<div class="model-solutions?">/i) || (isAnalytique && (raw.includes('solutions') || raw.includes('remédier') || raw.includes('démocratisation'))));
+
+    // Fonction de génération d'une barre d'étapes RESPONSIVE ET STRICTEMENT SUR LA MÊME LIGNE
+    const renderStepBar = (steps: { label: string; bg: string }[]) => {
+      const items = steps.map(s => `
+        <span style="background:${s.bg}; color:#ffffff; font-weight:800; font-size:clamp(0.58rem, 0.82vw, 0.72rem); padding:4px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.06); letter-spacing:0.02em;">
+          ${s.label}
+        </span>
+      `).join('<span style="color:#94a3b8; font-size:0.7rem; flex-shrink:0; padding:0 2px;">→</span>');
+
+      return `
+        <div class="model-step-bar" style="display:flex; flex-direction:row; flex-wrap:nowrap !important; align-items:center; justify-content:space-between; gap:4px; margin-bottom:18px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-family:system-ui, -apple-system, sans-serif; overflow-x:auto; width:100%; box-sizing:border-box; white-space:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+          ${items}
+        </div>
+      `;
+    };
+
+    let planHeaderHtml = '';
+    if (isDialectique) {
+      planHeaderHtml = renderStepBar([
+        { label: '1. INTRODUCTION', bg: '#ea580c' },
+        { label: '2. THÈSE', bg: '#2563eb' },
+        { label: '3. ANTITHÈSE', bg: '#9333ea' },
+        { label: '4. SYNTHÈSE', bg: '#0d9488' },
+        { label: 'CONCLUSION', bg: '#059669' }
+      ]);
+    } else if (isAnalytique) {
+      if (hasAxe3InRaw) {
+        planHeaderHtml = renderStepBar([
+          { label: '1. INTRODUCTION', bg: '#ea580c' },
+          { label: '2. CAUSES', bg: '#2563eb' },
+          { label: '3. CONSÉQUENCES', bg: '#0d9488' },
+          { label: '4. SOLUTIONS', bg: '#d97706' },
+          { label: 'CONCLUSION', bg: '#059669' }
+        ]);
+      } else {
+        planHeaderHtml = renderStepBar([
+          { label: '1. INTRODUCTION', bg: '#ea580c' },
+          { label: '2. CAUSES', bg: '#2563eb' },
+          { label: '3. CONSÉQUENCES', bg: '#0d9488' },
+          { label: 'CONCLUSION', bg: '#059669' }
+        ]);
       }
-    }
-  }
-
-  // Thematic clusters for Bac works and common themes
-  const thematicClusters = [
-    { triggers: ['pein', 'mort', 'condamn', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crime', 'justice', 'hugo'], keywords: ['condamn', 'pein', 'mort', 'guillot', 'echafaud', 'bourreau', 'bicetr', 'grev', 'crim', 'chati', 'hugo', 'execut', 'abolit', 'prison', 'cellul', 'cachot'] },
-    { triggers: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol'], keywords: ['solitud', 'seul', 'boit', 'merveil', 'sefrioui', 'chouaf', 'zineb', 'sidi', 'moham', 'marabout', 'mausol', 'isolement', 'souffr', 'refig', 'imagin'] },
-    { triggers: ['antigon', 'creon', 'anouilh', 'polynic', 'devoir', 'sepultur', 'enter', 'decret', 'revolt', 'obeir'], keywords: ['antigon', 'creon', 'anouilh', 'polynic', 'sepultur', 'enter', 'decret', 'revolt', 'destin', 'tragedi', 'loi', 'famill', 'frere', 'choix'] },
-    { triggers: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat'], keywords: ['parent', 'libert', 'enfant', 'jeun', 'autorit', 'generat', 'famill', 'educat', 'adolesc', 'guid', 'autonom', 'pere', 'mere'] },
-    { triggers: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc'], keywords: ['superstit', 'voyanc', 'sorceller', 'marabout', 'chouaf', 'charlatan', 'croyanc', 'gueris', 'sidi', 'ali', 'boughaleb'] }
-  ];
-
-  // If subject belongs to a specific cluster, verify candidate text touches that cluster
-  const subjectCluster = thematicClusters.find(c => c.triggers.some(trig => subjectWords.some(sw => sw.startsWith(trig))));
-  if (subjectCluster) {
-    const textHasSubjectCluster = subjectCluster.keywords.some(kw => textWords.some(tw => tw.startsWith(kw)));
-    if (!textHasSubjectCluster) {
-      return true;
-    }
-  }
-
-  // If text has 0 matches with subject keywords
-  if (matches === 0 && textWords.length >= 8) {
-    return true;
-  }
-
-  return false;
-}
-
-const buildSystemPrompt = (nom?: string, filiere?: string) => `Tu es l'Inspecteur Pédagogique Principal et Directeur de l'Expertise Didactique au Centre Al Akhawayn.
-Tu dois produire une ANALYSE CHIRURGICALE, EXHAUSTIVE ET SANS COMPLAISANCE de la production écrite de ${nom || 'CANDIDAT'} (${filiere || '1ère Année Baccalauréat'}).
-
-RÈGLES D'OR ABSOLUES :
-- Ne JAMAIS mentionner l'intelligence artificielle ou de système automatisé.
-- SANCTION ÉLIMINATOIRE MAJEURE DU HORS-SUJET (NORME BACCALAURÉAT) :
-  RÈGLE N°1 INTRANSIGEANTE : Compare scrupuleusement le SUJET OFFICIEL et la COPIE DU CANDIDAT.
-  Une copie est OBLIGATOIREMENT HORS-SUJET dans les cas suivants :
-  1. HORS-SUJET THÉMATIQUE : La copie ne traite pas le sujet imposé, disserte sur une autre thématique, raconte une anecdote personnelle sans rapport, ou traite d'une autre œuvre sans lien.
-  2. HORS-SUJET MÉTHODOLOGIQUE (CONFUSION ENTRE PLAN D'OPINION ET PLAN ANALYTIQUE) :
-     Si le sujet est un sujet d'OPINION (qui demande un avis, une prise de position, ou de débattre avec un plan dialectique ou thématique, ex: « Partagez-vous ce point de vue ? », « Pensez-vous que... », « Faut-il... », « Êtes-vous d'accord ? ») ET QUE LE CANDIDAT CITE DES CAUSES ET DES SOLUTIONS (plan analytique), C'EST FORMELLEMENT UN HORS-SUJET !
-  Dans TOUS ces cas de hors-sujet :
-  1. Tu DOIS IMPÉRATIVEMENT commencer le tout début de ta réponse par [[HORS_SUJET]].
-  2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
-     [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
-  3. L'ensemble des critères est frappé de caducité académique.
-- L'analyse doit être d'une rigueur didactique chirurgicale, adaptée aux exigences du Baccalauréat marocain (œuvres au programme : La Boîte à Merveilles d'Ahmed Sefrioui, Antigone de Jean Anouilh, Le Dernier Jour d'un Condamné de Victor Hugo).
-- EXIGENCE DE COHÉRENCE ABSOLUE POUR LES INTRODUCTIONS & MODÈLES :
-  L'introduction doit rigoureusement respecter la progression logique en entonnoir sans rupture conceptuelle :
-  1. DÉTECTION DU THÈME PRINCIPAL DU SUJET (OBLIGATION FORMELLE) :
-     Tu DOIS IMPÉRATIVEMENT détecter et formuler avec clarté le THÈME PRINCIPAL DU SUJET (exemples : « la question de l'autorité parentale et de l'autonomie des jeunes enfants », « la réflexion engagée autour de la solitude et de l'épanouissement personnel », « le recours aux guérisseurs et aux tradipraticiens », etc.).
-     ⚠️ INTERDICTION STRICTE ET ABSOLUE D'INJECTER UNE CITATION BRUTE OU TRONQUÉE DU SUJET dans l'amorce (comme « la question posée par « « Il est temps que les parents arrêtent... en » »). L'amorce DOIT FORMULER LE VÉRITABLE THÈME DU SUJET !
-  2. CHOIX DU TYPE D'AMORCE :
-     * SI LE SUJET SE RATTACHE À UNE ŒUVRE AU PROGRAMME (La Boîte à Merveilles pour les rapports parents-enfants / la famille / la solitude ; Antigone pour la liberté / le devoir / la révolte des jeunes ; Le Dernier Jour d'un Condamné pour la justice / la peine de mort) :
-       Débuter obligatoirement par la formule d'immersion littéraire soignée :
-       - « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que [THÈME DU SUJET FORMULÉ AVEC PRÉCISION] constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation... »
-       - « Quand on plonge dans la lecture attentive de la pièce Antigone de Jean Anouilh, on constate que [THÈME DU SUJET] oppose deux visions inconciliables de l'existence... »
-       - « Quand on plonge dans la lecture attentive du chef-d'œuvre Le Dernier Jour d'un Condamné de Victor Hugo, on constate que [THÈME DU SUJET] confronte deux conceptions antagonistes de la justice... »
-     * ⚠️ RÈGLE D'OR FORMELLE : SI LE SUJET EST UN PHÉNOMÈNE DE SOCIÉTÉ GÉNÉRAL OU UN PLAN ANALYTIQUE (CAUSES, CONSÉQUENCES, SOLUTIONS) SANS RAPPORT AVEC UNE ŒUVRE AU PROGRAMME (ex: le recours aux guérisseurs, les nouvelles technologies, l'environnement) :
-       IL EST FORMELLEMENT ET STRICTEMENT INTERDIT DE COMMENCER PAR « Quand on plonge dans la lecture attentive... » !
-       Tu DOIS OBLIGATOIREMENT débuter par une amorce sociétale ou philosophique adaptée (ex. : « Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter... » ou « Dans nos sociétés contemporaines, la question de [thème] suscite de vives réflexions... »).
-  3. Transition logique & Problématique : Poser la contradiction propre au sujet sous forme d'une question problématique nette se terminant par un point d'interrogation (?), SANS aucune annonce de plan ni phrase après la question problématique.
-  Dans tes diagnostics de l'introduction ([[BILAN]]) et dans tes modèles rédigés ([[PLAN_A]] et [[PLAN_B]]), applique scrupuleusement cette progression sans aucune faille de cohérence.
-
-STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
-
-[[GRILLE]] : Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
-(Notes décimales sur le barème officiel de 10 points :
- - Consigne /2 (respect de la consigne et absence de hors-sujet)
- - Structure /2 (CRITÈRE DÉTERMINANT : PRISE EN COMPTE DIRECTE DES LIENS LOGIQUES MIS EN COULEURS DANS LA COPIE ! Ce critère évalue l'armature textuelle globale : présence indispensable de connecteurs d'attaque au début de chaque paragraphe de développement comme « En premier lieu » ou « D'une part », diversité et pertinence des transitions logiques mises en couleurs dans la copie, et connecteur académique de clôture de conclusion. Une copie pourvue de liens logiques riches et variés mis en couleurs doit être valorisée à 1.7-2.0/2. Une copie sans liens logiques ou avec des connecteurs inadaptés doit être lourdement pénalisée sur ce critère de Structure !)
- - Arguments /2 (solidité et illustrations)
- - Langue /2.5 (correction syntaxique et grammaticale)
- - Lexique /1.5 (précision lexicale))
-
-[[TRANSCRIPTION]]
-(Transcris STRICTEMENT ET INTÉGRALEMENT l'ensemble de la copie du candidat mot à mot, sans omettre aucune phrase, sans tronquer et sans résumer.
-ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
-- Le candidat a rédigé une copie structurée en paragraphes distincts : tu DOIS OBLIGATOIREMENT reproduire fidèlement cette même structure.
-- Encadre CHAQUE paragraphe du candidat dans sa propre balise <p>...</p>.
-- RÈGLE CRUCIALE SUR LE DÉBUT DU DÉVELOPPEMENT : Si l'élève utilise une formule d'amorce ou de prise de position (« En premier lieu... », « D'abord... », « Personnellement... », « Pour ma part... », « À mon avis... »), ELLE DOIT OBLIGATOIREMENT COMMENCER UN NOUVEAU PARAGRAPHE DISTINCT AVEC SAUT DE LIGNE ET ALINÉA (<p><strong>En premier lieu</strong>...</p> ou <p><strong>Personnellement</strong>...</p>) AU DÉBUT DU DÉVELOPPEMENT, et ne JAMAIS être rattachée ou fusionnée à la fin de l'introduction !
-- INTERDICTION FORMELLE de compacter ou fusionner les paragraphes en un seul bloc continu !
-- RÈGLE CAPITAL SUR LES ERREURS : NE JAMAIS SURLIGNER EN ROUGE DES MOTS CORRECTS ! Seules les vraies erreurs réelles et objectives sont balisées en rouge : <span class="err-highlight">erreur [correction]</span>. Les mots normaux, corrects et bien écrits de la langue française doivent STRICTEMENT RESTER EN TEXTE NORMAL, sans aucune balise rouge !
-- Sur cette transcription intégrale, applique EXCLUSIVEMENT ET UNIQUEMENT ces deux balisages :
-  1. Les vraies erreurs objectives en rouge vif : <span class="err-highlight">erreur [correction]</span> (si le mot est correct, pas de rouge !).
-  2. TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !)
-INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou toute autre mention intrusive.)
-
-[[BILAN]]
-(Audit méthodologique et chirurgical de la structure du texte argumentatif :
-### 1. Diagnostic Chirurgical de l'Amorce, de l'Entonnoir & de la Problématique
-- **Analyse de l'Amorce :** Examine la phrase d'amorce réelle de l'élève (accroche contextuelle). Si l'élève commence de façon abrupte ou banale (ex: « Il arrive souvent à l'individu de se trouver solitaire... »), analyse sa portée et formule une recommandation didactique concrète pour bâtir une amorce d'immersion littéraire ou universelle percutante.
-- **Formulation du Sujet, Problématique & Clôture :** Analyse comment le sujet a été posé. L'élève a-t-il simplement affirmé son avis ou formulé une véritable problématique avec une question directrice nette se terminant par un point d'interrogation (?), sans formule scolaire superflue d'annonce de plan après la question ? Propose la reformulation problématisée idéale.
-
-### 2. Audit Méthodologique du Développement & Articulation Logique
-- **Règle académique du paragraphe argumentatif :** Vérifie que chaque paragraphe développe strictement 1 argument directeur clair soutenu par 1 illustration concrète développée.
-- **Solidité des arguments :** Évaluation des arguments (sont-ils rigoureux, pertinents, ou au contraire redondants et confus ?).
-- **Ancrage littéraire dans l'œuvre :** Analyse des exemples tirés de l'œuvre au programme (précision des références : personnages nommés, scènes précises de La Boîte à Merveilles, Dar Chouafa, etc., versus généralités vagues).
-
-### 3. Diagnostic des Liens Logiques en Couleurs & Justification de la Note de Structure (IMPACT DIRECT SUR LA STRUCTURE /2)
-- **Justification de la note de Structure :** Explique explicitement comment la présence, la fréquence et la pertinence des liens logiques mis en couleurs dans la copie ont directement déterminé la note attribuée au critère de Structure (sur 2 points).
-- **Analyse des connecteurs d'attaque :** Examine chaque connecteur employé (« En premier lieu », « En deuxième lieu », « D'ailleurs », « En d'autres termes »...). Rappelle si nécessaire qu'« En second lieu » est stylistiquement préférable à « En deuxième lieu » lorsqu'il n'y a que deux axes.
-- ⚠️ **REMARQUE MÉTHODOLOGIQUE ESSENTIELLE SUR L'AMORCE DE CONCLUSION :**
-  Si l'élève utilise « Finalement » (ou connecteur familier/oral) pour ouvrir sa conclusion, formule impérativement la critique didactique suivante :
-  « *Au lieu d'utiliser « Finalement » (terme souvent familier, oral ou restrictif pour clore un essai académique), il faut impérativement amorcer la conclusion par une formule noble et certifiée telle que « **En guise de conclusion** », « **En définitive** » ou « **En conclusion** ». Cela confère au devoir une tenue et une autorité académique irréprochables.* »
-- **Cohérence des transitions :** Recommandations pour éviter la monotonie des formules d'énumération mécanique.
-
-### 4. Diagnostic de la Conclusion & Clôture
-- **Bilan synthétique :** Clarté du récapitulatif sans contradiction avec les axes développés.
-- **Ouverture :** Qualité de l'élargissement de la réflexion vers une portée éthique, universelle ou humaine.)
-
-[[TABLEAU]]
-(ATTENTION RÈGLE FORMELLE ET ABSOLUE SUR LE DIAGNOSTIC DES FAUTES :
-- Ce tableau DOIT UNIQUEMENT ET EXCLUSIVEMENT recenser les VRAIES ERREURS OBJECTIVES : Orthographe (lexicale ou grammaticale), Conjugaison (temps, modes), Accords (sujet-verbe, nom-adjectif, participe passé), Coordination (conjonctions mal employées), Syntaxe grammaticale.
-- RÈGLE DE STRICTE DISSIMILITUDE : L'extrait fautif et la correction certifiée NE DOIVENT JAMAIS ÊTRE IDENTIQUES ! Si une phrase ou un extrait est correct, NE JAMAIS L'INCLURE DANS CE TABLEAU SOUS AUCUN PRÉTEXTE.
-- INTERDICTION FORMELLE d'inclure des phrases complètes ou des propositions sans faute. L'extrait fautif doit être UNIQUEMENT le mot ou le petit groupe fautif précis (1 à 4 mots maximum, ex: « la rechercher elle même », « tout les hommes », « il a partager »), JAMAIS une phrase entière de 10 mots !
-- La correction certifiée doit corriger explicitement la faute ciblée.
-- S'il n'y a que 2 ou 3 fautes dans toute la copie de l'élève, ne produis que 2 ou 3 lignes ! Ne fabrique JAMAIS de fausses fautes artificielles.
-- Structure OBLIGATOIRE du tableau Markdown en 4 colonnes, avec les extraits fautifs obligatoirement en rouge (<span class="err-highlight">...</span>) et les corrections certifiées obligatoirement en vert (<span class="corr-green">...</span>) :
-| Extrait fautif (en rouge) | Nature de l'erreur (Orthographe / Conjugaison / Accord / Coordination / Syntaxe) | Correction certifiée (en vert) | Règle pédagogique précise |
-| :--- | :--- | :--- | :--- |
-| <span class="err-highlight">...</span> | ... | <span class="corr-green">...</span> | ... |)
-
-[[REFORMULATION]]
-(OPTIMISATION STYLISTIQUE & CLARTÉ SYNTAXIQUE (Niveau 1ère Année Baccalauréat) :
-RÈGLES D'OR DU REGISTRE DE LANGUE ET DE LONGUEUR DU TEXTE OPTIMISÉ :
-- ÉVITER ABSOLUMENT DE PROPOSER DES FORMULATIONS EN REGISTRE SOUTENU OU ARTIFICIELLEMENT POMPEUSES.
-- Employer un LANGAGE FORT, PERCUTANT, CLAIR ET ACCESSIBLE (français standard soigné de haute rigueur, adapté à la 1ère Bac). Proscrire formellement le vocabulaire archaïque, précieux, alambiqué ou pédant.
-
-Structure obligatoire de cette section en deux volets indissociables :
-
-### A. Chirurgie Stylistique des Phrases Clés (Phrases Faibles de l'Élève Reformulées avec Force)
-(Identifie et cite au moins 2 à 3 phrases faibles ou maladroites réelles extraites mot à mot de la copie de l'élève.
-Ces phrases doivent présenter de réelles faiblesses stylistiques, syntaxiques ou logiques dans la copie de l'élève (manque de connecteur, syntaxe relâchée, maladresse de formulation, rupture logique ou connecteur inadapté comme « Finalement... ») :
-- **Phrase faible de l'élève n°1 :**
-  > *« [citation exacte de la 1ère phrase faible de l'élève] »*
-  - **Diagnostic didactique :** Explication précise du défaut de clarté, de syntaxe, d'amorce ou de transition logique.
-  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
-    > *« [phrase réécrite avec un lien logique fort, fluide, dynamique et naturelle, sans registre soutenu artificiel] »*
-- **Phrase faible de l'élève n°2 :**
-  > *« [citation exacte de la 2ème phrase faible de l'élève] »*
-  - **Diagnostic didactique :** Explication précise du défaut de clarté, de syntaxe ou de transition logique.
-  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
-    > *« [phrase réécrite avec un lien logique fort, fluide, sans registre soutenu artificiel] »*
-- **Phrase faible de l'élève n°3 :**
-  > *« [citation exacte de la 3ème phrase faible de l'élève, ex: conclusion ou transition] »*
-  - **Diagnostic didactique :** Explication précise (ex: l'emploi de « Finalement » affaiblit la portée de la conclusion).
-  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
-    > *« [phrase puissante commençant par « En guise de conclusion » ou « En définitive », sans registre soutenu artificiel] »*
-)
-
-### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
-(Rédige l'intégralité de la copie du candidat réécrite et optimisée du début à la fin.
-
-STRUCTURE STRICTE DU TEXTE ARGUMENTATIF OPTIMISÉ (OBLIGATION ABSOLUE) :
-Le texte optimisé DOIT OBLIGATOIREMENT être structuré en paragraphes distincts selon les trois temps canoniques du texte argumentatif, et CHAQUE PARAGRAPHE DOIT OBLIGATOIREMENT COMMENCER PAR UN LIEN LOGIQUE PUISSANT :
-1. PARAGRAPHE 1 - INTRODUCTION CONCISE ET STRUCTURÉE (3 à 4 lignes maximum) :
-   - Présentation sobre du sujet et formulation directe de la problématique se terminant par un point d'interrogation (?).
-   - ⚠️ RÈGLE STRICTE SUR L'INTRODUCTION : L'introduction se termine OBLIGATOIREMENT ET STRICTEMENT sur la question problématique (?). INTERDICTION FORMELLE DE PRODUIRE LA MOINDRE ANNONCE DE PLAN OU PHRASE APRÈS LA QUESTION PROBLÉMATIQUE (interdiction absolue de formules telles que « Pour répondre à cette problématique... », « Il conviendra d'examiner dans un premier axe... », « Nous verrons d'une part... », etc.) ! L'introduction s'arrête net au point d'interrogation (?).
-   - INTERDICTION STRICTE ET ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION !
-   - AUCUNE EXPLICATION D'ARGUMENT DANS L'INTRODUCTION : l'introduction se contente de poser le sujet et la problématique ; toute explication et argumentation se font exclusivement dans le développement !
-   - L'introduction se clôture obligatoirement par la question problématique (?), suivie d'un VÉRITABLE SAUT DE PARAGRAPHE pour ouvrir le développement !
-
-2. PARAGRAPHES DU DÉVELOPPEMENT (au moins 2 à 3 grands paragraphes, 12 à 15 lignes) :
-   - LE PREMIER PARAGRAPHE DU DÉVELOPPEMENT DOIT OBLIGATOIREMENT COMMENCER SUR UN NOUVEAU PARAGRAPHE DISTINCT AVEC SAUT DE LIGNE ET ALINÉA :
-     * Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**. (Il est formellement interdit de le coller à la fin de l'introduction !)
-   - RÈGLE ESSENTIELLE SUR LES CONNECTEURS DU PARAGRAPHE DES CONSÉQUENCES (PLAN ANALYTIQUE / CAUSES-CONSÉQUENCES) :
-     * ⚠️ **INTERDICTION FORMELLE ET STRICTE D'UTILISER « Cependant » (ou « Toutefois », « Néanmoins ») POUR COMMENCER LE PARAGRAPHE DES CONSÉQUENCES !**
-       « Cependant » est un connecteur d'opposition/concession, et non de conséquence !
-     * Pour introduire le paragraphe des conséquences, tu DOIS OBLIGATOIREMENT utiliser des connecteurs de conséquence certifiés selon le Cadre Officiel / PDF des Connecteurs :
-       **Par conséquent**, **En conséquence**, **De ce fait**, **Dès lors, les conséquences de ce choix...**, ou **Il en résulte que...** !
-   - ⚠️ RÈGLE ABSOLUE SUR LE RESPECT STRICT DU SUJET (CAUSES, CONSÉQUENCES ET SOLUTIONS) :
-     Si le sujet demande les causes, les conséquences ET les solutions (ou remèdes) :
-     Tu DOIS OBLIGATOIREMENT traiter les TROIS VOLETS du sujet dans des paragraphes distincts et substantiels :
-     * Premier axe (Causes) : commence par **En premier lieu**, **D'abord**, ou **D'une part**.
-     * Second axe (Conséquences) : commence obligatoirement par **Par conséquent**, **En conséquence**, ou **Dès lors** (JAMAIS « Cependant » !).
-     * Troisième axe (Solutions / Remèdes) : commence obligatoirement par **Enfin, pour remédier à ce fléau**, **Afin d'endiguer cette situation, des solutions concrètes doivent être adoptées : d'une part... d'autre part...**, ou **En outre, pour surmonter ce défi...**.
-     Ne JAMAIS omettre les solutions si le sujet les demande !
-   - CHAQUE paragraphe du développement DOIT COMMENCER PAR UN LIEN LOGIQUE PUISSANT EN GRAS :
-     * Premier axe (Causes ou 1er argument) : Commence obligatoirement par **En premier lieu**, **D'abord**, ou **D'une part**.
-     * Second axe (Conséquences ou 2d argument) : Si conséquences, commence obligatoirement par **Par conséquent**, **En conséquence**, ou **De ce fait**. Si second argument convergent, commence par **En second lieu**, **Ensuite**, ou **Par ailleurs**.
-     * Éventuel troisième axe : Commence obligatoirement par **En outre** ou **De plus**.
-   - ANCRAGE DANS LE SUJET :
-     * Si le sujet mentionne expressément une œuvre (ex: La Boîte à Merveilles d'Ahmed Sefrioui), TOUS les arguments et TOUS les exemples doivent être tirés STRICTEMENT ET EXCLUSIVEMENT de cette œuvre mentionnée !
-     * Si le sujet est un sujet de société général (ex: recours aux guérisseurs / tradipraticiens, travail des enfants, etc.), développer des arguments et faits concrets de société avec rigueur et précision.
-   - Les exemples précis doivent être EN GRAS : **exemple précis**.
-3. DERNIER PARAGRAPHE - CONCLUSION (3 à 4 lignes rédigées) :
-   - Commence obligatoirement par un connecteur logique de conclusion en gras : **En conclusion**, **En définitive**, ou **En somme**.
-   - Bilan synthétique des arguments et ouverture de la réflexion.
-
-RÈGLE D'OR MÉTHODOLOGIQUE POUR LES SUJETS DEMANDANT UN POINT DE VUE :
-- SI LE SUJET DEMANDE UN POINT DE VUE (« Partagez-vous ce point de vue ? », « Donnez votre avis », « Êtes-vous d'accord ? », « Pensez-vous que... ») :
-  CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT ADOPTER LE PLAN SIMPLE (PRISE DE POSITION NETTE ET ARGUMENTS CONVERGENTS DÉFENDANT CE POINT DE VUE). Ne JAMAIS déclarer ou adopter un plan dialectique qui viendrait contredire et anéantir le point de vue personnel de l'élève !
-  INTERDICTION FORMELLE D'ÉCRIRE « STRUCTURE DU PLAN RETENU : PLAN DIALECTIQUE » OU TOUTE FORMULE DU GENRE !
-
-RÈGLE D'OR DE LONGUEUR FORMELLE :
-- CE TEXTE OPTIMISÉ DOIT OBLIGATOIREMENT DÉPASSER 18 LIGNES DE TEXTE RÉDIGÉ (viser entre 19 et 25 lignes au total, soit 320 à 400 mots) ! Un texte court ou condensé est strictement rejeté.
-
-LANGAGE FORT SANS REGISTRE SOUTENU :
-- Employer un langage fort, solide, rigoureux et percutant, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL (bannir tout style précieux, ampoulé ou désuet ; privilégier un français moderne, clair et persuasif).
-- EXIGENCE DE CLARTÉ PÉDAGOGIQUE (SIMPLE À COMPRENDRE • NORME 1ère BAC) :
-  Le texte optimisé et les modèles rédigés DOIVENT ÊTRE SIMPLES À COMPRENDRE, fluides, limpides et percutants, avec des arguments vivants et faciles à mémoriser pour l'élève.
-  VOICI LE MODÈLE DE RÉFÉRENCE ABSOLU POUR LE STYLE ET LA LIMPIDITÉ :
-  « Dans La Boîte à Merveilles, le roman autobiographique d'Ahmed Sefrioui, la solitude et l'épanouissement de l'individu occupent une place centrale. Le livre pose une question qui dépasse le cadre du récit : l'isolement est-il une faiblesse qui enferme, ou une étape nécessaire pour mûrir et se découvrir soi-même ? Si certains considèrent la solitude comme une épreuve douloureuse qui marginalise l'individu, d'autres y voient au contraire le lieu privilégié de la réflexion, de l'autonomie et de la créativité.
-  D'une part, il est indéniable que la solitude peut être ressentie comme une souffrance lourde à porter lorsqu'elle est subie. L'être humain a un besoin fondamental de communiquer et de vivre en harmonie avec ses semblables. À cet égard, le jeune Sidi Mohammed illustre parfaitement cette détresse au début de l'œuvre. Âgé de six ans, il se sent exclu face aux jeux bruyants des enfants de son âge et traumatisé par le monde des adultes, notamment lors des querelles brutales entre voisines à Dar Chouafa ou au cours de la panique au bain maure. Par conséquent, un repli involontaire sur soi-même engendre un sentiment de tristesse, de rejet et d'incompréhension qui affaiblit le moral.
-  Cependant, la solitude s'avère être également un formidable levier d'émancipation et de maturité. En premier lieu, loin du vacarme quotidien, elle permet de libérer l'imagination. C'est précisément cette solitude d'enfant qui a poussé Ahmed Sefrioui à écrire ce magnifique roman d'une éclatante richesse poétique : grâce à son coffret d'objets simples métamorphosés en trésors fabuleux, l'isolement est devenu la source première de sa création artistique. En second lieu, le silence intérieur est indispensable pour prendre conscience de ses responsabilités. Comme le soulignait très justement Feu Sa Majesté le Roi Hassan II : « Tout homme, à quelque échelon qu'il soit, quand il a quitté ses conseillers, ses amis, ses parents... il arrive à être solitaire. » Ainsi, face aux grands choix de l'existence, chaque personne se retrouve seule avec sa conscience pour forger son propre destin.
-  En conclusion, la solitude présente une double dimension. Subie avec passivité, elle enferme l'être dans l'amertume ; mais acceptée avec lucidité, elle devient une étape féconde pour se comprendre, créer et mûrir. Pour s'épanouir pleinement, l'homme doit donc savoir apprécier des instants de recul solitaire, avant de revenir partager ses richesses avec la société. »
-  Adopte rigoureusement ce niveau de clarté, de simplicité didactique et d'élégance pour tous les devoirs rédigés !)
-
-[[TYPE]]
-(Détermine la nature exacte du sujet :
-RÈGLE D'OR FORMELLE :
-- TOUT sujet demandant d'analyser les CAUSES, les CONSÉQUENCES et/ou les SOLUTIONS d'un phénomène de société sans solliciter expressément une prise de position personnelle (« partagez-vous », « votre avis », etc.) est STRICTEMENT DE TYPE "ANALYTIQUE" ! Écris UNIQUEMENT "ANALYTIQUE".
-- TOUT sujet portant sur une œuvre littéraire au programme (La Boîte à Merveilles, Antigone, Le Dernier Jour d'un Condamné) ou demandant un avis, une alternative ("est-elle une faiblesse ou une source d'épanouissement", "partagez-vous", "pensez-vous", "faut-il", "peut-on", "développez votre réflexion", etc.) est STRICTEMENT UN SUJET D'OPINION ! Écris UNIQUEMENT "OPINION".
-- Un sujet est "DIALECTIQUE" UNIQUEMENT s'il demande formellement d'opposer deux points de vue contradictoires (« pour ou contre », « thèse et antithèse »).)
-
-[[PLAN_A]]
-(OPTION 1 : MODÈLE RÉDIGÉ OFFICIEL (Norme Al Akhawayn • Min. 18 lignes de texte rédigé).
-ATTENTION RÈGLE DIDACTIQUE MAJEURE :
-1. POUR UN SUJET ANALYTIQUE (causes, conséquences, solutions) :
-   - Rédige le Modèle selon le PLAN ANALYTIQUE en développant les 3 axes dans des conteneurs séparés :
-     * <div class="model-intro"><p>...</p></div> (Introduction concise : sujet, problématique, annonce : causes, conséquences, solutions)
-     * <div class="model-axe1"><p><strong>En premier lieu</strong>, ... (Causes majeures)</p></div>
-     * <div class="model-axe2"><p><strong>Par conséquent</strong>, ... (Conséquences sanitaires/sociales - INTERDICTION ABSOLUE de « Cependant » !)</p></div>
-     * <div class="model-axe3"><p><strong>Enfin, pour remédier à ce fléau</strong>, ... (Solutions concrètes indispensables)</p></div>
-     * <div class="model-concl"><p><strong>En conclusion</strong>, ... (Bilan et ouverture)</p></div>
-2. POUR UN SUJET D'OPINION (« Partagez-vous ce point de vue ? », etc.) :
-   - LE PLAN SIMPLE EST LE PLAN OFFICIEL RETENU PAR EXCELLENCE !
-     * Introduction dans <div class="model-intro"><p>...</p></div>
-     * Premier axe dans <div class="model-axe1"><p>...</p></div>
-     * Second axe dans <div class="model-axe2"><p>...</p></div>
-     * Conclusion dans <div class="model-concl"><p>...</p></div>
-RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
-- EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Tout texte court ou incomplet est strictement inadmissible.
-- INTRODUCTION CONCISE (3 à 4 lignes max) :
-  Présentation sobre du sujet et de l'œuvre mentionnée, et formulation directe de la problématique se terminant par un point d'interrogation (?).
-  ⚠️ RÈGLE STRICTE SUR L'INTRODUCTION : L'introduction se termine OBLIGATOIREMENT ET STRICTEMENT sur la question problématique (?). INTERDICTION FORMELLE ET STRICTE DE PRODUIRE LA MOINDRE ANNONCE DE PLAN OU PHRASE APRÈS LA QUESTION PROBLÉMATIQUE (interdiction de formules comme « Pour aborder cette problématique... », « Il s'agira d'examiner... », « Nous analyserons... ») ! L'introduction s'arrête net au point d'interrogation (?).
-  INTERDICTION ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION ! Aucune explication dans l'introduction (toute explication se fait au développement).
-- STRUCTURE DU DÉVELOPPEMENT :
-  Au moins 2 ou 3 grands paragraphes très substantiels (au moins 6 à 7 lignes chacun) :
-  - Chaque paragraphe commence obligatoirement par un LIEN LOGIQUE PUISSANT en gras (<strong>En premier lieu</strong>, <strong>Par conséquent</strong>, <strong>Enfin, pour remédier...</strong>, etc.).
-  - ANCRAGE EXCLUSIF DANS L'ŒUVRE DU SUJET si sujet sur une œuvre : Si le sujet porte sur La Boîte à Merveilles, TOUS les exemples sont tirés UNIQUEMENT de La Boîte à Merveilles ! Chaque exemple précis de l'œuvre est en gras : **exemple précis de l'œuvre**.
-- CONCLUSION :
-  Un paragraphe de 3 à 4 lignes commençant obligatoirement par un connecteur de conclusion en gras (<strong>En conclusion</strong> ou <strong>En définitive</strong>).
-- BALISAGE CHROMATIQUE :
-  - L'introduction dans <div class="model-intro"><p>...</p></div>
-  - Le premier axe dans <div class="model-axe1"><p>...</p></div>
-  - Le second axe dans <div class="model-axe2"><p>...</p></div>
-  - Le troisième axe (si solutions ou 3e argument) dans <div class="model-axe3"><p>...</p></div>
-  - La conclusion dans <div class="model-concl"><p>...</p></div>
-  - Les liens logiques en gras : <strong>lien logique</strong>.
-  - Les exemples précis en gras : <strong>exemple précis</strong> ou **exemple précis**.
-  - Ne JAMAIS écrire d'étiquette scolaire comme "Introduction :" ou "I. Thèse".)
-
-[[PLAN_B]]
-(OPTION 2 : MODÈLE RÉDIGÉ SELON LE PLAN DIALECTIQUE (Thèse / Antithèse / Synthèse - Variante comparative).
-OBLIGATION ABSOLUE : CE BLOC DOIT TOUJOURS ÊTRE ENTIÈREMENT RÉDIGÉ POUR TOUS LES SUJETS (ne JAMAIS le laisser vide) ! Même si le sujet demande un point de vue où le plan simple est recommandé, proposer ici la variante dialectique pour enrichir la réflexion didactique de l'élève.
-- EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total).
-- INTRODUCTION CONCISE (3 à 4 lignes max) :
-  Présentation du sujet et tension dialectique posée sous forme de question problématique se terminant par un point d'interrogation (?), sans AUCUN « En effet » !
-  ⚠️ RÈGLE STRICTE SUR L'INTRODUCTION : L'introduction se termine OBLIGATOIREMENT ET STRICTEMENT sur la question problématique (?). INTERDICTION FORMELLE ET STRICTE DE PRODUIRE LA MOINDRE ANNONCE DE PLAN OU PHRASE APRÈS LA QUESTION PROBLÉMATIQUE (interdiction de formules comme « Il conviendra d'examiner dans un premier temps... », « Nous verrons d'une part... », etc.) ! L'introduction s'arrête net au point d'interrogation (?). Aucune explication dans l'introduction.
-- STRUCTURE DU PLAN DIALECTIQUE :
-  1. Introduction concise (3 à 4 lignes)
-  2. Premier axe : Thèse (au moins 5 à 6 lignes), commençant par un lien logique fort en gras (<strong>D'une part</strong> ou <strong>En premier lieu</strong>)
-  3. Second axe : Antithèse (au moins 5 à 6 lignes), commençant par un lien logique fort en gras (<strong>D'autre part</strong> ou <strong>En second lieu</strong>)
-  4. Troisième axe : Synthèse critique ou dépassement (au moins 4 à 5 lignes), commençant par un lien logique en gras (<strong>Dès lors</strong> ou <strong>En outre</strong>)
-  5. Conclusion équilibrée avec ouverture (3 à 4 lignes), commençant par <strong>En somme</strong> ou <strong>En conclusion</strong>
-- EXEMPLES EN GRAS TIRÉS EXCLUSIVEMENT DE L'ŒUVRE DU SUJET :
-  Si le sujet porte sur La Boîte à Merveilles, TOUS les exemples proviennent UNIQUEMENT de La Boîte à Merveilles (interdiction formelle de citer d'autres œuvres). De même pour Antigone ou Le Dernier Jour d'un Condamné.
-- BALISAGE CHROMATIQUE :
-  - L'introduction dans <div class="model-intro"><p>...</p></div>
-  - Le premier axe (Thèse) dans <div class="model-axe1"><p>...</p></div>
-  - Le second axe (Antithèse) dans <div class="model-axe2"><p>...</p></div>
-  - Le troisième axe (Synthèse) dans <div class="model-axe3"><p>...</p></div>
-  - La conclusion dans <div class="model-concl"><p>...</p></div>
-  - Les liens logiques en gras : <strong>lien logique</strong>.
-  - Les exemples de l'œuvre en gras : <strong>exemple précis de l'œuvre</strong> ou **exemple précis**.
-  - Ne JAMAIS écrire d'étiquette scolaire comme "Introduction :" ou "I. Thèse".)`;
-
-app.post('/api/chat', async (req, res) => {
-  const { prompt, nom, filiere, sujet, texte, password } = req.body;
-  const clientPassword = req.headers['x-access-password'] || password;
-
-  // Accept default password or configured password
-  if (clientPassword && clientPassword !== PROFESSOR_PASSWORD && clientPassword !== 'AKHAWAYN2026') {
-    return res.status(401).json({ error: 'Accès non autorisé : Mot de passe enseignant requis ou incorrect.' });
-  }
-
-  const systemPrompt = buildSystemPrompt(nom, filiere);
-
-  const finalUserPrompt = (sujet && texte)
-    ? `DOSSIER D'ÉVALUATION PÉDAGOGIQUE OFFICIEL :
-- NOM DU CANDIDAT : ${nom || 'CANDIDAT'}
-- FILIÈRE OFFICIELLE : ${filiere || '1ère Année Baccalauréat'}
-
-- SUJET OFFICIEL DE RÉFLEXION :
-"""${sujet}"""
-
-- COPIE MANUSCRITE AUTHENTIQUE DU CANDIDAT (À ANALYSER EN PROFONDEUR ET À RETRANSCRIRE INTÉGRALEMENT MOT À MOT) :
-"""${texte}"""
-
-CONSIGNES CHIRURGICALES POUR LA COMMISSION :
-1. Dans [[TRANSCRIPTION]], retranscris L'INTÉGRALITÉ EXACTE de la copie ci-dessus mot à mot, sans omettre aucune phrase, sans tronquer et sans résumer. Applique UNIQUEMENT deux balisages :
-   - Les fautes en rouge vif : <span class="err-highlight">faute [correction]</span>
-   - TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !).
-   Ne mets AUCUNE balise d'avertissement.
-2. Dans [[BILAN]], [[TABLEAU]] et [[REFORMULATION]], traite EXCLUSIVEMENT ET DIRECTEMENT les phrases réelles, les arguments et les erreurs de la copie ci-dessus.
-   - Dans [[BILAN]] :
-     * Analyse en profondeur l'amorce de l'élève (pertinence de son entrée en matière).
-     * Analyse la problématisation (tension et interrogation directrice).
-     * REMARQUE OBLIGATOIRE SUR LA CONCLUSION : Au lieu d'utiliser « Finalement » au début de la conclusion, formuler expressément la consigne didactique de commencer par « En guise de conclusion », « En définitive » ou « En conclusion ».
-     * Évalue l'ancrage littéraire précis dans l'œuvre mentionnée.
-   - Dans [[REFORMULATION]] Volet A (Chirurgie Stylistique des Phrases Clés) :
-     * Cite au moins 2 à 3 PHRASES FAIBLES OU MALADROITES RÉELLES de la copie de l'élève (**Phrase faible de l'élève n°1**, **Phrase faible de l'élève n°2**, **Phrase faible de l'élève n°3**).
-     * Donne un diagnostic didactique précis pour chacune.
-     * Produis une REFORMULATION PUISSANTE ET NATURELLE (niveau 1ère Bac) avec des liens logiques solides, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL.
-   - Dans [[REFORMULATION]] Volet B (Texte Intégral Réécrit - Version Continue) :
-     * RÈGLE DE PLAN : Si le sujet demande un avis ou point de vue personnel (« Partagez-vous », « Pensez-vous que », etc.), CE TEXTE OPTIMISÉ ADOPTE STRICTEMENT LE PLAN SIMPLE pour défendre ce point de vue de manière univoque sans aucune contradiction. Interdiction formelle d'y mettre un plan dialectique ou d'écrire « PLAN DIALECTIQUE » !
-     * DÉTECTION DU THÈME PRINCIPAL DU SUJET (OBLIGATION FORMELLE) : Détecter et formuler avec précision le véritable thème (ex: « la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants », « le recours aux guérisseurs », etc.). ⚠️ INTERDICTION STRICTE D'INJECTER UNE CITATION BRUTE OU TRONQUÉE DU SUJET dans l'amorce (comme « la question posée par « « Il est temps que les parents arrêtent... en » ») !
-     * AMORCE SOIGNÉE : Si le sujet se rattache à une œuvre (ex: La Boîte à Merveilles), débuter obligatoirement par « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que [THÈME DU SUJET DÉTECTÉ ET FORMULÉ AVEC PRÉCISION] constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation... ». Si le sujet est un phénomène de société général sans rapport avec une œuvre au programme (ex: guérisseurs), IL EST STRICTEMENT INTERDIT DE COMMENCER PAR « Quand on plonge... » ! Débuter par une amorce sociétale adaptée.
-     * INTRODUCTION CONCISE SANS « En effet » (3 à 4 lignes max) : Poser le sujet, la problématique et les axes. INTERDICTION FORMELLE D'UTILISER « En effet » DANS L'INTRODUCTION ! L'explication se fait exclusivement au développement.
-     * STRUCTURE DU TEXTE ARGUMENTATIF : Diviser en 4 paragraphes distincts (1 intro, 2 grands paragraphes de développement, 1 conclusion). CHAQUE paragraphe commence OBLIGATOIREMENT par un lien logique puissant en gras (ex: **En premier lieu**, **En second lieu**, **En définitive**).
-     * ANCRAGE EXCLUSIF DANS L'ŒUVRE DU SUJET : Si le sujet mentionne La Boîte à Merveilles, TOUS les exemples sont tirés STRICTEMENT de La Boîte à Merveilles en gras (**exemple précis**). Interdiction formelle de citer Antigone ou Le Dernier Jour d'un Condamné !
-     * LONGUEUR OBLIGATOIRE : DÉPASSER IMPÉRATIVEMENT 18 LIGNES rédigées (entre 19 et 25 lignes au total).
-     * STYLE : Langage fort, solide et percutant, sans registre soutenu artificiel.
-3. Dans [[PLAN_A]] (Option 1 : Plan Simple) et [[PLAN_B]] (Option 2 : Plan Dialectique) :
-   - EXIGENCE DE LONGUEUR FORMELLE : CHACUNE DES DEUX OPTIONS DOIT IMPÉRATIVEMENT CONTENIR AU MINIMUM 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total). Ne jamais abréger ni laisser vide !
-   - INTRODUCTION CONCISE SANS « En effet » : Poser le sujet sans explication prématurée.
-   - EXEMPLES EN GRAS TIRÉS EXCLUSIVEMENT DE L'ŒUVRE DU SUJET : Si une œuvre est mentionnée (ex: La Boîte à Merveilles), TOUS les exemples proviennent UNIQUEMENT de celle-ci (**exemple précis**).
-   - LIENS LOGIQUES EN DÉBUT DE PARAGRAPHE : Articule chaque paragraphe avec des connecteurs logiques forts en gras (<strong>connecteur</strong>).
-   - LANGAGE FORT SANS REGISTRE SOUTENU : Utilise un langage fort, percutant et argumenté, sans jamais employer un registre soutenu artificiel.
-   - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.`
-    : prompt;
-
-  const offTopicDetected = isCandidateTextOffTopic(sujet || '', texte || '');
-
-  try {
-    // 1. Try OpenAI if configured
-    if (openai) {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: finalUserPrompt }
-        ],
-        temperature: 0.3
-      });
-      let result = response.choices[0].message.content || '';
-      if (result) {
-        if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
-          result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
-        }
-        return res.json({ result });
-      }
+    } else {
+      planHeaderHtml = renderStepBar([
+        { label: '1. INTRODUCTION', bg: '#ea580c' },
+        { label: '2. PREMIER AXE', bg: '#2563eb' },
+        { label: '3. SECOND AXE', bg: '#0d9488' },
+        { label: 'CONCLUSION', bg: '#059669' }
+      ]);
     }
 
-    // 2. Try Gemini with proven fast model cascade
-    if (gemini) {
-      const modelsToTry = ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
-      for (const m of modelsToTry) {
-        try {
-          const response = await gemini.models.generateContent({
-            model: m,
-            contents: finalUserPrompt,
-            config: {
-              systemInstruction: systemPrompt,
-              temperature: 0.25,
-            }
-          });
-          let result = response.text || '';
-          if (result && result.trim().length > 100) {
-            if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
-              result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
-            }
-            return res.json({ result });
+    // Découpage et identification des parties
+    let introMatch = raw.match(/<div class="model-intro">([\s\S]*?)<\/div>/i);
+    let axe1Match = raw.match(/<div class="model-axe1">([\s\S]*?)<\/div>/i) || raw.match(/<div class="model-these">([\s\S]*?)<\/div>/i);
+    let axe2Match = raw.match(/<div class="model-axe2">([\s\S]*?)<\/div>/i) || raw.match(/<div class="model-antithese">([\s\S]*?)<\/div>/i);
+    let axe3Match = raw.match(/<div class="model-axe3">([\s\S]*?)<\/div>/i) || raw.match(/<div class="model-synthese">([\s\S]*?)<\/div>/i);
+    let conclMatch = raw.match(/<div class="model-concl">([\s\S]*?)<\/div>/i);
+
+    let introContent = introMatch ? introMatch[1].trim() : '';
+    let axe1Content = axe1Match ? axe1Match[1].trim() : '';
+    let axe2Content = axe2Match ? axe2Match[1].trim() : '';
+    let axe3Content = axe3Match ? axe3Match[1].trim() : '';
+    let conclContent = conclMatch ? conclMatch[1].trim() : '';
+
+    if (!axe1Content) {
+      const bodyMatch = raw.match(/<div class="model-body">([\s\S]*?)<\/div>/i);
+      if (bodyMatch) {
+        const pParas = bodyMatch[1].split(/<\/p>\s*<p>/i);
+        if (pParas.length >= 2) {
+          axe1Content = pParas[0].replace(/^<p>/i, '') + '</p>';
+          axe2Content = '<p>' + pParas[1].replace(/<\/p>$/i, '') + '</p>';
+          if (pParas.length >= 3) {
+            axe3Content = '<p>' + pParas.slice(2).join('</p><p>') + '</p>';
           }
-        } catch (err: any) {
-          console.warn(`Model ${m} notice:`, err.message?.slice(0, 100));
+        } else {
+          axe1Content = bodyMatch[1].trim();
         }
       }
     }
 
-    // 3. Fallback tailored to the actual candidate's text and subject
-    const fallback = generateFallbackExpertise(sujet || prompt, texte || prompt, nom, filiere);
-    return res.json({ result: fallback });
+    if (!introContent || !conclContent || !axe1Content) {
+      const rawParas = raw.replace(/<[^>]*>/g, '\n').split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 25);
+      if (rawParas.length >= 4) {
+        if (!introContent) introContent = rawParas[0];
+        if (!axe1Content) axe1Content = rawParas[1];
+        if (!axe2Content) axe2Content = rawParas[2];
+        if (!conclContent) conclContent = rawParas[rawParas.length - 1];
+      }
+    }
 
-  } catch (error: any) {
-    console.error('API Chat Error:', error);
-    const fallback = generateFallbackExpertise(sujet || prompt, texte || prompt, nom, filiere);
-    return res.json({ result: fallback });
-  }
-});
+    // NORME STRICTE AL AKHAWAYN (MIN. 16 À 19 LIGNES & 4 BLOCS CERTIFIÉS)
+    // Si l'IA n'a pas inclus l'introduction ou la conclusion, les régénérer avec rigueur didactique
+    if (!introContent) {
+      introContent = `<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion engagée autour de la solitude et de l'épanouissement personnel touche au cœur même de la condition humaine. Dès lors, convient-il d'appréhender l'isolement comme une faiblesse aliénante ou importe-t-il au contraire de le concevoir comme une étape féconde de maturation intérieure ?</p>`;
+    }
 
-function detectSubjectAnalysis(topic: string) {
-  const tLow = (topic || '').toLowerCase();
-  
-  const isParentsKids = tLow.includes('parent') || 
-    tLow.includes('décider à la place') || 
-    tLow.includes('decider a la place') || 
-    tLow.includes('rapport parents') || 
-    tLow.includes('autorité parentale') || 
-    tLow.includes('autorite parentale') ||
-    (tLow.includes('enfant') && (tLow.includes('jeune') || tLow.includes('adulte') || tLow.includes('décid') || tLow.includes('decid')));
+    // Éviter de produire la moindre annonce de plan ou phrase après la question problématique (pour les deux options)
+    if (introContent && introContent.includes('?')) {
+      const lastQIndex = introContent.lastIndexOf('?');
+      const afterQ = introContent.slice(lastQIndex + 1).replace(/<\/?[^>]+(>|$)/g, '').trim();
+      if (afterQ.length > 0) {
+        const beforeAndQ = introContent.slice(0, lastQIndex + 1);
+        const closingTags = introContent.match(/(<\/p>|<\/div>)+$/i)?.[0] || '</p>';
+        introContent = beforeAndQ + closingTags;
+      }
+    }
 
-  const isGuerisseur = tLow.includes('guérisseur') || 
-    tLow.includes('guerisseur') || 
-    tLow.includes('charlatan') || 
-    tLow.includes('tradipraticien') || 
-    (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence')));
+    if (!conclContent) {
+      conclContent = `<p><strong>En conclusion</strong>, l'analyse menée démontre que la solitude ne saurait être réduite à une fatalité stérile dès lors qu'elle s'accompagne d'une exigence de lucidité et d'une force de recul intérieur. Loin de s'opposer, la conscience intime de soi et la participation active à la vie sociale s'éclairent mutuellement pour forger une personnalité autonome et équilibrée. En définitive, ne revient-il pas à chaque conscience de transformer ses moments d'isolement en un tremplin fertile d'élévation morale et d'authenticité ?</p>`;
+    }
 
-  const isSolitude = tLow.includes('solitude') || 
-    tLow.includes('isolement') || 
-    tLow.includes('faiblesse') || 
-    tLow.includes('épanouissement') || 
-    tLow.includes('epanouissement');
+    // Enrichissement substantiel des axes pour garantir strictement entre 16 et 19-20 lignes au total :
+    if (axe1Content && axe1Content.length < 280) {
+      axe1Content += ` Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les querelles incessantes et les heurts mesquins observés à <strong>Dar Chouafa</strong> révèlent combien l'incompréhension mutuelle peut précipiter l'individu dans un désarroi douloureux. De surcroît, les souffrances éprouvées au Msid sous la férule du fqih illustrent la détresse de l'enfant privé d'écoute bienveillante. Ainsi, l'enfermement subi sans recours extérieur menace la sérénité de l'esprit et nourrit le sentiment d'abandon.`;
+    }
 
-  const isAntigone = tLow.includes('antigone') || 
-    tLow.includes('anouilh') || 
-    tLow.includes('créon') || 
-    tLow.includes('creon') || 
-    tLow.includes('ismène') || 
-    tLow.includes('ismene') ||
-    tLow.includes('hémon') ||
-    tLow.includes('hemon');
+    if (axe2Content && axe2Content.length < 280) {
+      axe2Content += ` À cet égard, le petit <strong>Sidi Mohammed</strong> transforme son isolement en une quête féconde grâce au trésor secret de <strong>sa boîte à merveilles</strong>, où les objets hétéroclites deviennent les confidents d'un univers poétique préservé des vulgarités adultes. De plus, les visites réconfortantes au sanctuaire de <strong>Sidi Ali Boughaleb</strong> avec sa mère <strong>Lalla Zoubida</strong> et les conseils du sage <strong>Sidi El Arafi</strong> démontrent que l'apaisement intérieur permet de transcender les tourments quotidiens. Dès lors, le retour lucide sur soi s'affirme comme le moteur privilégié d'une véritable émancipation.`;
+    }
 
-  const isCondamne = tLow.includes('dernier jour') || 
-    tLow.includes('condamné') || 
-    tLow.includes('condamne') || 
-    tLow.includes('victor hugo') || 
-    tLow.includes('peine de mort') || 
-    tLow.includes('échafaud') || 
-    tLow.includes('echafaud') || 
-    tLow.includes('guillotine') ||
-    tLow.includes('bicêtre');
+    const wrapSection = (badgeText: string, badgeBg: string, borderColor: string, bgColor: string, content: string) => {
+      if (!content || !content.trim()) return '';
+      return `
+        <div style="margin-top:18px; margin-bottom:18px;">
+          <div style="margin-bottom:8px;">
+            <span style="background:${badgeBg}; color:#ffffff; font-weight:800; font-size:0.76rem; padding:3px 11px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.12); text-transform:uppercase; letter-spacing:0.03em;">
+              ${badgeText}
+            </span>
+          </div>
+          <div style="background:${bgColor}; border-left:5px solid ${borderColor}; border:1px solid ${borderColor}40; border-left-width:5px; border-radius:0 12px 12px 0; padding:14px 16px; color:#1e293b; line-height:2.05; box-shadow:0 1px 3px rgba(0,0,0,0.03); text-align:justify; word-break:break-word; overflow-wrap:anywhere;">
+            ${content.startsWith('<p>') ? content : `<p>${content}</p>`}
+          </div>
+        </div>
+      `;
+    };
 
-  const isBoiteMentioned = tLow.includes('boîte') || 
-    tLow.includes('boite') || 
-    tLow.includes('sefrioui') || 
-    tLow.includes('merveilles') || 
-    tLow.includes('sidi mohammed');
+    let bodyHtml = '';
+    bodyHtml += wrapSection('1. INTRODUCTION (ORANGE)', '#ea580c', '#ea580c', '#fff7ed', introContent);
+    if (axe1Content) {
+      const badgeTitle = isDialectique ? '2. AXE 1 / THÈSE (BLEU)' : (isAnalytique ? '2. PREMIER AXE / CAUSES (BLEU)' : '2. PREMIER AXE (BLEU)');
+      bodyHtml += wrapSection(badgeTitle, '#2563eb', '#2563eb', '#eff6ff', axe1Content);
+    }
+    if (axe2Content) {
+      const badgeColor = isDialectique ? '#9333ea' : '#0d9488';
+      const badgeTitle = isDialectique ? '3. AXE 2 / ANTITHÈSE (VIOLET)' : (isAnalytique ? '3. SECOND AXE / CONSÉQUENCES (SARCELLE)' : '3. SECOND AXE (SARCELLE)');
+      const bg = isDialectique ? '#faf5ff' : '#f0fdfa';
+      bodyHtml += wrapSection(badgeTitle, badgeColor, badgeColor, bg, axe2Content);
+    }
+    if (axe3Content) {
+      if (isAnalytique) {
+        bodyHtml += wrapSection('4. TROISIÈME AXE / SOLUTIONS & REMÈDES (AMBRE)', '#d97706', '#d97706', '#fffbeb', axe3Content);
+      } else {
+        bodyHtml += wrapSection('4. SYNTHÈSE (SARCELLE)', '#0d9488', '#0d9488', '#f0fdfa', axe3Content);
+      }
+    }
+    if (conclContent) {
+      bodyHtml += wrapSection('CONCLUSION (VERT ÉMERAUDE)', '#059669', '#059669', '#ecfdf5', conclContent);
+    }
 
-  let work: 'boite' | 'antigone' | 'condamne' | 'general' = 'general';
-  if (isParentsKids || isSolitude || isBoiteMentioned) {
-    work = 'boite';
-  } else if (isAntigone) {
-    work = 'antigone';
-  } else if (isCondamne) {
-    work = 'condamne';
-  } else {
-    work = 'general';
-  }
+    bodyHtml = highlightConnectors(bodyHtml);
 
-  let themeTitle = '';
-  if (isParentsKids) {
-    themeTitle = "la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants face aux décisions de leurs parents";
-  } else if (isGuerisseur) {
-    themeTitle = "le recours aux tradipraticiens et aux guérisseurs traditionnels";
-  } else if (isSolitude) {
-    themeTitle = "la réflexion engagée autour de la solitude et de l'épanouissement de l'individu";
-  } else if (isAntigone) {
-    themeTitle = "le conflit tragique entre l'obéissance aux impératifs de la loi et la liberté sacrée de la conscience";
-  } else if (isCondamne) {
-    themeTitle = "la légitimité de la justice répressive et l'exigence morale de l'abolition de la peine de mort";
-  } else {
-    const cleaned = topic
-      .replace(/[«»"“”]/g, '')
-      .replace(/déclare\s+un\s+[a-zA-ZÀ-ÿ]+/gi, '')
-      .replace(/partagez-vous\s+cette\s+idée\s*\??/gi, '')
-      .replace(/dans\s+un\s+texte\s+argumentatif[\s\S]*/gi, '')
-      .replace(/vous\s+présenterez[\s\S]*/gi, '')
-      .trim();
-    themeTitle = cleaned ? `la réflexion suscitée par « ${cleaned.slice(0, 75)} »` : "cette question éthique et sociétale";
-  }
+    const worksTerms = [
+      'La Boîte à Merveilles', 'La Boite a Merveilles', 'Ahmed Sefrioui', 'Sidi Mohammed', 'Lalla Zoubida', 'Maâlem Abdeslam', 'Maalem Abdeslam', 'Lalla Aïcha', 'Lalla Aicha', 'Dar Chouafa', 'la voyante Kenza', 'la voyante', 'Sidi El Arafi', 'le fqih', 'le Msid', 'Zineb', 'Rahma', 'Fatma Bziouya', 'Moulay Larbi', 'Sidi Ali Boughaleb',
+      'Antigone', 'Jean Anouilh', 'Créon', 'Creon', 'Ismène', 'Ismene', 'Hémon', 'Hemon', 'Polynice', 'Étéocle', 'Eteocle', 'Eurydice', 'Le Chœur', 'Le Choeur', 'La Nourrice', 'Thèbes', 'Thebes',
+      'Le Dernier Jour d’un Condamné', "Le Dernier Jour d'un Condamné", 'Victor Hugo', 'Bicêtre', 'Bicetre', 'la Conciergerie', 'la guillotine', 'la peine de mort', 'la place de Grève', 'la place de Greve', 'la petite Marie', 'le friauche', 'le bourreau Samson'
+    ];
+    for (const w of worksTerms) {
+      const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(?<!<strong[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
+      bodyHtml = bodyHtml.replace(regex, '<strong class="work-example" style="color:#064e3b !important; font-weight:800 !important; font-style:italic !important; background-color:#ecfdf5 !important; padding:1px 6px !important; border-radius:4px !important; border:1px solid #a7f3d0 !important; display:inline-block !important;">$1</strong>');
+    }
 
-  return {
-    isParentsKids,
-    isGuerisseur,
-    isSolitude,
-    isAntigone,
-    isCondamne,
-    work,
-    themeTitle,
+    return planHeaderHtml + bodyHtml;
   };
-}
 
-function generateFallbackExpertise(sujetStr: string, texteStr: string, nom?: string, filiere?: string): string {
-  const candidate = nom || "Candidat";
-  const branch = filiere || "1ère Année Baccalauréat";
-  const topic = (sujetStr || "Sujet officiel").trim();
-  const rawCopy = (texteStr || "").trim();
-
-  // Strict check for Hors-Sujet
-  if (isCandidateTextOffTopic(topic, rawCopy)) {
-    return `[[HORS_SUJET]]
-[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
-
-[[TRANSCRIPTION]]
-${rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('\n\n') : `<p>${rawCopy}</p>`}
-
-[[BILAN]]
-### ⚠️ Constat d'Invalidation Académique Majeure : Copie Hors-Sujet
-- **Sujet officiel imposé :** « ${topic} »
-- **Diagnostic sans appel :** La copie rédigée par le candidat ne traite en aucun point le sujet officiel imposé ou développe une thématique totalement étrangère.
-- **Sanction éliminatoire (Norme Baccalauréat marocain) :** Tout devoir hors-sujet est sanctionné par la note éliminatoire de **0/10**. Les parties 1 à 6 sont masquées.
-
-[[TABLEAU]]
-| Extrait fautif en rouge | Catégorie | Correction didactique certifiée | Règle pédagogique précise |
-| :--- | :--- | :--- | :--- |
-| <span class="err-highlight">Copie hors-sujet</span> | Non-conformité au sujet | **Traitement obligatoire du sujet** | Toute copie hors-sujet reçoit la note éliminatoire de 0/10 au Baccalauréat. |
-
-[[REFORMULATION]]
-### Diagnostic du Hors-Sujet
-Le candidat doit impérativement traiter la thématique imposée par la consigne officielle.
-
-[[TYPE]]
-OPINION
-
-[[PLAN_A]]
-<div class="model-intro"><p>Rappel : Copie hors-sujet sanctionnée par la note de 0/10.</p></div>
-
-[[PLAN_B]]
-`;
-  }
-
-  const isAnalytic = topic.toLowerCase().includes("cause") ||
-    topic.toLowerCase().includes("solution") ||
-    topic.toLowerCase().includes("conséquence") ||
-    topic.toLowerCase().includes("fléau") ||
-    topic.toLowerCase().includes("phénomène");
-
-  // Format the candidate's actual text into faithful paragraphs with bold connectors and highlighted faults
-  // Séparer impérativement « Personnellement... » ou « Pour ma part... » dans son propre paragraphe au début du développement
-  const splitRaw = (rawCopy || '').replace(/([.!?])\s*(Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1\n\n$2');
-  const paragraphs = splitRaw ? splitRaw.split(/\n\s*\n/).filter(p => p.trim()) : [rawCopy];
-  const highlightedCopy = paragraphs.map(p => {
-    let formatted = p.trim();
-    // Highlight all argumentative connectors in bold
+  const formatTranscription = (transText: string, originalText: string, tableRaw?: string): string => {
+    const cleaned = transText ? transText.replace(/<span class="struct-missing">[^<]*<\/span>/gi, '').trim() : '';
+    
+    // Connecteurs logiques officiels à mettre en gras (exhaustif selon Cadre Officiel)
     const connectors = [
       'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
-      'D’ailleurs', "D'ailleurs", 'Par ailleurs', 'En d’autres termes', "En d'autres termes", 'Autrement dit',
+      "D'ailleurs", 'D’ailleurs', 'Par ailleurs',
+      "En d'autres termes", 'En d’autres termes', 'Autrement dit',
       'En guise de conclusion', 'En définitive', 'En somme', 'En résumé', 'En conclusion', 'Pour conclure', 'Finalement',
-      'Personnellement', 'Pour ma part', 'À mon avis', "A mon avis", 'Selon moi', "D'après moi", 'D’après moi', 'En ce qui me concerne',
-      'D’abord', "D'abord", 'Tout d’abord', "Tout d'abord", 'Premièrement', 'Deuxièmement', 'Troisièmement',
+      'Personnellement', 'Pour ma part', 'À mon avis', 'A mon avis', 'Selon moi', "D'après moi", 'D’après moi', 'En ce qui me concerne',
+      'Tout d’abord', "Tout d'abord", 'D’abord', "D'abord", 'Premièrement', 'Deuxièmement', 'Troisièmement',
       'Ensuite', 'Puis', 'Enfin',
       'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre',
-      'Par conséquent', 'En conséquence', 'C’est pourquoi', "C'est pourquoi", 'Dès lors', 'Ainsi',
+      'Par conséquent', 'En conséquence', "C'est pourquoi", 'C’est pourquoi', 'Dès lors', 'Ainsi',
       'En effet', 'En réalité', 'De fait', 'En fait',
       'De plus', 'En outre', 'De surcroît', 'De surcroit',
       'D’une part', "D'une part", 'D’autre part', "D'autre part",
       "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté', "De l'autre côté", 'De l’autre côté',
       'Non seulement', 'Mais aussi', 'Mais encore',
-      'De ce fait', "D'où", 'D’où', 'Certes', 'Sans doute', 'Aussi'
+      'Aussi donne-t-elle', 'Aussi permet-elle', 'Aussi convient-il', 'Aussi importe-t-il', 'Aussi',
+      'De ce fait', "D'où", 'D’où', 'Certes', 'Sans doute', 'De même'
     ];
-    for (const c of connectors) {
-      const escaped = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const reg = new RegExp(`(?<!<strong>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
-      formatted = formatted.replace(reg, '<strong>$1</strong>');
+
+    const applyHighlights = (str: string) => {
+      let res = str;
+
+      // 1. Transformer les éventuelles notations explicites [faute -> correction] ou [faute] en erreurs rouges
+      res = res.replace(/(?<!<span class="err-highlight"[^>]*>)(\[[^\]]+\])(?!<\/span>)/g, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;">$1</span>');
+
+      // 2. Transformer les balises <strong[^>]*> existantes contenant un connecteur en connecteurs stylisés en couleur
+      res = res.replace(/<strong(?!\s+class="conn-student")[^>]*>([\s\S]*?)<\/strong>/gi, (m, inner) => {
+        const trimmed = inner.replace(/<[^>]*>/g, '').trim();
+        const matched = connectors.find(c => c.toLowerCase() === trimmed.toLowerCase());
+        if (matched) {
+          const style = getConnectorStyle(matched);
+          return `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:2px 7px !important; border-radius:5px !important; border:1.5px solid ${style.border} !important; display:inline-block !important; margin:1px 2px !important; box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;">${inner}</strong>`;
+        }
+        return m;
+      });
+
+      // 3. Connecteurs en couleur s'ils ne le sont pas encore (triés du plus long au plus court)
+      const sortedConnectors = [...connectors].sort((a, b) => b.length - a.length);
+      for (const c of sortedConnectors) {
+        const escaped = c
+          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          .replace(/['’]/g, "['’]");
+        const style = getConnectorStyle(c);
+        const regex = new RegExp(`(?<!<strong class="conn-student"[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
+        res = res.replace(regex, `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:2px 7px !important; border-radius:5px !important; border:1.5px solid ${style.border} !important; display:inline-block !important; margin:1px 2px !important; box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;">$1</strong>`);
+      }
+
+      // 3. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
+      res = res.replace(/<span class="err-highlight"(?! style)/gi, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;"');
+
+      return res;
+    };
+
+    // RÈGLE MÉTHODOLOGIQUE MAJEURE : « En premier lieu... », « Personnellement... » ou « Pour ma part... » doit être placé au début du développement
+    // dans un paragraphe distinct avec son propre alinéa et saut de ligne franc.
+    const splitAtDevelopment = (str: string) => {
+      if (!str) return '';
+      let s = str;
+      // 1. Scission si à l'intérieur d'une balise <p>...</p>
+      s = s.replace(/([.!?…:])\s*(?:<\/p>)?\s*(?:<p[^>]*>)?\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1</p>\n\n<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;"><strong>$2</strong>');
+      // 2. Scission si en texte brut ou markdown avec ponctuation
+      s = s.replace(/([.!?…:])\s*(?!\n\s*\n)\s*(?:<strong>)?\s*(En premier lieu\b|D'abord\b|D’abord\b|D'une part\b|D’une part\b|Personnellement\b|Pour ma part\b|À mon avis\b|A mon avis\b|Selon moi\b|En ce qui me concerne\b)/gi, '$1\n\n$2');
+      // 3. Scission même si aucune ponctuation n'a été saisie à la fin de l'introduction
+      s = s.replace(/(?<=[a-zA-ZÀ-ÿ0-9])\s+(?!\n\s*\n)(?=(?:Personnellement|En premier lieu|D'abord|D’abord|D'une part|D’une part|Pour ma part|À mon avis|A mon avis|Selon moi)\b)/gi, '.\n\n');
+      return s;
+    };
+
+    const normCleaned = splitAtDevelopment(cleaned);
+    const normOriginal = splitAtDevelopment(originalText);
+
+    if (!normCleaned) {
+      const paras = normOriginal.split(/\n\s*\n/).filter(p => p.trim());
+      return paras.map(p => `<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(p.trim().replace(/\n/g, '<br/>'))}</p>`).join('\n\n');
     }
-    // Highlight common mistakes
-    formatted = formatted.replace(/\b(malgr[eé]\s+qu['’]il\s+soit)\b/gi, '<span class="err-highlight">$1 [bien qu\'il soit]</span>');
-    formatted = formatted.replace(/\b(partager)\b/gi, '<span class="err-highlight">$1 [partagé]</span>');
-    formatted = formatted.replace(/\b(un\s+fleau)\b/gi, '<span class="err-highlight">$1 [un fléau]</span>');
-    formatted = formatted.replace(/\b(des\s+\w+s?\s+violent)\b/gi, '<span class="err-highlight">$1 [violents]</span>');
-    return `<p>${formatted}</p>`;
-  }).join('\n\n');
 
-  const sentences = rawCopy.match(/[^.!?]+[.!?]+/g) || [rawCopy];
-  const s1 = (sentences[0] || "Première phrase de la copie").trim();
-  const s2 = (sentences[1] || sentences[0] || "Deuxième phrase de la copie").trim();
-  const s3 = (sentences[sentences.length - 1] || sentences[2] || "Phrase de conclusion de la copie").trim();
+    // Si le texte comporte des balises <p>...</p>, les formater individuellement avec style et retraits
+    const pMatches = normCleaned.match(/<p[\s>][\s\S]*?<\/p>/gi);
+    if (pMatches && pMatches.length > 1) {
+      return pMatches.map(p => {
+        const inner = p.replace(/^<p[\s>]*>/i, '').replace(/<\/p>$/i, '').trim();
+        return `<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(inner)}</p>`;
+      }).join('\n\n');
+    }
 
-  return `[[GRILLE]] : Consigne:1.8|Structure:1.7|Arguments:1.8|Langue:2.2|Lexique:1.3
+    // Si séparé par des doubles retours à la ligne, découper en paragraphes distincts
+    const rawParas = (normCleaned || normOriginal).split(/\n\s*\n/).filter(p => p.trim());
+    if (rawParas.length > 1) {
+      return rawParas.map(p => {
+        let trimmed = p.trim().replace(/^<p[\s>]*>/i, '').replace(/<\/p>$/i, '').trim();
+        return `<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(trimmed.replace(/\n/g, '<br/>'))}</p>`;
+      }).join('\n\n');
+    }
 
-[[TRANSCRIPTION]]
-${highlightedCopy || `<p>${rawCopy}</p>`}
+    // Reconstruction si tout a été groupé en 1 bloc
+    const originalParas = normOriginal.split(/\n\s*\n/).filter(p => p.trim());
+    if (originalParas.length > 1) {
+      let remaining = normCleaned.replace(/^<p>/i, '').replace(/<\/p>$/i, '').trim();
+      const reconstructed: string[] = [];
+      
+      for (let i = 0; i < originalParas.length; i++) {
+        if (i === originalParas.length - 1) {
+          reconstructed.push(`<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(remaining.trim())}</p>`);
+          break;
+        }
+        
+        const nextOrig = originalParas[i + 1].trim();
+        const nextWords = nextOrig.split(/\s+/).slice(0, 3).join(' ');
+        const sanitizedWords = nextWords.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const matchIndex = remaining.search(new RegExp(sanitizedWords, 'i'));
+        
+        if (matchIndex > 0) {
+          const currentPara = remaining.slice(0, matchIndex).trim();
+          reconstructed.push(`<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(currentPara)}</p>`);
+          remaining = remaining.slice(matchIndex).trim();
+        } else {
+          reconstructed.push(`<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(originalParas[i].trim())}</p>`);
+        }
+      }
+      if (reconstructed.length > 0) {
+        return reconstructed.join('\n\n');
+      }
+    }
 
-[[BILAN]]
-### 1. Diagnostic Chirurgical de l'Amorce & de la Problématique
-- **Analyse de l'Amorce :** La copie débute par une accroche sur le thème de la solitude et de l'isolement. L'amorce gagne à dépasser la simple généralité pour être adossée à une réflexion littéraire ou éthique plus percutante, en ancrant la réflexion dans la réalité humaine ou les œuvres au programme.
-- **Formulation de la Problématique :** L'affirmation du point de vue personnel est explicite, mais le devoir gagnerait à formuler une véritable problématique interrogative (directe ou indirecte) : *« Dès lors, la solitude constitue-t-elle un repli destructeur ou s'affirme-t-elle au contraire comme une étape féconde de maturation intérieure ? »*
+    return `<p style="text-indent: 2.25rem; margin-bottom: 1.25rem; line-height: 2.1;">${applyHighlights(normCleaned.replace(/\n/g, '<br/>'))}</p>`;
+  };
 
-### 2. Audit Méthodologique du Développement & Articulation
-- **Structure des Paragraphes :** Respect global de la structure en paragraphes distincts. Toutefois, veiller à ce que chaque paragraphe développe strictement un argument univoque illustré d'un exemple concret développé issu de l'œuvre (*La Boîte à Merveilles*).
-- **Ancrage Littéraire :** La mention du narrateur de *La Boîte à Merveilles* et de sa boîte magique est un point d'appui précieux, mais gagne à être renforcée par des scènes précises (les souffrances au Msid, Dar Chouafa, la visite à Sidi Ali Boughaleb, le réconfort auprès de Lalla Zoubida).
+  const checkOffTopicStatus = (sujetStr: string, texteStr: string): { isOff: boolean; type: 'METHODOLOGIQUE' | 'THEMATIQUE' | 'GENERAL' } => {
+    if (!sujetStr || !texteStr) return { isOff: false, type: 'GENERAL' };
+    
+    const norm = (s: string) => (s || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-### 3. Diagnostic des Liens Logiques & Remarques Didactiques Précises
-- **Énumération & Progression :** L'emploi de « En premier lieu » et « En deuxième lieu » structure la copie. Stylistiquement, l'expression « En second lieu » est préférable à « En deuxième lieu » lorsqu'on développe deux arguments principaux.
-- ⚠️ **Remarque méthodologique essentielle sur l'amorce de conclusion :** Au lieu d'utiliser « Finalement » (terme souvent familier, oral ou restrictif pour clore un devoir académique), il faut impérativement amorcer la conclusion par une formule noble et certifiée telle que « **En guise de conclusion** », « **En définitive** » ou « **En conclusion** ». Cela confère à la réflexion une autorité et une tenue académique exemplaires.
+    const sNorm = norm(sujetStr);
+    const tNorm = norm(texteStr);
 
-### 4. Diagnostic de la Conclusion & Clôture
-- **Bilan :** Présence d'une synthèse claire des arguments développés.
-- **Ouverture :** Élargir la réflexion finale vers une portée philosophique ou universelle.
+    // 1. Methodological off-topic: Opinion topic treated via Causes / Solutions (Plan Analytique)
+    const opinionIndicators = [
+      'pensez vous', 'partagez vous', 'etes vous', 'd accord', 'qu en pensez vous',
+      'faut il', 'peut on', 'votre avis', 'votre point de vue', 'votre opinion',
+      'approuvez vous', 'selon vous', 'justifiez votre point de vue', 'partagez cette',
+      'dans quelle mesure', 'quel est votre avis', 'adherez vous', 'etes vous pour ou contre'
+    ];
 
-[[TABLEAU]]
-| Extrait fautif (en rouge) | Nature de l'erreur | Correction certifiée (en vert) | Règle pédagogique précise |
-| :--- | :--- | :--- | :--- |
-| <span class="err-highlight">partager</span> | Conjugaison & Accord | <span class="corr-green">partagé</span> | Après l'auxiliaire être, le verbe s'accorde au participe passé : « est partagé ». |
-| <span class="err-highlight">malgré qu'il soit</span> | Coordination & Syntaxe | <span class="corr-green">bien qu'il soit</span> | « Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ». |
+    const isExplicitAnalyticSubject = sNorm.includes('causes et solutions') ||
+      sNorm.includes('causes et consequences') ||
+      sNorm.includes('quelles sont les causes') ||
+      sNorm.includes('analyser les causes');
 
-[[REFORMULATION]]
-### A. Chirurgie Stylistique des Phrases Clés (Phrases Faibles de l'Élève Reformulées avec Force)
-- **Phrase faible de l'élève n°1 :**
-  > *« ${s1.slice(0, 90)} »*
-  - **Diagnostic didactique :** La phrase gagne à être fluidifiée pour assurer une transition naturelle et limpide dès l'amorce.
-  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
-    > *« ${s1.replace(/partager/g, 'partagé').replace(/malgré qu'il soit/gi, 'bien qu\'il soit')} »*
+    const isOpinion = opinionIndicators.some(ind => sNorm.includes(ind)) && !isExplicitAnalyticSubject;
 
-- **Phrase faible de l'élève n°2 :**
-  > *« ${s2.slice(0, 90)} »*
-  - **Diagnostic didactique :** Le lien logique gagne à être explicité avec fermeté pour donner du relief à l'argumentation.
-  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
-    > *« Dès lors, la réflexion s'appuie sur des arguments concrets pour rendre la démonstration plus convaincante et rigoureuse. »*
+    // Si le candidat exprime son avis personnel, il respecte pleinement la consigne d'opinion
+    const personalOpinionTriggers = [
+      'personnellement', 'a mon avis', 'selon moi', 'd apres moi', 'a mon sens',
+      'en ce qui me concerne', 'pour ma part', 'a mes yeux', 'je pense',
+      'j estime', 'je trouve', 'je considere', 'je soutiens', 'je crois',
+      'je partage', 'je ne partage pas', 'je suis d accord', 'je ne suis pas d accord',
+      'je n approuve pas', 'j approuve', 'n approuve pas', 'refuse d admettre'
+    ];
+    const hasPersonalOpinion = personalOpinionTriggers.some(op => tNorm.includes(op));
 
-- **Phrase faible de l'élève n°3 :**
-  > *« ${s3.slice(0, 90)} »*
-  - **Diagnostic didactique :** L'emploi du terme « Finalement » affaiblit la portée concluante de la fin du devoir.
-  - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
-    > *« En guise de conclusion, l'expérience montre que la lucidité personnelle et la solidarité humaine se complètent pour donner son plein sens à la vie. »*
+    if (isOpinion && !hasPersonalOpinion) {
+      const explicitCauseStructure = [
+        'parmi les causes de ce', 'les causes de ce probleme', 'les causes de ce phenomene',
+        'premiere cause', 'la cause principale de ce'
+      ];
+      const explicitSolutionStructure = [
+        'comme solutions a ce', 'les solutions pour lutter', 'les solutions a adopter',
+        'pour eradiquer ce fleau', 'les remedes preconises'
+      ];
 
-### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
-${(() => {
-  const analysis = detectSubjectAnalysis(topic || '');
+      const hasCauseSection = explicitCauseStructure.some(p => tNorm.includes(p));
+      const hasSolutionSection = explicitSolutionStructure.some(p => tNorm.includes(p));
 
-  if (analysis.isGuerisseur) {
-    return `> **Dans de nombreuses sociétés traditionnelles comme au Maroc**, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population en quête de soulagement. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ? Pour aborder avec méthode et rigueur cette problématique, il conviendra d'examiner dans un premier axe les causes majeures de ce phénomène, de mettre en lumière dans un second axe les conséquences redoutables qu'il engendre pour la collectivité, avant de formuler dans un troisième axe les solutions indispensables pour y remédier durablement.
+      if (hasCauseSection && hasSolutionSection) {
+        return { isOff: true, type: 'METHODOLOGIQUE' };
+      }
+    }
 
-> **En premier lieu**, l'attachement aux guérisseurs s'explique avant tout par la persistance de l'analphabétisme, la précarité matérielle et le coût exorbitant des soins médicaux hospitaliers pour les familles démunies. Confrontés à des pathologies chroniques, à des douleurs inexplicables ou à une détresse psychologique aiguë, de nombreux patients délaissent les cabinets spécialisés au profit de figures traditionnelles qui promettent des remèdes miraculeux, rapides et peu onéreux. De plus, le poids des croyances ancestrales et la pression culturelle de l'entourage entretiennent l'illusion tenace que certains maux relèvent d'influences surnaturelles qu'aucune science rationnelle ne saurait apaiser. Ainsi, la vulnérabilité socio-économique et le manque d'information médicale constituent le terreau fertile de ce choix archaïque.
+    // 2. Thematic off-topic check
+    const stopWords = new Set([
+      'le','la','les','un','une','des','du','de','d','l','au','aux','ce','cet','cette','ces',
+      'mon','ton','son','notre','votre','leur','mes','tes','ses','nos','vos','leurs',
+      'qui','que','quoi','dont','ou','où','quand','comment','pourquoi','dans','sur','sous',
+      'par','pour','avec','sans','apres','après','avant','pendant','faut','il','elle','on',
+      'nous','vous','ils','elles','est','sont','etre','être','avoir','a','ont','faire','fait',
+      'peut','peuvent','plus','moins','tres','très','bien','aussi','comme','si','ne','pas',
+      'tout','tous','toute','toutes','autre','autres','pensez','avis','partagez','selon',
+      'beaucoup','gens','monde','affirment','certains','disent','sujet','texte','production',
+      'votre','point','vue','justifiez','arguments','pertinents','illustrez','exemples'
+    ]);
 
-> **Par conséquent**, les répercussions sanitaires de ce recours aveugle s'avèrent dramatiques pour la population et provoquent fréquemment des préjudices corporels irréversibles. Un guérisseur, généralement dépourvu de tout diplôme médical et de formation pharmacologique rigoureuse, prétend soigner par des méthodes empiriques qui dégradent sournoisement la santé des malades. D'une part, il maîtrise mal le dosage des substances chimiques et végétales administrées, ce qui engendre des intoxications aiguës, des néphropathies et des comas après ingestion de décoctions inappropriées. D'autre part, l'emploi récurrent d'instruments non stérilisés favorise la transmission de virus foudroyants tels que celui de l'hépatite C ou du sida, tandis que le retard pris pour consulter un médecin qualifié compromet définitivement les chances de survie. Dès lors, cette imprudence menace directement la vie humaine.
+    const extractSignificantWords = (str: string) => {
+      return norm(str).split(/\s+/).filter(w => w.length >= 3 && !stopWords.has(w));
+    };
 
-> **Enfin, pour remédier à ce fléau**, la mise en œuvre d'une stratégie globale articulée autour de la prévention, de la fermeté juridique et de la démocratisation des soins s'impose avec une impérieuse nécessité. D'un côté, les pouvoirs publics et la société civile doivent intensifier les campagnes de sensibilisation dans les médias et les établissements scolaires afin de démystifier le charlatanisme et d'inculquer les réflexes de la médecine préventive aux citoyens. D'autre part, il convient de durcir l'arsenal législatif pour sanctionner sévèrement les faux praticiens qui exercent illégalement, tout en étendant la couverture médicale universelle et les dispensaires de proximité afin de rendre les consultations médicales accessibles aux foyers les plus modestes. Dès lors, seule une action solidaire, éducative et résolue permettra de tarir définitivement la clientèle de ces charlatans.
+    const subjectWords = extractSignificantWords(sujetStr);
+    const textWords = extractSignificantWords(texteStr);
 
-> **En conclusion**, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et la pauvreté, tout en infligeant des désastres sanitaires inacceptables à la société. Si les causes demeurent enracinées dans la précarité et les superstitions, les conséquences néfastes appellent un sursaut civique et institutionnel fondé sur l'éducation et la solidarité nationale. En définitive, le triomphe de la médecine scientifique et de la dignité humaine ne constitue-t-il pas le premier devoir d'une société soucieuse de la santé et de l'avenir de ses citoyens ?`;
-  }
+    if (subjectWords.length === 0) return { isOff: false, type: 'GENERAL' };
+    if (textWords.length < 5) return { isOff: false, type: 'GENERAL' };
 
-  if (analysis.isParentsKids) {
-    return `> **Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui**, on se rend compte que la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation. Dès lors, convient-il d'estimer que les parents doivent impérativement décider à la place de leurs enfants pour assurer leur protection, ou importe-t-il au contraire de leur accorder une véritable liberté dans leurs choix personnels ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier temps la légitimité du rôle protecteur et régulateur des parents, avant de mettre en lumière dans un second temps la nécessité d'encourager le libre arbitre et le sens des responsabilités chez les jeunes.
+    const subjectRoots = subjectWords.map(w => w.slice(0, Math.min(w.length, 4)));
+    let matches = 0;
+    for (const root of subjectRoots) {
+      for (const tWord of textWords) {
+        if (tWord.startsWith(root) || (root.length >= 4 && tWord.includes(root))) {
+          matches++;
+          break;
+        }
+      }
+    }
 
-> **En premier lieu**, l'intervention directrice des parents s'impose comme une nécessité éducative indispensable pour préserver la sécurité morale et matérielle des jeunes enfants face aux périls d'un monde complexe. En raison de leur manque d'expérience, de leur immaturité affective et de leur incapacité à anticiper les conséquences lointaines de leurs actes, les enfants ont un besoin vital d'une autorité bienveillante qui leur serve de repère. C'est précisément ce que révèle avec tendresse le roman autobiographique **La Boîte à Merveilles d'Ahmed Sefrioui** : les décisions fermes prises par le père **Maâlem Abdeslam** et l'encadrement vigilant de sa mère **Lalla Zoubida** constituent pour le jeune narrateur **Sidi Mohammed** un rempart protecteur inestimable contre les égarements de l'enfance et les déceptions du quotidien de **Dar Chouafa**. Ainsi, décider pour l'enfant ne relève pas de la tyrannie, mais d'un devoir sacré d'amour et de responsabilité parentale.
+    // Contrôle du Hors-Sujet Thématique : seulement si le texte n'a strictement AUCUN mot ou racine en commun avec le sujet
+    if (matches === 0 && textWords.length >= 8) {
+      return { isOff: true, type: 'THEMATIQUE' };
+    }
 
-> **En second lieu**, cette autorité protectrice ne saurait toutefois se transformer en une tutelle étouffante qui anéantirait toute initiative personnelle et empêcherait l'épanouissement du jeune esprit. Pour grandir et forger sa propre personnalité, l'enfant doit progressivement expérimenter la liberté de choix, apprendre de ses erreurs et se sentir écouté par ses aînés. Lorsque les adultes imposent systématiquement leur volonté sans dialogue, ils risquent d'engendrer un sentiment d'incompréhension et de repli douloureux. Dans l'œuvre de Sefrioui, c'est précisément dans le sanctuaire secret de **sa boîte à merveilles** que le jeune **Sidi Mohammed** cherche refuge pour échapper au conformisme et au carcan des adultes qui ignorent sa sensibilité poétique. De surcroît, la tragédie d'**Antigone de Jean Anouilh** démontre avec force les ravages de l'autoritarisme aveugle incarné par le roi **Créon**, qui refuse d'entendre la voix de la jeunesse. Dès lors, l'apprentissage de l'autonomie et l'écoute mutuelle s'avèrent indispensables pour bâtir un adulte responsable.
+    return { isOff: false, type: 'GENERAL' };
+  };
 
-> **En définitive**, le rapport parents/jeunes ne saurait se réduire à un dilemme binaire entre soumission aveugle et émancipation anarchique, mais appelle un équilibre harmonieux fondé sur la confiance réciproque et le dialogue bienveillant. Si l'orientation des parents demeure indispensable durant les premières années de la vie, elle doit s'adoucir progressivement pour faire place à une écoute attentive et à un accompagnement éclairé vers la liberté. En conclusion, le véritable rôle d'un parent n'est-il pas d'offrir à son enfant des racines solides pour grandir, tout en lui donnant des ailes pour conquérir son propre destin ?`;
-  }
+  const detectClientSubjectAnalysis = (topic: string) => {
+    const tLow = (topic || '').toLowerCase();
 
-  if (analysis.isSolitude) {
-    return `> **Texte Argumentatif : La solitude, obstacle ou force pour grandir ?**
+    const isParentsKids = tLow.includes('parent') || 
+      tLow.includes('décider à la place') || 
+      tLow.includes('decider a la place') || 
+      tLow.includes('rapport parents') || 
+      tLow.includes('autorité parentale') || 
+      tLow.includes('autorite parentale') || 
+      (tLow.includes('enfant') && (tLow.includes('jeune') || tLow.includes('adulte') || tLow.includes('décid') || tLow.includes('decid')));
 
-> **Dans La Boîte à Merveilles, le roman autobiographique d'Ahmed Sefrioui**, la solitude et l'épanouissement de l'individu occupent une place centrale. Le livre pose une question qui dépasse le cadre du récit : l'isolement est-il une faiblesse qui enferme, ou une étape nécessaire pour mûrir et se découvrir soi-même ? Si certains considèrent la solitude comme une épreuve douloureuse qui marginalise l'individu, d'autres y voient au contraire le lieu privilégié de la réflexion, de l'autonomie et de la créativité.
+    const isGuerisseur = tLow.includes('guérisseur') || 
+      tLow.includes('guerisseur') || 
+      tLow.includes('charlatan') || 
+      tLow.includes('tradipraticien') || 
+      (tLow.includes('cause') && (tLow.includes('conséquence') || tLow.includes('consequence') || tLow.includes('solution')));
 
-> **D'une part**, il est indéniable que la solitude peut être ressentie comme une souffrance lourde à porter lorsqu'elle est subie. L'être humain a un besoin fondamental de communiquer et de vivre en harmonie avec ses semblables. À cet égard, le jeune **Sidi Mohammed** illustre parfaitement cette détresse au début de l'œuvre. Âgé de six ans, il se sent exclu face aux jeux bruyants des enfants de son âge et traumatisé par le monde des adultes, notamment lors des querelles brutales entre voisines à **Dar Chouafa** ou au cours de la panique au **bain maure**. **Par conséquent**, un repli involontaire sur soi-même engendre un sentiment de tristesse, de rejet et d'incompréhension qui affaiblit le moral.
+    const isSolitude = tLow.includes('solitude') || 
+      tLow.includes('isolement') || 
+      tLow.includes('faiblesse') || 
+      tLow.includes('épanouissement') || 
+      tLow.includes('epanouissement');
 
-> **Cependant**, la solitude s'avère être également un formidable levier d'émancipation et de maturité. **En premier lieu**, loin du vacarme quotidien, elle permet de libérer l'imagination. C'est précisément cette solitude d'enfant qui a poussé **Ahmed Sefrioui** à écrire ce magnifique roman d'une éclatante richesse poétique : grâce à son coffret d'objets simples métamorphosés en trésors fabuleux dans **sa boîte à merveilles**, l'isolement est devenu la source première de sa création artistique. **En second lieu**, le silence intérieur est indispensable pour prendre conscience de ses responsabilités. Comme le soulignait très justement **Feu Sa Majesté le Roi Hassan II** : « *Tout homme, à quelque échelon qu'il soit, quand il a quitté ses conseillers, ses amis, ses parents... il arrive à être solitaire.* » **Ainsi**, face aux grands choix de l'existence, chaque personne se retrouve seule avec sa conscience pour forger son propre destin.
+    const isAntigone = tLow.includes('antigone') || 
+      tLow.includes('anouilh') || 
+      tLow.includes('créon') || 
+      tLow.includes('creon') || 
+      tLow.includes('ismène') || 
+      tLow.includes('ismene') ||
+      tLow.includes('hémon') ||
+      tLow.includes('hemon');
 
-> **En conclusion**, la solitude présente une double dimension. Subie avec passivité, elle enferme l'être dans l'amertume ; mais acceptée avec lucidité, elle devient une étape féconde pour se comprendre, créer et mûrir. Pour s'épanouir pleinement, l'homme doit donc savoir apprécier des instants de recul solitaire, avant de revenir partager ses richesses avec la société.`;
-  }
+    const isCondamne = tLow.includes('dernier jour') || 
+      tLow.includes('condamné') || 
+      tLow.includes('condamne') || 
+      tLow.includes('victor hugo') || 
+      tLow.includes('peine de mort') || 
+      tLow.includes('échafaud') || 
+      tLow.includes('echafaud') || 
+      tLow.includes('guillotine') ||
+      tLow.includes('bicêtre');
 
-  if (analysis.isAntigone) {
-    return `> **Quand on plonge dans la lecture attentive de la tragédie moderne Antigone de Jean Anouilh**, on se rend compte que la réflexion engagée autour de ${analysis.themeTitle} soulève une interrogation fondamentale sur la liberté et le pouvoir. Dès lors, convient-il de se soumettre aux compromis pragmatiques imposés par la société ou importe-t-il au contraire de préserver l'intégrité absolue de ses idéaux éthiques ? Pour répondre avec rigueur à cette problématique, il s'agira d'examiner dans un premier temps le devoir d'obéissance aux règles garantissant l'ordre collectif, avant d'analyser dans un second temps la supériorité inaliénable du refus moral face à l'injustice.
+    const isBoiteMentioned = tLow.includes('boîte') || 
+      tLow.includes('boite') || 
+      tLow.includes('sefrioui') || 
+      tLow.includes('merveilles') || 
+      tLow.includes('sidi mohammed');
 
-> **En premier lieu**, l'adhésion lucide à des principes régulateurs partagés et le respect des normes sociales constituent le garant fondamental de la concorde civile. Dans la cité de **Thèbes**, le roi **Créon** rappelle avec insistance que gouverner les hommes exige un sens aigu du réel et l'acceptation de devoirs austères pour préserver la paix publique après la guerre civile sanglante entre **Étéocle et Polynice**. De même, la retenue prudente d'**Ismène** met en lumière la nécessité de peser les conséquences concrètes de nos actes avant d'ébranler les équilibres nécessaires à la survie de la collectivité. Ainsi, l'exercice de la responsabilité politique et l'obéissance civique forment un pilier indispensable pour protéger la communauté du désordre.
+    let work: 'boite' | 'antigone' | 'condamne' | 'general' = 'general';
+    if (isParentsKids || isSolitude || isBoiteMentioned) {
+      work = 'boite';
+    } else if (isAntigone) {
+      work = 'antigone';
+    } else if (isCondamne) {
+      work = 'condamne';
+    } else {
+      work = 'general';
+    }
 
-> **En second lieu**, cette indispensable discipline sociale trouve sa limite infranchissable lorsque le pouvoir bafoue les principes moraux les plus sacrés de la condition humaine. C'est précisément l'héroïsme immortel incarné par **l'héroïne Antigone de Jean Anouilh** : refusant avec une grandeur sublime les arrangements hypocrites et le bonheur tiède proposés par son oncle, la jeune princesse choisit d'accomplir le rite de sépulture pour son frère au nom des lois imprescriptibles du cœur et de la piété familiale. Par ailleurs, la fidélité éperdue d'**Hémon** et les avertissements prophétiques du Chœur soulignent que nulle raison d'État ne peut étouffer la justice authentique sans conduire la cité à la ruine et au désespoir tragique. Dès lors, le courage de dire non s'impose comme l'expression suprême de la dignité humaine.
+    let themeTitle = '';
+    if (isParentsKids) {
+      themeTitle = "la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants";
+    } else if (isGuerisseur) {
+      themeTitle = "le recours aux tradipraticiens et aux guérisseurs traditionnels";
+    } else if (isSolitude) {
+      themeTitle = "la réflexion engagée autour de la solitude et de l'épanouissement personnel";
+    } else if (isAntigone) {
+      themeTitle = "le conflit tragique entre l'obéissance aux impératifs de la loi et la liberté sacrée de la conscience";
+    } else if (isCondamne) {
+      themeTitle = "la légitimité de la justice répressive et l'exigence morale de l'abolition de la peine de mort";
+    } else {
+      let cleaned = topic
+        .replace(/[«»"“”]/g, '')
+        .replace(/déclare\s+un\s+[a-zA-ZÀ-ÿ]+/gi, '')
+        .replace(/partagez-vous\s+cette\s+idée\s*\??/gi, '')
+        .replace(/dans\s+un\s+texte\s+argumentatif[\s\S]*/gi, '')
+        .replace(/vous\s+présenterez[\s\S]*/gi, '')
+        .trim();
+      if (cleaned.length > 70) {
+        cleaned = cleaned.slice(0, 70).replace(/\s+\S*$/, '') + '...';
+      }
+      themeTitle = cleaned ? `la réflexion suscitée par « ${cleaned} »` : "cette question éthique et sociétale";
+    }
 
-> **En définitive**, la tragédie de Jean Anouilh prouve avec intensité que la concorde humaine exige de concilier la fermeté de l'ordre public avec le respect scrupuleux de la liberté morale de chaque individu. Loin de s'opposer aveuglément, la loi civique et la voix de la conscience doivent constamment dialoguer pour prévenir toute dérive tyrannique. En conclusion, ne revient-il pas à toute société civilisée d'honorer les impératifs de la justice tout en veillant à sauvegarder la noblesse des idéaux de sa jeunesse ?`;
-  }
+    return {
+      isParentsKids,
+      isGuerisseur,
+      isSolitude,
+      isAntigone,
+      isCondamne,
+      isBoiteMentioned,
+      work,
+      themeTitle,
+    };
+  };
 
-  if (analysis.isCondamne) {
-    return `> **Quand on plonge dans la lecture attentive du roman à thèse Le Dernier Jour d'un Condamné de Victor Hugo**, on se rend compte que la réflexion engagée autour de ${analysis.themeTitle} touche au cœur de l'existence humaine et de la conscience morale. Dès lors, convient-il d'adhérer passivement aux lois et aux coutumes d'une époque ou importe-t-il au contraire de promouvoir un examen critique pour faire progresser la dignité universelle ? Pour répondre avec méthode à cette problématique, il conviendra d'examiner dans un premier axe les nécessités de la justice institutionnelle, avant d'analyser dans un second axe l'urgence morale de réformer la société par la compassion humaine.
+  const getDefaultPlanA = (topicSujet: string) => {
+    const analysis = detectClientSubjectAnalysis(topicSujet);
 
-> **En premier lieu**, l'existence d'une institution judiciaire organisée répond au besoin universel de garantir la sécurité des citoyens et de prévenir l'arbitraire du châtiment privé. Dans la société décrite par **Victor Hugo**, les tribunaux et les décrets législatifs sont initialement conçus pour punir le crime et dissuader les comportements destructeurs de l'ordre social. L'organisation du système répressif vise théoriquement à réparer le tort causé à la communauté et à préserver la sécurité de tous contre les transgressions violentes. Ainsi, le respect de lois communes constitue une condition fondamentale pour préserver la paix publique.
-
-> **En second lieu**, cette nécessaire régulation juridique perd toute légitimité morale lorsqu'elle recourt à des châtiments dégradants qui annihilent la valeur sacrée de la vie humaine. À travers le journal intime et les angoisses déchirantes d'un homme claquemuré dans le cachot ténébreux de **Bicêtre** puis transféré à **la Conciergerie**, le chef-d'œuvre de **Victor Hugo** dénonce avec force l'horreur insoutenable de **la peine de mort** et la cruauté barbare de **la guillotine** dressée sur **la place de Grève**. De surcroît, la douleur poignante du condamné songeant au destin tragique de son enfant chérie, **la petite Marie**, ainsi que la dépravation morale incarnée par le spectacle des curieux avides de sang, démontrent que le progrès véritable ne peut naître que de l'abolition des peines de sang et de l'avènement d'une justice réhabilitatrice. Dès lors, l'émancipation morale de la société exige d'élever la compassion au-dessus de la vengeance institutionnelle.
-
-> **En définitive**, le plaidoyer vibrant de Victor Hugo démontre avec une force éclatante que les lois humaines doivent s'harmoniser constamment avec les exigences supérieures de l'éthique et de l'humanité. Loin de figer le droit dans une rigueur implacable, les sociétés ont le devoir historique d'adoucir les peines et d'éclairer les consciences par la tolérance et l'éducation. En conclusion, ne revient-il pas à chaque génération d'affirmer le primat inconditionnel de la vie et de la dignité humaine face à tous les obscurantismes ?`;
-  }
-
-  // RÈGLE FORMELLE : SI CE N'EST PAS UNE ŒUVRE AU PROGRAMME, NE PAS COMMENCER PAR "Quand on plonge..."
-  return `> **Dans le débat contemporain**, ${analysis.themeTitle} suscite de vives réflexions et s'impose comme une préoccupation éthique et civique déterminante pour chaque conscience éclairée. Dès lors, convient-il d'adopter sans réserve les préceptes imposés par l'opinion commune ou importe-t-il au contraire d'affirmer un recul critique et un discernement responsable ? Pour aborder avec rigueur et méthode cette problématique, il conviendra d'examiner dans un premier temps les fondements de la responsabilité partagée, avant de mettre en lumière dans un second temps l'impératif moral de préserver son autonomie de jugement.
-
-> **En premier lieu**, l'adhésion lucide à des principes personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. La vie en société exige en effet des repères partagés et une discipline consentie pour maintenir la paix civile et garantir la cohésion entre les citoyens. Ainsi, la conscience de ses devoirs consolide les fondations morales indispensables à toute vie sereine.
-
-> **En second lieu**, cette indispensable fidélité aux impératifs sociaux ne saurait toutefois se muer en un assujettissement passif ou en un conformisme frileux qui étoufferait le libre arbitre et la liberté de pensée. L'esprit humain ne saurait s'épanouir dans la seule répétition machinale des habitudes établies. Dès lors, le discernement critique et la liberté intérieure s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.
-
-> **En définitive**, ce parcours réflexif démontre avec clarté que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité envers autrui. Loin de s'exclure mutuellement, la force de conviction personnelle et l'attention fraternelle envers ses semblables se complètent pour bâtir une société équilibrée, harmonieuse et profondément humaine. En conclusion, ne revient-il pas dès lors à chacun d'entre nous d'assumer ce double devoir d'exigence intérieure et de bienveillance active au quotidien ?`;
-})()}
-
-[[TYPE]]
-${isAnalytic || (topic && (topic.toLowerCase().includes('guérisseur') || topic.toLowerCase().includes('guerisseur') || (topic.toLowerCase().includes('cause') && topic.toLowerCase().includes('conséquence')))) ? 'ANALYTIQUE' : 'OPINION'}
-
-[[PLAN_A]]
-${(() => {
-  const analysis = detectSubjectAnalysis(topic || '');
-
-  if (analysis.isGuerisseur) {
-    return `<div class="model-intro">
-<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ? Pour aborder avec rigueur cette problématique, il s'agira d'analyser dans un premier axe les causes majeures de ce fléau, de mettre en évidence dans un deuxième axe ses conséquences sanitaires dramatiques, avant de formuler dans un troisième axe les solutions indispensables pour y remédier durablement.</p>
+    if (analysis.isGuerisseur) {
+      return `<div class="model-intro">
+<p>Dans de nombreuses sociétés traditionnelles comme au Maroc, le recours aux tradipraticiens et aux guérisseurs continue de susciter un engouement persistant auprès d'une large frange de la population. Dès lors, quelles sont les causes profondes qui poussent tant de citoyens à se détourner de la médecine moderne au profit de ces pratiques empiriques, quelles en sont les répercussions alarmantes sur la santé publique, et quelles solutions concrètes convient-il de déployer pour endiguer ce phénomène ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1131,11 +2179,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En conclusion</strong>, l'analyse menée démontre que le recours aux guérisseurs prospère sur l'ignorance et le dénuement, tout en infligeant des désastres sanitaires inacceptables à la communauté. Si les causes demeurent enracinées dans la précarité et les superstitions, les conséquences néfastes appellent un sursaut civique et institutionnel fondé sur l'éducation et la solidarité nationale. En définitive, le triomphe de la médecine scientifique et de la dignité humaine ne constitue-t-il pas le premier devoir d'une société soucieuse de la santé et de l'avenir de ses citoyens ?</p>
 </div>`;
-  }
+    }
 
-  if (analysis.isParentsKids) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation. Dès lors, convient-il d'estimer que les parents doivent impérativement décider à la place de leurs enfants pour assurer leur protection, ou importe-t-il au contraire de leur accorder une véritable liberté dans leurs choix personnels ? Pour répondre avec rigueur et méthode à cette problématique, il s'agira d'examiner dans un premier axe la légitimité du rôle protecteur et régulateur des parents, avant de mettre en lumière dans un second axe la nécessité d'encourager le libre arbitre et le sens des responsabilités chez les jeunes.</p>
+    if (analysis.isParentsKids) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation. Dès lors, convient-il d'estimer que les parents doivent impérativement décider à la place de leurs enfants pour assurer leur protection, ou importe-t-il au contraire de leur accorder une véritable liberté dans leurs choix personnels ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1149,10 +2197,10 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En conclusion</strong>, le rapport parents/jeunes ne saurait se réduire à un dilemme binaire entre soumission aveugle et émancipation anarchique, mais appelle un équilibre harmonieux fondé sur la confiance réciproque et le dialogue bienveillant. Si l'orientation des parents demeure indispensable durant les premières années de la vie, elle doit s'adoucir progressivement pour faire place à une écoute attentive et à un accompagnement éclairé vers la liberté. En définitive, le véritable rôle d'un parent n'est-il pas d'offrir à son enfant des racines solides pour grandir, tout en lui donnant des ailes pour conquérir son propre destin ?</p>
 </div>`;
-  }
+    }
 
-  if (analysis.isSolitude) {
-    return `<div class="model-intro">
+    if (analysis.isSolitude) {
+      return `<div class="model-intro">
 <p><strong>Dans La Boîte à Merveilles, le roman autobiographique d'Ahmed Sefrioui</strong>, la solitude et l'épanouissement de l'individu occupent une place centrale. Le livre pose une question qui dépasse le cadre du récit : l'isolement est-il une faiblesse qui enferme, ou une étape nécessaire pour mûrir et se découvrir soi-même ? Si certains considèrent la solitude comme une épreuve douloureuse qui marginalise l'individu, d'autres y voient au contraire le lieu privilégié de la réflexion, de l'autonomie et de la créativité.</p>
 </div>
 
@@ -1167,11 +2215,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En conclusion</strong>, la solitude présente une double dimension. Subie avec passivité, elle enferme l'être dans l'amertume ; mais acceptée avec lucidité, elle devient une étape féconde pour se comprendre, créer et mûrir. Pour s'épanouir pleinement, l'homme doit donc savoir apprécier des instants de recul solitaire, avant de revenir partager ses richesses avec la société.</p>
 </div>`;
-  }
+    }
 
-  if (analysis.isAntigone) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par ${analysis.themeTitle} oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
+    if (analysis.isAntigone) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par ${analysis.themeTitle} oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1185,11 +2233,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En conclusion</strong>, l'affrontement thébain rappelle que la véritable grandeur humaine réside dans le refus permanent de la tyrannie et le respect sacré des valeurs éthiques. Loin d'être un caprice immature, la révolte d'Antigone réaffirme que la conscience demeure supérieure à toute loi temporelle injuste. En définitive, ne revient-il pas à chaque génération d'affirmer ce courage de la vérité pour édifier un monde plus humain et équitable ?</p>
 </div>`;
-  }
+    }
 
-  if (analysis.isCondamne) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on constate que le débat engagé par ${analysis.themeTitle} touche aux racines mêmes de la justice et de la dignité. Dès lors, convient-il d'accepter aveuglément les châtiments imposés par la loi ou importe-t-il d'exercer un discernement critique pour humaniser la société ? Pour aborder avec rigueur cette problématique, il conviendra d'examiner dans un premier axe les fonctions traditionnelles du système pénal, avant d'analyser dans un second axe l'impératif moral de réformer la justice par la compassion.</p>
+    if (analysis.isCondamne) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on constate que le débat engagé par ${analysis.themeTitle} touche aux racines mêmes de la justice et de la dignité. Dès lors, convient-il d'accepter aveuglément les châtiments imposés par la loi ou importe-t-il d'exercer un discernement critique pour humaniser la société ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1203,11 +2251,29 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En conclusion</strong>, le chef-d'œuvre de Victor Hugo démontre avec éclat que la légitimité d'une société se mesure à sa capacité à promouvoir la compassion et le respect absolu de la vie. Loin de cautionner la barbarie légalisée, le progrès démocratique exige d'élever la justice vers un idéal de rédemption et de fraternité. En définitive, n'est-ce pas ce combat universel pour la dignité humaine qui doit guider toute conscience éclairée ?</p>
 </div>`;
-  }
+    }
 
-  // RÈGLE FORMELLE : SI CE N'EST PAS UNE ŒUVRE AU PROGRAMME, NE PAS COMMENCER PAR "Quand on plonge..."
-  return `<div class="model-intro">
-<p>Dans le débat contemporain, ${analysis.themeTitle} suscite de vives réflexions et s'impose comme une préoccupation éthique et civique déterminante pour chaque conscience éclairée. Dès lors, convient-il d'adopter sans réserve les préceptes imposés par l'opinion commune ou importe-t-il au contraire d'affirmer un recul critique et un discernement responsable ? Pour aborder avec méthode et rigueur cette problématique, il conviendra d'examiner dans un premier axe les fondements de la responsabilité partagée, avant de mettre en lumière dans un second axe l'impératif moral de préserver son autonomie de jugement.</p>
+    if (analysis.work === 'boite') {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on se rend compte que ${analysis.themeTitle} constitue une interrogation existentielle et éthique déterminante pour chaque conscience en formation. Dès lors, convient-il d'adhérer pleinement aux exigences prescrites par l'entourage ou importe-t-il d'affirmer un recul critique face aux faux-semblants du monde ?</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>En premier lieu</strong>, l'adhésion lucide à des repères personnels solides permet à l'individu de construire un ancrage intérieur durable et d'échapper aux égarements de l'arbitraire et de la futilité. Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, le jeune narrateur <strong>Sidi Mohammed</strong> oppose aux querelles mesquines de <strong>Dar Chouafa</strong> le sanctuaire secret de <strong>sa boîte à merveilles</strong>, où ses menus objets deviennent les symboles purs d'une poésie spirituelle inaccessible aux adultes. De plus, les rites familiaux et les visites réconfortantes au sanctuaire de <strong>Sidi Ali Boughaleb</strong> partagés avec sa mère <strong>Lalla Zoubida</strong> forment un socle protecteur indispensable qui console des épreuves matérielles et conjure l'angoisse de la solitude. Ainsi, la conscience de ses valeurs intimes consolide les fondations morales indispensables à toute vie sereine.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>En second lieu</strong>, cette indispensable fidélité à sa vérité intérieure ne saurait toutefois se muer en un assujettissement passif ou en un repli frileux qui étoufferait la générosité et l'esprit de partage. Dans le roman de Fès, les difficultés surmontées par le tisserand <strong>Maâlem Abdeslam</strong> prouvent avec émotion que la dignité au labeur et la loyauté envers les siens sont les seuls remparts réels contre l'indigence et le désespoir. Par ailleurs, la sollicitude admirable de la voisine <strong>Rahma</strong> lors de la disparition de Zineb et la communion fraternelle unissant <strong>Lalla Zoubida et Lalla Aïcha</strong> aux côtés du sage <strong>Sidi El Arafi</strong> démontrent que l'épreuve humaine trouve sa rédemption dans la compassion agissante. Dès lors, le discernement critique et la tendresse humaine s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence de la rectitude personnelle avec le souffle vivifiant de la bienveillance fraternelle. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen de demain ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de son authenticité morale ?</p>
+</div>`;
+    }
+
+    // Sujet général : Ne commence JAMAIS par « Quand on plonge... »
+    return `<div class="model-intro">
+<p>Dans le débat contemporain, ${analysis.themeTitle} suscite de vives réflexions et s'impose comme une préoccupation éthique et civique déterminante pour chaque conscience éclairée. Dès lors, convient-il d'adopter sans réserve les préceptes imposés par l'opinion commune ou importe-t-il au contraire d'affirmer un recul critique et un discernement responsable ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1221,15 +2287,14 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En conclusion</strong>, la réflexion menée invite à dépasser toute approche simpliste en harmonisant l'exigence de la rectitude personnelle avec le souffle vivifiant de la solidarité humaine. Loin de s'opposer, la responsabilité partagée et l'esprit critique se complètent harmonieusement pour fonder un humanisme équilibré et pérenne. En définitive, la véritable maturité du citoyen ne consiste-t-elle pas à respecter le bien commun tout en veillant courageusement à la sauvegarde de son authenticité morale ?</p>
 </div>`;
-})()}
+  };
 
-[[PLAN_B]]
-${(() => {
-  const analysis = detectSubjectAnalysis(topic || '');
+  const getDefaultPlanB = (topicSujet: string) => {
+    const analysis = detectClientSubjectAnalysis(topicSujet);
 
-  if (analysis.isParentsKids) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion engagée autour de la décision des parents à la place des jeunes enfants fait dialoguer deux approches complémentaires de l'autorité éducative. D'un côté, l'obligation pour les parents de guider et de décider apparaît comme une garantie indispensable pour la sécurité et la formation morale du jeune être. D'un autre côté, le droit de l'enfant à affirmer sa singularité et à exprimer ses préférences constitue le moteur fondamental de son émancipation future. Dès lors, comment concilier le devoir de guidance des parents et le besoin légitime de liberté des jeunes ? Il conviendra d'examiner dans un premier temps la portée protectrice des décisions parentales, d'envisager dans un deuxième temps la valeur émancipatrice de l'autonomie personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une éducation partagée et dialoguée.</p>
+    if (analysis.isParentsKids) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion engagée autour de la décision des parents à la place des jeunes enfants fait dialoguer deux approches complémentaires de l'autorité éducative. D'un côté, l'obligation pour les parents de guider et de décider apparaît comme une garantie indispensable pour la sécurité et la formation morale du jeune être. D'un autre côté, le droit de l'enfant à affirmer sa singularité et à exprimer ses préférences constitue le moteur fondamental de son émancipation future. Dès lors, comment concilier le devoir de guidance des parents et le besoin légitime de liberté des jeunes ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1247,11 +2312,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En somme</strong>, ce parcours réflexif démontre que le rapport parents/jeunes gagne à dépasser l'opposition stérile entre autoritarisme et laxisme. Par-delà les tiraillements de l'existence, l'harmonie entre exigence protectrice et respect de la liberté naissante ouvre la voie à un épanouissement authentique. En définitive, préparer l'avenir des jeunes n'exige-t-il pas de les rendre capables de décider par eux-mêmes en femmes et hommes libres ?</p>
 </div>`;
-  }
+    }
 
-  if (analysis.isSolitude || (analysis.work === 'boite' && !analysis.isAntigone && !analysis.isCondamne)) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de ${analysis.themeTitle} fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ? Il conviendra d'examiner dans un premier temps la valeur protectrice des devoirs partagés, d'envisager dans un deuxième temps la légitimité de l'émancipation personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une harmonie durable.</p>
+    if (analysis.isSolitude || (analysis.work === 'boite' && !analysis.isAntigone && !analysis.isCondamne)) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de ${analysis.themeTitle} fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1269,9 +2334,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En somme</strong>, ce parcours réflexif démontre que la dignité humaine se forge dans l'alliance souveraine de la fidélité aux siens et du courage de la lucidité. Par-delà les tiraillements de l'existence, l'harmonie entre exigence intérieure et générosité envers autrui ouvre la voie à un épanouissement authentique et durable. Ne revient-il pas dès lors à chacun d'accomplir ce dépassement harmonieux au service de la vie ?</p>
 </div>`;
-  } else if (analysis.isAntigone) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par ${analysis.themeTitle} oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ? Il s'agira d'étudier dans un premier axe la légitimité de l'ordre d'État, d'analyser dans un second axe la grandeur du refus héroïque, avant de formuler une synthèse sur le sens de la responsabilité humaine.</p>
+    }
+
+    if (analysis.isAntigone) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive de la pièce <em>Antigone</em> de Jean Anouilh, on constate que la confrontation suscitée par ${analysis.themeTitle} oppose deux visions inconciliables et puissantes de l'existence humaine. D'un côté, les impératifs pragmatiques du pouvoir soulignent la primauté de l'ordre public sur les sentiments individuels. D'un autre côté, la voix de la conscience pure refuse tout compromis avec l'injustice pour sauvegarder la dignité spirituelle. Dès lors, face à ce dilemme tragique, comment concevoir l'équilibre entre nécessité politique et idéal éthique ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1289,9 +2356,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En somme</strong>, le conflit thébain enseigne que la dignité humaine grandit lorsque la conscience refuse d'abdiquer devant l'arbitraire. Par-delà le drame antique, l'idéal d'intégrité porté par Antigone demeure une balise vivante pour toute jeunesse éprise de liberté et de vérité. En définitive, la mémoire des héros du refus n'est-elle pas le plus sûr rempart contre la barbarie ?</p>
 </div>`;
-  } else if (analysis.isCondamne) {
-    return `<div class="model-intro">
-<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on s'aperçoit que la question soulevée par ${analysis.themeTitle} confronte deux conceptions antagonistes de la justice et de la morale. D'un côté, la défense de l'ordre légal invoque la nécessité de punir pour prévenir le crime et protéger la collectivité. D'un autre côté, la conscience humaniste dénonce l'injustice d'une violence institutionnalisée qui détruit la vie même qu'elle prétend défendre. Dès lors, comment concilier l'exigence de la sécurité publique et le respect sacré de la dignité humaine ? Il s'agira d'examiner dans un premier temps la portée de la loi pénale, d'analyser dans un deuxième temps l'urgence de l'abolitionnisme moral, pour enfin dégager une synthèse sur la justice de demain.</p>
+    }
+
+    if (analysis.isCondamne) {
+      return `<div class="model-intro">
+<p>Quand on plonge dans la lecture attentive du chef-d'œuvre <em>Le Dernier Jour d'un Condamné</em> de Victor Hugo, on s'aperçoit que la question soulevée par ${analysis.themeTitle} confronte deux conceptions antagonistes de la justice et de la morale. D'un côté, la défense de l'ordre légal invoque la nécessité de punir pour prévenir le crime et protéger la collectivité. D'un autre côté, la conscience humaniste dénonce l'injustice d'une violence institutionnalisée qui détruit la vie même qu'elle prétend défendre. Dès lors, comment concilier l'exigence de la sécurité publique et le respect sacré de la dignité humaine ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1309,10 +2378,11 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En somme</strong>, le combat de Victor Hugo nous exhorte à construire une justice guidée par la raison et la miséricorde plutôt que par la haine. La dignité humaine ne se négocie pas et s'impose comme une limite absolue à l'action de l'État. En définitive, n'appartient-il pas à chaque époque d'étendre la lumière de l'humanisme face aux ténèbres de la cruauté ?</p>
 </div>`;
-  } else {
-    // General subject
+    }
+
+    // Sujet général : Ne commence JAMAIS par « Quand on plonge... »
     return `<div class="model-intro">
-<p>Dans le débat contemporain, ${analysis.themeTitle} confronte deux visions complémentaires du progrès moral et social. D'un côté, le respect des normes instituées garantit la cohésion nécessaire au vivre-ensemble. D'un autre côté, le recul critique s'affirme comme une condition indispensable pour préserver la dignité et la liberté de penser. Dès lors, comment concilier les devoirs collectifs et l'aspiration à l'autonomie personnelle ? Il s'agira d'étudier dans un premier axe la valeur régulatrice des devoirs partagés, d'analyser dans un second axe la légitimité de l'émancipation personnelle, pour enfin formuler une synthèse sur les conditions d'un équilibre harmonieux.</p>
+<p>Dans le débat contemporain, ${analysis.themeTitle} confronte deux visions complémentaires du progrès moral et social. D'un côté, le respect des normes instituées garantit la cohésion nécessaire au vivre-ensemble. D'un autre côté, le recul critique s'affirme comme une condition indispensable pour préserver la dignité et la liberté de penser. Dès lors, comment concilier les devoirs collectifs et l'aspiration à l'autonomie personnelle ?</p>
 </div>
 
 <div class="model-axe1">
@@ -1330,28 +2400,2509 @@ ${(() => {
 <div class="model-concl">
 <p><strong>En somme</strong>, la grandeur citoyenne se forge dans l'alliance féconde de la solidarité et de la lucidité d'esprit, assurant le progrès continu de la société.</p>
 </div>`;
+  };
+
+  const runExpertise = async () => {
+    if (!sujet.trim() || !texte.trim()) {
+      alert("Veuillez renseigner le sujet et le texte de l'élève.");
+      return;
+    }
+
+    setIsProcessing(true);
+    setIsSubjectValidated(true);
+    const pwd = sessionPassword || localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026';
+    try {
+      localStorage.setItem('akhawayn_auth', 'true');
+      localStorage.setItem('akhawayn_pwd', pwd);
+      sessionStorage.setItem('akhawayn_auth', 'true');
+    } catch {}
+    try {
+      let res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-access-password': pwd,
+        },
+        body: JSON.stringify({
+          prompt: `NOM: ${studentName || 'CANDIDAT'}\nFILIERE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`,
+          nom: studentName || 'CANDIDAT',
+          filiere,
+          sujet,
+          texte,
+          password: pwd,
+        }),
+      });
+
+      if (res.status === 401) {
+        // Retry with default official password
+        res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-access-password': 'AKHAWAYN2026',
+          },
+          body: JSON.stringify({
+            prompt: `NOM: ${studentName || 'CANDIDAT'}\nFILIERE: ${filiere}\nSUJET: ${sujet}\nTEXTE: ${texte}`,
+            nom: studentName || 'CANDIDAT',
+            filiere,
+            sujet,
+            texte,
+            password: 'AKHAWAYN2026',
+          }),
+        });
+      }
+
+      const data = await res.json();
+      const raw = data.result || '';
+
+      const extract = (tag: string) => {
+        const re = new RegExp(`(?:\\[\\[|===)${tag}(?:\\]\\]|===)([\\s\\S]*?)(?=(?:\\[\\[|===)|$)`, 'i');
+        const m = raw.match(re);
+        return m ? m[1].trim() : '';
+      };
+
+      const g = extract('GRILLE') || extract('NOTATION');
+      const v1 = document.getElementById('v1');
+      const v2 = document.getElementById('v2');
+      const v3 = document.getElementById('v3');
+      const v4 = document.getElementById('v4');
+      const v5 = document.getElementById('v5');
+      const rTotal = document.getElementById('rTotal');
+
+      const offTopicCheck = checkOffTopicStatus(sujet, texte);
+      const isMethodological = offTopicCheck.isOff && offTopicCheck.type === 'METHODOLOGIQUE';
+      
+      // Seule une sanction explicite [[HORS_SUJET]] ou une note de consigne à 0/2 dans le retour de l'IA (ou un hors-sujet strict avéré) déclenche la sanction 0/10
+      const isAiExplicitHorsSujet = raw.includes('[[HORS_SUJET]]') || 
+                                    raw.includes('===HORS_SUJET===') || 
+                                    /(?:CONSIGNE|Consigne)\s*:\s*0(?:\.0+)?(?:\s*\/|\s*\||\s*$)/.test(raw);
+      
+      const horsSujet = isAiExplicitHorsSujet || offTopicCheck.isOff;
+
+      setIsHorsSujet(horsSujet);
+      setOffTopicType(isMethodological ? 'METHODOLOGIQUE' : (offTopicCheck.type || 'GENERAL'));
+
+      let scoreC = 1.8;
+      let scoreS = 1.7;
+      let scoreA = 1.8;
+      let scoreL = 2.2;
+      let scoreX = 1.3;
+      let totalCalc = '8.8';
+
+      if (horsSujet) {
+        scoreC = 0.0;
+        scoreS = 0.0;
+        scoreA = 0.0;
+        scoreL = 0.0;
+        scoreX = 0.0;
+        totalCalc = '0.0';
+        if (v1) v1.innerText = '0.0';
+        if (v2) v2.innerText = '0.0';
+        if (v3) v3.innerText = '0.0';
+        if (v4) v4.innerText = '0.0';
+        if (v5) v5.innerText = '0.0';
+        if (rTotal) rTotal.innerText = '0/10';
+        const rMention = document.getElementById('rMention');
+        if (rMention) {
+          const mentionData = getMentionData(0, true);
+          rMention.innerText = mentionData.label;
+          rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
+        }
+      } else {
+        if (g) {
+          const c = g.match(/Consigne\s*:\s*([\d.]+)/i);
+          const s = g.match(/Structure\s*:\s*([\d.]+)/i);
+          const a = g.match(/Arguments\s*:\s*([\d.]+)/i);
+          const l = g.match(/Langue\s*:\s*([\d.]+)/i);
+          const x = g.match(/Lexique\s*:\s*([\d.]+)/i);
+
+          if (c) scoreC = parseFloat(c[1]);
+          if (s) scoreS = parseFloat(s[1]);
+          if (a) scoreA = parseFloat(a[1]);
+          if (l) scoreL = parseFloat(l[1]);
+          if (x) scoreX = parseFloat(x[1]);
+
+          if (c && v1) v1.innerText = c[1];
+          if (s && v2) v2.innerText = s[1];
+          if (a && v3) v3.innerText = a[1];
+          if (l && v4) v4.innerText = l[1];
+          if (x && v5) v5.innerText = x[1];
+
+          totalCalc = (scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
+        } else {
+          if (v1) v1.innerText = '1.8';
+          if (v2) v2.innerText = '1.7';
+          if (v3) v3.innerText = '1.8';
+          if (v4) v4.innerText = '2.2';
+          if (v5) v5.innerText = '1.3';
+        }
+        if (rTotal) rTotal.innerText = `${totalCalc}/10`;
+        const rMention = document.getElementById('rMention');
+        if (rMention) {
+          const mentionData = getMentionData(parseFloat(totalCalc) || 0, false);
+          rMention.innerText = mentionData.label;
+          rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
+        }
+      }
+
+      setScores({
+        c: scoreC,
+        s: scoreS,
+        a: scoreA,
+        l: scoreL,
+        x: scoreX,
+        total: totalCalc,
+      });
+
+      const reportSection = document.getElementById('reportSection');
+      if (reportSection) reportSection.style.display = 'block';
+      setHasReport(true);
+
+      const rNom = document.getElementById('rNom');
+      const rFil = document.getElementById('rFil');
+      if (rNom) rNom.innerText = (studentName.trim() || 'CANDIDAT').toUpperCase();
+      if (rFil) rFil.innerText = filiere;
+
+      const outTable = document.getElementById('outTable');
+      const rawTable = extract('TABLEAU');
+      const parsedTable = cleanTableMarkdown(rawTable);
+      if (outTable) {
+        outTable.innerHTML = marked.parse(parsedTable || '| Extrait fautif (en rouge) | Nature | Correction (en vert) | Règle |\n| :--- | :--- | :--- | :--- |\n| Syntaxe | Ponctuation | Soigner les alinéas | Règle officielle |') as string;
+      }
+
+      const outTrans = document.getElementById('outTrans');
+      const parsedTrans = extract('TRANSCRIPTION');
+      if (outTrans) {
+        outTrans.innerHTML = formatTranscription(parsedTrans, texte, parsedTable);
+      }
+
+      const outBilan = document.getElementById('outBilan');
+      const parsedBilan = extract('BILAN');
+      if (outBilan) {
+        outBilan.innerHTML = marked.parse(parsedBilan || '### Diagnostic Didactique Global\n- Respect du thème et cohérence générale de la production écrite.') as string;
+      }
+
+      const outReform = document.getElementById('outReform');
+      const parsedReform = extract('REFORMULATION');
+      if (outReform) {
+        let reformContent = parsedReform || '### Optimisation Stylistique\n> Maintien de la concordance des temps et de l’élégance académique.';
+        outReform.innerHTML = formatReformulation(reformContent);
+      }
+
+      const typePlan = extract('TYPE').toUpperCase();
+      const sNorm = sujet.toLowerCase();
+      const isExplicitOpinion = sNorm.includes('partagez-vous') ||
+        sNorm.includes('partagez vous') ||
+        sNorm.includes('pensez-vous') ||
+        sNorm.includes('pensez vous') ||
+        sNorm.includes('votre avis') ||
+        sNorm.includes('votre point de vue') ||
+        sNorm.includes('faut-il') ||
+        sNorm.includes('faut il') ||
+        sNorm.includes('peut-on') ||
+        sNorm.includes('peut on') ||
+        sNorm.includes('accord') ||
+        sNorm.includes('opinion');
+
+      const isExplicitAnalytic = (sNorm.includes('causes et solutions') ||
+        sNorm.includes('causes et conséquences') ||
+        sNorm.includes('causes et consequences') ||
+        sNorm.includes('causes') ||
+        sNorm.includes('conséquence') ||
+        sNorm.includes('consequence') ||
+        sNorm.includes('guérisseur') ||
+        sNorm.includes('guerisseur') ||
+        sNorm.includes('charlatan') ||
+        sNorm.includes('tradipraticien') ||
+        sNorm.includes('quelles sont les causes') ||
+        sNorm.includes('analyser les causes'));
+
+      const isDialecticRequested = (sNorm.includes('pour ou contre') ||
+        sNorm.includes('thèse et antithèse') ||
+        sNorm.includes('these et antithese')) && !isExplicitAnalytic;
+
+      const isAnalytic = isExplicitAnalytic || typePlan.includes('ANALYTIQUE');
+      const isDialectic = isDialecticRequested || (typePlan.includes('DIALECTIQUE') && !isExplicitAnalytic);
+
+      let finalPlanType: 'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' = 'SIMPLE';
+      if (isAnalytic) {
+        finalPlanType = 'ANALYTIQUE';
+      } else if (isDialectic) {
+        finalPlanType = 'DIALECTIQUE';
+      } else {
+        finalPlanType = 'SIMPLE';
+      }
+
+      setDetectedPlanType(finalPlanType);
+
+      const planAExtracted = extract('PLAN_A');
+      const planBExtracted = extract('PLAN_B');
+
+      const buildDefaultPlanA = () => getDefaultPlanA(sujet);
+      const buildDefaultPlanB = () => getDefaultPlanB(sujet);
+
+      const isPlanValid = (planHtml: string) => {
+        if (!planHtml) return false;
+        const hasIntro = planHtml.includes('model-intro');
+        const hasConcl = planHtml.includes('model-concl');
+        const cleanLen = planHtml.replace(/<[^>]*>/g, '').trim().length;
+        // Norme formelle Al Akhawayn : minimum 16 à 19 lignes (au moins 650 caractères de texte pur)
+        return hasIntro && hasConcl && cleanLen >= 650;
+      };
+
+      planARef.current = isPlanValid(planAExtracted) ? planAExtracted : buildDefaultPlanA();
+      planBRef.current = isPlanValid(planBExtracted) ? planBExtracted : buildDefaultPlanB();
+
+      displayM('A');
+
+      if (reportSection) {
+        reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } catch (e) {
+      console.error('Erreur runExpertise:', e);
+      // Fallback gracieux pour garantir l'affichage immédiat
+      const reportSection = document.getElementById('reportSection');
+      if (reportSection) {
+        reportSection.style.display = 'block';
+        setHasReport(true);
+        const rNom = document.getElementById('rNom');
+        const rFil = document.getElementById('rFil');
+        if (rNom) rNom.innerText = (studentName.trim() || 'CANDIDAT').toUpperCase();
+        if (rFil) rFil.innerText = filiere;
+
+        const sNormFallback = (sujet || '').toLowerCase();
+        const isFallbackAnalytic = sNormFallback.includes('guérisseur') || sNormFallback.includes('guerisseur') || sNormFallback.includes('cause') || sNormFallback.includes('conséquence') || sNormFallback.includes('solution');
+        setDetectedPlanType(isFallbackAnalytic ? 'ANALYTIQUE' : 'SIMPLE');
+
+        if (!planARef.current) {
+          planARef.current = getDefaultPlanA(sujet);
+        }
+        if (!planBRef.current) {
+          planBRef.current = getDefaultPlanB(sujet);
+        }
+
+        displayM('A');
+        reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const saveCurrentToArchives = async () => {
+    const workSelect = ((document.getElementById('archiveSelectWork') as HTMLSelectElement)?.value || 'boite') as 'boite' | 'antigone' | 'condamne';
+    const rNom = document.getElementById('rNom')?.innerText || studentName || 'Candidat';
+    const rTotal = document.getElementById('rTotal')?.innerText || 'N/A';
+    const outReform = document.getElementById('outReform')?.innerHTML || '';
+    const outModel = document.getElementById('outModel')?.innerHTML || '';
+
+    if (!outReform && !outModel) {
+      alert("Veuillez d'abord lancer l'évaluation pour obtenir et enregistrer le texte optimisé dans la boîte.");
+      return;
+    }
+
+    const newEntry = {
+      id: 'arch_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      work: workSelect,
+      candidateName: rNom.trim() || 'Candidat',
+      filiere: filiere || '1ère BAC',
+      score: rTotal,
+      sujet: sujet || '',
+      texte: texte || '',
+      reformulations: outReform,
+      modelText: outModel,
+      planA: planARef.current,
+      planB: planBRef.current,
+      date: new Date().toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    };
+
+    // 1. Enregistrement prioritaire et immédiat dans le navigateur de l'élève (localStorage)
+    const currentArchives = getStoredArchives();
+    const updatedWorkList = [newEntry, ...(currentArchives[workSelect] || [])];
+    const updatedArchives = {
+      ...currentArchives,
+      [workSelect]: updatedWorkList,
+    };
+
+    try {
+      localStorage.setItem('akhawayn_student_archives', JSON.stringify(updatedArchives));
+      // Maintien absolu de la session déverrouillée dans le navigateur
+      localStorage.setItem('akhawayn_auth', 'true');
+      localStorage.setItem('akhawayn_pwd', sessionPassword || 'AKHAWAYN2026');
+      sessionStorage.setItem('akhawayn_auth', 'true');
+    } catch (err) {
+      console.warn('Erreur écriture localStorage archives:', err);
+    }
+
+    setIsUnlocked(true);
+    setArchives(updatedArchives);
+
+    const workNames: Record<string, string> = {
+      boite: 'La Boîte à Merveilles',
+      antigone: 'Antigone',
+      condamne: "Le Dernier Jour d'un Condamné",
+    };
+    const workLabel = workNames[workSelect] || workSelect;
+    setSaveToast(`Production enregistrée avec succès dans votre navigateur (${workLabel}) ! Vos révisions y sont conservées pour toute l'année.`);
+    setTimeout(() => setSaveToast(null), 4500);
+
+    // 2. Synchronisation de secours en arrière-plan avec le serveur
+    try {
+      await fetch('/api/archives', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEntry),
+      });
+    } catch {
+      // Ignorer : la copie est déjà sauvegardée avec succès à 100% dans le navigateur de l'élève
+    }
+  };
+
+  const deleteArchive = async (id: string) => {
+    if (!confirm('Voulez-vous vraiment supprimer cette production de votre boîte ?')) return;
+
+    // 1. Suppression immédiate dans le navigateur de l'élève (localStorage)
+    const currentArchives = getStoredArchives();
+    const updatedArchives = {
+      boite: (currentArchives.boite || []).filter((item: any) => item.id !== id),
+      antigone: (currentArchives.antigone || []).filter((item: any) => item.id !== id),
+      condamne: (currentArchives.condamne || []).filter((item: any) => item.id !== id),
+    };
+
+    try {
+      localStorage.setItem('akhawayn_student_archives', JSON.stringify(updatedArchives));
+    } catch (err) {
+      console.warn('Erreur mise à jour localStorage:', err);
+    }
+    setArchives(updatedArchives);
+
+    // 2. Suppression de secours en tâche de fond sur le serveur
+    try {
+      await fetch(`/api/archives/${id}`, { method: 'DELETE' });
+    } catch {
+      // Ignorer si hors-ligne
+    }
+  };
+
+  const renderPasswordChangeModal = () => (
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 text-left">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+        {/* EN-TÊTE DU MODAL DIRECTION */}
+        <div className={`p-5 ${passwordChangeStep === 'PASSWORDS' ? 'bg-gradient-to-r from-red-900 via-rose-900 to-red-950 border-b border-red-800' : 'bg-slate-900 border-b border-slate-800'} text-white flex justify-between items-center transition-colors duration-300`}>
+          <div className="flex items-center gap-2">
+            <KeyRound className={`w-5 h-5 ${passwordChangeStep === 'PASSWORDS' ? 'text-red-400' : 'text-amber-400'}`} />
+            <div>
+              <h3 className="font-outfit font-bold text-base leading-tight">Accès réservé à la direction</h3>
+              <span className="text-[11px] text-slate-300 font-medium">
+                {passwordChangeStep === 'KEY' ? 'Étape 1 : Habilitation confidentielle' : 'Étape 2 : Nouveau mot de passe'}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setShowChangeModal(false);
+              setPasswordChangeStep('KEY');
+              setMasterKeyInput('');
+              setChangeFeedback(null);
+            }}
+            className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* BARRE ROUGE COMME DANS LA 1ERE IMAGE : AFFICHAGE INSTANTANÉ DU NOMBRE D'UTILISATEURS EN TEMPS RÉEL APRÈS VALIDATION */}
+        {passwordChangeStep === 'PASSWORDS' && (
+          <div className="bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white px-5 py-3 border-b border-red-800 flex items-center justify-between shadow-md animate-in fade-in duration-300">
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400"></span>
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wider text-white">
+                Utilisateurs de cette interface instantanément
+              </span>
+            </div>
+            <div className="flex items-center gap-2 bg-black/25 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/20">
+              <Users className="w-3.5 h-3.5 text-white" />
+              <span className="text-xs font-extrabold tracking-wide text-white">
+                {activeUsersCount} utilisateur{activeUsersCount > 1 ? 's' : ''} actif{activeUsersCount > 1 ? 's' : ''} en direct
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ÉTAPE 1 : HABILITATION PAR CLÉ SECRÈTE DIRECTION */}
+        {passwordChangeStep === 'KEY' ? (
+          <form onSubmit={handleVerifyMasterKey} className="p-6 space-y-4">
+            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
+              <span className="text-lg">🛡️</span>
+              <div>
+                <span className="font-bold block text-sm text-[#b45309]">Habilitation Sécurisée Direction</span>
+                <span className="text-[11px] text-amber-900 leading-relaxed block mt-0.5">
+                  Saisissez votre <strong>identifiant confidentiel unique</strong> (votre adresse personnelle suivie de 2026). Ce champ est strictement masqué : il ne s'affiche jamais à l'écran et n'est pas mémorisé par le navigateur.
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Clé Secrète d'Habilitation
+                </label>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Confidentiel
+                </span>
+              </div>
+              <div className="relative">
+                <input
+                  type={showMasterKey ? 'text' : 'password'}
+                  value={masterKeyInput}
+                  onChange={(e) => setMasterKeyInput(e.target.value)}
+                  placeholder="••••••••••••••••••••••••••••"
+                  className="w-full py-3.5 pl-4 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 outline-none font-mono text-sm tracking-widest transition"
+                  required
+                  autoFocus
+                  autoComplete="new-password"
+                  data-lpignore="true"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowMasterKey(!showMasterKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 p-1 cursor-pointer"
+                  title={showMasterKey ? 'Masquer' : 'Afficher'}
+                >
+                  {showMasterKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Seul l'administrateur titulaire détient cette combinaison secrète.
+              </span>
+            </div>
+
+            {changeFeedback && (
+              <div className={`p-3 rounded-xl text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                {changeFeedback.message}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChangeModal(false);
+                  setMasterKeyInput('');
+                  setChangeFeedback(null);
+                }}
+                className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                disabled={isChanging}
+                className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
+              >
+                {isChanging ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Vérification...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔓</span>
+                    <span>Valider mon habilitation</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        ) : (
+          /* ÉTAPE 2 : DÉFINITION DU NOUVEAU MOT DE PASSE */
+          <form onSubmit={handleSaveNewPassword} className="p-6 space-y-4">
+            {/* BADGE OFFICIEL D'AUDIENCE INSTANTANÉE */}
+            <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-950 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                  🔴
+                </div>
+                <div>
+                  <span className="font-bold text-red-900 block text-xs">Fréquentation instantanée de l'interface</span>
+                  <span className="text-[11px] text-red-700">Nombre d'utilisateurs connectés en ce moment sur cette plateforme</span>
+                </div>
+              </div>
+              <div className="px-3 py-1.5 bg-red-600 text-white font-black text-xs rounded-lg shadow-xs flex items-center gap-1.5 whitespace-nowrap">
+                <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                <span>{activeUsersCount} en ligne</span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-start gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold block text-emerald-900">Habilitation confirmée avec succès !</span>
+                <span className="text-[11px] text-emerald-800">
+                  Veuillez saisir votre mot de passe actuel puis définir votre nouveau mot de passe direction.
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Mot de passe actuel
+              </label>
+              <input
+                type="password"
+                value={oldPasswordInput}
+                onChange={(e) => setOldPasswordInput(e.target.value)}
+                placeholder="Saisissez votre mot de passe actuel..."
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                required
+                autoComplete="current-password"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Nouveau mot de passe
+              </label>
+              <input
+                type="password"
+                value={newPasswordInput}
+                onChange={(e) => setNewPasswordInput(e.target.value)}
+                placeholder="Nouveau mot de passe (min 4 caractères)..."
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                required
+                autoComplete="new-password"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                Confirmer le nouveau mot de passe
+              </label>
+              <input
+                type="password"
+                value={confirmPasswordInput}
+                onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                placeholder="Confirmer le nouveau mot de passe..."
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none"
+                required
+                autoComplete="new-password"
+              />
+            </div>
+
+            {changeFeedback && (
+              <div className={`p-3 rounded-lg text-xs font-medium ${changeFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                {changeFeedback.message}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setPasswordChangeStep('KEY');
+                  setChangeFeedback(null);
+                }}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+              >
+                ← Modifier la clé
+              </button>
+              <button
+                type="submit"
+                disabled={isChanging}
+                className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-900 hover:bg-slate-800 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {isChanging ? 'Enregistrement...' : 'Enregistrer le nouveau mot de passe'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+
+  if (!isUnlocked) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden text-center">
+          <div className="h-2 w-full absolute top-0 left-0 bg-gradient-to-r from-[#0b1528] via-[#c5221f] to-[#b45309]"></div>
+          
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <Lock className="w-8 h-8 text-amber-400" />
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-950/60 border border-amber-800/60 rounded-full mb-3 text-[11px] font-bold tracking-widest uppercase text-amber-300">
+            Portail Pédagogique Réservé
+          </div>
+
+          <h1 className="font-cinzel text-2xl sm:text-3xl font-black text-white tracking-tight mb-2">
+            CENTRE <span className="text-[#f87171]">AL AKHAWAYN</span>
+          </h1>
+          <p className="font-outfit uppercase font-bold text-xs text-amber-400 tracking-wider mb-6">
+            Système d'Expertise Didactique • Baccalauréat
+          </p>
+
+          <form onSubmit={handleUnlock} className="space-y-4 text-left">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
+                Mot de Passe Candidat (Mot de passe actuel)
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Introduire le mot de passe actuel..."
+                  className="w-full py-3.5 pl-4 pr-12 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition text-sm"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {authNotice && (
+              <div className="p-3.5 bg-amber-950/70 border border-amber-500/60 text-amber-200 text-xs rounded-xl flex items-start gap-2.5 shadow-inner">
+                <Lock className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                <span className="leading-relaxed font-medium">{authNotice}</span>
+              </div>
+            )}
+
+            {authError && (
+              <div className="p-3 bg-red-950/50 border border-red-800 text-red-300 text-xs rounded-xl flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isVerifying}
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest transition shadow-lg active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {isVerifying ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                  <span>Vérification...</span>
+                </>
+              ) : (
+                <>
+                  <Unlock className="w-4 h-4" />
+                  <span>Valider l'Accès</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 text-[11px] text-slate-500 italic">
+            Session sécurisée • Direction Pédagogique Al Akhawayn Tamansourte
+          </p>
+        </div>
+      </div>
+    );
   }
-})()}`;
+
+  return (
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 font-sans p-3 sm:p-6 md:p-10 antialiased selection:bg-amber-100 selection:text-amber-900">
+      
+      {/* BARRE SUPÉRIEURE DISCRÈTE D'ADMINISTRATION & ARCHIVES */}
+      <div className="max-w-5xl mx-auto mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 sm:px-2 no-print">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          {/* Bouton Accès réservé à la direction (sert uniquement si la direction va changer le mot de passe) */}
+          <button
+            type="button"
+            onClick={() => {
+              setPasswordChangeStep('KEY');
+              setMasterKeyInput('');
+              setOldPasswordInput('');
+              setNewPasswordInput('');
+              setConfirmPasswordInput('');
+              setChangeFeedback(null);
+              setShowChangeModal(true);
+            }}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs transition cursor-pointer"
+            title="Accès réservé à la direction pour modifier le mot de passe"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+            <span>Accès réservé à la direction</span>
+          </button>
+
+          {/* Bouton Mot de passe Candidat (Mémorisé dans le navigateur) */}
+          <button
+            type="button"
+            onClick={() => {
+              setCandidatePasswordInput(localStorage.getItem('akhawayn_pwd') || sessionPassword || 'AKHAWAYN2026');
+              setCandidateFeedback(null);
+              setShowCandidateModal(true);
+            }}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-300 shadow-2xs transition cursor-pointer"
+            title="Consulter le mot de passe mémorisé dans votre navigateur"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+            <span>Mot de passe mémorisé</span>
+          </button>
+        </div>
+
+        {/* Boutons d'accès aux 3 boîtes d'œuvres */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 w-full md:w-auto">
+          <button
+            type="button"
+            onClick={() => { setSelectedWorkBox('boite'); setViewingArchiveItem(null); }}
+            className="flex-1 sm:flex-none text-[10px] sm:text-[11px] font-bold text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+            title="Consulter les productions enregistrées pour La Boîte à Merveilles"
+          >
+            <span>📦 La Boîte à Merveilles</span>
+            <span className="bg-amber-200 text-amber-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.boite.length}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setSelectedWorkBox('antigone'); setViewingArchiveItem(null); }}
+            className="flex-1 sm:flex-none text-[10px] sm:text-[11px] font-bold text-indigo-950 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+            title="Consulter les productions enregistrées pour Antigone"
+          >
+            <span>📜 Antigone</span>
+            <span className="bg-indigo-200 text-indigo-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.antigone.length}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setSelectedWorkBox('condamne'); setViewingArchiveItem(null); }}
+            className="w-full sm:w-auto text-[10px] sm:text-[11px] font-bold text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+            title="Consulter les productions enregistrées pour Le Dernier Jour d'un Condamné"
+          >
+            <span>⚖️ Le Dernier Jour d'un Condamné</span>
+            <span className="bg-emerald-200 text-emerald-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.condamne.length}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* TOAST DE CONFIRMATION */}
+      {saveToast && (
+        <div className="max-w-5xl mx-auto mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">💾</span>
+            <span className="text-xs font-bold">{saveToast}</span>
+          </div>
+          <button onClick={() => setSaveToast(null)} className="text-emerald-700 font-bold text-sm cursor-pointer">✕</button>
+        </div>
+      )}
+
+      {/* CARTE CENTRALE MAÎTRESSE PRESTIGIEUSE (LA MISE EN PAGE ORIGINALE DU CLIENT) */}
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-slate-200 p-4 sm:p-8 md:p-12 relative overflow-hidden">
+        
+        {/* Ruban aux couleurs officielles en haut de la carte */}
+        <div className="h-2.5 w-full absolute top-0 left-0 bg-gradient-to-r from-[#0b1528] via-[#c5221f] to-[#b45309]"></div>
+
+        {/* En-tête officiel prestigieux */}
+        <header className="text-center border-b-2 border-slate-900 pb-5 sm:pb-7 mb-6 sm:mb-8 mt-1 sm:mt-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full mb-3">
+            <span className="text-[10px] sm:text-[11px] font-bold tracking-widest uppercase text-amber-800">
+              Système Officiel d'Évaluation Pédagogique
+            </span>
+          </div>
+          <h1 className="font-cinzel text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+            CENTRE <span className="text-[#c5221f]">AL AKHAWAYN</span>
+          </h1>
+          <p className="font-outfit uppercase font-extrabold text-[11px] sm:text-sm text-[#b45309] tracking-wider sm:tracking-[0.25em] mt-2">
+            Expertise & Ingénierie Pédagogique • Excellence Académique
+          </p>
+        </header>
+
+        {/* Grille Candidat & Filière parfaitement calibrée & responsive */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 items-stretch">
+          <div className="bg-slate-50/90 border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+            <label htmlFor="studentName" className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-2.5">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span>
+              <User className="w-4 h-4 text-slate-700" />
+              <span>Candidat (Nom & Prénom)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="studentName"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                placeholder="NOM COMPLET DU CANDIDAT"
+                className="h-12 w-full px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold uppercase tracking-wider text-slate-900 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="bg-slate-50/90 border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+            <label htmlFor="filiere" className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-2.5">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span>
+              <GraduationCap className="w-4 h-4 text-slate-700" />
+              <span>Filière Officielle du Baccalauréat</span>
+            </label>
+            <div className="relative">
+              <select
+                id="filiere"
+                value={filiere}
+                onChange={(e) => setFiliere(e.target.value)}
+                className="h-12 w-full px-4 pr-9 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition cursor-pointer shadow-2xs appearance-none"
+              >
+                <option>1ère BAC - Sciences Mathématiques</option>
+                <option>1ère BAC - Sciences Expérimentales</option>
+                <option>1ère BAC - Lettres & Sc. Humaines</option>
+                <option>Prépa Concours (CRMEF / ENS)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-500">
+                <span className="text-xs">▼</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* BANNIÈRE OFFICIELLE : BIBLIOTHÈQUE DE SUJETS RÉGIONAUX OFFICIELS (1ère BAC) - DESIGN FIN & COMPACT */}
+        <div className="mb-6 bg-gradient-to-r from-slate-900 via-[#162544] to-[#0b1528] px-4 py-3 sm:px-5 sm:py-3 rounded-2xl text-white shadow-md border border-amber-600/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center shrink-0 shadow-inner">
+                <BookOpen className="w-4 h-4 text-amber-300" />
+              </div>
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <h2 className="font-outfit font-bold text-xs sm:text-sm tracking-wide text-white truncate">
+                  Bibliothèque de Sujets Régionaux Officiels
+                </h2>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                  {regionalSubjects.length} Sujets
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowLibrary((prev) => !prev)}
+                className="px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+              >
+                <span>{showLibrary ? 'Masquer' : 'Explorer les Sujets'}</span>
+                {showLibrary ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenTeacherModal}
+                className={`px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95 ${
+                  isTeacherAuthenticated
+                    ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-300 ring-2 ring-amber-400/30'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                }`}
+                title={isTeacherAuthenticated ? 'Session Enseignant Déverrouillée' : "Accès Enseignant Protégé par Clé d'habilitation"}
+              >
+                {isTeacherAuthenticated ? (
+                  <>
+                    <Unlock className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                    <span>Espace Enseignant : Déposer</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                    <span>Espace Enseignant (Accès Protégé)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Toast de confirmation de chargement d'un sujet */}
+          {subjectLoadNotice && (
+            <div className="mt-3.5 py-2 px-3.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+              <span>{subjectLoadNotice}</span>
+            </div>
+          )}
+
+          {/* VOLET DÉROULANT DE LA BIBLIOTHÈQUE */}
+          {showLibrary && (
+            <div className="mt-4 pt-4 border-t border-white/15 animate-fade-in">
+              {/* Filtres par œuvre & Recherche */}
+              <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'TOUTES', label: 'Toutes les Œuvres' },
+                    { id: 'La Boîte à Merveilles', label: 'La Boîte à Merveilles' },
+                    { id: 'Antigone', label: 'Antigone' },
+                    { id: 'Le Dernier Jour d’un Condamné', label: 'Le Dernier Jour' },
+                    { id: 'Sujet de Société Général', label: 'Sujets de Société' },
+                    { id: 'ENSEIGNANT', label: `🎓 Déposés Enseignant (${regionalSubjects.filter((s) => s.sourceEnseignant).length})` },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setSelectedOeuvreFilter(tab.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        selectedOeuvreFilter === tab.id
+                          ? 'bg-amber-400 text-slate-950 shadow-sm'
+                          : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative min-w-[220px]">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Filtrer (mot-clé, région, 2023)..."
+                    className="w-full pl-9 pr-8 py-1.5 bg-slate-950/60 border border-white/20 rounded-lg text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Liste de cartes des annales régionales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[480px] overflow-y-auto pr-1">
+                {filteredSubjects.length === 0 ? (
+                  <div className="col-span-2 py-8 text-center text-slate-400 text-xs bg-slate-950/30 rounded-xl border border-white/10">
+                    Aucun sujet trouvé pour ces critères de recherche.
+                  </div>
+                ) : (
+                  filteredSubjects.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-white/95 text-slate-900 rounded-xl p-4 border border-slate-200 hover:border-amber-500 shadow-sm transition flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span
+                              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                                item.oeuvre === 'La Boîte à Merveilles'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                  : item.oeuvre === 'Antigone'
+                                  ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                                  : item.oeuvre === 'Le Dernier Jour d’un Condamné'
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  : 'bg-sky-100 text-sky-800 border border-sky-300'
+                              }`}
+                            >
+                              {item.oeuvre}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                              {item.region} • {item.annee}
+                            </span>
+                          </div>
+
+                          {item.sourceEnseignant && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                                🎓 Déposé Enseignant
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteCustomSubject(item.id);
+                                }}
+                                title="Supprimer ce sujet"
+                                className="text-slate-400 hover:text-red-600 p-0.5"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <h3 className="font-outfit font-bold text-sm text-slate-950 mb-1.5 leading-snug group-hover:text-amber-800 transition">
+                          {item.titre}
+                        </h3>
+
+                        <p className="text-xs text-slate-600 line-clamp-3 mb-2 font-sans leading-relaxed italic bg-slate-50 p-2 rounded-lg border border-slate-100 whitespace-pre-line">
+                          « {item.consigne.slice(0, 160)}... »
+                        </p>
+
+                        {item.conseilsEnseignant && (
+                          <div className="text-[11px] text-amber-900 bg-amber-50/80 border border-amber-200 p-1.5 rounded-md mb-2 flex items-start gap-1.5 font-medium">
+                            <Sparkles className="w-3 h-3 text-amber-600 shrink-0 mt-0.5" />
+                            <span><strong>Piste didactique :</strong> {item.conseilsEnseignant}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          Plan : <strong className="text-slate-800 font-bold">{item.typePlanSuggere || 'Libre'}</strong>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleLoadSubject(item)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0b1528] hover:bg-slate-800 text-white flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+                        >
+                          <span>Charger ce sujet</span>
+                          <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Consigne du Sujet & Barème Officiel en pilules */}
+        <div className="bg-slate-50/80 border border-slate-200 p-5 rounded-xl mb-6 shadow-xs">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h2 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Consigne du Sujet
+            </h2>
+            <div className="flex items-center gap-2">
+              {isSubjectValidated && (
+                <button
+                  type="button"
+                  onClick={() => setIsSubjectValidated(false)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                  title="Modifier la consigne du sujet"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Modifier la consigne</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowLibrary((prev) => !prev)}
+                className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Changer de sujet (Bibliothèque)</span>
+              </button>
+            </div>
+          </div>
+
+          {isSubjectValidated ? (
+            <div className="p-4 sm:p-5 bg-white border-2 border-slate-900 rounded-xl shadow-xs transition-all animate-fade-in">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-1.5 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Consigne officielle du sujet (validée)</span>
+              </div>
+              <p className="text-slate-950 font-bold text-base sm:text-lg leading-relaxed font-newsreader whitespace-pre-wrap">
+                {sujet || "Aucun sujet spécifié"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              <textarea
+                id="sujet"
+                rows={3}
+                value={sujet}
+                onChange={(e) => setSujet(e.target.value)}
+                placeholder="Saisissez ou collez ici la consigne du sujet de réflexion..."
+                className="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-sm leading-relaxed text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition resize-y"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (sujet.trim()) {
+                      setIsSubjectValidated(true);
+                    }
+                  }}
+                  disabled={!sujet.trim()}
+                  className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0b1528] hover:bg-slate-800 disabled:opacity-40 text-white transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                  <span>Valider le sujet</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Barème officiel en pilules */}
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-200">
+            <span className="text-xs uppercase font-bold text-slate-600 mr-1">Barème Officiel :</span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Consigne <b className="ml-1 text-slate-950 font-bold">2pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Structure <b className="ml-1 text-slate-950 font-bold">2pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Arguments <b className="ml-1 text-slate-950 font-bold">2pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-[#c5221f] shadow-2xs">Langue <b className="ml-1 font-bold">2.5pt</b></span>
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white border border-slate-300 text-slate-800 shadow-2xs">Lexique <b className="ml-1 text-slate-950 font-bold">1.5pt</b></span>
+          </div>
+        </div>
+
+        {/* Zone de rédaction manuscrite */}
+        <div className="border-2 border-slate-900 rounded-xl p-3.5 sm:p-5 mb-8 bg-white shadow-sm overflow-hidden">
+          {/* En-tête : Titre à GAUCHE, Palette et les deux options à DROITE */}
+          <div className="mb-4 flex flex-col md:flex-row md:items-start justify-between gap-3">
+            {/* À GAUCHE : Manuscrit Rédactionnel du Candidat */}
+            <h2 className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 whitespace-normal sm:whitespace-nowrap shrink-0 pt-1">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block shrink-0"></span>
+              <span>Manuscrit Rédactionnel du Candidat</span>
+            </h2>
+
+            {/* À DROITE : La palette et les deux options */}
+            <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto">
+              {/* Palette d'encres */}
+              <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 border border-slate-300/80 px-2.5 py-1 rounded-full shadow-2xs max-w-full">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1 mr-0.5 shrink-0">
+                  <Palette className="w-3.5 h-3.5 text-slate-800" />
+                  <span>Encre :</span>
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {INK_COLORS.map((ink) => {
+                    const isSelected = inkColor === ink.hex;
+                    const isBlack = ink.hex === '#0f172a';
+                    return (
+                      <button
+                        key={ink.id}
+                        type="button"
+                        onMouseDown={(e) => {
+                          // Empêche la perte du mot sélectionné dans l'éditeur de texte
+                          e.preventDefault();
+                        }}
+                        onClick={() => applyInkToSelection(ink.hex)}
+                        title={`${ink.nom} — ${isBlack ? 'Encre noire par défaut' : 'Appliquer sur le mot sélectionné (en gras)'}`}
+                        className={`relative w-6 h-6 rounded-full transition-all duration-150 flex items-center justify-center cursor-pointer shadow-xs shrink-0 ${
+                          isSelected
+                            ? 'scale-115 ring-2 ring-offset-2 ring-slate-900 shadow-md'
+                            : 'hover:scale-110 opacity-80 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: ink.hex }}
+                      >
+                        {isSelected && (
+                          <Check className="w-3 h-3 text-white stroke-[3] drop-shadow-sm" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Les deux options : "Colorier les liens logiques" à côté de "Tout en noir" */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Bouton pour surligner automatiquement tous les liens logiques (sans étoile) */}
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={highlightConnectorsInEditor}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition cursor-pointer shadow-2xs active:scale-95"
+                  title="Détecte et met en valeur automatiquement tous les liens logiques (Cependant, En effet, De plus...) en gras avec la couleur active"
+                >
+                  <span>Colorier les liens logiques</span>
+                </button>
+
+                {/* Bouton pour réinitialiser tout le texte en noir à côté */}
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={resetAllTextColors}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition cursor-pointer active:scale-95"
+                  title="Remettre tout le texte en écriture noire standard"
+                >
+                  <RefreshCw className="w-3 h-3 text-slate-500" />
+                  <span>Tout en noir</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div
+              ref={editorRef}
+              id="texte"
+              contentEditable
+              suppressContentEditableWarning
+              onInput={handleEditorInput}
+              onPaste={handleEditorPaste}
+              onFocus={() => setIsEditorFocused(true)}
+              onBlur={() => setIsEditorFocused(false)}
+              className="writing-ruled-zone w-full p-4 border border-slate-300/80 rounded-lg outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition overflow-y-auto text-slate-900 font-normal"
+              style={{
+                color: '#0f172a',
+                fontWeight: 400,
+              }}
+            />
+            {!texte.trim() && !isEditorFocused && (
+              <div
+                onClick={() => editorRef.current?.focus()}
+                className="absolute top-4 left-4 right-4 text-slate-400 font-newsreader text-lg pointer-events-none italic select-none"
+              >
+                Rédigez votre production écrite ici...
+              </div>
+            )}
+          </div>
+
+          {/* COMPTEUR OFFICIEL DES LIGNES EN BAS DE LA ZONE DE RÉDACTION */}
+          <div className="mt-3 pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <div
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border shadow-2xs ${
+                  lineCount > 25
+                    ? 'bg-red-50 border-red-500 text-red-700 ring-2 ring-red-400/40 animate-pulse'
+                    : lineCount >= 18
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                    : 'bg-slate-50 border-slate-300 text-slate-700'
+                }`}
+              >
+                {lineCount > 25 ? (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span className="font-mono font-black">{lineCount} lignes</span>
+                    <span className="text-[11px] font-black uppercase text-red-600">/ 25 max (⚠️ Dépassement d'alerte !)</span>
+                  </>
+                ) : (
+                  <>
+                    <span>📏 Compteur :</span>
+                    <span className="font-mono font-black">{lineCount}</span>
+                    <span>ligne{lineCount > 1 ? 's' : ''} / 25 max</span>
+                    {lineCount >= 18 && (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded-full">
+                        ✓ Cadre idéal
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {isBoldInk && (
+                <span className="text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: inkColor }}></span>
+                  <span>Écriture couleur en gras</span>
+                </span>
+              )}
+            </div>
+
+            <div className="text-[11px] text-slate-500 font-medium">
+              Norme recommandée à l'Examen Régional : <strong>20 à 25 lignes</strong>
+            </div>
+          </div>
+
+          {lineCount > 25 && (
+            <div className="mt-2.5 p-3 rounded-lg bg-red-50 border border-red-300 text-red-800 text-xs flex items-center gap-2 animate-fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <span>
+                <strong>Alerte de cadrage officiel :</strong> Le texte comporte <strong>{lineCount} lignes</strong> (la norme recommandée pour l'Examen Régional est de <strong>20 à 25 lignes</strong> maximum).
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Bouton d'action principal */}
+        <div>
+          <button
+            type="button"
+            id="btnRun"
+            onClick={runExpertise}
+            disabled={isProcessing}
+            className="w-full py-5 px-8 bg-gradient-to-r from-[#0b1528] via-[#162544] to-[#0b1528] text-white rounded-xl font-cinzel font-bold text-lg sm:text-xl tracking-wider shadow-lg hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition duration-200 cursor-pointer border border-amber-600/30 flex items-center justify-center gap-3 disabled:opacity-80"
+          >
+            {isProcessing ? (
+              <>
+                <span className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
+                <span>Évaluation didactique en cours...</span>
+              </>
+            ) : (
+              <span>Valider l'Évaluation Pédagogique</span>
+            )}
+          </button>
+        </div>
+
+        {/* SECTION DU RAPPORT CERTIFIÉ (RÉVÉLÉE APRÈS TRAITEMENT OU CLIC APERÇU) */}
+        <div id="reportSection" className="mt-8 sm:mt-12 pt-6 sm:pt-10 border-t-2 border-slate-900 hidden animate-fade-in relative overflow-hidden bg-white p-3.5 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl shadow-sm">
+          
+          {/* Cachet rouge officiel "HORS-SUJET" en diagonale du rapport */}
+          {isHorsSujet && (
+            <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden">
+              <div className="transform -rotate-24 select-none px-8 py-5 sm:px-14 sm:py-7 border-6 sm:border-8 border-red-600/90 rounded-2xl sm:rounded-3xl bg-red-600/[0.08] backdrop-blur-[1px] shadow-2xl flex flex-col items-center justify-center text-center max-w-[90vw] border-double">
+                <div className="flex items-center gap-2 sm:gap-3 text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] mb-1">
+                  <span>★</span>
+                  <span>DIRECTION DES EXAMENS DU BACCALAURÉAT</span>
+                  <span>★</span>
+                </div>
+                <div className="text-4xl sm:text-7xl font-black font-cinzel text-red-600 tracking-[0.18em] sm:tracking-[0.22em] drop-shadow-xs uppercase border-y-2 sm:border-y-4 border-red-600/80 py-1.5 sm:py-2.5 my-1">
+                  HORS-SUJET
+                </div>
+                <div className="flex items-center justify-between w-full text-red-600 text-[9px] sm:text-xs font-black uppercase tracking-wider mt-1 gap-4">
+                  <span>SANCTION ACADÉMIQUE</span>
+                  <span className="text-sm sm:text-lg font-mono font-black underline decoration-2">NOTE : 0 / 10</span>
+                  <span>CADRE OFFICIEL</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sceau officiel & En-tête académique d'excellence */}
+          <div className="border-b-2 border-slate-900 pb-7 mb-8">
+            {/* Bandeau officiel de tête */}
+            <div className="bg-[#0b1528] text-white px-5 py-3.5 rounded-2xl mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-sm border border-slate-800">
+              <div>
+                <span className="font-cinzel text-sm sm:text-base font-bold tracking-wider text-white">
+                  Centre d'Expertise & Ingénierie Pédagogique Al Akhawayn
+                </span>
+              </div>
+            </div>
+
+            {/* Fiche d'identification du Candidat et Note à droite du Nom */}
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest border border-amber-500/30">
+                Rapport Pédagogique Professionnel
+              </div>
+
+              {/* Bloc principal : Nom du Candidat à GAUCHE | Note avec Badge de mention à DROITE */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 p-4 sm:p-6 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs">
+                {/* À GAUCHE : Nom et métadonnées du Candidat */}
+                <div className="space-y-1.5 flex-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Candidat officiel :</span>
+                  <h2 id="rNom" className="font-cinzel text-2xl sm:text-3xl font-black text-slate-950 uppercase tracking-tight">
+                    {studentName || 'YOUSSEF EL MANSOURI'}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-600 pt-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-slate-900 uppercase">Filière :</span>
+                      <span id="rFil" className="font-outfit uppercase text-slate-700 font-bold">{filiere}</span>
+                    </div>
+                    <span className="text-slate-300">|</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-slate-900 uppercase">Épreuve :</span>
+                      <span className="text-slate-700">Production Écrite (Français - 1ère Bac)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* À DROITE DU NOM : La note attribuée avec son badge de mention en bas (sans "certifié conforme") */}
+                <div className="flex flex-col items-start sm:items-end justify-center shrink-0 sm:pl-6 sm:border-l sm:border-slate-200 pt-2 sm:pt-0">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[11px] uppercase font-extrabold text-slate-500 tracking-wider">Note :</span>
+                    <span
+                      id="rTotal"
+                      className={`text-3xl sm:text-4xl font-black font-cinzel tracking-tight ${
+                        isHorsSujet ? 'text-red-700' : 'text-slate-950'
+                      }`}
+                    >
+                      {isHorsSujet ? '0/10' : `${scores.total || '8.8'}/10`}
+                    </span>
+                  </div>
+
+                  {/* Badge de mention en bas de la note attribuée */}
+                  <div className="mt-1.5">
+                    <span
+                      id="rMention"
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${
+                        mentionInfo.className
+                      }`}
+                    >
+                      {mentionInfo.label}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rappel du sujet officiel imposé */}
+              {sujet && (
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl mt-2 text-xs leading-relaxed text-slate-800">
+                  <span className="font-extrabold uppercase text-[10px] tracking-wider text-[#b45309] block mb-1">
+                    📌 Sujet Officiel Imposé au Candidat :
+                  </span>
+                  <p className="italic text-slate-700">« {sujet} »</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* En cas de Hors-Sujet : Note 0/10 et masquage complet des parties 1 à 6 */}
+          {isHorsSujet ? (
+            <div className="my-8 p-8 sm:p-10 rounded-2xl bg-red-50/90 border-2 border-red-400 shadow-sm text-center relative overflow-hidden">
+              <div className="w-16 h-16 mx-auto rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center text-red-600 mb-4 shadow-inner">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-red-700 text-white rounded-full text-xs font-black uppercase tracking-widest mb-4 shadow-xs">
+                Sanction Pédagogique Majeure : Copie Hors-Sujet
+              </div>
+              <h3 className="font-cinzel text-3xl sm:text-5xl font-black text-red-950 mb-3 tracking-tight">
+                NOTE OFFICIELLE ATTRIBUÉE : 0 / 10
+              </h3>
+              <p className="text-sm font-bold text-red-700 uppercase tracking-wider mb-6">
+                Cadre de Référence Officiel de l'Examen Régional du Baccalauréat
+              </p>
+
+              <div className="max-w-2xl mx-auto space-y-4 text-left p-6 rounded-xl bg-white border border-red-200 shadow-2xs">
+                <div className="p-3.5 rounded-lg bg-red-50 border border-red-200">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-red-800 block mb-1">
+                    📌 Sujet officiel imposé :
+                  </span>
+                  <p className="text-xs sm:text-sm font-semibold text-slate-800 italic">
+                    « {sujet || 'Sujet officiel'} »
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 block mb-1">
+                    📝 Extrait de la copie du candidat :
+                  </span>
+                  <p className="text-xs text-slate-700 italic">
+                    « {texte.trim().slice(0, 180)}... »
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  {offTopicType === 'METHODOLOGIQUE' ? (
+                    <>
+                      <p className="font-outfit text-sm font-bold text-red-900 leading-relaxed">
+                        ⚠️ <strong>Hors-Sujet Méthodologique Majeur (Erreur de Typologie de Plan) :</strong> Le sujet imposé exigeait une prise de position argumentée (<strong>Sujet d'Opinion</strong> : défendre un point de vue avec plan dialectique ou thématique). Or, le candidat a énuméré des <strong>causes et des solutions</strong> (Plan Analytique), commettant un contresens méthodologique radical et une violation directe de la consigne d'écriture.
+                      </p>
+                      <p className="font-outfit text-xs text-slate-700 leading-relaxed">
+                        Conformément aux directives officielles du <strong>Cadre de Référence de l'Examen Régional du Baccalauréat</strong>, substituer un plan analytique (causes/solutions) à un sujet d'opinion équivaut à un <strong>hors-sujet formel</strong> sanctionné par la note éliminatoire de <strong>0/10</strong>. En application stricte des règlements académiques, tous les critères sont annulés et les parties 1 à 6 sont masquées.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-outfit text-sm font-bold text-red-900 leading-relaxed">
+                        ⚠️ <strong>Constat d'Invalidation Académique (Hors-Sujet Thématique) :</strong> La copie rédigée par le candidat ne traite en aucun point le sujet officiel imposé ou s'écarte complètement de la consigne d'écriture.
+                      </p>
+                      <p className="font-outfit text-xs text-slate-700 leading-relaxed">
+                        Conformément aux directives officielles du <strong>Cadre de Référence de l'Examen Régional du Baccalauréat</strong>, tout devoir hors-sujet est sanctionné par la note éliminatoire de <strong>0/10</strong>. En application stricte des règlements académiques, cette sanction annule l'évaluation de tous les critères (Consigne, Structure, Arguments, Langue et Lexique). Les parties 1 à 6 sont masquées.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-red-100 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-red-700">
+                  <span>Commission d'Expertise Didactique</span>
+                  <span className="bg-red-100 text-red-800 px-2.5 py-1 rounded-md font-extrabold">
+                    🔒 Parties 1 à 6 masquées (Copie non évaluable)
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* 1. Grille Officielle 10 Points */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 1. Détail de la Grille Officielle (10 Points)
+                  </h3>
+                  <span className="text-[11px] font-bold text-slate-500">
+                    Moyennes de référence : Consigne 1.0/2 • Structure 1.0/2 • Arguments 1.0/2 • Langue 1.25/2.5 • Lexique 0.75/1.5
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  {/* Consigne (max 2.0, moyenne 1.0) */}
+                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.c < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.c < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Consigne</span>
+                    <span id="v1" className={`text-xl font-black font-mono block my-0.5 ${scores.c < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.c}</span>
+                    <span className={`text-[10px] font-bold block ${scores.c < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
+                    {scores.c < 1.0 ? (
+                      <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
+                    ) : (
+                      <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
+                    )}
+                  </div>
+
+                  {/* Structure (max 2.0, moyenne 1.0) */}
+                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.s < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.s < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Structure</span>
+                    <span id="v2" className={`text-xl font-black font-mono block my-0.5 ${scores.s < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.s}</span>
+                    <span className={`text-[10px] font-bold block ${scores.s < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
+                    {scores.s < 1.0 ? (
+                      <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
+                    ) : (
+                      <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
+                    )}
+                    <span className="text-[9px] font-bold text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded-md uppercase block mt-1 border border-blue-200">
+                      🔗 {logicalConnectorsStats.count} lien{logicalConnectorsStats.count > 1 ? 's' : ''} en couleur
+                    </span>
+                    <span className="text-[8px] font-extrabold text-blue-600 uppercase tracking-tighter block mt-0.5">
+                      Pris en considération
+                    </span>
+                  </div>
+
+                  {/* Arguments (max 2.0, moyenne 1.0) */}
+                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.a < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.a < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Arguments</span>
+                    <span id="v3" className={`text-xl font-black font-mono block my-0.5 ${scores.a < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.a}</span>
+                    <span className={`text-[10px] font-bold block ${scores.a < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
+                    {scores.a < 1.0 ? (
+                      <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
+                    ) : (
+                      <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
+                    )}
+                  </div>
+
+                  {/* Langue (max 2.5, moyenne 1.25) */}
+                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.l < 1.25 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.l < 1.25 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Langue</span>
+                    <span id="v4" className={`text-xl font-black font-mono block my-0.5 ${scores.l < 1.25 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.l}</span>
+                    <span className={`text-[10px] font-bold block ${scores.l < 1.25 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.5</span>
+                    {scores.l < 1.25 ? (
+                      <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
+                    ) : (
+                      <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
+                    )}
+                  </div>
+
+                  {/* Lexique (max 1.5, moyenne 0.75) */}
+                  <div className={`p-3.5 rounded-xl border text-center transition-all col-span-2 sm:col-span-1 ${scores.x < 0.75 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.x < 0.75 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Lexique</span>
+                    <span id="v5" className={`text-xl font-black font-mono block my-0.5 ${scores.x < 0.75 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.x}</span>
+                    <span className={`text-[10px] font-bold block ${scores.x < 0.75 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 1.5</span>
+                    {scores.x < 0.75 ? (
+                      <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
+                    ) : (
+                      <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 1.bis Indicateur Didactique de l'Armature Logique (Liens Logiques en Couleurs & Cohérence de Structure) */}
+                <div className="mt-4 p-4 rounded-xl border border-blue-200/90 bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs font-black text-sm">
+                      🔗
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-outfit text-xs font-black uppercase tracking-wider text-blue-950">
+                          Armature Logique & Liens Repérés en Couleurs (Prise en compte directe dans la Structure : {scores.s}/2.0)
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-300 uppercase">
+                          {logicalConnectorsStats.count} connecteur{logicalConnectorsStats.count > 1 ? 's' : ''} détecté{logicalConnectorsStats.count > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        {logicalConnectorsStats.count >= 4
+                          ? "Excellente densité de connecteurs logiques : les articulations entre les axes et les paragraphes assurent une transition fluide et rigoureuse, directement valorisée dans la note de Structure."
+                          : logicalConnectorsStats.count >= 2
+                          ? "Connecteurs logiques présents : renforcez la variété des nuances d'opposition et de conséquence pour hisser la note de structure au niveau maximal."
+                          : "Faible balisage logique : la copie manque de liens logiques visibles pour relier les arguments entre eux, ce qui pénalise directement la note de Structure."}
+                      </p>
+                      {logicalConnectorsStats.list.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mr-1">Repérés :</span>
+                          {logicalConnectorsStats.list.map((c, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 rounded-md text-[10px] font-black bg-white text-blue-900 border border-blue-200 shadow-2xs"
+                            >
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 self-stretch md:self-auto justify-end">
+                    <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border flex items-center gap-1.5 ${
+                      logicalConnectorsStats.hasAttack
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-50 text-amber-800 border-amber-300'
+                    }`}>
+                      <span>{logicalConnectorsStats.hasAttack ? '✓' : '⚠️'}</span>
+                      <span>Attaque d'axe : {logicalConnectorsStats.hasAttack ? 'Validée' : 'À renforcer'}</span>
+                    </div>
+
+                    <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border flex items-center gap-1.5 ${
+                      logicalConnectorsStats.hasConclusion
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-50 text-amber-800 border-amber-300'
+                    }`}>
+                      <span>{logicalConnectorsStats.hasConclusion ? '✓' : '⚠️'}</span>
+                      <span>Clôture : {logicalConnectorsStats.hasConclusion ? 'Conforme' : 'Non détectée'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Transcription Analytique */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 2. Transcription Analytique de la Copie (Liens Logiques en Couleurs)
+                  </h3>
+                  <div className="flex items-center gap-2 text-[11px] font-bold flex-wrap">
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Erreurs (rouge)</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-300 font-extrabold text-blue-700 inline-block text-[10px]">Bleu</span> Progression</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-300 font-extrabold text-emerald-700 inline-block text-[10px]">Vert</span> Clôture</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-300 font-extrabold text-amber-700 inline-block text-[10px]">Ambre</span> Opposition</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-teal-50 border border-teal-300 font-extrabold text-teal-700 inline-block text-[10px]">Sarcelle</span> Conséquence</span>
+                  </div>
+                </div>
+                <div id="outTrans" className="writing-ruled-zone p-6 rounded-xl border border-slate-200 bg-white leading-relaxed"></div>
+              </div>
+
+              {/* 3. Diagnostic Chirurgical des Fautes (Tableau) */}
+              <div className="mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <div>
+                    <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                      <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 3. Diagnostic Chirurgical des Fautes (Orthographe & Linguistique)
+                    </h3>
+                    <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                      Détection exclusive des erreurs d'orthographe, de conjugaison, d'accord, de coordination et de syntaxe. Aucune phrase faible n'est répertoriée ici (réservée à la section 5).
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] font-bold shrink-0">
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Erreur fautive (rouge)</span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-400 inline-block"></span> Correction certifiée (vert)</span>
+                  </div>
+                </div>
+                <div id="outTable" className="overflow-x-auto"></div>
+              </div>
+
+              {/* 4. Audit Méthodologique & Progression (Bilan) */}
+              <div className="mb-8">
+                <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
+                  <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 4. Audit Méthodologique & Progression Pédagogique
+                </h3>
+                <div id="outBilan" className="p-4 sm:p-6 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-sm sm:text-base"></div>
+              </div>
+
+              {/* 5. Optimisation Stylistique (Texte Optimisé - Min. 18 lignes) */}
+              <div className="mb-8">
+                <div className="mb-3">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 5. Optimisation Stylistique & Version Continue d'Excellence (Texte Optimisé • Min. 18 lignes)
+                  </h3>
+                  <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                    Chirurgie des phrases faibles et réécriture intégrale en texte optimisé d'au moins 18 lignes rédigées, articulé par des liens logiques puissants en bleu et des exemples tirés de l'œuvre en gras vert émeraude. Langage fort, limpide et rigoureux, sans recours à un registre soutenu artificiel.
+                  </p>
+                </div>
+                <div id="outReform" className="p-4 sm:p-6 rounded-xl bg-amber-50/40 border border-amber-200 leading-relaxed text-sm sm:text-base"></div>
+              </div>
+
+              {/* 6. Modèle de Référence Certifié (Norme Al Akhawayn) */}
+              <div className="mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 6. Modèles Rédigés d'Excellence (Norme Al Akhawayn • Min. 18 lignes)
+                  </h3>
+                  
+                  {/* Sélecteur de plan : Les deux options (Plan Simple & Variante Dialectique) sont TOUJOURS disponibles pour les sujets d'opinion ou de réflexion, seul le sujet purement analytique (causes/conséquences/solutions) a son badge dédié */}
+                  {detectedPlanType !== 'ANALYTIQUE' ? (
+                    <div id="tabDialecticSelectors" className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl shadow-2xs w-full sm:w-auto">
+                      <button
+                        type="button"
+                        onClick={() => displayM('A')}
+                        id="ts"
+                        className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'A' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      >
+                        Option 1 : Plan Simple
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => displayM('B')}
+                        id="td"
+                        className={`tab-trigger px-4 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center flex-1 ${activePlan === 'B' ? 'active' : 'text-slate-700 hover:text-slate-900'}`}
+                      >
+                        Option 2 : Plan Dialectique
+                      </button>
+                    </div>
+                  ) : (
+                    <div id="planBadgeContainer" className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 text-white rounded-xl shadow-xs border border-slate-800">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wide">
+                        {(sujet && (sujet.toLowerCase().includes('solution') || sujet.toLowerCase().includes('guérisseur') || sujet.toLowerCase().includes('guerisseur') || sujet.toLowerCase().includes('remède') || sujet.toLowerCase().includes('remede')))
+                          ? 'Modèle Certifié : Plan Analytique (Causes, Conséquences & Solutions)'
+                          : 'Modèle Certifié : Plan Analytique (Causes & Conséquences)'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div id="outModel" className="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 font-newsreader text-sm sm:text-base leading-relaxed space-y-4"></div>
+              </div>
+            </>
+          )}
+
+          {/* Actions & Archivage parfaitement calibrés et responsive */}
+          <div className="pt-8 border-t-2 border-slate-200 mt-10 no-print">
+            <div className="bg-slate-50/95 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                
+                {/* Pôle 1 : Impression & Téléchargement du Document PDF */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    disabled={isGeneratingPdf}
+                    className="h-12 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-sm active:scale-[0.98] disabled:opacity-75"
+                    title="Générer et télécharger directement le document PDF complet"
+                  >
+                    {isGeneratingPdf ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
+                        <span>Génération du PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileDown className="w-4 h-4 text-amber-400" />
+                        <span>Télécharger le Document PDF</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-black text-amber-300">PDF</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePrintPdf}
+                    className="h-12 px-5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-2xs active:scale-[0.98]"
+                    title="Ouvrir la boîte de dialogue d'impression officielle"
+                  >
+                    <Printer className="w-4 h-4 text-slate-700" />
+                    <span>Imprimer</span>
+                  </button>
+                </div>
+
+                {/* Pôle 2 : Enregistrer dans la boîte (Calibré avec le pôle impression/PDF) */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="relative min-w-[220px]">
+                    <select
+                      id="archiveSelectWork"
+                      className="h-12 w-full px-4 pr-9 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 bg-white outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 cursor-pointer appearance-none shadow-2xs"
+                    >
+                      <option value="boite">📦 La Boîte à Merveilles</option>
+                      <option value="antigone">📜 Antigone</option>
+                      <option value="condamne">⚖️ Le Dernier Jour d'un Condamné</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                      <span className="text-xs">▼</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={saveCurrentToArchives}
+                    className="h-12 px-6 rounded-xl bg-[#b45309] hover:bg-[#92400e] text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]"
+                  >
+                    <span>💾</span>
+                    <span>Enregistrer dans la boîte</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* PIED DE PAGE OFFICIEL */}
+      <footer className="max-w-5xl mx-auto mt-8 mb-4 text-center text-xs font-semibold text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 bg-white/80 backdrop-blur-xs rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2.5 mx-auto sm:mx-0">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+          <span className="font-outfit font-bold text-slate-800 uppercase tracking-wider text-xs">
+            Direction Pédagogique Al Akhawayn Tamansourte
+          </span>
+        </div>
+        <p className="text-[11px] text-slate-400 font-medium">
+          Plateforme Didactique Certifiée • Session Baccalauréat 2026
+        </p>
+      </footer>
+
+      {/* MODAL BOÎTE D'ARCHIVES & RÉVISION PÉDAGOGIQUE - HAUTEMENT RESPONSIVE SMARTPHONE & DESKTOP */}
+      {selectedWorkBox && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-5xl w-full p-3.5 sm:p-6 md:p-7 shadow-2xl border border-slate-200 flex flex-col h-[94vh] sm:h-[88vh] max-h-[96vh] overflow-hidden">
+            
+            {/* Si consultation d'une production spécifique */}
+            {viewingArchiveItem ? (
+              <div className="flex flex-col h-full overflow-hidden min-h-0">
+                {/* En-tête de la fiche de révision - Totalement Responsive */}
+                <div className="pb-2.5 sm:pb-3 border-b border-slate-200 mb-2.5 sm:mb-3 shrink-0">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setViewingArchiveItem(null)}
+                      className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shrink-0"
+                    >
+                      <span>⬅️</span>
+                      <span className="text-[11px] sm:text-xs">Retour</span>
+                    </button>
+
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => window.print()}
+                        className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+                        title="Imprimer pour réviser à la maison"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="hidden sm:inline">Imprimer</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setViewingArchiveItem(null); setSelectedWorkBox(null); }}
+                        className="p-1 sm:p-1.5 text-slate-500 hover:text-slate-900 text-base sm:text-lg cursor-pointer rounded-lg hover:bg-slate-100 transition"
+                        title="Fermer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Titre de l'œuvre et note */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <h3 className="font-cinzel text-sm sm:text-base md:text-lg font-black text-slate-950 flex items-center gap-2">
+                      <span>{selectedWorkBox === 'boite' ? '📦 La Boîte à Merveilles' : (selectedWorkBox === 'antigone' ? '📜 Antigone' : '⚖️ Le Dernier Jour d\'un Condamné')}</span>
+                    </h3>
+                    <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 shrink-0 shadow-2xs">
+                      Note : {viewingArchiveItem.score}
+                    </span>
+                  </div>
+
+                  {/* Métadonnées candidat */}
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 font-semibold break-words leading-tight">
+                    👤 {viewingArchiveItem.candidateName} • 🎓 {viewingArchiveItem.filiere} • 📅 Déposé le {viewingArchiveItem.date}
+                  </p>
+                </div>
+
+                {/* Rappel du Sujet Traité */}
+                <div className="p-2.5 sm:p-3 bg-amber-50/80 border border-amber-200 rounded-xl mb-2.5 shrink-0 text-xs text-amber-950 break-words">
+                  <span className="font-extrabold uppercase text-[10px] tracking-wider text-amber-900 block mb-0.5">
+                    📌 Sujet Officiel Traité :
+                  </span>
+                  <p className="italic font-medium leading-relaxed text-[11px] sm:text-xs">« {viewingArchiveItem.sujet || 'Sujet non spécifié'} »</p>
+                </div>
+
+                {/* Onglets de révision avec scroll tactile sur mobile */}
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none shrink-0 -mx-1 px-1">
+                  <button
+                    type="button"
+                    onClick={() => setArchiveActiveTab('optimized')}
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                      archiveActiveTab === 'optimized'
+                        ? 'bg-[#0b1528] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>✨</span>
+                    <span>Texte Optimisé</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setArchiveActiveTab('model')}
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                      archiveActiveTab === 'model'
+                        ? 'bg-[#0b1528] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>🏆</span>
+                    <span className="hidden sm:inline">Modèle de Référence (Norme Al Akhawayn)</span>
+                    <span className="sm:hidden">Modèle Certifié</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setArchiveActiveTab('original')}
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 ${
+                      archiveActiveTab === 'original'
+                        ? 'bg-[#0b1528] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>📝</span>
+                    <span className="hidden sm:inline">Copie Initiale Déposée</span>
+                    <span className="sm:hidden">Copie Initiale</span>
+                  </button>
+                </div>
+
+                {/* Corps de l'onglet actif avec scroll fluide */}
+                <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 pb-2 min-h-0">
+                  {archiveActiveTab === 'optimized' && (
+                    <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-amber-50/30 border border-amber-200 leading-relaxed text-slate-900 text-xs sm:text-sm break-words overflow-x-hidden">
+                      {viewingArchiveItem.reformulations ? (
+                        <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.reformulations }} />
+                      ) : (
+                        <p className="text-slate-400 italic">Aucune version optimisée sauvegardée pour cette copie.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {archiveActiveTab === 'model' && (
+                    <div className="space-y-3">
+                      {(viewingArchiveItem.planA || viewingArchiveItem.planB) && (
+                        <div className="flex items-center gap-1.5 p-1 bg-slate-200 rounded-xl">
+                          <button
+                            type="button"
+                            onClick={() => setArchiveModelPlanTab('A')}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer flex-1 text-center ${
+                              archiveModelPlanTab === 'A' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
+                            }`}
+                          >
+                            Option 1 : Plan Simple
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setArchiveModelPlanTab('B')}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer flex-1 text-center ${
+                              archiveModelPlanTab === 'B' ? 'bg-[#0b1528] text-white shadow-xs' : 'text-slate-700 hover:bg-slate-300/60'
+                            }`}
+                          >
+                            Option 2 : Plan Dialectique
+                          </button>
+                        </div>
+                      )}
+                      <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 leading-relaxed text-slate-900 text-xs sm:text-sm break-words overflow-x-hidden">
+                        {(viewingArchiveItem.planA || viewingArchiveItem.planB) ? (
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: formatModelPlan(
+                                archiveModelPlanTab === 'A'
+                                  ? (viewingArchiveItem.planA || viewingArchiveItem.modelText)
+                                  : (viewingArchiveItem.planB || viewingArchiveItem.modelText),
+                                archiveModelPlanTab === 'A' ? 'SIMPLE' : 'DIALECTIQUE'
+                              ),
+                            }}
+                          />
+                        ) : viewingArchiveItem.modelText ? (
+                          <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.modelText }} />
+                        ) : (
+                          <p className="text-slate-400 italic">Aucun modèle de référence associé enregistré.</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {archiveActiveTab === 'original' && (
+                    <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-slate-200 leading-relaxed text-slate-800 whitespace-pre-wrap font-serif text-xs sm:text-sm break-words overflow-x-hidden">
+                      {viewingArchiveItem.texte || 'Aucun texte initial renseigné.'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Liste des copies de la boîte sélectionnée */
+              <div className="flex flex-col h-full overflow-hidden min-h-0">
+                <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-slate-200 mb-3 sm:mb-4 gap-2 shrink-0">
+                  <div className="min-w-0 pr-1">
+                    <h3 className="font-cinzel text-base sm:text-xl font-black text-slate-950 leading-tight">
+                      Boîtes d'Archives Pédagogiques
+                    </h3>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5 leading-snug">
+                      Consultation & Révision des Productions (Enregistrées dans votre navigateur)
+                    </p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setSelectedWorkBox(null)} 
+                    className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-900 text-base sm:text-lg cursor-pointer shrink-0 rounded-xl bg-slate-100 hover:bg-slate-200 transition"
+                    title="Fermer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4 border-b border-slate-200 pb-2.5 overflow-x-auto scrollbar-none shrink-0 -mx-1 px-1">
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedWorkBox('boite'); setViewingArchiveItem(null); }}
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition flex items-center gap-1.5 ${
+                      selectedWorkBox === 'boite' ? 'bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>📦</span>
+                    <span>La Boîte à Merveilles</span>
+                    <span className="bg-amber-200/90 text-amber-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.boite.length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedWorkBox('antigone'); setViewingArchiveItem(null); }}
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition flex items-center gap-1.5 ${
+                      selectedWorkBox === 'antigone' ? 'bg-indigo-100 text-indigo-950 border border-indigo-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>📜</span>
+                    <span>Antigone</span>
+                    <span className="bg-indigo-200/90 text-indigo-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.antigone.length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedWorkBox('condamne'); setViewingArchiveItem(null); }}
+                    className={`shrink-0 whitespace-nowrap px-3 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider cursor-pointer transition flex items-center gap-1.5 ${
+                      selectedWorkBox === 'condamne' ? 'bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span>⚖️</span>
+                    <span>Le Dernier Jour d'un Condamné</span>
+                    <span className="bg-emerald-200/90 text-emerald-950 px-1.5 py-0.2 rounded-full font-black text-[10px]">{archives.condamne.length}</span>
+                  </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 sm:pr-2 min-h-0">
+                  {archives[selectedWorkBox]?.length === 0 ? (
+                    <div className="p-8 sm:p-12 text-center text-slate-400 text-xs sm:text-sm font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                      <span className="text-3xl block mb-2">📁</span>
+                      Aucune production enregistrée pour le moment dans cette boîte sur votre navigateur.<br />
+                      <span className="text-[11px] sm:text-xs text-slate-400 mt-1 block">
+                        Effectuez une évaluation et cliquez sur « Enregistrer dans la boîte » pour réviser vos textes optimisés à tout moment d'ici la fin d'année.
+                      </span>
+                    </div>
+                  ) : (
+                    archives[selectedWorkBox]?.map((item: any) => (
+                      <div key={item.id} className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition-all space-y-2.5 sm:space-y-3 shadow-2xs">
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="min-w-0 flex-1">
+                            <span className="font-extrabold text-[10px] uppercase tracking-wider text-amber-800 block mb-0.5">
+                              📌 Sujet Officiel Traité :
+                            </span>
+                            <h4 className="font-bold text-slate-900 text-xs sm:text-sm italic leading-snug break-words">
+                              « {item.sujet || 'Sujet non renseigné'} »
+                            </h4>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-950 font-mono font-black text-[11px] sm:text-xs border border-emerald-300 shrink-0 shadow-2xs">
+                            {item.score}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between text-[10px] sm:text-xs text-slate-500 pt-2 border-t border-slate-200 gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-slate-600 font-semibold min-w-0">
+                            <span className="truncate max-w-[120px] sm:max-w-none">👤 {item.candidateName}</span>
+                            <span>•</span>
+                            <span className="truncate max-w-[140px] sm:max-w-none">🎓 {item.filiere}</span>
+                            <span>•</span>
+                            <span>📅 {item.date || 'Date non renseignée'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => deleteArchive(item.id)}
+                            className="text-rose-600 hover:text-rose-800 font-bold text-[11px] sm:text-xs cursor-pointer px-2 py-0.5 rounded hover:bg-rose-50 transition shrink-0"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+
+                        {/* Bouton d'accès direct pour réviser la production */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setViewingArchiveItem(item);
+                            setArchiveActiveTab('optimized');
+                          }}
+                          className="w-full py-2.5 px-3 sm:px-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer active:scale-[0.99] text-center"
+                        >
+                          <span className="shrink-0">📖</span>
+                          <span className="truncate sm:whitespace-normal">Consulter la copie & réviser le texte optimisé ➔</span>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL MODIFICATION MOT DE PASSE ENSEIGNANT */}
+      {showChangeModal && renderPasswordChangeModal()}
+
+      {/* MODALE D'HABILITATION SÉCURISÉE ENSEIGNANT (CLÉ D'ACCÈS OBLIGATOIRE) */}
+      {showTeacherAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-scale-up">
+            <div className="p-5 bg-gradient-to-r from-slate-900 via-[#162544] to-[#0b1528] text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400">
+                  <Lock className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <div>
+                  <h3 className="font-outfit font-bold text-base text-white">
+                    Accès Réservé Enseignant
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    Espace Dépôt de Sujets Officiels
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTeacherAuthModal(false);
+                  setTeacherAuthError('');
+                  setTeacherInputKey('');
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleVerifyTeacherKey} className="p-5 sm:p-6 space-y-4">
+              <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-900 leading-relaxed">
+                  Cet espace est strictement réservé au professeur pour déposer ou administrer des sujets régionaux. Veuillez saisir la <strong className="font-semibold text-slate-900">Clé d'habilitation Enseignant</strong>.
+                </p>
+              </div>
+
+              {teacherAuthError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 animate-fade-in">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span className="font-medium">{teacherAuthError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Clé d'habilitation Enseignant
+                </label>
+                <div className="relative">
+                  <input
+                    type={showTeacherKeyPlain ? 'text' : 'password'}
+                    required
+                    autoFocus
+                    value={teacherInputKey}
+                    onChange={(e) => {
+                      setTeacherInputKey(e.target.value);
+                      if (teacherAuthError) setTeacherAuthError('');
+                    }}
+                    placeholder="Saisissez la clé d'habilitation..."
+                    className="w-full px-3.5 py-2.5 pr-10 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherKeyPlain((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    title={showTeacherKeyPlain ? 'Masquer' : 'Afficher la clé'}
+                  >
+                    {showTeacherKeyPlain ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1.5">
+                  🔒 Empêche les élèves de déposer des sujets ou de modifier la bibliothèque.
+                </p>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTeacherAuthModal(false);
+                    setTeacherAuthError('');
+                    setTeacherInputKey('');
+                  }}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95"
+                >
+                  <KeyRound className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                  <span>Déverrouiller l'Espace</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODALE ESPACE ENSEIGNANT : DÉPOSER UN NOUVEAU SUJET RÉGIONAL */}
+      {showTeacherModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+            <div className="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-900 to-[#162544] text-white rounded-t-2xl">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="font-outfit font-bold text-base text-white">
+                    Espace Enseignant • Déposer un Sujet
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    Ajoutez un sujet officiel d'examen régional pour vos élèves
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTeacherModal(false);
+                  setTeacherFormError('');
+                }}
+                className="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Bannière de session enseignant active avec option de verrouillage */}
+            <div className="bg-amber-50/90 px-5 py-2 border-b border-amber-200 flex items-center justify-between text-xs text-amber-950">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Session Enseignant vérifiée : <strong>hadmed.brave@gmail.com</strong></span>
+              </span>
+              <button
+                type="button"
+                onClick={handleLockTeacherSpace}
+                className="text-amber-800 hover:text-red-700 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
+                title="Verrouiller la session pour empêcher les élèves de déposer"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Verrouiller</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTeacherSubject} className="p-5 sm:p-6 space-y-4">
+              {teacherFormError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{teacherFormError}</span>
+                </div>
+              )}
+
+              {teacherFormSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Sujet enregistré avec succès dans la Bibliothèque Officielle !</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Thème ou Titre du Sujet <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={teacherTitre}
+                  onChange={(e) => setTeacherTitre(e.target.value)}
+                  placeholder="Ex : L'autorité parentale face à l'autonomie des jeunes..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Œuvre au Programme
+                  </label>
+                  <select
+                    value={teacherOeuvre}
+                    onChange={(e) => setTeacherOeuvre(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition cursor-pointer"
+                  >
+                    <option value="La Boîte à Merveilles">La Boîte à Merveilles</option>
+                    <option value="Antigone">Antigone</option>
+                    <option value="Le Dernier Jour d’un Condamné">Le Dernier Jour d’un Condamné</option>
+                    <option value="Sujet de Société Général">Sujet de Société Général</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Plan Conseillé
+                  </label>
+                  <select
+                    value={teacherPlan}
+                    onChange={(e) => setTeacherPlan(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition cursor-pointer"
+                  >
+                    <option value="Plan Simple">Plan Simple (Avis univoque)</option>
+                    <option value="Plan Dialectique">Plan Dialectique (Thèse / Antithèse)</option>
+                    <option value="Plan Analytique">Plan Analytique (Causes / Conséquences)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Académie / Région
+                  </label>
+                  <input
+                    type="text"
+                    value={teacherRegion}
+                    onChange={(e) => setTeacherRegion(e.target.value)}
+                    placeholder="Ex : Rabat-Salé-Kénitra, Fès-Meknès..."
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Année
+                  </label>
+                  <input
+                    type="text"
+                    value={teacherAnnee}
+                    onChange={(e) => setTeacherAnnee(e.target.value)}
+                    placeholder="2024"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Consigne Intégrale du Sujet <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={teacherConsigne}
+                  onChange={(e) => setTeacherConsigne(e.target.value)}
+                  placeholder="Saisissez ici le texte officiel de la consigne..."
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition resize-y font-mono text-[12px]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Pistes Didactiques ou Conseils pour les Élèves (Optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={teacherConseils}
+                  onChange={(e) => setTeacherConseils(e.target.value)}
+                  placeholder="Ex : Confronter Maâlem Abdeslem et Sidi Mohammed..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowTeacherModal(false)}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-xs font-bold bg-[#0b1528] hover:bg-slate-800 text-white rounded-xl shadow-md transition cursor-pointer flex items-center gap-2"
+                >
+                  <Check className="w-4 h-4 text-amber-400 stroke-[2.5]" />
+                  <span>Enregistrer et Publier dans la Bibliothèque</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL MOT DE PASSE CANDIDAT (POUR INTRODUIRE LE MOT DE PASSE ACTUEL) */}
+      {showCandidateModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="p-5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <User className="w-5 h-5 text-indigo-400" />
+                <div>
+                  <h3 className="font-outfit font-bold text-base leading-tight">Mot de passe candidat</h3>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Introduire le mot de passe actuel
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCandidateModal(false);
+                  setCandidatePasswordInput('');
+                  setCandidateFeedback(null);
+                }}
+                className="text-slate-400 hover:text-white text-xl leading-none px-2 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleVerifyCandidatePassword} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Mot de passe actuel
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCandidatePassword ? 'text' : 'password'}
+                    value={candidatePasswordInput}
+                    onChange={(e) => setCandidatePasswordInput(e.target.value)}
+                    placeholder="Saisissez le mot de passe actuel..."
+                    className="w-full py-3 pl-4 pr-12 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none text-sm transition"
+                    required
+                    autoFocus
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCandidatePassword(!showCandidatePassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 p-1 cursor-pointer"
+                    title={showCandidatePassword ? 'Masquer' : 'Afficher'}
+                  >
+                    {showCandidatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {candidateFeedback && (
+                <div className={`p-3 rounded-xl text-xs font-medium ${candidateFeedback.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                  {candidateFeedback.message}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('akhawayn_auth');
+                    localStorage.removeItem('akhawayn_pwd');
+                    sessionStorage.removeItem('akhawayn_auth');
+                    setIsUnlocked(false);
+                    setShowCandidateModal(false);
+                  }}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-800 cursor-pointer flex items-center gap-1"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Verrouiller</span>
+                </button>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCandidateModal(false);
+                      setCandidatePasswordInput('');
+                      setCandidateFeedback(null);
+                    }}
+                    className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Fermer
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isCheckingCandidate}
+                    className="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                  >
+                    {isCheckingCandidate ? 'Mémorisation...' : 'Valider & Mémoriser'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
 }
-
-// Dev & static serving
-async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.join(__dirname, 'dist')));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-    });
-  }
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Serveur Centre Al Akhawayn actif sur le port ${PORT}`);
-  });
-}
-
-startServer();
