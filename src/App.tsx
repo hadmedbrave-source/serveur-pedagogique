@@ -7,6 +7,8 @@ import {
   BookOpen,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   FileText,
   FileDown,
   GraduationCap,
@@ -26,7 +28,20 @@ import {
   Trash2,
   Save,
   Users,
+  Palette,
+  Search,
+  Check,
+  Plus,
+  X,
+  Filter,
+  Edit3,
 } from 'lucide-react';
+import {
+  RegionalSubject,
+  INK_COLORS,
+  DEFAULT_REGIONAL_SUBJECTS,
+  OFFICIAL_LOGICAL_CONNECTORS,
+} from './data/regionalSubjects';
 
 export default function App() {
   const [studentName, setStudentName] = useState('');
@@ -40,6 +55,437 @@ export default function App() {
   const [isHorsSujet, setIsHorsSujet] = useState(false);
   const [offTopicType, setOffTopicType] = useState<'THEMATIQUE' | 'METHODOLOGIQUE' | 'GENERAL'>('GENERAL');
   const [detectedPlanType, setDetectedPlanType] = useState<'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' | ''>('SIMPLE');
+  // Sujet validé par l'élève : si validé, affiché en gras sans zone de rédaction
+  const [isSubjectValidated, setIsSubjectValidated] = useState<boolean>(false);
+
+  // Choix de la couleur d'encre d'écriture de l'élève (mémorisée dans le navigateur)
+  const [inkColor, setInkColor] = useState<string>(() => {
+    try {
+      return localStorage.getItem('akhawayn_ink_color') || '#0f172a';
+    } catch {
+      return '#0f172a';
+    }
+  });
+
+  // Éditeur manuscrit pour l'élève (permettant la mise en valeur des connecteurs logiques en couleur/gras)
+  const editorRef = useRef<HTMLDivElement>(null);
+  const isTypingRef = useRef<boolean>(false);
+  const [isEditorFocused, setIsEditorFocused] = useState<boolean>(false);
+
+  // Synchroniser le texte avec l'éditeur si mis à jour de l'extérieur (ex: réinitialisation)
+  useEffect(() => {
+    if (editorRef.current && !isTypingRef.current) {
+      if (editorRef.current.innerText.trim() !== texte.trim()) {
+        editorRef.current.innerText = texte;
+      }
+    }
+  }, [texte]);
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      isTypingRef.current = true;
+      const plain = editorRef.current.innerText || '';
+      setTexte(plain);
+      setTimeout(() => {
+        isTypingRef.current = false;
+      }, 100);
+    }
+  };
+
+  const handleEditorPaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
+    if (editorRef.current) {
+      setTexte(editorRef.current.innerText || '');
+    }
+  };
+
+  // Appliquer une couleur en gras UNIQUEMENT sur le mot/lien logique sélectionné par l'élève
+  // L'écriture reste toujours en noir classique par défaut pour tout le reste du texte !
+  const applyInkToSelection = (colorHex: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    const selection = window.getSelection();
+    const isDefaultBlack = colorHex.toLowerCase() === '#0f172a' || colorHex.toLowerCase() === '#000000';
+
+    // 1. Si l'élève a sélectionné/surligné un mot dans la zone de texte
+    if (
+      selection &&
+      selection.rangeCount > 0 &&
+      !selection.isCollapsed &&
+      editor.contains(selection.anchorNode) &&
+      editor.contains(selection.focusNode)
+    ) {
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString();
+
+      if (selectedText.length > 0) {
+        if (isDefaultBlack) {
+          // Remettre le mot en texte noir classique normal
+          const textNode = document.createTextNode(selectedText);
+          range.deleteContents();
+          range.insertNode(textNode);
+
+          selection.removeAllRanges();
+          const newRange = document.createRange();
+          newRange.selectNodeContents(textNode);
+          selection.addRange(newRange);
+        } else {
+          // Appliquer la couleur et le gras UNIQUEMENT à la sélection
+          const span = document.createElement('span');
+          span.style.color = colorHex;
+          span.style.fontWeight = '700';
+          span.className = 'font-bold';
+          span.textContent = selectedText;
+
+          range.deleteContents();
+          range.insertNode(span);
+
+          selection.removeAllRanges();
+          const newRange = document.createRange();
+          newRange.selectNodeContents(span);
+          selection.addRange(newRange);
+        }
+
+        setInkColor(colorHex);
+        try {
+          localStorage.setItem('akhawayn_ink_color', colorHex);
+        } catch {}
+        setTexte(editor.innerText || '');
+        return;
+      }
+    }
+
+    // 2. Si aucun mot n'est sélectionné : définir l'encre active pour la frappe suivante
+    editor.focus();
+    try {
+      document.execCommand('styleWithCSS', false, 'true');
+      document.execCommand('foreColor', false, isDefaultBlack ? '#0f172a' : colorHex);
+      if (!isDefaultBlack) {
+        if (!document.queryCommandState('bold')) {
+          document.execCommand('bold', false, undefined);
+        }
+      } else {
+        if (document.queryCommandState('bold')) {
+          document.execCommand('bold', false, undefined);
+        }
+      }
+    } catch (e) {
+      console.warn('execCommand:', e);
+    }
+    setInkColor(colorHex);
+    try {
+      localStorage.setItem('akhawayn_ink_color', colorHex);
+    } catch {}
+  };
+
+  // Mettre en valeur automatiquement tous les connecteurs logiques détectés dans le texte SANS toucher aux sauts de ligne ni aux paragraphes
+  const highlightConnectorsInEditor = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const currentText = editor.innerText || '';
+    if (!currentText.trim()) {
+      alert("Veuillez d'abord rédiger ou coller votre texte dans la zone de rédaction.");
+      return;
+    }
+
+    const targetColor = (inkColor.toLowerCase() === '#0f172a' || inkColor.toLowerCase() === '#000000')
+      ? '#ea580c'
+      : inkColor;
+
+    // 1. Déballer les éventuels surlignages de connecteurs existants pour repartir de nœuds texte propres
+    const existingSpans = editor.querySelectorAll('.connector-highlight');
+    existingSpans.forEach((span) => {
+      const text = document.createTextNode(span.textContent || '');
+      span.parentNode?.replaceChild(text, span);
+    });
+    editor.normalize(); // Fusionne les fragments de texte adjacents sans toucher aux paragraphes ni aux sauts de ligne
+
+    // 2. Préparer l'expression régulière globale sur l'ensemble des connecteurs officiels
+    const sorted = [...OFFICIAL_LOGICAL_CONNECTORS].sort((a, b) => b.length - a.length);
+    const escapedPatterns = sorted.map((conn) =>
+      conn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/['’]/g, "['’]")
+    );
+    const regex = new RegExp(`(?<![a-zA-ZÀ-ÿ0-9_])(${escapedPatterns.join('|')})(?![a-zA-ZÀ-ÿ0-9_])`, 'gi');
+
+    // 3. Parcourir exclusivement les nœuds TEXTE pour préserver intégralement les balises (div, p, br, sauts de ligne)
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
+    const textNodes: Text[] = [];
+    let n: Node | null;
+    while ((n = walker.nextNode())) {
+      textNodes.push(n as Text);
+    }
+
+    let matchCount = 0;
+    for (const textNode of textNodes) {
+      const val = textNode.nodeValue || '';
+      if (!val) continue;
+
+      regex.lastIndex = 0;
+      if (!regex.test(val)) continue;
+
+      regex.lastIndex = 0;
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+
+      while ((match = regex.exec(val)) !== null) {
+        matchCount++;
+        // Texte précédant le connecteur
+        if (match.index > lastIndex) {
+          fragment.appendChild(document.createTextNode(val.substring(lastIndex, match.index)));
+        }
+        // Balise span stylée pour le connecteur
+        const span = document.createElement('span');
+        span.style.color = targetColor;
+        span.style.fontWeight = '700';
+        span.className = 'font-bold connector-highlight';
+        span.textContent = match[0];
+        fragment.appendChild(span);
+
+        lastIndex = match.index + match[0].length;
+      }
+
+      // Reste du texte après le dernier connecteur
+      if (lastIndex < val.length) {
+        fragment.appendChild(document.createTextNode(val.substring(lastIndex)));
+      }
+
+      textNode.parentNode?.replaceChild(fragment, textNode);
+    }
+
+    if (matchCount === 0) {
+      alert("Aucun connecteur logique officiel n'a été détecté pour le moment. Vous pouvez sélectionner manuellement un mot et cliquer sur une couleur de la palette pour le passer en gras.");
+      return;
+    }
+
+    setTexte(editor.innerText || '');
+  };
+
+  // Réinitialiser tout le texte en noir standard normal sans modifier la disposition des paragraphes
+  const resetAllTextColors = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+
+    // Déballer toutes les balises span de style sans altérer les sauts de ligne ni les paragraphes
+    editor.querySelectorAll('span').forEach((span) => {
+      const text = document.createTextNode(span.textContent || '');
+      span.parentNode?.replaceChild(text, span);
+    });
+    // Retirer aussi les éventuelles balises b ou strong
+    editor.querySelectorAll('b, strong').forEach((el) => {
+      const text = document.createTextNode(el.textContent || '');
+      el.parentNode?.replaceChild(text, el);
+    });
+    editor.normalize();
+
+    setInkColor('#0f172a');
+    try {
+      localStorage.setItem('akhawayn_ink_color', '#0f172a');
+    } catch {}
+    setTexte(editor.innerText || '');
+  };
+
+  // Bibliothèque des Sujets Régionaux Officiels
+  const [regionalSubjects, setRegionalSubjects] = useState<RegionalSubject[]>(() => {
+    try {
+      const saved = localStorage.getItem('akhawayn_custom_regional_subjects');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return [...parsed, ...DEFAULT_REGIONAL_SUBJECTS];
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_REGIONAL_SUBJECTS;
+  });
+
+  // Clé d'habilitation officielle réservée à l'enseignant pour déposer ou administrer les sujets
+  const TEACHER_AUTH_KEY = 'hadmed.brave@gmail.com2026';
+
+  const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('akhawayn_teacher_auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [showTeacherAuthModal, setShowTeacherAuthModal] = useState<boolean>(false);
+  const [teacherInputKey, setTeacherInputKey] = useState<string>('');
+  const [teacherAuthError, setTeacherAuthError] = useState<string>('');
+  const [showTeacherKeyPlain, setShowTeacherKeyPlain] = useState<boolean>(false);
+
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [showTeacherModal, setShowTeacherModal] = useState(false);
+  const [selectedOeuvreFilter, setSelectedOeuvreFilter] = useState<string>('TOUTES');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [subjectLoadNotice, setSubjectLoadNotice] = useState<string | null>(null);
+
+  // Formulaire de dépôt Enseignant
+  const [teacherTitre, setTeacherTitre] = useState('');
+  const [teacherOeuvre, setTeacherOeuvre] = useState<RegionalSubject['oeuvre']>('La Boîte à Merveilles');
+  const [teacherRegion, setTeacherRegion] = useState('Académie Régionale');
+  const [teacherAnnee, setTeacherAnnee] = useState('2024');
+  const [teacherSession, setTeacherSession] = useState<RegionalSubject['session']>('Session Normale');
+  const [teacherConsigne, setTeacherConsigne] = useState('');
+  const [teacherPlan, setTeacherPlan] = useState<'Plan Simple' | 'Plan Dialectique' | 'Plan Analytique'>('Plan Simple');
+  const [teacherConseils, setTeacherConseils] = useState('');
+  const [teacherFormError, setTeacherFormError] = useState('');
+  const [teacherFormSuccess, setTeacherFormSuccess] = useState(false);
+
+  const handleOpenTeacherModal = () => {
+    if (isTeacherAuthenticated) {
+      setShowTeacherModal(true);
+    } else {
+      setTeacherAuthError('');
+      setTeacherInputKey('');
+      setShowTeacherAuthModal(true);
+    }
+  };
+
+  const handleVerifyTeacherKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (teacherInputKey.trim() === TEACHER_AUTH_KEY) {
+      try {
+        sessionStorage.setItem('akhawayn_teacher_auth', 'true');
+      } catch (err) {
+        console.error(err);
+      }
+      setIsTeacherAuthenticated(true);
+      setShowTeacherAuthModal(false);
+      setTeacherInputKey('');
+      setTeacherAuthError('');
+      setShowTeacherModal(true);
+    } else {
+      setTeacherAuthError("Clé d'habilitation incorrecte. Cet espace est strictement réservé au professeur habilité.");
+    }
+  };
+
+  const handleLockTeacherSpace = () => {
+    try {
+      sessionStorage.removeItem('akhawayn_teacher_auth');
+    } catch (err) {
+      console.error(err);
+    }
+    setIsTeacherAuthenticated(false);
+    setShowTeacherModal(false);
+    setSubjectLoadNotice("Session enseignant verrouillée avec succès.");
+    setTimeout(() => setSubjectLoadNotice(null), 3000);
+  };
+
+  const handleLoadSubject = (subjectItem: RegionalSubject) => {
+    setSujet(subjectItem.consigne);
+    setIsSubjectValidated(true);
+    if (subjectItem.typePlanSuggere === 'Plan Simple') {
+      setDetectedPlanType('SIMPLE');
+    } else if (subjectItem.typePlanSuggere === 'Plan Dialectique') {
+      setDetectedPlanType('DIALECTIQUE');
+    } else if (subjectItem.typePlanSuggere === 'Plan Analytique') {
+      setDetectedPlanType('ANALYTIQUE');
+    }
+    setSubjectLoadNotice(`Sujet officiel « ${subjectItem.titre} » chargé avec succès !`);
+    setTimeout(() => setSubjectLoadNotice(null), 4500);
+
+    const el = document.getElementById('sujet');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleSaveTeacherSubject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isTeacherAuthenticated) {
+      setTeacherFormError("Autorisation requise. Veuillez saisir la clé d'habilitation enseignant.");
+      setShowTeacherModal(false);
+      setShowTeacherAuthModal(true);
+      return;
+    }
+    if (!teacherTitre.trim() || !teacherConsigne.trim()) {
+      setTeacherFormError('Veuillez renseigner au minimum le titre du sujet et la consigne intégrale.');
+      return;
+    }
+    const newSub: RegionalSubject = {
+      id: `prof-${Date.now()}`,
+      titre: teacherTitre.trim(),
+      oeuvre: teacherOeuvre,
+      region: teacherRegion.trim() || 'Académie Régionale',
+      annee: teacherAnnee.trim() || '2024',
+      session: teacherSession,
+      consigne: teacherConsigne.trim(),
+      typePlanSuggere: teacherPlan,
+      conseilsEnseignant: teacherConseils.trim() || undefined,
+      dateAjout: new Date().toLocaleDateString('fr-FR'),
+      sourceEnseignant: true,
+    };
+
+    setRegionalSubjects((prev) => {
+      const updated = [newSub, ...prev];
+      try {
+        const customsOnly = updated.filter((s) => s.sourceEnseignant);
+        localStorage.setItem('akhawayn_custom_regional_subjects', JSON.stringify(customsOnly));
+      } catch (err) {
+        console.error(err);
+      }
+      return updated;
+    });
+
+    setTeacherFormSuccess(true);
+    setTeacherFormError('');
+    setTimeout(() => {
+      setShowTeacherModal(false);
+      setTeacherFormSuccess(false);
+      setTeacherTitre('');
+      setTeacherConsigne('');
+      setTeacherConseils('');
+      setSubjectLoadNotice(`Nouveau sujet officiel déposé par l'enseignant et ajouté à la Bibliothèque !`);
+      setTimeout(() => setSubjectLoadNotice(null), 4500);
+    }, 1100);
+  };
+
+  const handleDeleteCustomSubject = (id: string) => {
+    if (!isTeacherAuthenticated) {
+      setTeacherAuthError("Accès réservé : veuillez saisir la clé d'habilitation enseignant pour retirer un sujet.");
+      setShowTeacherAuthModal(true);
+      return;
+    }
+    if (window.confirm('Êtes-vous sûr de vouloir retirer ce sujet déposé de la bibliothèque ?')) {
+      setRegionalSubjects((prev) => {
+        const filtered = prev.filter((s) => s.id !== id);
+        try {
+          const customsOnly = filtered.filter((s) => s.sourceEnseignant);
+          localStorage.setItem('akhawayn_custom_regional_subjects', JSON.stringify(customsOnly));
+        } catch (err) {
+          console.error(err);
+        }
+        return filtered;
+      });
+    }
+  };
+
+  const filteredSubjects = React.useMemo(() => {
+    return regionalSubjects.filter((item) => {
+      const matchOeuvre =
+        selectedOeuvreFilter === 'TOUTES' ||
+        (selectedOeuvreFilter === 'ENSEIGNANT' && item.sourceEnseignant) ||
+        item.oeuvre === selectedOeuvreFilter;
+
+      if (!matchOeuvre) return false;
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        item.titre.toLowerCase().includes(q) ||
+        item.consigne.toLowerCase().includes(q) ||
+        item.region.toLowerCase().includes(q) ||
+        item.annee.includes(q) ||
+        item.oeuvre.toLowerCase().includes(q)
+      );
+    });
+  }, [regionalSubjects, selectedOeuvreFilter, searchQuery]);
 
   // Compteur officiel des lignes manuscrites (Norme Bac : 20 à 25 lignes)
   const lineCount = React.useMemo(() => {
@@ -57,6 +503,11 @@ export default function App() {
     }
     return total;
   }, [texte]);
+
+  // Si l'élève choisit une couleur différente du noir, l'écriture s'affiche en gras
+  const isBoldInk = React.useMemo(() => {
+    return inkColor.toLowerCase() !== '#0f172a' && inkColor.toLowerCase() !== '#000000' && inkColor.toLowerCase() !== 'black';
+  }, [inkColor]);
 
   // Authentification Enseignant & Candidat (mémorisée en continu dans le navigateur de l'élève)
   const [isUnlocked, setIsUnlocked] = useState<boolean>(() => {
@@ -101,6 +552,37 @@ export default function App() {
     x: 1.3,
     total: '8.8',
   });
+
+  // Attribution de la mention officielle selon la note sur 10 (Mention Très Bien, Bien, À consolider)
+  const getMentionData = (note: number, isHorsSujetVal: boolean) => {
+    if (isHorsSujetVal || note === 0) {
+      return {
+        label: 'Hors-Sujet',
+        className: 'bg-red-100 text-red-800 border-red-300',
+      };
+    }
+    if (note >= 8.0) {
+      return {
+        label: 'Mention Très Bien',
+        className: 'bg-emerald-100 text-emerald-800 border-emerald-300 shadow-2xs',
+      };
+    }
+    if (note >= 6.5) {
+      return {
+        label: 'Mention Bien',
+        className: 'bg-blue-100 text-blue-800 border-blue-300 shadow-2xs',
+      };
+    }
+    return {
+      label: 'À consolider',
+      className: 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs',
+    };
+  };
+
+  const currentScoreNum = isHorsSujet
+    ? 0
+    : (parseFloat(scores.total) || (scores.c + scores.s + scores.a + scores.l + scores.x) || 8.8);
+  const mentionInfo = getMentionData(currentScoreNum, isHorsSujet);
 
   // Modal Changement de mot de passe sécurisé par Clé Maître Enseignant
   const [showChangeModal, setShowChangeModal] = useState(false);
@@ -1584,6 +2066,7 @@ export default function App() {
     }
 
     setIsProcessing(true);
+    setIsSubjectValidated(true);
     const pwd = sessionPassword || localStorage.getItem('akhawayn_pwd') || 'AKHAWAYN2026';
     try {
       localStorage.setItem('akhawayn_auth', 'true');
@@ -1676,6 +2159,12 @@ export default function App() {
         if (v4) v4.innerText = '0.0';
         if (v5) v5.innerText = '0.0';
         if (rTotal) rTotal.innerText = '0/10';
+        const rMention = document.getElementById('rMention');
+        if (rMention) {
+          const mentionData = getMentionData(0, true);
+          rMention.innerText = mentionData.label;
+          rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
+        }
       } else {
         if (g) {
           const c = g.match(/Consigne\s*:\s*([\d.]+)/i);
@@ -1705,6 +2194,12 @@ export default function App() {
           if (v5) v5.innerText = '1.3';
         }
         if (rTotal) rTotal.innerText = `${totalCalc}/10`;
+        const rMention = document.getElementById('rMention');
+        if (rMention) {
+          const mentionData = getMentionData(parseFloat(totalCalc) || 0, false);
+          rMention.innerText = mentionData.label;
+          rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
+        }
       }
 
       setScores({
@@ -2429,19 +2924,273 @@ export default function App() {
           </div>
         </div>
 
+        {/* BANNIÈRE OFFICIELLE : BIBLIOTHÈQUE DE SUJETS RÉGIONAUX OFFICIELS (1ère BAC) - DESIGN FIN & COMPACT */}
+        <div className="mb-6 bg-gradient-to-r from-slate-900 via-[#162544] to-[#0b1528] px-4 py-3 sm:px-5 sm:py-3 rounded-2xl text-white shadow-md border border-amber-600/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center shrink-0 shadow-inner">
+                <BookOpen className="w-4 h-4 text-amber-300" />
+              </div>
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <h2 className="font-outfit font-bold text-xs sm:text-sm tracking-wide text-white truncate">
+                  Bibliothèque de Sujets Régionaux Officiels
+                </h2>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                  {regionalSubjects.length} Sujets
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowLibrary((prev) => !prev)}
+                className="px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+              >
+                <span>{showLibrary ? 'Masquer' : 'Explorer les Sujets'}</span>
+                {showLibrary ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenTeacherModal}
+                className={`px-3.5 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95 ${
+                  isTeacherAuthenticated
+                    ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-300 ring-2 ring-amber-400/30'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                }`}
+                title={isTeacherAuthenticated ? 'Session Enseignant Déverrouillée' : "Accès Enseignant Protégé par Clé d'habilitation"}
+              >
+                {isTeacherAuthenticated ? (
+                  <>
+                    <Unlock className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                    <span>Espace Enseignant : Déposer</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                    <span>Espace Enseignant (Accès Protégé)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Toast de confirmation de chargement d'un sujet */}
+          {subjectLoadNotice && (
+            <div className="mt-3.5 py-2 px-3.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+              <span>{subjectLoadNotice}</span>
+            </div>
+          )}
+
+          {/* VOLET DÉROULANT DE LA BIBLIOTHÈQUE */}
+          {showLibrary && (
+            <div className="mt-4 pt-4 border-t border-white/15 animate-fade-in">
+              {/* Filtres par œuvre & Recherche */}
+              <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'TOUTES', label: 'Toutes les Œuvres' },
+                    { id: 'La Boîte à Merveilles', label: 'La Boîte à Merveilles' },
+                    { id: 'Antigone', label: 'Antigone' },
+                    { id: 'Le Dernier Jour d’un Condamné', label: 'Le Dernier Jour' },
+                    { id: 'Sujet de Société Général', label: 'Sujets de Société' },
+                    { id: 'ENSEIGNANT', label: `🎓 Déposés Enseignant (${regionalSubjects.filter((s) => s.sourceEnseignant).length})` },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setSelectedOeuvreFilter(tab.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        selectedOeuvreFilter === tab.id
+                          ? 'bg-amber-400 text-slate-950 shadow-sm'
+                          : 'bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative min-w-[220px]">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Filtrer (mot-clé, région, 2023)..."
+                    className="w-full pl-9 pr-8 py-1.5 bg-slate-950/60 border border-white/20 rounded-lg text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Liste de cartes des annales régionales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 max-h-[480px] overflow-y-auto pr-1">
+                {filteredSubjects.length === 0 ? (
+                  <div className="col-span-2 py-8 text-center text-slate-400 text-xs bg-slate-950/30 rounded-xl border border-white/10">
+                    Aucun sujet trouvé pour ces critères de recherche.
+                  </div>
+                ) : (
+                  filteredSubjects.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-white/95 text-slate-900 rounded-xl p-4 border border-slate-200 hover:border-amber-500 shadow-sm transition flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span
+                              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                                item.oeuvre === 'La Boîte à Merveilles'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                  : item.oeuvre === 'Antigone'
+                                  ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                                  : item.oeuvre === 'Le Dernier Jour d’un Condamné'
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  : 'bg-sky-100 text-sky-800 border border-sky-300'
+                              }`}
+                            >
+                              {item.oeuvre}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                              {item.region} • {item.annee}
+                            </span>
+                          </div>
+
+                          {item.sourceEnseignant && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                                🎓 Déposé Enseignant
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteCustomSubject(item.id);
+                                }}
+                                title="Supprimer ce sujet"
+                                className="text-slate-400 hover:text-red-600 p-0.5"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <h3 className="font-outfit font-bold text-sm text-slate-950 mb-1.5 leading-snug group-hover:text-amber-800 transition">
+                          {item.titre}
+                        </h3>
+
+                        <p className="text-xs text-slate-600 line-clamp-3 mb-2 font-sans leading-relaxed italic bg-slate-50 p-2 rounded-lg border border-slate-100 whitespace-pre-line">
+                          « {item.consigne.slice(0, 160)}... »
+                        </p>
+
+                        {item.conseilsEnseignant && (
+                          <div className="text-[11px] text-amber-900 bg-amber-50/80 border border-amber-200 p-1.5 rounded-md mb-2 flex items-start gap-1.5 font-medium">
+                            <Sparkles className="w-3 h-3 text-amber-600 shrink-0 mt-0.5" />
+                            <span><strong>Piste didactique :</strong> {item.conseilsEnseignant}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          Plan : <strong className="text-slate-800 font-bold">{item.typePlanSuggere || 'Libre'}</strong>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleLoadSubject(item)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0b1528] hover:bg-slate-800 text-white flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+                        >
+                          <span>Charger ce sujet</span>
+                          <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Consigne du Sujet & Barème Officiel en pilules */}
         <div className="bg-slate-50/80 border border-slate-200 p-5 rounded-xl mb-6 shadow-xs">
-          <h2 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
-            <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Consigne du Sujet
-          </h2>
-          <textarea
-            id="sujet"
-            rows={3}
-            value={sujet}
-            onChange={(e) => setSujet(e.target.value)}
-            placeholder="Saisissez ou collez ici la consigne du sujet de réflexion..."
-            className="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-sm leading-relaxed text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition resize-y"
-          />
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h2 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Consigne du Sujet
+            </h2>
+            <div className="flex items-center gap-2">
+              {isSubjectValidated && (
+                <button
+                  type="button"
+                  onClick={() => setIsSubjectValidated(false)}
+                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition flex items-center gap-1 cursor-pointer shadow-2xs"
+                  title="Modifier la consigne du sujet"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Modifier la consigne</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowLibrary((prev) => !prev)}
+                className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>Changer de sujet (Bibliothèque)</span>
+              </button>
+            </div>
+          </div>
+
+          {isSubjectValidated ? (
+            <div className="p-4 sm:p-5 bg-white border-2 border-slate-900 rounded-xl shadow-xs transition-all animate-fade-in">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-1.5 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Consigne officielle du sujet (validée)</span>
+              </div>
+              <p className="text-slate-950 font-bold text-base sm:text-lg leading-relaxed font-newsreader whitespace-pre-wrap">
+                {sujet || "Aucun sujet spécifié"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              <textarea
+                id="sujet"
+                rows={3}
+                value={sujet}
+                onChange={(e) => setSujet(e.target.value)}
+                placeholder="Saisissez ou collez ici la consigne du sujet de réflexion..."
+                className="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-sm leading-relaxed text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition resize-y"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (sujet.trim()) {
+                      setIsSubjectValidated(true);
+                    }
+                  }}
+                  disabled={!sujet.trim()}
+                  className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0b1528] hover:bg-slate-800 disabled:opacity-40 text-white transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                  <span>Valider le sujet</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Barème officiel en pilules */}
           <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-200">
@@ -2455,46 +3204,154 @@ export default function App() {
         </div>
 
         {/* Zone de rédaction manuscrite */}
-        <div className="border-2 border-slate-900 rounded-xl p-5 mb-8 bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <h2 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
-              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> Manuscrit Rédactionnel du Candidat
+        <div className="border-2 border-slate-900 rounded-xl p-3.5 sm:p-5 mb-8 bg-white shadow-sm overflow-hidden">
+          {/* En-tête : Titre à GAUCHE, Palette et les deux options à DROITE */}
+          <div className="mb-4 flex flex-col md:flex-row md:items-start justify-between gap-3">
+            {/* À GAUCHE : Manuscrit Rédactionnel du Candidat */}
+            <h2 className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 whitespace-normal sm:whitespace-nowrap shrink-0 pt-1">
+              <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block shrink-0"></span>
+              <span>Manuscrit Rédactionnel du Candidat</span>
             </h2>
-            
-            {/* Compteur officiel des lignes avec alerte rouge au-delà de 25 lignes */}
-            <div
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border shadow-2xs ${
-                lineCount > 25
-                  ? 'bg-red-50 border-red-500 text-red-700 ring-2 ring-red-400/40 animate-pulse'
-                  : lineCount >= 18
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                  : 'bg-slate-50 border-slate-300 text-slate-700'
-              }`}
-            >
-              {lineCount > 25 ? (
-                <>
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                  <span className="font-mono font-black">{lineCount} lignes</span>
-                  <span className="text-[11px] font-black uppercase text-red-600">/ 25 max (⚠️ Dépassement d'alerte !)</span>
-                </>
-              ) : (
-                <>
-                  <span>📏 Compteur :</span>
-                  <span className="font-mono font-black">{lineCount}</span>
-                  <span>ligne{lineCount > 1 ? 's' : ''} / 25 max</span>
-                </>
-              )}
+
+            {/* À DROITE : La palette et les deux options */}
+            <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto">
+              {/* Palette d'encres */}
+              <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 border border-slate-300/80 px-2.5 py-1 rounded-full shadow-2xs max-w-full">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1 mr-0.5 shrink-0">
+                  <Palette className="w-3.5 h-3.5 text-slate-800" />
+                  <span>Encre :</span>
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {INK_COLORS.map((ink) => {
+                    const isSelected = inkColor === ink.hex;
+                    const isBlack = ink.hex === '#0f172a';
+                    return (
+                      <button
+                        key={ink.id}
+                        type="button"
+                        onMouseDown={(e) => {
+                          // Empêche la perte du mot sélectionné dans l'éditeur de texte
+                          e.preventDefault();
+                        }}
+                        onClick={() => applyInkToSelection(ink.hex)}
+                        title={`${ink.nom} — ${isBlack ? 'Encre noire par défaut' : 'Appliquer sur le mot sélectionné (en gras)'}`}
+                        className={`relative w-6 h-6 rounded-full transition-all duration-150 flex items-center justify-center cursor-pointer shadow-xs shrink-0 ${
+                          isSelected
+                            ? 'scale-115 ring-2 ring-offset-2 ring-slate-900 shadow-md'
+                            : 'hover:scale-110 opacity-80 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: ink.hex }}
+                      >
+                        {isSelected && (
+                          <Check className="w-3 h-3 text-white stroke-[3] drop-shadow-sm" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Les deux options : "Colorier les liens logiques" à côté de "Tout en noir" */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Bouton pour surligner automatiquement tous les liens logiques (sans étoile) */}
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={highlightConnectorsInEditor}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition cursor-pointer shadow-2xs active:scale-95"
+                  title="Détecte et met en valeur automatiquement tous les liens logiques (Cependant, En effet, De plus...) en gras avec la couleur active"
+                >
+                  <span>Colorier les liens logiques</span>
+                </button>
+
+                {/* Bouton pour réinitialiser tout le texte en noir à côté */}
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={resetAllTextColors}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 transition cursor-pointer active:scale-95"
+                  title="Remettre tout le texte en écriture noire standard"
+                >
+                  <RefreshCw className="w-3 h-3 text-slate-500" />
+                  <span>Tout en noir</span>
+                </button>
+              </div>
             </div>
           </div>
-          <textarea
-            id="texte"
-            value={texte}
-            onChange={(e) => setTexte(e.target.value)}
-            placeholder="Rédigez ou collez votre production écrite ici..."
-            className="writing-ruled-zone w-full p-4 border border-slate-300/80 rounded-lg outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition text-slate-900 resize-y"
-          />
+
+          <div className="relative">
+            <div
+              ref={editorRef}
+              id="texte"
+              contentEditable
+              suppressContentEditableWarning
+              onInput={handleEditorInput}
+              onPaste={handleEditorPaste}
+              onFocus={() => setIsEditorFocused(true)}
+              onBlur={() => setIsEditorFocused(false)}
+              className="writing-ruled-zone w-full p-4 border border-slate-300/80 rounded-lg outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition overflow-y-auto text-slate-900 font-normal"
+              style={{
+                color: '#0f172a',
+                fontWeight: 400,
+              }}
+            />
+            {!texte.trim() && !isEditorFocused && (
+              <div
+                onClick={() => editorRef.current?.focus()}
+                className="absolute top-4 left-4 right-4 text-slate-400 font-newsreader text-lg pointer-events-none italic select-none"
+              >
+                Rédigez votre production écrite ici...
+              </div>
+            )}
+          </div>
+
+          {/* COMPTEUR OFFICIEL DES LIGNES EN BAS DE LA ZONE DE RÉDACTION */}
+          <div className="mt-3 pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <div
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border shadow-2xs ${
+                  lineCount > 25
+                    ? 'bg-red-50 border-red-500 text-red-700 ring-2 ring-red-400/40 animate-pulse'
+                    : lineCount >= 18
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                    : 'bg-slate-50 border-slate-300 text-slate-700'
+                }`}
+              >
+                {lineCount > 25 ? (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    <span className="font-mono font-black">{lineCount} lignes</span>
+                    <span className="text-[11px] font-black uppercase text-red-600">/ 25 max (⚠️ Dépassement d'alerte !)</span>
+                  </>
+                ) : (
+                  <>
+                    <span>📏 Compteur :</span>
+                    <span className="font-mono font-black">{lineCount}</span>
+                    <span>ligne{lineCount > 1 ? 's' : ''} / 25 max</span>
+                    {lineCount >= 18 && (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded-full">
+                        ✓ Cadre idéal
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {isBoldInk && (
+                <span className="text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: inkColor }}></span>
+                  <span>Écriture couleur en gras</span>
+                </span>
+              )}
+            </div>
+
+            <div className="text-[11px] text-slate-500 font-medium">
+              Norme recommandée à l'Examen Régional : <strong>20 à 25 lignes</strong>
+            </div>
+          </div>
+
           {lineCount > 25 && (
-            <div className="mt-2.5 p-3 rounded-lg bg-red-50 border border-red-300 text-red-800 text-xs flex items-center gap-2">
+            <div className="mt-2.5 p-3 rounded-lg bg-red-50 border border-red-300 text-red-800 text-xs flex items-center gap-2 animate-fade-in">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
               <span>
                 <strong>Alerte de cadrage officiel :</strong> Le texte comporte <strong>{lineCount} lignes</strong> (la norme recommandée pour l'Examen Régional est de <strong>20 à 25 lignes</strong> maximum).
@@ -2558,55 +3415,70 @@ export default function App() {
               </div>
             </div>
 
-            {/* Fiche d'identification et Cachet d'assermentation */}
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
-              <div className="space-y-3 flex-1">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest border border-amber-500/30">
-                  Rapport Pédagogique Professionnel
-                </div>
-                <div>
+            {/* Fiche d'identification du Candidat et Note à droite du Nom */}
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-[#0b1528] text-amber-400 rounded-full text-xs font-black uppercase tracking-widest border border-amber-500/30">
+                Rapport Pédagogique Professionnel
+              </div>
+
+              {/* Bloc principal : Nom du Candidat à GAUCHE | Note avec Badge de mention à DROITE */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 p-4 sm:p-6 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs">
+                {/* À GAUCHE : Nom et métadonnées du Candidat */}
+                <div className="space-y-1.5 flex-1">
                   <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Candidat officiel :</span>
                   <h2 id="rNom" className="font-cinzel text-2xl sm:text-3xl font-black text-slate-950 uppercase tracking-tight">
                     {studentName || 'YOUSSEF EL MANSOURI'}
                   </h2>
-                </div>
-                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-slate-900 uppercase">Filière :</span>
-                    <span id="rFil" className="font-outfit uppercase text-slate-700 font-bold">{filiere}</span>
-                  </div>
-                  <span className="text-slate-300">|</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-slate-900 uppercase">Épreuve :</span>
-                    <span className="text-slate-700">Production Écrite (Français - 1ère Bac)</span>
+                  <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-600 pt-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-slate-900 uppercase">Filière :</span>
+                      <span id="rFil" className="font-outfit uppercase text-slate-700 font-bold">{filiere}</span>
+                    </div>
+                    <span className="text-slate-300">|</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-slate-900 uppercase">Épreuve :</span>
+                      <span className="text-slate-700">Production Écrite (Français - 1ère Bac)</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Rappel du sujet officiel imposé */}
-                {sujet && (
-                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl mt-2 text-xs leading-relaxed text-slate-800">
-                    <span className="font-extrabold uppercase text-[10px] tracking-wider text-[#b45309] block mb-1">
-                      📌 Sujet Officiel Imposé au Candidat :
+                {/* À DROITE DU NOM : La note attribuée avec son badge de mention en bas (sans "certifié conforme") */}
+                <div className="flex flex-col items-start sm:items-end justify-center shrink-0 sm:pl-6 sm:border-l sm:border-slate-200 pt-2 sm:pt-0">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[11px] uppercase font-extrabold text-slate-500 tracking-wider">Note :</span>
+                    <span
+                      id="rTotal"
+                      className={`text-3xl sm:text-4xl font-black font-cinzel tracking-tight ${
+                        isHorsSujet ? 'text-red-700' : 'text-slate-950'
+                      }`}
+                    >
+                      {isHorsSujet ? '0/10' : `${scores.total || '8.8'}/10`}
                     </span>
-                    <p className="italic text-slate-700">« {sujet} »</p>
                   </div>
-                )}
-              </div>
 
-              {/* Sceau officiel circulaire d'évaluation */}
-              <div className="flex justify-center items-center lg:pl-6">
-                <div className={`official-seal-badge shrink-0 ${isHorsSujet ? 'border-red-500 bg-red-50 text-red-900 shadow-sm' : ''}`}>
-                  <span className={`text-[9px] font-black tracking-widest uppercase ${isHorsSujet ? 'text-red-700' : 'text-[#b45309]'}`}>
-                    {isHorsSujet ? 'Sanction Régionale' : 'Direction Didactique'}
-                  </span>
-                  <span id="rTotal" className={`text-2xl font-black font-cinzel my-0.5 ${isHorsSujet ? 'text-red-700' : 'text-slate-950'}`}>
-                    {isHorsSujet ? '0/10' : '8.8/10'}
-                  </span>
-                  <span className={`text-[8px] font-bold tracking-wider uppercase ${isHorsSujet ? 'text-red-600' : 'text-slate-600'}`}>
-                    {isHorsSujet ? 'Hors-Sujet Avéré' : 'Certifié Conforme'}
-                  </span>
+                  {/* Badge de mention en bas de la note attribuée */}
+                  <div className="mt-1.5">
+                    <span
+                      id="rMention"
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${
+                        mentionInfo.className
+                      }`}
+                    >
+                      {mentionInfo.label}
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              {/* Rappel du sujet officiel imposé */}
+              {sujet && (
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl mt-2 text-xs leading-relaxed text-slate-800">
+                  <span className="font-extrabold uppercase text-[10px] tracking-wider text-[#b45309] block mb-1">
+                    📌 Sujet Officiel Imposé au Candidat :
+                  </span>
+                  <p className="italic text-slate-700">« {sujet} »</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -3233,6 +4105,293 @@ export default function App() {
 
       {/* MODAL MODIFICATION MOT DE PASSE ENSEIGNANT */}
       {showChangeModal && renderPasswordChangeModal()}
+
+      {/* MODALE D'HABILITATION SÉCURISÉE ENSEIGNANT (CLÉ D'ACCÈS OBLIGATOIRE) */}
+      {showTeacherAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-scale-up">
+            <div className="p-5 bg-gradient-to-r from-slate-900 via-[#162544] to-[#0b1528] text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400">
+                  <Lock className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <div>
+                  <h3 className="font-outfit font-bold text-base text-white">
+                    Accès Réservé Enseignant
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    Espace Dépôt de Sujets Officiels
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTeacherAuthModal(false);
+                  setTeacherAuthError('');
+                  setTeacherInputKey('');
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleVerifyTeacherKey} className="p-5 sm:p-6 space-y-4">
+              <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-900 leading-relaxed">
+                  Cet espace est strictement réservé au professeur pour déposer ou administrer des sujets régionaux. Veuillez saisir la <strong className="font-semibold text-slate-900">Clé d'habilitation Enseignant</strong>.
+                </p>
+              </div>
+
+              {teacherAuthError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 animate-fade-in">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span className="font-medium">{teacherAuthError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Clé d'habilitation Enseignant
+                </label>
+                <div className="relative">
+                  <input
+                    type={showTeacherKeyPlain ? 'text' : 'password'}
+                    required
+                    autoFocus
+                    value={teacherInputKey}
+                    onChange={(e) => {
+                      setTeacherInputKey(e.target.value);
+                      if (teacherAuthError) setTeacherAuthError('');
+                    }}
+                    placeholder="Saisissez la clé d'habilitation..."
+                    className="w-full px-3.5 py-2.5 pr-10 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherKeyPlain((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                    title={showTeacherKeyPlain ? 'Masquer' : 'Afficher la clé'}
+                  >
+                    {showTeacherKeyPlain ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1.5">
+                  🔒 Empêche les élèves de déposer des sujets ou de modifier la bibliothèque.
+                </p>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTeacherAuthModal(false);
+                    setTeacherAuthError('');
+                    setTeacherInputKey('');
+                  }}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95"
+                >
+                  <KeyRound className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                  <span>Déverrouiller l'Espace</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODALE ESPACE ENSEIGNANT : DÉPOSER UN NOUVEAU SUJET RÉGIONAL */}
+      {showTeacherModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+            <div className="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-900 to-[#162544] text-white rounded-t-2xl">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="font-outfit font-bold text-base text-white">
+                    Espace Enseignant • Déposer un Sujet
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    Ajoutez un sujet officiel d'examen régional pour vos élèves
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTeacherModal(false);
+                  setTeacherFormError('');
+                }}
+                className="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Bannière de session enseignant active avec option de verrouillage */}
+            <div className="bg-amber-50/90 px-5 py-2 border-b border-amber-200 flex items-center justify-between text-xs text-amber-950">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Session Enseignant vérifiée : <strong>hadmed.brave@gmail.com</strong></span>
+              </span>
+              <button
+                type="button"
+                onClick={handleLockTeacherSpace}
+                className="text-amber-800 hover:text-red-700 font-semibold cursor-pointer flex items-center gap-1 hover:underline"
+                title="Verrouiller la session pour empêcher les élèves de déposer"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Verrouiller</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTeacherSubject} className="p-5 sm:p-6 space-y-4">
+              {teacherFormError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{teacherFormError}</span>
+                </div>
+              )}
+
+              {teacherFormSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Sujet enregistré avec succès dans la Bibliothèque Officielle !</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Thème ou Titre du Sujet <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={teacherTitre}
+                  onChange={(e) => setTeacherTitre(e.target.value)}
+                  placeholder="Ex : L'autorité parentale face à l'autonomie des jeunes..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Œuvre au Programme
+                  </label>
+                  <select
+                    value={teacherOeuvre}
+                    onChange={(e) => setTeacherOeuvre(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition cursor-pointer"
+                  >
+                    <option value="La Boîte à Merveilles">La Boîte à Merveilles</option>
+                    <option value="Antigone">Antigone</option>
+                    <option value="Le Dernier Jour d’un Condamné">Le Dernier Jour d’un Condamné</option>
+                    <option value="Sujet de Société Général">Sujet de Société Général</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Plan Conseillé
+                  </label>
+                  <select
+                    value={teacherPlan}
+                    onChange={(e) => setTeacherPlan(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition cursor-pointer"
+                  >
+                    <option value="Plan Simple">Plan Simple (Avis univoque)</option>
+                    <option value="Plan Dialectique">Plan Dialectique (Thèse / Antithèse)</option>
+                    <option value="Plan Analytique">Plan Analytique (Causes / Conséquences)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Académie / Région
+                  </label>
+                  <input
+                    type="text"
+                    value={teacherRegion}
+                    onChange={(e) => setTeacherRegion(e.target.value)}
+                    placeholder="Ex : Rabat-Salé-Kénitra, Fès-Meknès..."
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                    Année
+                  </label>
+                  <input
+                    type="text"
+                    value={teacherAnnee}
+                    onChange={(e) => setTeacherAnnee(e.target.value)}
+                    placeholder="2024"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Consigne Intégrale du Sujet <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={teacherConsigne}
+                  onChange={(e) => setTeacherConsigne(e.target.value)}
+                  placeholder="Saisissez ici le texte officiel de la consigne..."
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition resize-y font-mono text-[12px]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Pistes Didactiques ou Conseils pour les Élèves (Optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={teacherConseils}
+                  onChange={(e) => setTeacherConseils(e.target.value)}
+                  placeholder="Ex : Confronter Maâlem Abdeslem et Sidi Mohammed..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:bg-white focus:border-slate-900 outline-none transition"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowTeacherModal(false)}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-xs font-bold bg-[#0b1528] hover:bg-slate-800 text-white rounded-xl shadow-md transition cursor-pointer flex items-center gap-2"
+                >
+                  <Check className="w-4 h-4 text-amber-400 stroke-[2.5]" />
+                  <span>Enregistrer et Publier dans la Bibliothèque</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* MODAL MOT DE PASSE CANDIDAT (POUR INTRODUIRE LE MOT DE PASSE ACTUEL) */}
       {showCandidateModal && (
