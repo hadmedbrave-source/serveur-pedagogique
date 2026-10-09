@@ -570,10 +570,11 @@ Ces phrases doivent présenter de réelles faiblesses stylistiques, syntaxiques 
 STRUCTURE STRICTE DU TEXTE ARGUMENTATIF OPTIMISÉ (OBLIGATION ABSOLUE) :
 Le texte optimisé DOIT OBLIGATOIREMENT être structuré en paragraphes distincts selon les trois temps canoniques du texte argumentatif, et CHAQUE PARAGRAPHE DOIT OBLIGATOIREMENT COMMENCER PAR UN LIEN LOGIQUE PUISSANT :
 1. PARAGRAPHE 1 - INTRODUCTION CONCISE ET STRUCTURÉE (3 à 4 lignes maximum) :
-   - Présentation sobre du sujet et formulation directe de la problématique et des axes.
+   - Présentation sobre du sujet et formulation directe de la problématique se terminant par un point d'interrogation (?).
+   - ⚠️ RÈGLE STRICTE SUR L'INTRODUCTION : L'introduction se termine OBLIGATOIREMENT ET STRICTEMENT sur la question problématique (?). INTERDICTION FORMELLE DE PRODUIRE LA MOINDRE ANNONCE DE PLAN OU PHRASE APRÈS LA QUESTION PROBLÉMATIQUE (interdiction absolue de formules telles que « Pour répondre à cette problématique... », « Il conviendra d'examiner dans un premier axe... », « Nous verrons d'une part... », etc.) ! L'introduction s'arrête net au point d'interrogation (?).
    - INTERDICTION STRICTE ET ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION !
    - AUCUNE EXPLICATION D'ARGUMENT DANS L'INTRODUCTION : l'introduction se contente de poser le sujet et la problématique ; toute explication et argumentation se font exclusivement dans le développement !
-   - L'introduction se clôture obligatoirement par un point, suivi d'un VÉRITABLE SAUT DE PARAGRAPHE pour ouvrir le développement !
+   - L'introduction se clôture obligatoirement par la question problématique (?), suivie d'un VÉRITABLE SAUT DE PARAGRAPHE pour ouvrir le développement !
 
 2. PARAGRAPHES DU DÉVELOPPEMENT (au moins 2 à 3 grands paragraphes, 12 à 15 lignes) :
    - LE PREMIER PARAGRAPHE DU DÉVELOPPEMENT DOIT OBLIGATOIREMENT COMMENCER SUR UN NOUVEAU PARAGRAPHE DISTINCT AVEC SAUT DE LIGNE ET ALINÉA :
@@ -647,7 +648,8 @@ ATTENTION RÈGLE DIDACTIQUE MAJEURE :
 RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
 - EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total) ! Tout texte court ou incomplet est strictement inadmissible.
 - INTRODUCTION CONCISE (3 à 4 lignes max) :
-  Présentation sobre du sujet et de l'œuvre mentionnée, problématique nette et annonce fluide des axes.
+  Présentation sobre du sujet et de l'œuvre mentionnée, et formulation directe de la problématique se terminant par un point d'interrogation (?).
+  ⚠️ RÈGLE STRICTE SUR L'INTRODUCTION : L'introduction se termine OBLIGATOIREMENT ET STRICTEMENT sur la question problématique (?). INTERDICTION FORMELLE ET STRICTE DE PRODUIRE LA MOINDRE ANNONCE DE PLAN OU PHRASE APRÈS LA QUESTION PROBLÉMATIQUE (interdiction de formules comme « Pour aborder cette problématique... », « Il s'agira d'examiner... », « Nous analyserons... ») ! L'introduction s'arrête net au point d'interrogation (?).
   INTERDICTION ABSOLUE D'UTILISER « En effet » DANS L'INTRODUCTION ! Aucune explication dans l'introduction (toute explication se fait au développement).
 - STRUCTURE DU DÉVELOPPEMENT :
   Au moins 2 ou 3 grands paragraphes très substantiels (au moins 6 à 7 lignes chacun) :
@@ -670,7 +672,8 @@ RÈGLE D'OR DE LONGUEUR & ARCHITECTURE (NORME STRICTE AL AKHAWAYN) :
 OBLIGATION ABSOLUE : CE BLOC DOIT TOUJOURS ÊTRE ENTIÈREMENT RÉDIGÉ POUR TOUS LES SUJETS (ne JAMAIS le laisser vide) ! Même si le sujet demande un point de vue où le plan simple est recommandé, proposer ici la variante dialectique pour enrichir la réflexion didactique de l'élève.
 - EXIGENCE DE LONGUEUR FORMELLE : CE MODÈLE RÉDIGÉ DOIT IMPÉRATIVEMENT CONTENIR AU MOINS 18 LIGNES DE TEXTE RÉDIGÉ (entre 18 et 25 lignes au total).
 - INTRODUCTION CONCISE (3 à 4 lignes max) :
-  Présentation du sujet et tension dialectique, sans AUCUN « En effet » ! Aucune explication dans l'introduction.
+  Présentation du sujet et tension dialectique posée sous forme de question problématique se terminant par un point d'interrogation (?), sans AUCUN « En effet » !
+  ⚠️ RÈGLE STRICTE SUR L'INTRODUCTION : L'introduction se termine OBLIGATOIREMENT ET STRICTEMENT sur la question problématique (?). INTERDICTION FORMELLE ET STRICTE DE PRODUIRE LA MOINDRE ANNONCE DE PLAN OU PHRASE APRÈS LA QUESTION PROBLÉMATIQUE (interdiction de formules comme « Il conviendra d'examiner dans un premier temps... », « Nous verrons d'une part... », etc.) ! L'introduction s'arrête net au point d'interrogation (?). Aucune explication dans l'introduction.
 - STRUCTURE DU PLAN DIALECTIQUE :
   1. Introduction concise (3 à 4 lignes)
   2. Premier axe : Thèse (au moins 5 à 6 lignes), commençant par un lien logique fort en gras (<strong>D'une part</strong> ou <strong>En premier lieu</strong>)
