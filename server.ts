@@ -338,6 +338,28 @@ const gemini = geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY' && geminiApi
   ? new GoogleGenAI({ apiKey: geminiApiKey })
   : null;
 
+function isCandidateEssayIncomplete(texte: string): { isIncomplete: boolean; reason: 'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | '' } {
+  if (!texte) return { isIncomplete: false, reason: '' };
+  const clean = texte.trim();
+  if (clean.length === 0) return { isIncomplete: true, reason: 'TOO_SHORT' };
+
+  const words = clean.split(/\s+/).filter(w => w.length > 0);
+  if (words.length < 25) {
+    return { isIncomplete: true, reason: 'TOO_SHORT' };
+  }
+
+  // 1. Détection de l'absence totale d'introduction :
+  // Le devoir démarre directement par un connecteur d'attaque du développement sans aucune phrase d'introduction
+  const startsDirectlyWithDev = /^\s*(?:<strong>)?\s*(?:En premier lieu|D'une part|D'abord|Tout d'abord|Premièrement|D'un côté|Pour commencer mon analyse)\b/i.test(clean);
+  const paras = clean.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+
+  if (startsDirectlyWithDev && paras.length <= 2) {
+    return { isIncomplete: true, reason: 'NO_INTRO' };
+  }
+
+  return { isIncomplete: false, reason: '' };
+}
+
 function isCandidateTextOffTopic(sujet: string, texte: string): boolean {
   if (!sujet || !texte) return false;
   
@@ -464,6 +486,22 @@ RÈGLES D'OR ABSOLUES :
   2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
      [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
   3. L'ensemble des critères est frappé de caducité académique.
+- SANCTION ÉLIMINATOIRE MAJEURE : ABSENCE D'INTRODUCTION OU DE CONCLUSION (NOTE STRICTE DE 0/10) :
+  RÈGLE N°2 INTRANSIGEANTE : Tout texte argumentatif à l'Examen Régional du Baccalauréat repose impérativement sur l'architecture tripartite canonique : Introduction, Développement, Conclusion.
+  SI L'ÉLÈVE N'A PAS ÉCRIT LA CONCLUSION OU L'INTRODUCTION, IL MÉRITE FORMELLEMENT ET STRICTEMENT LA NOTE DE 0/10 !
+  (Copie incomplète / troncature structurelle éliminatoire : texte sans paragraphe introductif démarrant directement par le développement, ou texte s'arrêtant brutalement sans paragraphe de conclusion).
+  Dans ce cas d'absence d'introduction ou de conclusion :
+  1. Tu DOIS IMPÉRATIVEMENT commencer le tout début de ta réponse par [[COPIE_INCOMPLETE]].
+  2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
+     [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
+  3. L'ensemble des critères est annulé. L'absence d'introduction ou de conclusion invalide l'ensemble de la production écrite.
+  4. Dans le [[BILAN]], explique clairement au tout début que l'absence d'introduction ou de conclusion constitue une infraction méthodologique éliminatoire qui entraîne de plein droit la note de 0/10.
+- RÈGLE IMPÉRATIVE SUR LA NOTE DE STRUCTURE : AMORCE DÉFAILLANTE = 0.75/2 :
+  RÈGLE N°3 INTRANSIGEANTE : SI L'INTRODUCTION NE PRÉSENTE PAS LE SUJET AVEC UNE BONNE AMORCE, L'ÉLÈVE MÉRITE STRICTEMENT LA NOTE DE 0.75 POUR LA STRUCTURE (Structure:0.75) !
+  (Démarrage abrupt, phrase plate ou banale sans mise en contexte préalable, absence d'ancrage littéraire ou universel, entrée précipitée dans le sujet ou dans l'avis sans amorce soignée).
+  Dans ce cas :
+  -> Attribue STRICTEMENT la note de 0.75 pour la Structure dans la grille : Structure:0.75 !
+  -> Explique explicitement dans le [[BILAN]] (Section 1 et Section 3) que cette note de 0.75/2 sanctionne directement le manque d'amorce et de cadrage liminaire du sujet dans l'introduction.
 - L'analyse doit être d'une rigueur didactique chirurgicale, adaptée aux exigences du Baccalauréat marocain (œuvres au programme : La Boîte à Merveilles d'Ahmed Sefrioui, Antigone de Jean Anouilh, Le Dernier Jour d'un Condamné de Victor Hugo).
 - EXIGENCE DE COHÉRENCE ABSOLUE POUR LES INTRODUCTIONS & MODÈLES :
   L'introduction doit rigoureusement respecter la progression logique en entonnoir sans rupture conceptuelle :
@@ -487,7 +525,9 @@ STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
 [[GRILLE]] : Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
 (Notes décimales sur le barème officiel de 10 points :
  - Consigne /2 (respect de la consigne et absence de hors-sujet)
- - Structure /2 (CRITÈRE DÉTERMINANT : PRISE EN COMPTE DIRECTE DES LIENS LOGIQUES MIS EN COULEURS DANS LA COPIE ! Ce critère évalue l'armature textuelle globale : présence indispensable de connecteurs d'attaque au début de chaque paragraphe de développement comme « En premier lieu » ou « D'une part », diversité et pertinence des transitions logiques mises en couleurs dans la copie, et connecteur académique de clôture de conclusion. Une copie pourvue de liens logiques riches et variés mis en couleurs doit être valorisée à 1.7-2.0/2. Une copie sans liens logiques ou avec des connecteurs inadaptés doit être lourdement pénalisée sur ce critère de Structure !)
+ - Structure /2 (CRITÈRE DÉTERMINANT : QUALITÉ DE L'AMORCE DE L'INTRODUCTION ET PRISE EN COMPTE DIRECTE DES LIENS LOGIQUES MIS EN COULEURS DANS LA COPIE !
+    * RÈGLE FORMELLE SUR L'AMORCE : SI L'INTRODUCTION NE PRÉSENTE PAS LE SUJET AVEC UNE BONNE AMORCE (entrée abrupte, banalité, absence de mise en contexte littéraire ou sociétale), L'ÉLÈVE MÉRITE STRICTEMENT LA NOTE DE 0.75 POUR LA STRUCTURE : Structure:0.75 !
+    * Ce critère évalue également l'armature textuelle globale : présence indispensable de connecteurs d'attaque au début de chaque paragraphe de développement comme « En premier lieu » ou « D'une part », diversité et pertinence des transitions logiques mises en couleurs dans la copie, et connecteur académique de clôture de conclusion. Une copie pourvue d'une excellente amorce et de liens logiques riches et variés mis en couleurs doit être valorisée à 1.7-2.0/2. Une copie sans liens logiques ou avec des connecteurs inadaptés doit être lourdement pénalisée sur ce critère de Structure !)
  - Arguments /2 (solidité et illustrations)
  - Langue /2.5 (correction syntaxique et grammaticale)
  - Lexique /1.5 (précision lexicale))
@@ -508,7 +548,7 @@ INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou 
 [[BILAN]]
 (Audit méthodologique et chirurgical de la structure du texte argumentatif :
 ### 1. Diagnostic Chirurgical de l'Amorce, de l'Entonnoir & de la Problématique
-- **Analyse de l'Amorce :** Examine la phrase d'amorce réelle de l'élève (accroche contextuelle). Si l'élève commence de façon abrupte ou banale (ex: « Il arrive souvent à l'individu de se trouver solitaire... »), analyse sa portée et formule une recommandation didactique concrète pour bâtir une amorce d'immersion littéraire ou universelle percutante.
+- **Analyse de l'Amorce & Règle des 0.75 pour la Structure :** Examine scrupuleusement la phrase d'amorce réelle de l'élève (accroche contextuelle). Si l'introduction ne présente pas le sujet avec une bonne amorce (entrée abrupte, banalité, absence de contextualisation), RAPPELLE FORMELLEMENT QUE L'ÉLÈVE MÉRITE LA NOTE DE 0.75 POUR LA STRUCTURE en raison de ce défaut d'amorce. Formule ensuite la recommandation didactique concrète pour bâtir une véritable amorce d'immersion littéraire ou universelle percutante.
 - **Formulation du Sujet, Problématique & Clôture :** Analyse comment le sujet a été posé. L'élève a-t-il simplement affirmé son avis ou formulé une véritable problématique avec une question directrice nette se terminant par un point d'interrogation (?), sans formule scolaire superflue d'annonce de plan après la question ? Propose la reformulation problématisée idéale.
 
 ### 2. Audit Méthodologique du Développement & Articulation Logique
@@ -517,7 +557,7 @@ INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou 
 - **Ancrage littéraire dans l'œuvre :** Analyse des exemples tirés de l'œuvre au programme (précision des références : personnages nommés, scènes précises de La Boîte à Merveilles, Dar Chouafa, etc., versus généralités vagues).
 
 ### 3. Diagnostic des Liens Logiques en Couleurs & Justification de la Note de Structure (IMPACT DIRECT SUR LA STRUCTURE /2)
-- **Justification de la note de Structure :** Explique explicitement comment la présence, la fréquence et la pertinence des liens logiques mis en couleurs dans la copie ont directement déterminé la note attribuée au critère de Structure (sur 2 points).
+- **Justification de la note de Structure :** Explique explicitement comment la qualité de l'amorce de l'introduction (sanctionnée à 0.75/2 si l'amorce ne présente pas convenablement le sujet) ainsi que la présence, la fréquence et la pertinence des liens logiques mis en couleurs dans la copie ont directement déterminé la note attribuée au critère de Structure (sur 2 points).
 - **Analyse des connecteurs d'attaque :** Examine chaque connecteur employé (« En premier lieu », « En deuxième lieu », « D'ailleurs », « En d'autres termes »...). Rappelle si nécessaire qu'« En second lieu » est stylistiquement préférable à « En deuxième lieu » lorsqu'il n'y a que deux axes.
 - ⚠️ **REMARQUE MÉTHODOLOGIQUE ESSENTIELLE SUR L'AMORCE DE CONCLUSION :**
   Si l'élève utilise « Finalement » (ou connecteur familier/oral) pour ouvrir sa conclusion, formule impérativement la critique didactique suivante :
@@ -748,10 +788,14 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
    - EXEMPLES EN GRAS TIRÉS EXCLUSIVEMENT DE L'ŒUVRE DU SUJET : Si une œuvre est mentionnée (ex: La Boîte à Merveilles), TOUS les exemples proviennent UNIQUEMENT de celle-ci (**exemple précis**).
    - LIENS LOGIQUES EN DÉBUT DE PARAGRAPHE : Articule chaque paragraphe avec des connecteurs logiques forts en gras (<strong>connecteur</strong>).
    - LANGAGE FORT SANS REGISTRE SOUTENU : Utilise un langage fort, percutant et argumenté, sans jamais employer un registre soutenu artificiel.
-   - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.`
+   - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.
+4. RÈGLES DE NOTATION INTRANSIGEANTES DU BACCALAURÉAT :
+   - ABSENCE D'INTRODUCTION OU DE CONCLUSION = 0/10 OBLIGATOIRE : Si la copie de l'élève n'a pas écrit d'introduction OU n'a pas écrit de conclusion, commence impérativement par [[COPIE_INCOMPLETE]] et attribue STRICTEMENT la note éliminatoire de 0/10 : [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0 !
+   - AMORCE DE L'INTRODUCTION SANS BONNE ACCROCHE = 0.75 POUR LA STRUCTURE : Si la copie contient une introduction mais que celle-ci ne présente pas le sujet avec une bonne amorce (démarrage abrupt, phrase banale, absence de cadrage liminaire), attribue STRICTEMENT la note de 0.75 pour la Structure (Structure:0.75) dans [[GRILLE]] et justifie cette pénalité dans le [[BILAN]].`
     : prompt;
 
   const offTopicDetected = isCandidateTextOffTopic(sujet || '', texte || '');
+  const incompleteDetected = isCandidateEssayIncomplete(texte || '');
 
   try {
     // 1. Try OpenAI if configured
@@ -766,7 +810,9 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
       });
       let result = response.choices[0].message.content || '';
       if (result) {
-        if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
+        if (incompleteDetected.isIncomplete && !result.includes('COPIE_INCOMPLETE') && !result.includes('HORS_SUJET')) {
+          result = `[[COPIE_INCOMPLETE]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
+        } else if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
           result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
         }
         return res.json({ result });
@@ -788,7 +834,9 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
           });
           let result = response.text || '';
           if (result && result.trim().length > 100) {
-            if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
+            if (incompleteDetected.isIncomplete && !result.includes('COPIE_INCOMPLETE') && !result.includes('HORS_SUJET')) {
+              result = `[[COPIE_INCOMPLETE]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
+            } else if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
               result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
             }
             return res.json({ result });
@@ -941,6 +989,39 @@ OPINION
 `;
   }
 
+  // Strict check for Copie Incomplète (Absence d'introduction ou de conclusion = 0/10)
+  const incompleteCheck = isCandidateEssayIncomplete(rawCopy);
+  if (incompleteCheck.isIncomplete) {
+    return `[[COPIE_INCOMPLETE]]
+[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
+
+[[TRANSCRIPTION]]
+${rawCopy ? rawCopy.split(/\n\s*\n/).filter(p => p.trim()).map(p => `<p>${p.trim()}</p>`).join('\n\n') : `<p>${rawCopy}</p>`}
+
+[[BILAN]]
+### ⚠️ Constat d'Invalidation Académique Majeure : Copie Incomplète (Absence d'Introduction ou de Conclusion)
+- **Constat d'omission structurelle :** Le devoir rédigé ne comporte pas d'introduction ou ne comporte pas de conclusion rédigée.
+- **Sanction éliminatoire (Norme Examen Régional du Baccalauréat) :** Conformément aux directives officielles, la production écrite repose sur une architecture tripartite indissociable (Introduction — Développement — Conclusion). L'omission de l'introduction ou de la conclusion invalide l'ensemble de la production écrite et entraîne de plein droit la **note éliminatoire de 0/10**. Les parties 1 à 6 sont masquées.
+
+[[TABLEAU]]
+| Extrait fautif en rouge | Catégorie | Correction didactique certifiée | Règle pédagogique précise |
+| :--- | :--- | :--- | :--- |
+| <span class="err-highlight">Copie incomplète</span> | Omission structurelle | **Introduction et Conclusion obligatoires** | Toute copie sans introduction ou sans conclusion mérite 0/10 à l'Examen Régional. |
+
+[[REFORMULATION]]
+### Diagnostic de la Copie Incomplète
+Le candidat doit impérativement structurer son devoir en trois temps : une introduction problématisée, un développement argumenté et une conclusion synthétique.
+
+[[TYPE]]
+OPINION
+
+[[PLAN_A]]
+<div class="model-intro"><p>Rappel : Copie incomplète sans introduction ou sans conclusion sanctionnée par la note éliminatoire de 0/10.</p></div>
+
+[[PLAN_B]]
+`;
+  }
+
   const isAnalytic = topic.toLowerCase().includes("cause") ||
     topic.toLowerCase().includes("solution") ||
     topic.toLowerCase().includes("conséquence") ||
@@ -988,14 +1069,34 @@ OPINION
   const s2 = (sentences[1] || sentences[0] || "Deuxième phrase de la copie").trim();
   const s3 = (sentences[sentences.length - 1] || sentences[2] || "Phrase de conclusion de la copie").trim();
 
-  return `[[GRILLE]] : Consigne:1.8|Structure:1.7|Arguments:1.8|Langue:2.2|Lexique:1.3
+  // Règle intransigeante : Si l'introduction ne présente pas le sujet avec une bonne amorce, l'élève mérite 0.75 pour la structure
+  const introFirstLine = (paragraphs[0] || '').toLowerCase().trim();
+  const hasGoodAmorce = (
+    introFirstLine.includes('quand on plonge') ||
+    introFirstLine.includes('dans le roman') ||
+    introFirstLine.includes('dans la pièce') ||
+    introFirstLine.includes('dans la piece') ||
+    introFirstLine.includes('dans la boîte') ||
+    introFirstLine.includes('dans la boite') ||
+    introFirstLine.includes('dans antigone') ||
+    introFirstLine.includes('dans le dernier jour') ||
+    introFirstLine.includes('dans de nombreuses sociétés') ||
+    introFirstLine.includes('dans nos sociétés') ||
+    introFirstLine.includes('à notre époque') ||
+    introFirstLine.includes('depuis la nuit des temps') ||
+    introFirstLine.includes('depuis toujours')
+  ) && !introFirstLine.startsWith('en premier lieu') && !introFirstLine.startsWith("d'abord");
+
+  const structureScore = hasGoodAmorce ? 1.7 : 0.75;
+
+  return `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3
 
 [[TRANSCRIPTION]]
 ${highlightedCopy || `<p>${rawCopy}</p>`}
 
 [[BILAN]]
 ### 1. Diagnostic Chirurgical de l'Amorce & de la Problématique
-- **Analyse de l'Amorce :** La copie débute par une accroche sur le thème de la solitude et de l'isolement. L'amorce gagne à dépasser la simple généralité pour être adossée à une réflexion littéraire ou éthique plus percutante, en ancrant la réflexion dans la réalité humaine ou les œuvres au programme.
+- **Analyse de l'Amorce & Règle des 0.75 pour la Structure :** ${hasGoodAmorce ? "La copie propose une amorce soignée présentant convenablement le thème général du sujet." : "L'introduction ne présente pas le sujet avec une bonne amorce (démarrage abrupt sans mise en perspective préalable). Conformément au barème de rigueur officiel de l'Examen Régional, l'élève mérite strictement la note de **0.75 pour la structure**."}
 - **Formulation de la Problématique :** L'affirmation du point de vue personnel est explicite, mais le devoir gagnerait à formuler une véritable problématique interrogative (directe ou indirecte) : *« Dès lors, la solitude constitue-t-elle un repli destructeur ou s'affirme-t-elle au contraire comme une étape féconde de maturation intérieure ? »*
 
 ### 2. Audit Méthodologique du Développement & Articulation
@@ -1004,6 +1105,7 @@ ${highlightedCopy || `<p>${rawCopy}</p>`}
 
 ### 3. Diagnostic des Liens Logiques & Remarques Didactiques Précises
 - **Énumération & Progression :** L'emploi de « En premier lieu » et « En deuxième lieu » structure la copie. Stylistiquement, l'expression « En second lieu » est préférable à « En deuxième lieu » lorsqu'on développe deux arguments principaux.
+- **Justification de la note de Structure :** ${hasGoodAmorce ? "L'armature logique s'appuie sur une amorce convenable et des liens logiques repérés dans la copie, directement valorisés à 1.7/2." : "L'absence d'une bonne amorce contextualisant le sujet pénalise directement la note de Structure à **0.75/2**, malgré la présence de quelques connecteurs logiques."}
 - ⚠️ **Remarque méthodologique essentielle sur l'amorce de conclusion :** Au lieu d'utiliser « Finalement » (terme souvent familier, oral ou restrictif pour clore un devoir académique), il faut impérativement amorcer la conclusion par une formule noble et certifiée telle que « **En guise de conclusion** », « **En définitive** » ou « **En conclusion** ». Cela confère à la réflexion une autorité et une tenue académique exemplaires.
 
 ### 4. Diagnostic de la Conclusion & Clôture
