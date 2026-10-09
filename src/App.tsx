@@ -139,6 +139,58 @@ export const OFFICIAL_LOGICAL_CONNECTORS = [
   'Il va de soi que', 'Il est indéniable que', 'Il est certain que'
 ];
 
+export const getConnectorStyle = (conn: string) => {
+  const c = conn.toLowerCase().trim();
+  // 1. Conclusion / Clôture -> Vert émeraude
+  if (c.includes('conclusion') || c.includes('définitive') || c.includes('somme') || c.includes('résumé') || c.includes('conclure') || c.includes('finalement')) {
+    return {
+      category: 'Conclusion & Clôture',
+      color: '#047857',
+      bg: '#ecfdf5',
+      border: '#a7f3d0',
+      badge: 'Conclusion'
+    };
+  }
+  // 2. Concession & Opposition -> Ambre / Orange chaud
+  if (c.includes('cependant') || c.includes('toutefois') || c.includes('néanmoins') || c.includes('en revanche') || c.includes('au contraire') || c.includes('pourtant') || c.includes('par contre') || c.includes('bien loin de') || c.includes('certes')) {
+    return {
+      category: 'Opposition & Concession',
+      color: '#b45309',
+      bg: '#fffbeb',
+      border: '#fde68a',
+      badge: 'Opposition'
+    };
+  }
+  // 3. Cause & Conséquence -> Sarcelle / Cyan profond
+  if (c.includes('par conséquent') || c.includes('en conséquence') || c.includes("c'est pourquoi") || c.includes('c’est pourquoi') || c.includes('dès lors') || c.includes('ainsi') || c.includes('en effet') || c.includes('de fait') || c.includes('en fait') || c.includes('de ce fait') || c.includes("d'où") || c.includes('d’où')) {
+    return {
+      category: 'Cause & Conséquence',
+      color: '#0f766e',
+      bg: '#f0fdfa',
+      border: '#99f6e4',
+      badge: 'Conséquence'
+    };
+  }
+  // 4. Prise de position / Point de vue personnel -> Indigo
+  if (c.includes('personnellement') || c.includes('pour ma part') || c.includes('mon avis') || c.includes('selon moi') || c.includes('d’après moi') || c.includes("d'après moi") || c.includes('me concerne')) {
+    return {
+      category: 'Point de vue',
+      color: '#4338ca',
+      bg: '#eef2ff',
+      border: '#c7d2fe',
+      badge: 'Point de vue'
+    };
+  }
+  // 5. Attaque d'axe, Énumération & Progression -> Bleu royal
+  return {
+    category: 'Attaque & Progression',
+    color: '#1d4ed8',
+    bg: '#eff6ff',
+    border: '#bfdbfe',
+    badge: 'Progression'
+  };
+};
+
 export const DEFAULT_REGIONAL_SUBJECTS: RegionalSubject[] = [
   {
     id: 'reg-boite-parents-2023',
@@ -782,6 +834,44 @@ export default function App() {
     x: 1.3,
     total: '8.8',
   });
+
+  // Analyse didactique de l'armature logique (liens logiques officiels) de la copie du candidat
+  const logicalConnectorsStats = React.useMemo(() => {
+    if (!texte || !texte.trim()) {
+      return { count: 0, list: [] as string[], hasAttack: false, hasConclusion: false };
+    }
+    const lowerText = texte.toLowerCase();
+    const sorted = [...OFFICIAL_LOGICAL_CONNECTORS].sort((a, b) => b.length - a.length);
+    const found: string[] = [];
+
+    for (const conn of sorted) {
+      const escaped = conn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/['’]/g, "['’]");
+      const rx = new RegExp(`(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])`, 'gi');
+      let m;
+      while ((m = rx.exec(texte)) !== null) {
+        found.push(m[1]);
+      }
+    }
+
+    const attackKeywords = [
+      'premier lieu', "d'abord", 'd’abord', "d'une part", 'd’une part',
+      'premièrement', 'personnellement', 'pour ma part', 'à mon avis', 'a mon avis', 'selon moi'
+    ];
+    const hasAttack = attackKeywords.some((k) => lowerText.includes(k));
+
+    const conclusionKeywords = [
+      'en conclusion', 'en définitive', 'en somme', 'en résumé',
+      'en guise de conclusion', 'pour conclure', 'finalement'
+    ];
+    const hasConclusion = conclusionKeywords.some((k) => lowerText.includes(k));
+
+    return {
+      count: found.length,
+      list: Array.from(new Set(found.map((f) => f.trim()))),
+      hasAttack,
+      hasConclusion,
+    };
+  }, [texte]);
 
   // Attribution de la mention officielle selon la note sur 10 (Mention Très Bien, Bien, À consolider)
   const getMentionData = (note: number, isHorsSujetVal: boolean) => {
@@ -1772,14 +1862,26 @@ export default function App() {
       // 1. Transformer les éventuelles notations explicites [faute -> correction] ou [faute] en erreurs rouges
       res = res.replace(/(?<!<span class="err-highlight"[^>]*>)(\[[^\]]+\])(?!<\/span>)/g, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;">$1</span>');
 
-      // 2. Connecteurs en gras s'ils ne le sont pas déjà (triés du plus long au plus court)
+      // 2. Transformer les balises <strong[^>]*> existantes contenant un connecteur en connecteurs stylisés en couleur
+      res = res.replace(/<strong(?!\s+class="conn-student")[^>]*>([\s\S]*?)<\/strong>/gi, (m, inner) => {
+        const trimmed = inner.replace(/<[^>]*>/g, '').trim();
+        const matched = connectors.find(c => c.toLowerCase() === trimmed.toLowerCase());
+        if (matched) {
+          const style = getConnectorStyle(matched);
+          return `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:2px 7px !important; border-radius:5px !important; border:1.5px solid ${style.border} !important; display:inline-block !important; margin:1px 2px !important; box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;">${inner}</strong>`;
+        }
+        return m;
+      });
+
+      // 3. Connecteurs en couleur s'ils ne le sont pas encore (triés du plus long au plus court)
       const sortedConnectors = [...connectors].sort((a, b) => b.length - a.length);
       for (const c of sortedConnectors) {
         const escaped = c
           .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
           .replace(/['’]/g, "['’]");
-        const regex = new RegExp(`(?<!<strong>)(?<!<strong[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
-        res = res.replace(regex, '<strong>$1</strong>');
+        const style = getConnectorStyle(c);
+        const regex = new RegExp(`(?<!<strong class="conn-student"[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
+        res = res.replace(regex, `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:2px 7px !important; border-radius:5px !important; border:1.5px solid ${style.border} !important; display:inline-block !important; margin:1px 2px !important; box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;">$1</strong>`);
       }
 
       // 3. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
@@ -3823,6 +3925,12 @@ export default function App() {
                     ) : (
                       <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
                     )}
+                    <span className="text-[9px] font-bold text-blue-700 bg-blue-50/90 px-1.5 py-0.5 rounded-md uppercase block mt-1 border border-blue-200">
+                      🔗 {logicalConnectorsStats.count} lien{logicalConnectorsStats.count > 1 ? 's' : ''} en couleur
+                    </span>
+                    <span className="text-[8px] font-extrabold text-blue-600 uppercase tracking-tighter block mt-0.5">
+                      Pris en considération
+                    </span>
                   </div>
 
                   {/* Arguments (max 2.0, moyenne 1.0) */}
@@ -3861,17 +3969,79 @@ export default function App() {
                     )}
                   </div>
                 </div>
+
+                {/* 1.bis Indicateur Didactique de l'Armature Logique (Liens Logiques en Couleurs & Cohérence de Structure) */}
+                <div className="mt-4 p-4 rounded-xl border border-blue-200/90 bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-2xs">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs font-black text-sm">
+                      🔗
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-outfit text-xs font-black uppercase tracking-wider text-blue-950">
+                          Armature Logique & Liens Repérés en Couleurs (Prise en compte directe dans la Structure : {scores.s}/2.0)
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-300 uppercase">
+                          {logicalConnectorsStats.count} connecteur{logicalConnectorsStats.count > 1 ? 's' : ''} détecté{logicalConnectorsStats.count > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        {logicalConnectorsStats.count >= 4
+                          ? "Excellente densité de connecteurs logiques : les articulations entre les axes et les paragraphes assurent une transition fluide et rigoureuse, directement valorisée dans la note de Structure."
+                          : logicalConnectorsStats.count >= 2
+                          ? "Connecteurs logiques présents : renforcez la variété des nuances d'opposition et de conséquence pour hisser la note de structure au niveau maximal."
+                          : "Faible balisage logique : la copie manque de liens logiques visibles pour relier les arguments entre eux, ce qui pénalise directement la note de Structure."}
+                      </p>
+                      {logicalConnectorsStats.list.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mr-1">Repérés :</span>
+                          {logicalConnectorsStats.list.map((c, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 rounded-md text-[10px] font-black bg-white text-blue-900 border border-blue-200 shadow-2xs"
+                            >
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 self-stretch md:self-auto justify-end">
+                    <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border flex items-center gap-1.5 ${
+                      logicalConnectorsStats.hasAttack
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-50 text-amber-800 border-amber-300'
+                    }`}>
+                      <span>{logicalConnectorsStats.hasAttack ? '✓' : '⚠️'}</span>
+                      <span>Attaque d'axe : {logicalConnectorsStats.hasAttack ? 'Validée' : 'À renforcer'}</span>
+                    </div>
+
+                    <div className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border flex items-center gap-1.5 ${
+                      logicalConnectorsStats.hasConclusion
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-amber-50 text-amber-800 border-amber-300'
+                    }`}>
+                      <span>{logicalConnectorsStats.hasConclusion ? '✓' : '⚠️'}</span>
+                      <span>Clôture : {logicalConnectorsStats.hasConclusion ? 'Conforme' : 'Non détectée'}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* 2. Transcription Analytique */}
               <div className="mb-8">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 2. Transcription Analytique de la Copie
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 2. Transcription Analytique de la Copie (Liens Logiques en Couleurs)
                   </h3>
-                  <div className="flex items-center gap-3 text-[11px] font-bold">
-                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Erreurs identifiées (en rouge)</span>
-                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.2 rounded bg-slate-100 border border-slate-300 font-extrabold text-slate-900 inline-block text-[10px]">Gras</span> Liens logiques</span>
+                  <div className="flex items-center gap-2 text-[11px] font-bold flex-wrap">
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-400 inline-block"></span> Erreurs (rouge)</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-300 font-extrabold text-blue-700 inline-block text-[10px]">Bleu</span> Progression</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-300 font-extrabold text-emerald-700 inline-block text-[10px]">Vert</span> Clôture</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-300 font-extrabold text-amber-700 inline-block text-[10px]">Ambre</span> Opposition</span>
+                    <span className="flex items-center gap-1.5"><span className="px-1.5 py-0.5 rounded bg-teal-50 border border-teal-300 font-extrabold text-teal-700 inline-block text-[10px]">Sarcelle</span> Conséquence</span>
                   </div>
                 </div>
                 <div id="outTrans" className="writing-ruled-zone p-6 rounded-xl border border-slate-200 bg-white leading-relaxed"></div>
