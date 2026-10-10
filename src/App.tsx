@@ -336,6 +336,8 @@ export default function App() {
   const [hasReport, setHasReport] = useState(false);
   const [isHorsSujet, setIsHorsSujet] = useState(false);
   const [offTopicType, setOffTopicType] = useState<'THEMATIQUE' | 'METHODOLOGIQUE' | 'GENERAL'>('GENERAL');
+  const [isCopieIncomplete, setIsCopieIncomplete] = useState(false);
+  const [incompleteReason, setIncompleteReason] = useState<'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | ''>('');
   const [detectedPlanType, setDetectedPlanType] = useState<'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' | ''>('SIMPLE');
   // Sujet validé par l'élève : si validé, affiché en gras sans zone de rédaction
   const [isSubjectValidated, setIsSubjectValidated] = useState<boolean>(false);
@@ -2060,6 +2062,37 @@ export default function App() {
     return { isOff: false, type: 'GENERAL' };
   };
 
+  const checkCandidateCompleteness = (texteStr: string): { isIncomplete: boolean; reason: 'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | '' } => {
+    if (!texteStr) return { isIncomplete: false, reason: '' };
+    const clean = texteStr.trim();
+    if (clean.length === 0) return { isIncomplete: false, reason: '' };
+
+    const paragraphs = clean.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
+    const words = clean.split(/\s+/).filter(w => w.length > 0);
+
+    // Si le texte est excessivement court (moins de 35 mots), le devoir ne comporte ni développement ni conclusion
+    if (words.length < 35 && words.length > 0) {
+      return { isIncomplete: true, reason: 'TOO_SHORT' };
+    }
+
+    // Si le texte commence directement par les connecteurs d'un développement sans amorce ni intro
+    const startsDirectlyWithDev = /^(?:d'abord|en premier lieu|premièrement|premirement|tout d'abord|d'une part|pour commencer|pour débuter)/i.test(clean);
+    if (startsDirectlyWithDev) {
+      return { isIncomplete: true, reason: 'NO_INTRO' };
+    }
+
+    // Si moins de 3 paragraphes distincts, vérifier la présence d'une conclusion
+    if (paragraphs.length < 3) {
+      const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const hasConclKeyword = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|au terme de cette analyse|ainsi donc|en definitive|en définitive)/i.test(norm);
+      if (!hasConclKeyword) {
+        return { isIncomplete: true, reason: 'NO_CONCL' };
+      }
+    }
+
+    return { isIncomplete: false, reason: '' };
+  };
+
   const detectClientSubjectAnalysis = (topic: string) => {
     const tLow = (topic || '').toLowerCase();
 
@@ -2471,6 +2504,22 @@ export default function App() {
 
       const offTopicCheck = checkOffTopicStatus(sujet, texte);
       const isMethodological = offTopicCheck.isOff && offTopicCheck.type === 'METHODOLOGIQUE';
+
+      // Vérification rigoureuse de la complétude (Introduction et Conclusion obligatoires)
+      const incompleteCheck = checkCandidateCompleteness(texte);
+      const isAiExplicitIncomplete = raw.includes('[[COPIE_INCOMPLETE]]') ||
+                                    raw.includes('===COPIE_INCOMPLETE===') ||
+                                    raw.includes('COPIE INCOMPLÈTE') ||
+                                    raw.includes('ABSENCE D\'INTRODUCTION') ||
+                                    raw.includes('ABSENCE DE CONCLUSION');
+
+      const isCopieIncompleteDetected = isAiExplicitIncomplete || incompleteCheck.isIncomplete;
+      setIsCopieIncomplete(isCopieIncompleteDetected);
+      setIncompleteReason(
+        incompleteCheck.reason ||
+        (raw.includes('ABSENCE D\'INTRODUCTION') ? 'NO_INTRO' :
+         raw.includes('ABSENCE DE CONCLUSION') ? 'NO_CONCL' : 'NO_INTRO')
+      );
       
       // Seule une sanction explicite [[HORS_SUJET]] ou une note de consigne à 0/2 dans le retour de l'IA (ou un hors-sujet strict avéré) déclenche la sanction 0/10
       const isAiExplicitHorsSujet = raw.includes('[[HORS_SUJET]]') || 
@@ -2489,7 +2538,8 @@ export default function App() {
       let scoreX = 1.3;
       let totalCalc = '8.8';
 
-      if (horsSujet) {
+      // Si la copie est hors-sujet OU incomplète (manque intro ou conclusion) : 0/10 éliminatoire immédiat
+      if (horsSujet || isCopieIncompleteDetected) {
         scoreC = 0.0;
         scoreS = 0.0;
         scoreA = 0.0;
@@ -2522,11 +2572,23 @@ export default function App() {
           if (l) scoreL = parseFloat(l[1]);
           if (x) scoreX = parseFloat(x[1]);
 
-          if (c && v1) v1.innerText = c[1];
-          if (s && v2) v2.innerText = s[1];
-          if (a && v3) v3.innerText = a[1];
-          if (l && v4) v4.innerText = l[1];
-          if (x && v5) v5.innerText = x[1];
+          // Si l'introduction ne présente pas le sujet avec une bonne amorce : note de structure fixée à 0.75
+          const rawLow = raw.toLowerCase();
+          const hasBadAmorce = rawLow.includes('amorce défaillante') || 
+                               rawLow.includes('amorce defaillante') || 
+                               rawLow.includes('amorce abrupte') || 
+                               rawLow.includes('amorce à renforcer') ||
+                               rawLow.includes('0.75 pour la structure') ||
+                               rawLow.includes('0.75/2');
+          if (hasBadAmorce && scoreS > 0.75) {
+            scoreS = 0.75;
+          }
+
+          if (c && v1) v1.innerText = scoreC.toFixed(1);
+          if (s && v2) v2.innerText = scoreS.toFixed(1);
+          if (a && v3) v3.innerText = scoreA.toFixed(1);
+          if (l && v4) v4.innerText = scoreL.toFixed(1);
+          if (x && v5) v5.innerText = scoreX.toFixed(1);
 
           totalCalc = (scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
         } else {
@@ -3792,10 +3854,10 @@ export default function App() {
                     <span
                       id="rTotal"
                       className={`text-3xl sm:text-4xl font-black font-cinzel tracking-tight ${
-                        isHorsSujet ? 'text-red-700' : 'text-slate-950'
+                        isHorsSujet || isCopieIncomplete ? 'text-red-700' : 'text-slate-950'
                       }`}
                     >
-                      {isHorsSujet ? '0/10' : `${scores.total || '8.8'}/10`}
+                      {isHorsSujet || isCopieIncomplete ? '0/10' : `${scores.total || '8.8'}/10`}
                     </span>
                   </div>
 
@@ -3825,8 +3887,63 @@ export default function App() {
             </div>
           </div>
 
-          {/* En cas de Hors-Sujet : Note 0/10 et masquage complet des parties 1 à 6 */}
-          {isHorsSujet ? (
+          {/* En cas de Copie Incomplète (manque intro ou conclusion) : Sanction 0/10 */}
+          {isCopieIncomplete ? (
+            <div className="my-8 p-8 sm:p-10 rounded-2xl bg-red-50/90 border-2 border-red-500 shadow-sm text-center relative overflow-hidden">
+              <div className="w-16 h-16 mx-auto rounded-full bg-red-100 border-2 border-red-600 flex items-center justify-center text-red-600 mb-4 shadow-inner">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-red-700 text-white rounded-full text-xs font-black uppercase tracking-widest mb-4 shadow-xs">
+                Sanction Éliminatoire Majeure : Copie Incomplète
+              </div>
+              <h3 className="font-cinzel text-3xl sm:text-5xl font-black text-red-950 mb-3 tracking-tight">
+                NOTE OFFICIELLE ATTRIBUÉE : 0 / 10
+              </h3>
+              <p className="text-sm font-bold text-red-700 uppercase tracking-wider mb-6">
+                Cadre de Référence Officiel de l'Examen Régional du Baccalauréat
+              </p>
+
+              <div className="max-w-2xl mx-auto space-y-4 text-left p-6 rounded-xl bg-white border border-red-200 shadow-2xs">
+                <div className="p-3.5 rounded-lg bg-red-50 border border-red-200">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-red-800 block mb-1">
+                    ⚠️ Constat d'Invalidation Académique :
+                  </span>
+                  <p className="text-xs sm:text-sm font-bold text-red-900">
+                    {incompleteReason === 'NO_INTRO'
+                      ? "Absence d'introduction : Le candidat a débuté directement la rédaction sans introduction formelle ni présentation du sujet avec une amorce."
+                      : incompleteReason === 'NO_CONCL'
+                      ? "Absence de conclusion : Le candidat n'a pas rédigé de conclusion pour clore son devoir et apporter une réponse définitive."
+                      : "Absence d'introduction ou de conclusion : L'armature tripartite obligatoire (Introduction - Développement - Conclusion) n'est pas respectée."}
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 block mb-1">
+                    📝 Début de la copie du candidat :
+                  </span>
+                  <p className="text-xs text-slate-700 italic">
+                    « {texte.trim().slice(0, 180)}... »
+                  </p>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <p className="font-outfit text-sm font-bold text-red-900 leading-relaxed">
+                    📜 <strong>Règle Méthodologique Inflexible du Baccalauréat :</strong> Si l'élève n'a pas écrit la conclusion ou l'introduction, il mérite la note éliminatoire de <strong>0/10</strong>.
+                  </p>
+                  <p className="font-outfit text-xs text-slate-700 leading-relaxed">
+                    Une production écrite académique repose obligatoirement sur l'équilibre tripartite. L'omission de l'introduction ou de la conclusion prive la copie de son entrée en matière ou de sa réponse finale. En application stricte des règlements académiques, tous les critères sont annulés (Consigne: 0.0, Structure: 0.0, Arguments: 0.0, Langue: 0.0, Lexique: 0.0) et les parties 1 à 6 sont masquées.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-red-100 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-red-700">
+                  <span>Commission d'Expertise Didactique</span>
+                  <span className="bg-red-100 text-red-800 px-2.5 py-1 rounded-md font-extrabold">
+                    🔒 Parties 1 à 6 masquées (Copie Incomplète 0/10)
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : isHorsSujet ? (
             <div className="my-8 p-8 sm:p-10 rounded-2xl bg-red-50/90 border-2 border-red-400 shadow-sm text-center relative overflow-hidden">
               <div className="w-16 h-16 mx-auto rounded-full bg-red-100 border-2 border-red-500 flex items-center justify-center text-red-600 mb-4 shadow-inner">
                 <AlertTriangle className="w-8 h-8" />
@@ -3916,11 +4033,13 @@ export default function App() {
                   </div>
 
                   {/* Structure (max 2.0, moyenne 1.0) */}
-                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.s < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
-                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.s < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Structure</span>
-                    <span id="v2" className={`text-xl font-black font-mono block my-0.5 ${scores.s < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.s}</span>
-                    <span className={`text-[10px] font-bold block ${scores.s < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
-                    {scores.s < 1.0 ? (
+                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.s <= 0.75 ? 'border-amber-500 bg-amber-50/90 text-amber-950 ring-2 ring-amber-400/50 shadow-xs' : scores.s < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.s <= 0.75 ? 'text-amber-800 font-black' : scores.s < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Structure</span>
+                    <span id="v2" className={`text-xl font-black font-mono block my-0.5 ${scores.s <= 0.75 ? 'text-amber-700 font-black' : scores.s < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.s}</span>
+                    <span className={`text-[10px] font-bold block ${scores.s <= 0.75 ? 'text-amber-700 font-extrabold' : scores.s < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
+                    {scores.s <= 0.75 ? (
+                      <span className="text-[9px] font-black text-amber-900 bg-amber-200 border border-amber-400 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Amorce défaillante (0.75/2)</span>
+                    ) : scores.s < 1.0 ? (
                       <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
                     ) : (
                       <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
@@ -4028,6 +4147,21 @@ export default function App() {
                     </div>
                   </div>
                 </div>
+
+                {/* Notification didactique spéciale si l'amorce de l'introduction est défaillante */}
+                {scores.s <= 0.75 && (
+                  <div className="mt-3 p-3.5 rounded-xl border border-amber-300 bg-amber-50/90 flex items-start gap-3 text-xs text-amber-950 font-medium shadow-2xs">
+                    <span className="text-base shrink-0">⚠️</span>
+                    <div className="leading-relaxed">
+                      <strong className="font-extrabold text-amber-900 block mb-0.5">
+                        Règle Didactique Appliquée : Amorce Défaillante (Note de Structure fixée à 0.75 / 2.0)
+                      </strong>
+                      <p className="text-amber-900/90 text-xs">
+                        L'introduction ne présente pas le sujet avec une amorce efficace et contextualisée (entrée en matière abrupte sans contextualisation littéraire ou sociétale). Conformément à la consigne d'évaluation officielle, la note de Structure est plafonnée à <strong>0.75/2.0</strong>.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 2. Transcription Analytique */}
