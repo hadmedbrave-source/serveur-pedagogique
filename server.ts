@@ -338,6 +338,22 @@ const gemini = geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY' && geminiApi
   ? new GoogleGenAI({ apiKey: geminiApiKey })
   : null;
 
+function isCandidateDirectStartWithDevAndConcl(texte: string): boolean {
+  if (!texte) return false;
+  const clean = texte.trim();
+  const directOpinionRegex = /^\s*(?:<strong>)?\s*(?:personnellement|pour ma part|de ma part|pour moi|pou moi|à mon avis|a mon avis|selon moi|d'après moi|d’après moi|en ce qui me concerne|quant à moi)\b/i;
+  if (!directOpinionRegex.test(clean)) return false;
+
+  const words = clean.split(/\s+/).filter(w => w.length > 0);
+  if (words.length < 30) return false;
+
+  const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const hasConcl = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|pour finir|en definitive|en définitive|en resume|en résumé|au terme de cette analyse|ainsi donc)\b/i.test(norm);
+  const paras = clean.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+
+  return hasConcl || (paras.length >= 3 && words.length >= 60);
+}
+
 function isCandidateEssayIncomplete(texte: string): { isIncomplete: boolean; reason: 'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | '' } {
   if (!texte) return { isIncomplete: false, reason: '' };
   const clean = texte.trim();
@@ -348,6 +364,12 @@ function isCandidateEssayIncomplete(texte: string): { isIncomplete: boolean; rea
     return { isIncomplete: true, reason: 'TOO_SHORT' };
   }
 
+  // Si l'élève commence directement par "personnellement / de ma part / pour moi..." AVEC développement et conclusion :
+  // Ce cas est régi par la règle 2 (note globale plafonnée à 5/10 max), ce n'est PAS un 0/10 éliminatoire !
+  if (isCandidateDirectStartWithDevAndConcl(clean)) {
+    return { isIncomplete: false, reason: '' };
+  }
+
   // 1. Détection de l'absence totale d'introduction :
   // Le devoir démarre directement par un connecteur d'attaque du développement sans aucune phrase d'introduction
   const startsDirectlyWithDev = /^\s*(?:<strong>)?\s*(?:En premier lieu|D'une part|D'abord|Tout d'abord|Premièrement|D'un côté|Pour commencer mon analyse)\b/i.test(clean);
@@ -355,6 +377,13 @@ function isCandidateEssayIncomplete(texte: string): { isIncomplete: boolean; rea
 
   if (startsDirectlyWithDev && paras.length <= 2) {
     return { isIncomplete: true, reason: 'NO_INTRO' };
+  }
+
+  // 2. Détection de l'absence de conclusion :
+  const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const hasConclKeyword = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|pour finir|en definitive|en définitive|au terme de cette analyse|ainsi donc)/i.test(norm);
+  if (paras.length <= 2 && !hasConclKeyword && words.length >= 30) {
+    return { isIncomplete: true, reason: 'NO_CONCL' };
   }
 
   return { isIncomplete: false, reason: '' };
@@ -488,17 +517,27 @@ RÈGLES D'OR ABSOLUES :
   3. L'ensemble des critères est frappé de caducité académique.
 - SANCTION ÉLIMINATOIRE MAJEURE : ABSENCE D'INTRODUCTION OU DE CONCLUSION (NOTE STRICTE DE 0/10) :
   RÈGLE N°2 INTRANSIGEANTE : Tout texte argumentatif à l'Examen Régional du Baccalauréat repose impérativement sur l'architecture tripartite canonique : Introduction, Développement, Conclusion.
-  SI L'ÉLÈVE N'A PAS ÉCRIT LA CONCLUSION OU L'INTRODUCTION, IL MÉRITE FORMELLEMENT ET STRICTEMENT LA NOTE DE 0/10 !
+  SI LA COPIE DE L'ÉLÈVE NE COMPORTE PAS D'INTRODUCTION OU NE COMPORTE PAS DE CONCLUSION, LA SANCTION ÉLIMINATOIRE DE 0/10 EST IMMÉDIATEMENT APPLIQUÉE :
+  [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
   (Copie incomplète / troncature structurelle éliminatoire : texte sans paragraphe introductif démarrant directement par le développement, ou texte s'arrêtant brutalement sans paragraphe de conclusion).
   Dans ce cas d'absence d'introduction ou de conclusion :
   1. Tu DOIS IMPÉRATIVEMENT commencer le tout début de ta réponse par [[COPIE_INCOMPLETE]].
-  2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
-     [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
-  3. L'ensemble des critères est annulé. L'absence d'introduction ou de conclusion invalide l'ensemble de la production écrite.
-  4. Dans le [[BILAN]], explique clairement au tout début que l'absence d'introduction ou de conclusion constitue une infraction méthodologique éliminatoire qui entraîne de plein droit la note de 0/10.
+  2. NE METS JAMAIS [[HORS_SUJET]] sous aucun prétexte. Il ne s'agit PAS d'un hors-sujet, mais d'une COPIE INCOMPLÈTE (Absence d'introduction ou de conclusion).
+  3. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0.
+  4. Dans le [[BILAN]], explique clairement au tout début que l'absence d'introduction ou de conclusion constitue une omission structurelle éliminatoire qui entraîne de plein droit la note de 0/10.
+
+- RÈGLE MÉTHODOLOGIQUE SPÉCIALE : ATTAQUE DIRECTE SANS INTRODUCTION (« PERSONNELLEMENT / POUR MA PART / DE MA PART / POUR MOI... ») AVEC DÉVELOPPEMENT ET CONCLUSION (NOTE GLOBALE PLAFONNÉE À 5/10 MAXIMUM) :
+  RÈGLE N°3 INTRANSIGEANTE : SI L'ÉLÈVE COMMENCE DIRECTEMENT PAR « PERSONNELLEMENT », « DE MA PART », « POUR MA PART », « POUR MOI », « POU MOI », « À MON AVIS », « SELON MOI »... SANS INTRODUCTION (sans amorce ni problématisation préalable), MAIS AVEC UN DÉVELOPPEMENT ET UNE CONCLUSION RÉDIGÉE :
+  1. LA SANCTION ÉLIMINATOIRE DE 0/10 N'EST PAS APPLIQUÉE (ce n'est ni un 0/10, ni un hors-sujet).
+  2. NE COMMENCE JAMAIS PAR [[HORS_SUJET]] NI PAR [[COPIE_INCOMPLETE]] ! Tu commences ta réponse par [[ATTAQUE_DIRECTE]].
+  3. RÈGLE STRICTE SUR LA NOTE GLOBALE : SA NOTE GLOBALE NE DOIT EN AUCUN CAS DÉPASSER 5/10 !
+     Attribue une note globale plafonnée à 5.0/10 au maximum :
+     - La note de Structure doit être lourdement sanctionnée à 0.5/2 au maximum (car absence totale d'amorce et de problématique).
+     - La somme totale des critères (Consigne + Structure + Arguments + Langue + Lexique) DOIT ÊTRE INFÉRIEURE OU ÉGALE À 5.0/10 STRICTEMENT (ex: Consigne:1.0|Structure:0.5|Arguments:1.5|Langue:1.25|Lexique:0.75 = 5.0/10 max).
+  4. Dans le [[BILAN]], explique clairement que commencer directement par sa thèse personnelle sans introduction est une entorse méthodologique majeure qui plafonne la note à 5/10 maximum, mais que la présence d'un développement et d'une conclusion permet de valoriser les arguments et la langue dans cette limite de 5 points.
+
 - RÈGLE IMPÉRATIVE SUR LA NOTE DE STRUCTURE : AMORCE DÉFAILLANTE = 0.75/2 :
-  RÈGLE N°3 INTRANSIGEANTE : SI L'INTRODUCTION NE PRÉSENTE PAS LE SUJET AVEC UNE BONNE AMORCE, L'ÉLÈVE MÉRITE STRICTEMENT LA NOTE DE 0.75 POUR LA STRUCTURE (Structure:0.75) !
-  (Démarrage abrupt, phrase plate ou banale sans mise en contexte préalable, absence d'ancrage littéraire ou universel, entrée précipitée dans le sujet ou dans l'avis sans amorce soignée).
+  RÈGLE N°4 INTRANSIGEANTE : SI L'INTRODUCTION NE PRÉSENTE PAS LE SUJET AVEC UNE BONNE AMORCE (accroche abrupte, phrase plate, manque de contextualisation), L'ÉLÈVE MÉRITE STRICTEMENT LA NOTE DE 0.75 POUR LA STRUCTURE (Structure:0.75) !
   Dans ce cas :
   -> Attribue STRICTEMENT la note de 0.75 pour la Structure dans la grille : Structure:0.75 !
   -> Explique explicitement dans le [[BILAN]] (Section 1 et Section 3) que cette note de 0.75/2 sanctionne directement le manque d'amorce et de cadrage liminaire du sujet dans l'introduction.
@@ -790,12 +829,51 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
    - LANGAGE FORT SANS REGISTRE SOUTENU : Utilise un langage fort, percutant et argumenté, sans jamais employer un registre soutenu artificiel.
    - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.
 4. RÈGLES DE NOTATION INTRANSIGEANTES DU BACCALAURÉAT :
-   - ABSENCE D'INTRODUCTION OU DE CONCLUSION = 0/10 OBLIGATOIRE : Si la copie de l'élève n'a pas écrit d'introduction OU n'a pas écrit de conclusion, commence impérativement par [[COPIE_INCOMPLETE]] et attribue STRICTEMENT la note éliminatoire de 0/10 : [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0 !
+   - ABSENCE D'INTRODUCTION OU DE CONCLUSION = 0/10 OBLIGATOIRE (SANS MENTION DU BADGE HORS-SUJET) : Si la copie de l'élève n'a pas écrit d'introduction OU n'a pas écrit de conclusion, commence impérativement par [[COPIE_INCOMPLETE]] (JAMAIS [[HORS_SUJET]]) et attribue STRICTEMENT la note éliminatoire de 0/10 : [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0 !
+   - ATTAQUE DIRECTE SANS INTRODUCTION (« PERSONNELLEMENT / POUR MA PART / DE MA PART / POUR MOI... ») AVEC DÉVELOPPEMENT ET CONCLUSION = NOTE MAX 5/10 : Si l'élève commence directement par son avis sans introduction préalable mais avec un développement et une conclusion, commence par [[ATTAQUE_DIRECTE]] (JAMAIS [[HORS_SUJET]] NI [[COPIE_INCOMPLETE]]), attribue au maximum Structure:0.5 et PLAFONNE LA NOTE GLOBALE À 5/10 MAXIMUM (la somme des 5 critères ne doit pas dépasser 5.0) !
    - AMORCE DE L'INTRODUCTION SANS BONNE ACCROCHE = 0.75 POUR LA STRUCTURE : Si la copie contient une introduction mais que celle-ci ne présente pas le sujet avec une bonne amorce (démarrage abrupt, phrase banale, absence de cadrage liminaire), attribue STRICTEMENT la note de 0.75 pour la Structure (Structure:0.75) dans [[GRILLE]] et justifie cette pénalité dans le [[BILAN]].`
     : prompt;
 
-  const offTopicDetected = isCandidateTextOffTopic(sujet || '', texte || '');
+  const directStartDetected = isCandidateDirectStartWithDevAndConcl(texte || '');
   const incompleteDetected = isCandidateEssayIncomplete(texte || '');
+  const offTopicDetected = !directStartDetected && !incompleteDetected.isIncomplete && isCandidateTextOffTopic(sujet || '', texte || '');
+
+  const sanitizeAndCapResult = (resText: string): string => {
+    let result = resText;
+    if (directStartDetected) {
+      result = result.replace(/\[\[HORS_SUJET\]\]/gi, '').replace(/\[\[COPIE_INCOMPLETE\]\]/gi, '');
+      if (!result.includes('[[ATTAQUE_DIRECTE]]')) {
+        result = `[[ATTAQUE_DIRECTE]]\n` + result;
+      }
+      const gridMatch = result.match(/\[\[GRILLE\]\]\s*:\s*Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
+      if (gridMatch) {
+        let c = parseFloat(gridMatch[1]) || 1.0;
+        let s = Math.min(parseFloat(gridMatch[2]) || 0.5, 0.5);
+        let a = parseFloat(gridMatch[3]) || 1.5;
+        let l = parseFloat(gridMatch[4]) || 1.25;
+        let x = parseFloat(gridMatch[5]) || 0.75;
+        let total = c + s + a + l + x;
+        if (total > 5.0) {
+          const factor = 5.0 / total;
+          c = +(c * factor).toFixed(1);
+          s = Math.min(s, 0.5);
+          a = +(a * factor).toFixed(1);
+          l = +(l * factor).toFixed(1);
+          x = +(5.0 - (c + s + a + l)).toFixed(1);
+          if (x < 0) { x = 0.5; l = +(5.0 - (c + s + a + x)).toFixed(1); }
+        }
+        result = result.replace(gridMatch[0], `[[GRILLE]] : Consigne:${c.toFixed(1)}|Structure:${s.toFixed(1)}|Arguments:${a.toFixed(1)}|Langue:${l.toFixed(1)}|Lexique:${x.toFixed(1)}`);
+      }
+    } else if (incompleteDetected.isIncomplete) {
+      result = result.replace(/\[\[HORS_SUJET\]\]/gi, '');
+      if (!result.includes('[[COPIE_INCOMPLETE]]')) {
+        result = `[[COPIE_INCOMPLETE]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
+      }
+    } else if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
+      result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
+    }
+    return result;
+  };
 
   try {
     // 1. Try OpenAI if configured
@@ -810,11 +888,7 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
       });
       let result = response.choices[0].message.content || '';
       if (result) {
-        if (incompleteDetected.isIncomplete && !result.includes('COPIE_INCOMPLETE') && !result.includes('HORS_SUJET')) {
-          result = `[[COPIE_INCOMPLETE]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
-        } else if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
-          result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
-        }
+        result = sanitizeAndCapResult(result);
         return res.json({ result });
       }
     }
@@ -834,11 +908,7 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
           });
           let result = response.text || '';
           if (result && result.trim().length > 100) {
-            if (incompleteDetected.isIncomplete && !result.includes('COPIE_INCOMPLETE') && !result.includes('HORS_SUJET')) {
-              result = `[[COPIE_INCOMPLETE]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
-            } else if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
-              result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
-            }
+            result = sanitizeAndCapResult(result);
             return res.json({ result });
           }
         } catch (err: any) {
@@ -1087,17 +1157,25 @@ OPINION
     introFirstLine.includes('depuis toujours')
   ) && !introFirstLine.startsWith('en premier lieu') && !introFirstLine.startsWith("d'abord");
 
-  const structureScore = hasGoodAmorce ? 1.7 : 0.75;
+  const isDirectStart = isCandidateDirectStartWithDevAndConcl(rawCopy);
+  const structureScore = isDirectStart ? 0.5 : (hasGoodAmorce ? 1.7 : 0.75);
+  const grilleOutput = isDirectStart
+    ? `[[ATTAQUE_DIRECTE]]\n[[GRILLE]] : Consigne:1.0|Structure:0.5|Arguments:1.5|Langue:1.25|Lexique:0.75`
+    : `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3`;
 
-  return `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3
+  return `${grilleOutput}
 
 [[TRANSCRIPTION]]
 ${highlightedCopy || `<p>${rawCopy}</p>`}
 
 [[BILAN]]
-### 1. Diagnostic Chirurgical de l'Amorce & de la Problématique
-- **Analyse de l'Amorce & Règle des 0.75 pour la Structure :** ${hasGoodAmorce ? "La copie propose une amorce soignée présentant convenablement le thème général du sujet." : "L'introduction ne présente pas le sujet avec une bonne amorce (démarrage abrupt sans mise en perspective préalable). Conformément au barème de rigueur officiel de l'Examen Régional, l'élève mérite strictement la note de **0.75 pour la structure**."}
-- **Formulation de la Problématique :** L'affirmation du point de vue personnel est explicite, mais le devoir gagnerait à formuler une véritable problématique interrogative (directe ou indirecte) : *« Dès lors, la solitude constitue-t-elle un repli destructeur ou s'affirme-t-elle au contraire comme une étape féconde de maturation intérieure ? »*
+${isDirectStart ? `### ⚠️ Constat Méthodologique Majeur : Attaque Directe sans Introduction (Note Plafonnée à 5/10 Max)
+- **Omission de l'introduction formelle :** Le candidat a débuté directement son devoir par sa prise de position personnelle (« Personnellement / Pour ma part / De ma part / Pour moi... ») sans amorce ni problématisation préalable.
+- **Règle officielle de plafonnement à 5/10 :** Grâce à la présence d'un développement et d'une conclusion, la sanction éliminatoire de 0/10 n'est pas appliquée. Toutefois, l'absence totale d'introduction entraîne une sanction lourde sur la Structure (0.5/2.0) et un plafonnement strict de la note globale à **5/10 maximum**.
+
+` : ''}### 1. Diagnostic Chirurgical de l'Amorce & de la Problématique
+- **Analyse de l'Amorce & Règle des 0.75 pour la Structure :** ${isDirectStart ? "Absence d'amorce et d'introduction : l'élève commence directement par sa prise de position personnelle. La Structure est notée à 0.5/2.0 et la note globale est plafonnée à 5/10." : (hasGoodAmorce ? "La copie propose une amorce soignée présentant convenablement le thème général du sujet." : "L'introduction ne présente pas le sujet avec une bonne amorce (démarrage abrupt sans mise en perspective préalable). Conformément au barème de rigueur officiel de l'Examen Régional, l'élève mérite strictement la note de **0.75 pour la structure**.")}
+- **Formulation de la Problématique :** ${isDirectStart ? "La problématique est absente car l'élève a sauté l'étape introductive pour formuler immédiatement son point de vue." : "L'affirmation du point de vue personnel est explicite, mais le devoir gagnerait à formuler une véritable problématique interrogative (directe ou indirecte) : *« Dès lors, la solitude constitue-t-elle un repli destructeur ou s'affirme-t-elle au contraire comme une étape féconde de maturation intérieure ? »*"}
 
 ### 2. Audit Méthodologique du Développement & Articulation
 - **Structure des Paragraphes :** Respect global de la structure en paragraphes distincts. Toutefois, veiller à ce que chaque paragraphe développe strictement un argument univoque illustré d'un exemple concret développé issu de l'œuvre (*La Boîte à Merveilles*).
