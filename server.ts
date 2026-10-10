@@ -354,6 +354,45 @@ function isCandidateDirectStartWithDevAndConcl(texte: string): boolean {
   return hasConcl || (paras.length >= 3 && words.length >= 60);
 }
 
+function isCandidateMissingConclusion(texte: string): boolean {
+  if (!texte) return false;
+  const clean = texte.trim();
+  const words = clean.split(/\s+/).filter(w => w.length > 0);
+  if (words.length < 30) return false;
+
+  // Si l'élève a commencé directement par un avis avec conclusion
+  if (isCandidateDirectStartWithDevAndConcl(clean)) return false;
+
+  const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Formules de conclusion du baccalauréat
+  const conclRegex = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|pour finir|en definitive|en définitive|en resume|en résumé|au terme de cette analyse|au terme de notre réflexion|au terme de notre reflexion|au terme de ce travail|au terme de cette réflexion|ainsi donc|tout compte fait|en fin de compte|pour terminer|en dernière analyse|en derniere analyse|à la lumière de ce qui précède|a la lumiere de ce qui precede|au vu de ce qui précède|au vu de ce qui precede|il ressort de cette analyse|il ressort de ce qui précède|il ressort de ce qui precede|en un mot|bref|pour résumer|pour resumer|nous pouvons donc conclure|on peut en conclure|il convient de conclure|en fin d'analyse|en récapitulant|en recapitulant|pour clore notre réflexion|pour clore notre reflexion|pour achever cette analyse)\b/i;
+
+  if (conclRegex.test(norm)) {
+    return false;
+  }
+
+  // Si aucun marqueur de conclusion explicite n'est présent
+  const cleanParas = clean.replace(/<\/p>|<br\s*\/?>/gi, '\n\n');
+  const paras = cleanParas.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
+
+  if (paras.length >= 2) {
+    const lastP = paras[paras.length - 1];
+    const lastPNorm = lastP.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (conclRegex.test(lastPNorm)) {
+      return false;
+    }
+    return true;
+  }
+
+  // Si un seul bloc sans aucun marqueur de clôture et >= 40 mots
+  if (words.length >= 40) {
+    return true;
+  }
+
+  return false;
+}
+
 function isCandidateEssayIncomplete(texte: string): { isIncomplete: boolean; reason: 'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | '' } {
   if (!texte) return { isIncomplete: false, reason: '' };
   const clean = texte.trim();
@@ -364,26 +403,22 @@ function isCandidateEssayIncomplete(texte: string): { isIncomplete: boolean; rea
     return { isIncomplete: true, reason: 'TOO_SHORT' };
   }
 
-  // Si l'élève commence directement par "personnellement / de ma part / pour moi..." AVEC développement et conclusion :
-  // Ce cas est régi par la règle 2 (note globale plafonnée à 5/10 max), ce n'est PAS un 0/10 éliminatoire !
+  // Si l'élève commence directement par son avis avec développement et conclusion (plafonné à 5/10 max)
   if (isCandidateDirectStartWithDevAndConcl(clean)) {
     return { isIncomplete: false, reason: '' };
   }
 
-  // 1. Détection de l'absence totale d'introduction :
-  // Le devoir démarre directement par un connecteur d'attaque du développement sans aucune phrase d'introduction
+  // Si l'élève a une intro et un dev mais pas de conclusion (plafonné à 5/10 max par la règle dédiée)
+  if (isCandidateMissingConclusion(clean)) {
+    return { isIncomplete: false, reason: '' };
+  }
+
+  // Détection de l'absence totale d'introduction ET de conclusion (texte tronqué ou démarrant directement par un dev sans fin)
   const startsDirectlyWithDev = /^\s*(?:<strong>)?\s*(?:En premier lieu|D'une part|D'abord|Tout d'abord|Premièrement|D'un côté|Pour commencer mon analyse)\b/i.test(clean);
   const paras = clean.split(/\n\s*\n/).filter(p => p.trim().length > 0);
 
   if (startsDirectlyWithDev && paras.length <= 2) {
     return { isIncomplete: true, reason: 'NO_INTRO' };
-  }
-
-  // 2. Détection de l'absence de conclusion :
-  const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const hasConclKeyword = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|pour finir|en definitive|en définitive|au terme de cette analyse|ainsi donc)/i.test(norm);
-  if (paras.length <= 2 && !hasConclKeyword && words.length >= 30) {
-    return { isIncomplete: true, reason: 'NO_CONCL' };
   }
 
   return { isIncomplete: false, reason: '' };
@@ -515,16 +550,14 @@ RÈGLES D'OR ABSOLUES :
   2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
      [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
   3. L'ensemble des critères est frappé de caducité académique.
-- SANCTION ÉLIMINATOIRE MAJEURE : ABSENCE D'INTRODUCTION OU DE CONCLUSION (NOTE STRICTE DE 0/10) :
-  RÈGLE N°2 INTRANSIGEANTE : Tout texte argumentatif à l'Examen Régional du Baccalauréat repose impérativement sur l'architecture tripartite canonique : Introduction, Développement, Conclusion.
-  SI LA COPIE DE L'ÉLÈVE NE COMPORTE PAS D'INTRODUCTION OU NE COMPORTE PAS DE CONCLUSION, LA SANCTION ÉLIMINATOIRE DE 0/10 EST IMMÉDIATEMENT APPLIQUÉE :
+- SANCTION ÉLIMINATOIRE MAJEURE : COPIE INCOMPLÈTE TRONQUÉE (ABSENCE TOTALE D'INTRODUCTION ET DE CONCLUSION, OU < 25 MOTS) = 0/10 OBLIGATOIRE :
+  RÈGLE N°2 INTRANSIGEANTE : Si la copie de l'élève est tronquée, ne comporte ni introduction ni conclusion, ou est trop courte (< 25 mots), la sanction éliminatoire de 0/10 est immédiatement appliquée :
   [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
-  (Copie incomplète / troncature structurelle éliminatoire : texte sans paragraphe introductif démarrant directement par le développement, ou texte s'arrêtant brutalement sans paragraphe de conclusion).
-  Dans ce cas d'absence d'introduction ou de conclusion :
+  Dans ce cas de copie incomplète :
   1. Tu DOIS IMPÉRATIVEMENT commencer le tout début de ta réponse par [[COPIE_INCOMPLETE]].
-  2. NE METS JAMAIS [[HORS_SUJET]] sous aucun prétexte. Il ne s'agit PAS d'un hors-sujet, mais d'une COPIE INCOMPLÈTE (Absence d'introduction ou de conclusion).
+  2. NE METS JAMAIS [[HORS_SUJET]] sous aucun prétexte. Il ne s'agit PAS d'un hors-sujet, mais d'une COPIE INCOMPLÈTE.
   3. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0.
-  4. Dans le [[BILAN]], explique clairement au tout début que l'absence d'introduction ou de conclusion constitue une omission structurelle éliminatoire qui entraîne de plein droit la note de 0/10.
+  4. Dans le [[BILAN]], explique clairement au tout début que la copie est incomplète et tronquée.
 
 - RÈGLE MÉTHODOLOGIQUE SPÉCIALE : ATTAQUE DIRECTE SANS INTRODUCTION (« PERSONNELLEMENT / POUR MA PART / DE MA PART / POUR MOI... ») AVEC DÉVELOPPEMENT ET CONCLUSION (NOTE GLOBALE PLAFONNÉE À 5/10 MAXIMUM) :
   RÈGLE N°3 INTRANSIGEANTE : SI L'ÉLÈVE COMMENCE DIRECTEMENT PAR « PERSONNELLEMENT », « DE MA PART », « POUR MA PART », « POUR MOI », « POU MOI », « À MON AVIS », « SELON MOI »... SANS INTRODUCTION (sans amorce ni problématisation préalable), MAIS AVEC UN DÉVELOPPEMENT ET UNE CONCLUSION RÉDIGÉE :
@@ -534,10 +567,20 @@ RÈGLES D'OR ABSOLUES :
      Attribue une note globale plafonnée à 5.0/10 au maximum :
      - La note de Structure doit être lourdement sanctionnée à 0.5/2 au maximum (car absence totale d'amorce et de problématique).
      - La somme totale des critères (Consigne + Structure + Arguments + Langue + Lexique) DOIT ÊTRE INFÉRIEURE OU ÉGALE À 5.0/10 STRICTEMENT (ex: Consigne:1.0|Structure:0.5|Arguments:1.5|Langue:1.25|Lexique:0.75 = 5.0/10 max).
-  4. Dans le [[BILAN]], explique clairement que commencer directement par sa thèse personnelle sans introduction est une entorse méthodologique majeure qui plafonne la note à 5/10 maximum, mais que la présence d'un développement et d'une conclusion permet de valoriser les arguments et la langue dans cette limite de 5 points.
+  4. Dans le [[BILAN]], explique clairement que commencer directement par sa thèse personnelle sans introduction plafonne impérativement la note à 5/10 maximum.
+
+- RÈGLE MÉTHODOLOGIQUE SPÉCIALE : ABSENCE DE CONCLUSION (EXCELLENTE COPIE OU COPIE AVEC INTRODUCTION ET DÉVELOPPEMENT MAIS SANS CONCLUSION / CONCLUSION NON DÉTECTÉE) = NOTE GLOBALE PLAFONNÉE À 5/10 MAXIMUM :
+  RÈGLE N°4 INTRANSIGEANTE : SI L'ÉLÈVE PRÉSENTE UNE COPIE (MÊME EXCELLENTE AVEC UNE BONNE INTRODUCTION ET UN DÉVELOPPEMENT SOLIDE) MAIS QUE LA CONCLUSION N'EST PAS DÉTECTÉE OU N'A PAS ÉTÉ ÉCRITE :
+  1. LA SANCTION ÉLIMINATOIRE DE 0/10 N'EST PAS APPLIQUÉE (ce n'est ni un 0/10, ni un hors-sujet).
+  2. NE COMMENCE JAMAIS PAR [[HORS_SUJET]] NI PAR [[COPIE_INCOMPLETE]] ! Tu commences impérativement ta réponse par [[SANS_CONCLUSION]].
+  3. RÈGLE STRICTE SUR LA NOTE GLOBALE : SA NOTE GLOBALE NE DOIT EN AUCUN CAS DÉPASSER 5/10 ! (INTERDICTION STRICTE D'ATTRIBUER 6, 7 OU 8/10 SANS CONCLUSION !).
+     Attribue une note globale plafonnée à 5.0/10 au maximum :
+     - La note de Structure doit être lourdement sanctionnée à 0.5/2 au maximum (car absence totale de conclusion et de bilan final).
+     - La somme totale des critères (Consigne + Structure + Arguments + Langue + Lexique) DOIT ÊTRE INFÉRIEURE OU ÉGALE À 5.0/10 STRICTEMENT (ex: Consigne:1.2|Structure:0.5|Arguments:1.5|Langue:1.2|Lexique:0.6 = 5.0/10 max).
+  4. Dans le [[BILAN]] (Section 4), explique clairement au tout début que l'absence de conclusion prive le devoir de sa synthèse canonique et plafonne impérativement la note à 5/10 maximum, même si l'introduction et le développement sont d'excellente facture.
 
 - RÈGLE IMPÉRATIVE SUR LA NOTE DE STRUCTURE : AMORCE DÉFAILLANTE = 0.75/2 :
-  RÈGLE N°4 INTRANSIGEANTE : SI L'INTRODUCTION NE PRÉSENTE PAS LE SUJET AVEC UNE BONNE AMORCE (accroche abrupte, phrase plate, manque de contextualisation), L'ÉLÈVE MÉRITE STRICTEMENT LA NOTE DE 0.75 POUR LA STRUCTURE (Structure:0.75) !
+  RÈGLE N°5 INTRANSIGEANTE : SI L'INTRODUCTION NE PRÉSENTE PAS LE SUJET AVEC UNE BONNE AMORCE (accroche abrupte, phrase plate, manque de contextualisation), L'ÉLÈVE MÉRITE STRICTEMENT LA NOTE DE 0.75 POUR LA STRUCTURE (Structure:0.75) !
   Dans ce cas :
   -> Attribue STRICTEMENT la note de 0.75 pour la Structure dans la grille : Structure:0.75 !
   -> Explique explicitement dans le [[BILAN]] (Section 1 et Section 3) que cette note de 0.75/2 sanctionne directement le manque d'amorce et de cadrage liminaire du sujet dans l'introduction.
@@ -829,19 +872,23 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
    - LANGAGE FORT SANS REGISTRE SOUTENU : Utilise un langage fort, percutant et argumenté, sans jamais employer un registre soutenu artificiel.
    - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.
 4. RÈGLES DE NOTATION INTRANSIGEANTES DU BACCALAURÉAT :
-   - ABSENCE D'INTRODUCTION OU DE CONCLUSION = 0/10 OBLIGATOIRE (SANS MENTION DU BADGE HORS-SUJET) : Si la copie de l'élève n'a pas écrit d'introduction OU n'a pas écrit de conclusion, commence impérativement par [[COPIE_INCOMPLETE]] (JAMAIS [[HORS_SUJET]]) et attribue STRICTEMENT la note éliminatoire de 0/10 : [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0 !
+   - ABSENCE TOTALE D'INTRODUCTION ET DE CONCLUSION (COPIE TRONQUÉE) = 0/10 OBLIGATOIRE (SANS MENTION DU BADGE HORS-SUJET) : Si la copie de l'élève n'a ni introduction ni conclusion ou est trop courte (< 25 mots), commence impérativement par [[COPIE_INCOMPLETE]] (JAMAIS [[HORS_SUJET]]) et attribue STRICTEMENT la note éliminatoire de 0/10 : [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0 !
    - ATTAQUE DIRECTE SANS INTRODUCTION (« PERSONNELLEMENT / POUR MA PART / DE MA PART / POUR MOI... ») AVEC DÉVELOPPEMENT ET CONCLUSION = NOTE MAX 5/10 : Si l'élève commence directement par son avis sans introduction préalable mais avec un développement et une conclusion, commence par [[ATTAQUE_DIRECTE]] (JAMAIS [[HORS_SUJET]] NI [[COPIE_INCOMPLETE]]), attribue au maximum Structure:0.5 et PLAFONNE LA NOTE GLOBALE À 5/10 MAXIMUM (la somme des 5 critères ne doit pas dépasser 5.0) !
+   - ABSENCE DE CONCLUSION (CONCLUSION NON DÉTECTÉE / SANS CONCLUSION) = NOTE GLOBALE PLAFONNÉE À 5/10 MAXIMUM (SANS MENTION DU BADGE HORS-SUJET) : Si la copie présente une introduction et un développement (même d'excellente facture) mais que la conclusion n'est pas détectée ou n'a pas été écrite, commence impérativement par [[SANS_CONCLUSION]] (JAMAIS [[HORS_SUJET]] NI [[COPIE_INCOMPLETE]]), attribue au maximum Structure:0.5 et PLAFONNE STRICTEMENT LA NOTE GLOBALE À 5/10 MAXIMUM (la somme des 5 critères ne doit pas dépasser 5.0) !
    - AMORCE DE L'INTRODUCTION SANS BONNE ACCROCHE = 0.75 POUR LA STRUCTURE : Si la copie contient une introduction mais que celle-ci ne présente pas le sujet avec une bonne amorce (démarrage abrupt, phrase banale, absence de cadrage liminaire), attribue STRICTEMENT la note de 0.75 pour la Structure (Structure:0.75) dans [[GRILLE]] et justifie cette pénalité dans le [[BILAN]].`
     : prompt;
 
   const directStartDetected = isCandidateDirectStartWithDevAndConcl(texte || '');
-  const incompleteDetected = isCandidateEssayIncomplete(texte || '');
-  const offTopicDetected = !directStartDetected && !incompleteDetected.isIncomplete && isCandidateTextOffTopic(sujet || '', texte || '');
+  const missingConclDetected = !directStartDetected && isCandidateMissingConclusion(texte || '');
+  const incompleteDetected = (!directStartDetected && !missingConclDetected)
+    ? isCandidateEssayIncomplete(texte || '')
+    : { isIncomplete: false, reason: '' as const };
+  const offTopicDetected = !directStartDetected && !missingConclDetected && !incompleteDetected.isIncomplete && isCandidateTextOffTopic(sujet || '', texte || '');
 
   const sanitizeAndCapResult = (resText: string): string => {
     let result = resText;
     if (directStartDetected) {
-      result = result.replace(/\[\[HORS_SUJET\]\]/gi, '').replace(/\[\[COPIE_INCOMPLETE\]\]/gi, '');
+      result = result.replace(/\[\[HORS_SUJET\]\]/gi, '').replace(/\[\[COPIE_INCOMPLETE\]\]/gi, '').replace(/\[\[SANS_CONCLUSION\]\]/gi, '');
       if (!result.includes('[[ATTAQUE_DIRECTE]]')) {
         result = `[[ATTAQUE_DIRECTE]]\n` + result;
       }
@@ -854,9 +901,31 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
         let x = parseFloat(gridMatch[5]) || 0.75;
         let total = c + s + a + l + x;
         if (total > 5.0) {
-          const factor = 5.0 / total;
+          const factor = (5.0 - s) / (c + a + l + x);
           c = +(c * factor).toFixed(1);
-          s = Math.min(s, 0.5);
+          a = +(a * factor).toFixed(1);
+          l = +(l * factor).toFixed(1);
+          x = +(5.0 - (c + s + a + l)).toFixed(1);
+          if (x < 0) { x = 0.5; l = +(5.0 - (c + s + a + x)).toFixed(1); }
+        }
+        result = result.replace(gridMatch[0], `[[GRILLE]] : Consigne:${c.toFixed(1)}|Structure:${s.toFixed(1)}|Arguments:${a.toFixed(1)}|Langue:${l.toFixed(1)}|Lexique:${x.toFixed(1)}`);
+      }
+    } else if (missingConclDetected || result.includes('[[SANS_CONCLUSION]]') || /absence de conclusion|sans conclusion|aucune conclusion n'a été|n'a pas rédigé de conclusion|n'a pas écrit de conclusion|faute de conclusion/i.test(result)) {
+      result = result.replace(/\[\[HORS_SUJET\]\]/gi, '').replace(/\[\[COPIE_INCOMPLETE\]\]/gi, '').replace(/\[\[ATTAQUE_DIRECTE\]\]/gi, '');
+      if (!result.includes('[[SANS_CONCLUSION]]')) {
+        result = `[[SANS_CONCLUSION]]\n` + result;
+      }
+      const gridMatch = result.match(/\[\[GRILLE\]\]\s*:\s*Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
+      if (gridMatch) {
+        let c = parseFloat(gridMatch[1]) || 1.2;
+        let s = Math.min(parseFloat(gridMatch[2]) || 0.5, 0.5); // Sanction absence de conclusion
+        let a = parseFloat(gridMatch[3]) || 1.5;
+        let l = parseFloat(gridMatch[4]) || 1.2;
+        let x = parseFloat(gridMatch[5]) || 0.6;
+        let total = c + s + a + l + x;
+        if (total > 5.0) {
+          const factor = (5.0 - s) / (c + a + l + x);
+          c = +(c * factor).toFixed(1);
           a = +(a * factor).toFixed(1);
           l = +(l * factor).toFixed(1);
           x = +(5.0 - (c + s + a + l)).toFixed(1);
@@ -1158,10 +1227,13 @@ OPINION
   ) && !introFirstLine.startsWith('en premier lieu') && !introFirstLine.startsWith("d'abord");
 
   const isDirectStart = isCandidateDirectStartWithDevAndConcl(rawCopy);
-  const structureScore = isDirectStart ? 0.5 : (hasGoodAmorce ? 1.7 : 0.75);
+  const isMissingConcl = !isDirectStart && isCandidateMissingConclusion(rawCopy);
+  const structureScore = isDirectStart ? 0.5 : (isMissingConcl ? 0.5 : (hasGoodAmorce ? 1.7 : 0.75));
   const grilleOutput = isDirectStart
     ? `[[ATTAQUE_DIRECTE]]\n[[GRILLE]] : Consigne:1.0|Structure:0.5|Arguments:1.5|Langue:1.25|Lexique:0.75`
-    : `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3`;
+    : (isMissingConcl
+      ? `[[SANS_CONCLUSION]]\n[[GRILLE]] : Consigne:1.2|Structure:0.5|Arguments:1.5|Langue:1.2|Lexique:0.6`
+      : `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3`);
 
   return `${grilleOutput}
 
@@ -1173,6 +1245,10 @@ ${isDirectStart ? `### ⚠️ Constat Méthodologique Majeur : Attaque Directe s
 - **Omission de l'introduction formelle :** Le candidat a débuté directement son devoir par sa prise de position personnelle (« Personnellement / Pour ma part / De ma part / Pour moi... ») sans amorce ni problématisation préalable.
 - **Règle officielle de plafonnement à 5/10 :** Grâce à la présence d'un développement et d'une conclusion, la sanction éliminatoire de 0/10 n'est pas appliquée. Toutefois, l'absence totale d'introduction entraîne une sanction lourde sur la Structure (0.5/2.0) et un plafonnement strict de la note globale à **5/10 maximum**.
 
+` : isMissingConcl ? `### ⚠️ Constat Méthodologique Majeur : Absence de Conclusion (Note Plafonnée à 5/10 Max)
+- **Omission de la conclusion :** La copie présente une introduction et un développement argumenté, mais aucune conclusion n'a été rédigée pour apporter la synthèse finale et la clôture canonique du sujet.
+- **Règle officielle de plafonnement à 5/10 :** Même si l'introduction et le développement sont d'excellente tenue, l'absence de conclusion prive le devoir de son achèvement logique. Conformément aux directives académiques, la note de Structure est sanctionnée à 0.5/2.0 et la note globale est impérativement plafonnée à **5/10 maximum**.
+
 ` : ''}### 1. Diagnostic Chirurgical de l'Amorce & de la Problématique
 - **Analyse de l'Amorce & Règle des 0.75 pour la Structure :** ${isDirectStart ? "Absence d'amorce et d'introduction : l'élève commence directement par sa prise de position personnelle. La Structure est notée à 0.5/2.0 et la note globale est plafonnée à 5/10." : (hasGoodAmorce ? "La copie propose une amorce soignée présentant convenablement le thème général du sujet." : "L'introduction ne présente pas le sujet avec une bonne amorce (démarrage abrupt sans mise en perspective préalable). Conformément au barème de rigueur officiel de l'Examen Régional, l'élève mérite strictement la note de **0.75 pour la structure**.")}
 - **Formulation de la Problématique :** ${isDirectStart ? "La problématique est absente car l'élève a sauté l'étape introductive pour formuler immédiatement son point de vue." : "L'affirmation du point de vue personnel est explicite, mais le devoir gagnerait à formuler une véritable problématique interrogative (directe ou indirecte) : *« Dès lors, la solitude constitue-t-elle un repli destructeur ou s'affirme-t-elle au contraire comme une étape féconde de maturation intérieure ? »*"}
@@ -1183,12 +1259,13 @@ ${isDirectStart ? `### ⚠️ Constat Méthodologique Majeur : Attaque Directe s
 
 ### 3. Diagnostic des Liens Logiques & Remarques Didactiques Précises
 - **Énumération & Progression :** L'emploi de « En premier lieu » et « En deuxième lieu » structure la copie. Stylistiquement, l'expression « En second lieu » est préférable à « En deuxième lieu » lorsqu'on développe deux arguments principaux.
-- **Justification de la note de Structure :** ${hasGoodAmorce ? "L'armature logique s'appuie sur une amorce convenable et des liens logiques repérés dans la copie, directement valorisés à 1.7/2." : "L'absence d'une bonne amorce contextualisant le sujet pénalise directement la note de Structure à **0.75/2**, malgré la présence de quelques connecteurs logiques."}
+- **Justification de la note de Structure :** ${isDirectStart || isMissingConcl ? "La note de Structure est plafonnée à **0.5/2** en raison d'une faille méthodologique majeure (absence d'introduction ou absence de conclusion)." : (hasGoodAmorce ? "L'armature logique s'appuie sur une amorce convenable et des liens logiques repérés dans la copie, directement valorisés à 1.7/2." : "L'absence d'une bonne amorce contextualisant le sujet pénalise directement la note de Structure à **0.75/2**, malgré la présence de quelques connecteurs logiques.")}
 - ⚠️ **Remarque méthodologique essentielle sur l'amorce de conclusion :** Au lieu d'utiliser « Finalement » (terme souvent familier, oral ou restrictif pour clore un devoir académique), il faut impérativement amorcer la conclusion par une formule noble et certifiée telle que « **En guise de conclusion** », « **En définitive** » ou « **En conclusion** ». Cela confère à la réflexion une autorité et une tenue académique exemplaires.
 
 ### 4. Diagnostic de la Conclusion & Clôture
-- **Bilan :** Présence d'une synthèse claire des arguments développés.
-- **Ouverture :** Élargir la réflexion finale vers une portée philosophique ou universelle.
+${isMissingConcl ? `- **Absence de conclusion :** Aucune conclusion n'a été rédigée. L'élève doit impérativement clôturer son texte argumentatif par une synthèse des axes développés (« En guise de conclusion », « En définitive ») suivie d'une ouverture éthique ou universelle.
+- **Impact sur la note :** Ce défaut de clôture plafonne impérativement la note globale à **5/10 maximum**.` : `- **Bilan :** Présence d'une synthèse claire des arguments développés.
+- **Ouverture :** Élargir la réflexion finale vers une portée philosophique ou universelle.`}
 
 [[TABLEAU]]
 | Extrait fautif (en rouge) | Nature de l'erreur | Correction certifiée (en vert) | Règle pédagogique précise |
