@@ -338,6 +338,7 @@ export default function App() {
   const [offTopicType, setOffTopicType] = useState<'THEMATIQUE' | 'METHODOLOGIQUE' | 'GENERAL'>('GENERAL');
   const [isCopieIncomplete, setIsCopieIncomplete] = useState(false);
   const [incompleteReason, setIncompleteReason] = useState<'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | ''>('');
+  const [isDirectStart, setIsDirectStart] = useState(false);
   const [detectedPlanType, setDetectedPlanType] = useState<'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' | ''>('SIMPLE');
   // Sujet validé par l'élève : si validé, affiché en gras sans zone de rédaction
   const [isSubjectValidated, setIsSubjectValidated] = useState<boolean>(false);
@@ -876,11 +877,23 @@ export default function App() {
   }, [texte]);
 
   // Attribution de la mention officielle selon la note sur 10 (Mention Très Bien, Bien, À consolider)
-  const getMentionData = (note: number, isHorsSujetVal: boolean) => {
-    if (isHorsSujetVal || note === 0) {
+  const getMentionData = (note: number, isHorsSujetVal: boolean, isCopieIncompleteVal?: boolean, isDirectStartVal?: boolean) => {
+    if (isHorsSujetVal) {
       return {
         label: 'Hors-Sujet',
         className: 'bg-red-100 text-red-800 border-red-300',
+      };
+    }
+    if (isCopieIncompleteVal || (note === 0 && !isHorsSujetVal)) {
+      return {
+        label: 'Copie Incomplète (0/10)',
+        className: 'bg-red-100 text-red-800 border-red-300',
+      };
+    }
+    if (isDirectStartVal) {
+      return {
+        label: 'Attaque directe (Max 5/10)',
+        className: 'bg-amber-100 text-amber-900 border-amber-400 shadow-2xs',
       };
     }
     if (note >= 8.0) {
@@ -903,8 +916,10 @@ export default function App() {
 
   const currentScoreNum = isHorsSujet
     ? 0
+    : isCopieIncomplete
+    ? 0
     : (parseFloat(scores.total) || (scores.c + scores.s + scores.a + scores.l + scores.x) || 8.8);
-  const mentionInfo = getMentionData(currentScoreNum, isHorsSujet);
+  const mentionInfo = getMentionData(currentScoreNum, isHorsSujet, isCopieIncomplete, isDirectStart);
 
   // Modal Changement de mot de passe sécurisé par Clé Maître Enseignant
   const [showChangeModal, setShowChangeModal] = useState(false);
@@ -2062,16 +2077,38 @@ export default function App() {
     return { isOff: false, type: 'GENERAL' };
   };
 
+  const checkDirectStart = (texteStr: string): boolean => {
+    if (!texteStr) return false;
+    const clean = texteStr.trim();
+    const directOpinionRegex = /^\s*(?:<strong>)?\s*(?:personnellement|pour ma part|de ma part|pour moi|pou moi|à mon avis|a mon avis|selon moi|d'après moi|d’après moi|en ce qui me concerne|quant à moi)\b/i;
+    if (!directOpinionRegex.test(clean)) return false;
+
+    const words = clean.split(/\s+/).filter(w => w.length > 0);
+    if (words.length < 30) return false;
+
+    const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const hasConcl = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|pour finir|en definitive|en définitive|en resume|en résumé|au terme de cette analyse|ainsi donc)\b/i.test(norm);
+    const paragraphs = clean.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
+
+    return hasConcl || (paragraphs.length >= 3 && words.length >= 60);
+  };
+
   const checkCandidateCompleteness = (texteStr: string): { isIncomplete: boolean; reason: 'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | '' } => {
     if (!texteStr) return { isIncomplete: false, reason: '' };
     const clean = texteStr.trim();
     if (clean.length === 0) return { isIncomplete: false, reason: '' };
 
+    // Si l'élève commence directement par "personnellement / de ma part / pour moi..." avec un développement et une conclusion :
+    // Règle 2 : ce n'est PAS une copie incomplète 0/10, mais une attaque directe plafonnée à 5/10 maximum !
+    if (checkDirectStart(clean)) {
+      return { isIncomplete: false, reason: '' };
+    }
+
     const paragraphs = clean.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
     const words = clean.split(/\s+/).filter(w => w.length > 0);
 
-    // Si le texte est excessivement court (moins de 35 mots), le devoir ne comporte ni développement ni conclusion
-    if (words.length < 35 && words.length > 0) {
+    // Si le texte est excessivement court (moins de 25 mots), le devoir ne comporte ni développement ni conclusion
+    if (words.length < 25 && words.length > 0) {
       return { isIncomplete: true, reason: 'TOO_SHORT' };
     }
 
@@ -2084,8 +2121,8 @@ export default function App() {
     // Si moins de 3 paragraphes distincts, vérifier la présence d'une conclusion
     if (paragraphs.length < 3) {
       const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const hasConclKeyword = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|au terme de cette analyse|ainsi donc|en definitive|en définitive)/i.test(norm);
-      if (!hasConclKeyword) {
+      const hasConclKeyword = /(?:en conclusion|pour conclure|en guise de conclusion|en somme|finalement|pour clore|pour finir|au terme de cette analyse|ainsi donc|en definitive|en définitive)/i.test(norm);
+      if (!hasConclKeyword && words.length >= 25) {
         return { isIncomplete: true, reason: 'NO_CONCL' };
       }
     }
@@ -2505,15 +2542,23 @@ export default function App() {
       const offTopicCheck = checkOffTopicStatus(sujet, texte);
       const isMethodological = offTopicCheck.isOff && offTopicCheck.type === 'METHODOLOGIQUE';
 
-      // Vérification rigoureuse de la complétude (Introduction et Conclusion obligatoires)
-      const incompleteCheck = checkCandidateCompleteness(texte);
-      const isAiExplicitIncomplete = raw.includes('[[COPIE_INCOMPLETE]]') ||
-                                    raw.includes('===COPIE_INCOMPLETE===') ||
-                                    raw.includes('COPIE INCOMPLÈTE') ||
-                                    raw.includes('ABSENCE D\'INTRODUCTION') ||
-                                    raw.includes('ABSENCE DE CONCLUSION');
+      // 1. Détection de l'attaque directe sans introduction (commence directement par "personnellement / de ma part / pour moi...")
+      const directStartCheck = checkDirectStart(texte);
+      const isDirectStartDetected = directStartCheck || raw.includes('[[ATTAQUE_DIRECTE]]') || raw.toLowerCase().includes('attaque directe sans introduction');
+      setIsDirectStart(isDirectStartDetected);
 
-      const isCopieIncompleteDetected = isAiExplicitIncomplete || incompleteCheck.isIncomplete;
+      // 2. Détection rigoureuse de la complétude (Introduction et Conclusion obligatoires)
+      // Si c'est une attaque directe avec développement et conclusion, ce n'est PAS une copie incomplète éliminée à 0/10 !
+      const incompleteCheck = isDirectStartDetected ? { isIncomplete: false, reason: '' as const } : checkCandidateCompleteness(texte);
+      const isAiExplicitIncomplete = !isDirectStartDetected && (
+        raw.includes('[[COPIE_INCOMPLETE]]') ||
+        raw.includes('===COPIE_INCOMPLETE===') ||
+        raw.includes('COPIE INCOMPLÈTE') ||
+        raw.includes('ABSENCE D\'INTRODUCTION') ||
+        raw.includes('ABSENCE DE CONCLUSION')
+      );
+
+      const isCopieIncompleteDetected = !isDirectStartDetected && (isAiExplicitIncomplete || incompleteCheck.isIncomplete);
       setIsCopieIncomplete(isCopieIncompleteDetected);
       setIncompleteReason(
         incompleteCheck.reason ||
@@ -2521,12 +2566,14 @@ export default function App() {
          raw.includes('ABSENCE DE CONCLUSION') ? 'NO_CONCL' : 'NO_INTRO')
       );
       
-      // Seule une sanction explicite [[HORS_SUJET]] ou une note de consigne à 0/2 dans le retour de l'IA (ou un hors-sujet strict avéré) déclenche la sanction 0/10
-      const isAiExplicitHorsSujet = raw.includes('[[HORS_SUJET]]') || 
-                                    raw.includes('===HORS_SUJET===') || 
-                                    /(?:CONSIGNE|Consigne)\s*:\s*0(?:\.0+)?(?:\s*\/|\s*\||\s*$)/.test(raw);
+      // 3. Détection hors-sujet : UNIQUEMENT si la copie n'est ni incomplète, ni une attaque directe
+      const isAiExplicitHorsSujet = !isDirectStartDetected && !isCopieIncompleteDetected && (
+        raw.includes('[[HORS_SUJET]]') || 
+        raw.includes('===HORS_SUJET===') || 
+        /(?:CONSIGNE|Consigne)\s*:\s*0(?:\.0+)?(?:\s*\/|\s*\||\s*$)/.test(raw)
+      );
       
-      const horsSujet = isAiExplicitHorsSujet || offTopicCheck.isOff;
+      const horsSujet = !isDirectStartDetected && !isCopieIncompleteDetected && (isAiExplicitHorsSujet || offTopicCheck.isOff);
 
       setIsHorsSujet(horsSujet);
       setOffTopicType(isMethodological ? 'METHODOLOGIQUE' : (offTopicCheck.type || 'GENERAL'));
@@ -2538,8 +2585,9 @@ export default function App() {
       let scoreX = 1.3;
       let totalCalc = '8.8';
 
-      // Si la copie est hors-sujet OU incomplète (manque intro ou conclusion) : 0/10 éliminatoire immédiat
-      if (horsSujet || isCopieIncompleteDetected) {
+      // Si la copie est incomplète (manque intro ou conclusion) : 0/10 éliminatoire immédiat
+      // Sans mentionner sous la note le badge hors sujet !
+      if (isCopieIncompleteDetected) {
         scoreC = 0.0;
         scoreS = 0.0;
         scoreA = 0.0;
@@ -2554,8 +2602,27 @@ export default function App() {
         if (rTotal) rTotal.innerText = '0/10';
         const rMention = document.getElementById('rMention');
         if (rMention) {
-          const mentionData = getMentionData(0, true);
-          rMention.innerText = mentionData.label;
+          const mentionData = getMentionData(0, false, true, false);
+          rMention.innerText = mentionData.label; // "Copie Incomplète (0/10)"
+          rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
+        }
+      } else if (horsSujet) {
+        scoreC = 0.0;
+        scoreS = 0.0;
+        scoreA = 0.0;
+        scoreL = 0.0;
+        scoreX = 0.0;
+        totalCalc = '0.0';
+        if (v1) v1.innerText = '0.0';
+        if (v2) v2.innerText = '0.0';
+        if (v3) v3.innerText = '0.0';
+        if (v4) v4.innerText = '0.0';
+        if (v5) v5.innerText = '0.0';
+        if (rTotal) rTotal.innerText = '0/10';
+        const rMention = document.getElementById('rMention');
+        if (rMention) {
+          const mentionData = getMentionData(0, true, false, false);
+          rMention.innerText = mentionData.label; // "Hors-Sujet"
           rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
         }
       } else {
@@ -2572,16 +2639,37 @@ export default function App() {
           if (l) scoreL = parseFloat(l[1]);
           if (x) scoreX = parseFloat(x[1]);
 
-          // Si l'introduction ne présente pas le sujet avec une bonne amorce : note de structure fixée à 0.75
-          const rawLow = raw.toLowerCase();
-          const hasBadAmorce = rawLow.includes('amorce défaillante') || 
-                               rawLow.includes('amorce defaillante') || 
-                               rawLow.includes('amorce abrupte') || 
-                               rawLow.includes('amorce à renforcer') ||
-                               rawLow.includes('0.75 pour la structure') ||
-                               rawLow.includes('0.75/2');
-          if (hasBadAmorce && scoreS > 0.75) {
-            scoreS = 0.75;
+          // Si l'élève commence directement par "personnellement / de ma part / pour moi..." sans intro mais avec dev & concl :
+          // Sa note globale NE DOIT PAS DÉPASSER 5/10 !
+          if (isDirectStartDetected) {
+            scoreS = Math.min(scoreS, 0.5); // Structure lourdement pénalisée car absence totale d'introduction
+            let sumTotal = scoreC + scoreS + scoreA + scoreL + scoreX;
+            if (sumTotal > 5.0) {
+              const factor = 5.0 / sumTotal;
+              scoreC = +(scoreC * factor).toFixed(1);
+              scoreS = Math.min(scoreS, 0.5);
+              scoreA = +(scoreA * factor).toFixed(1);
+              scoreL = +(scoreL * factor).toFixed(1);
+              scoreX = +(5.0 - (scoreC + scoreS + scoreA + scoreL)).toFixed(1);
+              if (scoreX < 0) {
+                scoreX = 0.5;
+                scoreL = +(5.0 - (scoreC + scoreS + scoreA + scoreX)).toFixed(1);
+              }
+            }
+            totalCalc = Math.min(5.0, scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
+          } else {
+            // Si l'introduction ne présente pas le sujet avec une bonne amorce : note de structure fixée à 0.75
+            const rawLow = raw.toLowerCase();
+            const hasBadAmorce = rawLow.includes('amorce défaillante') || 
+                                 rawLow.includes('amorce defaillante') || 
+                                 rawLow.includes('amorce abrupte') || 
+                                 rawLow.includes('amorce à renforcer') ||
+                                 rawLow.includes('0.75 pour la structure') ||
+                                 rawLow.includes('0.75/2');
+            if (hasBadAmorce && scoreS > 0.75) {
+              scoreS = 0.75;
+            }
+            totalCalc = (scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
           }
 
           if (c && v1) v1.innerText = scoreC.toFixed(1);
@@ -2589,19 +2677,32 @@ export default function App() {
           if (a && v3) v3.innerText = scoreA.toFixed(1);
           if (l && v4) v4.innerText = scoreL.toFixed(1);
           if (x && v5) v5.innerText = scoreX.toFixed(1);
-
-          totalCalc = (scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
         } else {
-          if (v1) v1.innerText = '1.8';
-          if (v2) v2.innerText = '1.7';
-          if (v3) v3.innerText = '1.8';
-          if (v4) v4.innerText = '2.2';
-          if (v5) v5.innerText = '1.3';
+          if (isDirectStartDetected) {
+            scoreC = 1.0;
+            scoreS = 0.5;
+            scoreA = 1.5;
+            scoreL = 1.3;
+            scoreX = 0.7;
+            totalCalc = '5.0';
+          } else {
+            scoreC = 1.8;
+            scoreS = 1.7;
+            scoreA = 1.8;
+            scoreL = 2.2;
+            scoreX = 1.3;
+            totalCalc = '8.8';
+          }
+          if (v1) v1.innerText = scoreC.toFixed(1);
+          if (v2) v2.innerText = scoreS.toFixed(1);
+          if (v3) v3.innerText = scoreA.toFixed(1);
+          if (v4) v4.innerText = scoreL.toFixed(1);
+          if (v5) v5.innerText = scoreX.toFixed(1);
         }
         if (rTotal) rTotal.innerText = `${totalCalc}/10`;
         const rMention = document.getElementById('rMention');
         if (rMention) {
-          const mentionData = getMentionData(parseFloat(totalCalc) || 0, false);
+          const mentionData = getMentionData(parseFloat(totalCalc) || 0, false, false, isDirectStartDetected);
           rMention.innerText = mentionData.label;
           rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
         }
@@ -3809,6 +3910,27 @@ export default function App() {
             </div>
           )}
 
+          {/* Cachet rouge officiel "COPIE INCOMPLÈTE" en diagonale du rapport (SANS mentionner Hors-Sujet) */}
+          {isCopieIncomplete && !isHorsSujet && (
+            <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden">
+              <div className="transform -rotate-24 select-none px-8 py-5 sm:px-14 sm:py-7 border-6 sm:border-8 border-red-600/90 rounded-2xl sm:rounded-3xl bg-red-600/[0.08] backdrop-blur-[1px] shadow-2xl flex flex-col items-center justify-center text-center max-w-[90vw] border-double">
+                <div className="flex items-center gap-2 sm:gap-3 text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] mb-1">
+                  <span>★</span>
+                  <span>DIRECTION DES EXAMENS DU BACCALAURÉAT</span>
+                  <span>★</span>
+                </div>
+                <div className="text-3xl sm:text-6xl font-black font-cinzel text-red-600 tracking-[0.15em] sm:tracking-[0.18em] drop-shadow-xs uppercase border-y-2 sm:border-y-4 border-red-600/80 py-1.5 sm:py-2.5 my-1">
+                  COPIE INCOMPLÈTE
+                </div>
+                <div className="flex items-center justify-between w-full text-red-600 text-[9px] sm:text-xs font-black uppercase tracking-wider mt-1 gap-4">
+                  <span>SANCTION ÉLIMINATOIRE</span>
+                  <span className="text-sm sm:text-lg font-mono font-black underline decoration-2">NOTE : 0 / 10</span>
+                  <span>CADRE OFFICIEL</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Sceau officiel & En-tête académique d'excellence */}
           <div className="border-b-2 border-slate-900 pb-7 mb-8">
             {/* Bandeau officiel de tête */}
@@ -3854,7 +3976,7 @@ export default function App() {
                     <span
                       id="rTotal"
                       className={`text-3xl sm:text-4xl font-black font-cinzel tracking-tight ${
-                        isHorsSujet || isCopieIncomplete ? 'text-red-700' : 'text-slate-950'
+                        isHorsSujet || isCopieIncomplete ? 'text-red-700' : isDirectStart ? 'text-amber-800' : 'text-slate-950'
                       }`}
                     >
                       {isHorsSujet || isCopieIncomplete ? '0/10' : `${scores.total || '8.8'}/10`}
@@ -4009,6 +4131,31 @@ export default function App() {
             </div>
           ) : (
             <>
+              {/* Notification didactique spéciale si attaque directe sans introduction (note plafonnée à 5/10) */}
+              {isDirectStart && (
+                <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50/95 border-2 border-amber-500 shadow-xs">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-700 text-white rounded-full text-[11px] font-black uppercase tracking-wider shadow-2xs">
+                        Attaque Directe sans Introduction : Note Plafonnée à 5/10 Max
+                      </div>
+                      <h4 className="text-base sm:text-lg font-bold text-amber-950 font-cinzel">
+                        Règle Méthodologique Officielle : Note Globale Plafonnée à {scores.total}/10
+                      </h4>
+                      <p className="text-xs sm:text-sm text-amber-900 leading-relaxed font-outfit">
+                        L'élève a commencé directement par son point de vue personnel (<em>« Personnellement / Pour ma part / De ma part / Pour moi... »</em>) sans introduction préalable (omission de l'amorce et de la problématique).
+                      </p>
+                      <p className="text-xs text-amber-800 leading-relaxed font-outfit pt-1">
+                        📜 <strong>Décision de la Commission :</strong> Le devoir comportant un développement et une conclusion rédigée, la sanction éliminatoire de 0/10 est écartée. Toutefois, la Structure est sanctionnée à <strong>{scores.s}/2</strong> et la note globale ne peut dépasser <strong>5/10</strong> (la somme totale des 5 critères est plafonnée à {scores.total}/10).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 1. Grille Officielle 10 Points */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -4033,11 +4180,13 @@ export default function App() {
                   </div>
 
                   {/* Structure (max 2.0, moyenne 1.0) */}
-                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.s <= 0.75 ? 'border-amber-500 bg-amber-50/90 text-amber-950 ring-2 ring-amber-400/50 shadow-xs' : scores.s < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
-                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.s <= 0.75 ? 'text-amber-800 font-black' : scores.s < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Structure</span>
-                    <span id="v2" className={`text-xl font-black font-mono block my-0.5 ${scores.s <= 0.75 ? 'text-amber-700 font-black' : scores.s < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.s}</span>
-                    <span className={`text-[10px] font-bold block ${scores.s <= 0.75 ? 'text-amber-700 font-extrabold' : scores.s < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
-                    {scores.s <= 0.75 ? (
+                  <div className={`p-3.5 rounded-xl border text-center transition-all ${isDirectStart ? 'border-amber-600 bg-amber-100/90 text-amber-950 ring-2 ring-amber-500/50 shadow-xs' : scores.s <= 0.75 ? 'border-amber-500 bg-amber-50/90 text-amber-950 ring-2 ring-amber-400/50 shadow-xs' : scores.s < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${isDirectStart || scores.s <= 0.75 ? 'text-amber-800 font-black' : scores.s < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Structure</span>
+                    <span id="v2" className={`text-xl font-black font-mono block my-0.5 ${isDirectStart || scores.s <= 0.75 ? 'text-amber-700 font-black' : scores.s < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.s}</span>
+                    <span className={`text-[10px] font-bold block ${isDirectStart || scores.s <= 0.75 ? 'text-amber-700 font-extrabold' : scores.s < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
+                    {isDirectStart ? (
+                      <span className="text-[9px] font-black text-amber-900 bg-amber-200 border border-amber-400 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sans intro (0.5/2 max)</span>
+                    ) : scores.s <= 0.75 ? (
                       <span className="text-[9px] font-black text-amber-900 bg-amber-200 border border-amber-400 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Amorce défaillante (0.75/2)</span>
                     ) : scores.s < 1.0 ? (
                       <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
@@ -4148,8 +4297,20 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Notification didactique spéciale si l'amorce de l'introduction est défaillante */}
-                {scores.s <= 0.75 && (
+                {/* Notification didactique spéciale si attaque directe ou amorce défaillante */}
+                {isDirectStart ? (
+                  <div className="mt-3 p-3.5 rounded-xl border border-amber-400 bg-amber-50/95 flex items-start gap-3 text-xs text-amber-950 font-medium shadow-2xs">
+                    <span className="text-base shrink-0">⚠️</span>
+                    <div className="leading-relaxed">
+                      <strong className="font-extrabold text-amber-900 block mb-0.5">
+                        Règle Didactique Appliquée : Attaque Directe sans Introduction (Structure : {scores.s} / 2.0 • Note Globale Max : 5/10)
+                      </strong>
+                      <p className="text-amber-900/90 text-xs">
+                        L'élève a débuté sa rédaction directement par son avis personnel (<em>« Personnellement / Pour ma part / De ma part / Pour moi... »</em>) sans introduction formelle. Le devoir comportant un développement et une conclusion rédigée, la note globale est plafonnée à <strong>5/10 maximum</strong>.
+                      </p>
+                    </div>
+                  </div>
+                ) : scores.s <= 0.75 ? (
                   <div className="mt-3 p-3.5 rounded-xl border border-amber-300 bg-amber-50/90 flex items-start gap-3 text-xs text-amber-950 font-medium shadow-2xs">
                     <span className="text-base shrink-0">⚠️</span>
                     <div className="leading-relaxed">
@@ -4161,7 +4322,7 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* 2. Transcription Analytique */}
