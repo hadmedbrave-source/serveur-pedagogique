@@ -624,11 +624,14 @@ ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
 - RÈGLE CAPITALE SUR LES ERREURS ET TRAQUE CHIRURGICALE DE LA LANGUE :
   1. Seules les vraies erreurs réelles et objectives sont balisées en rouge : <span class="err-highlight">erreur [correction]</span>. Les mots normaux, corrects et bien écrits de la langue française doivent STRICTEMENT RESTER EN TEXTE NORMAL, sans aucune balise rouge !
   2. AUDIT GRAMMATICAL CHIRURGICAL (AUCUN OUBLI ADMISSIBLE) : Passe chaque phrase au scanner linguistique impitoyable et traque scrupuleusement :
+     * CONJUGAISON & ACCORDS DE BASE : Repère les fautes de terminaison (ex: « je penses » -> <span class="err-highlight">je penses [je pense]</span>).
+     * PRONOM INDÉFINI « ON » : « on » prend impérativement la 3e personne du singulier (ex: « on attribuent » -> <span class="err-highlight">on attribuent [on attribue]</span>).
+     * ACCORDS EN NOMBRE DANS LE GROUPE NOMINAL : Repère tous les pluriels omis après des déterminants pluriels (« des », « ces », « ses ») ou dans une énumération (ex: « des personne » -> <span class="err-highlight">des personne [des personnes]</span>, « ces pratique » / « ses pratique » -> <span class="err-highlight">ces pratique [ces pratiques]</span>, « fausse croyance » / « fausses croyance » -> <span class="err-highlight">fausse croyance [fausses croyances]</span>).
+     * PRONOMS RELATIFS COMPOSÉS : Accord en genre et nombre avec l'antécédent (ex: « auquel » renvoyant à « croyances » -> <span class="err-highlight">auquel [auxquelles]</span>).
      * ACCORDS SUJET-VERBE À SUJET INVERSÉ / POSTPOSÉ : Dans les propositions subordonnées relatives (avec « que », « où », « dont », « auquel », « auxquels », « auxquelles »...) ou après un complément, repère systématiquement le VÉRITABLE sujet réel placé après le verbe. Si le sujet postposé est pluriel, le verbe DOIT être au pluriel ! (Exemple : dans « auxquelles reste attaché les esprits », le sujet réel de « rester » est « les esprits » au pluriel -> faute majeure d'accord : <span class="err-highlight">reste [restent]</span>).
      * ACCORDS DE L'ATTRIBUT DU SUJET OU PARTICIPE PASSÉ AVEC SUJET INVERSÉ : L'adjectif ou participe attribut s'accorde en genre et en nombre avec le sujet inversé (Exemple : « attaché » qualifie le sujet « les esprits » masculin pluriel -> <span class="err-highlight">attaché [attachés]</span>).
-     * ACCORDS EN NOMBRE DANS LE GROUPE NOMINAL : Repère tous les pluriels omis (ex: « ses pratique » -> <span class="err-highlight">ses pratique [ses pratiques]</span>, « fausses croyance » -> <span class="err-highlight">fausses croyance [fausses croyances]</span>).
+     * SYNTAXE & CONJONCTION COMPLÉTIVE : Après les verbes déclaratifs comme « penser », la proposition complétive s'introduit par « que » et non par « qui » (ex: « je pense qui ces... » -> <span class="err-highlight">qui [que]</span>).
      * HOMOPHONES ET CONFUSIONS GRAMMATICALES : (ces/ses, c'est/s'est, a/à, ou/où, son/sont, leur/leurs, ce/se...).
-     * ACCORDS DU PARTICIPE PASSÉ ET CONJUGRAISON : Accord avec être, accord avec avoir si COD antéposé, subjonctif après « bien que » / « pour que », etc.
 - Sur cette transcription intégrale, applique EXCLUSIVEMENT ET UNIQUEMENT ces deux balisages :
   1. Les vraies erreurs objectives en rouge vif : <span class="err-highlight">erreur [correction]</span> (isoler le mot ou petit groupe fautif avec sa correction entre crochets).
   2. TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !)
@@ -853,15 +856,19 @@ app.post('/api/chat', async (req, res) => {
 
 CONSIGNES CHIRURGICALES POUR LA COMMISSION :
 1. Dans [[TRANSCRIPTION]], retranscris L'INTÉGRALITÉ EXACTE de la copie ci-dessus mot à mot, sans omettre aucune phrase, sans tronquer et sans résumer. Applique UNIQUEMENT deux balisages :
-   - Les fautes en rouge vif : <span class="err-highlight">faute [correction]</span>. TRAQUE CHIRURGICALE DES FAUTES :
-     * Détecte scrupuleusement les accords sujet-verbe à sujet inversé / postposé (ex: « reste » -> « restent » quand le sujet est « les esprits »).
-     * Détecte les accords d'attribut du sujet ou participe passé avec sujet inversé (ex: « attaché » -> « attachés » qualifiant « les esprits »).
-     * Détecte tous les pluriels omis dans les groupes nominaux (ex: « ses pratique » -> « ses pratiques », « fausses croyance » -> « fausses croyances »).
+   - Les fautes en rouge vif : <span class="err-highlight">faute [correction]</span>. TRAQUE CHIRURGICALE DES FAUTES (OBLIGATION FORMELLE) :
+     * Conjugaison & désinences : ex: « je penses » -> <span class="err-highlight">je penses [je pense]</span>.
+     * Sujet indéfini « on » : ex: « on attribuent » -> <span class="err-highlight">on attribuent [on attribue]</span>.
+     * Pluriels omis dans les GN : ex: « des personne » -> <span class="err-highlight">des personne [des personnes]</span>, « ces pratique » / « ses pratique » -> <span class="err-highlight">ces pratique [ces pratiques]</span>, « fausse croyance » / « fausses croyance » -> <span class="err-highlight">fausse croyance [fausses croyances]</span>, « problème d'amour » -> <span class="err-highlight">problème d'amour [problèmes d'amour]</span>.
+     * Pronoms relatifs composés : ex: « auquel » -> <span class="err-highlight">auquel [auxquelles]</span>.
+     * Accords sujet-verbe à sujet inversé / postposé : ex: « reste » -> <span class="err-highlight">reste [restent]</span> quand le sujet est « les esprits ».
+     * Accords d'attribut du sujet avec sujet inversé : ex: « attaché » -> <span class="err-highlight">attaché [attachés]</span> qualifiant « les esprits ».
+     * Conjonctions complétives : ex: « je pense qui » -> <span class="err-highlight">qui [que]</span>.
      * Ne laisse passer AUCUNE faute réelle objective, mais ne surligne aucun mot correct.
    - TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !).
    Ne mets AUCUNE balise d'avertissement.
 2. Dans [[BILAN]], [[TABLEAU]] et [[REFORMULATION]], traite EXCLUSIVEMENT ET DIRECTEMENT les phrases réelles, les arguments et les erreurs de la copie ci-dessus.
-   - Dans [[TABLEAU]] : Liste CHAQUE faute distincte sur sa propre ligne (ex: « ses pratique », « fausses croyance », « reste », « attaché »).
+   - Dans [[TABLEAU]] : Liste CHAQUE faute distincte sur sa propre ligne (ex: « je penses », « qui », « ces pratique », « fausse croyance », « auquel », « reste », « attaché », « on attribuent », « des personne »...). S'il y a 7 fautes dans la copie, produis exactement 7 lignes distinctes !
    - Dans [[BILAN]] :
      * Analyse en profondeur l'amorce de l'élève (pertinence de son entrée en matière).
      * Analyse la problématisation (tension et interrogation directrice).
@@ -901,8 +908,213 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
     : { isIncomplete: false, reason: '' as const };
   const offTopicDetected = !directStartDetected && !missingConclDetected && !incompleteDetected.isIncomplete && isCandidateTextOffTopic(sujet || '', texte || '');
 
-  const sanitizeAndCapResult = (resText: string): string => {
+  function auditAndEnrichTranscriptionAndTable(resText: string, rawCopy: string): string {
+    if (!resText) return resText;
+
+    const auditRules: {
+      regex: RegExp;
+      extract: (m: RegExpExecArray) => string;
+      correction: (m: RegExpExecArray) => string;
+      nature: string;
+      regle: string;
+    }[] = [
+      {
+        regex: /\bje\s+penses\b/gi,
+        extract: () => 'je penses',
+        correction: () => 'je pense',
+        nature: 'Conjugaison & Accord sujet-verbe',
+        regle: 'Au présent de l\'indicatif, les verbes du premier groupe prennent la désinence « -e » à la 1re personne du singulier (« je pense »), jamais de « s ».'
+      },
+      {
+        regex: /\bqui\s+(?=(?:c|s)es\s+pratique|ces\s+pratiques|ses\s+pratiques)/gi,
+        extract: () => 'qui',
+        correction: () => 'que',
+        nature: 'Syntaxe & Conjonction complétive',
+        regle: 'Après le verbe déclaratif « je pense », la proposition complétive s\'introduit par la conjonction « que » et non par le pronom relatif « qui ».'
+      },
+      {
+        regex: /\b(ces|ses)\s+pratique\b/gi,
+        extract: (m) => `${m[1]} pratique`,
+        correction: (m) => `${m[1]} pratiques`,
+        nature: 'Accord en nombre dans le groupe nominal',
+        regle: 'Le déterminant pluriel (« ces » ou « ses ») impose l\'accord du nom noyau au pluriel avec la marque « -s » (« pratiques »).'
+      },
+      {
+        regex: /\bfausses?\s+croyance\b/gi,
+        extract: (m) => m[0],
+        correction: () => 'fausses croyances',
+        nature: 'Accord en nombre dans le groupe nominal',
+        regle: 'Le nom noyau « croyance » et l\'adjectif « fausse » doivent obligatoirement s\'accorder au pluriel avec la marque « -s » (« fausses croyances »).'
+      },
+      {
+        regex: /\bauquel\b(?=\s+reste|\s+sont|\s+restent|\s+attach[eé])/gi,
+        extract: () => 'auquel',
+        correction: () => 'auxquelles',
+        nature: 'Accord du pronom relatif composé',
+        regle: 'Le pronom relatif « auquel » s\'accorde en genre et en nombre avec son antécédent « fausses croyances » (féminin pluriel) : il faut employer « auxquelles ».'
+      },
+      {
+        regex: /\breste\b(?=\s+attach[eé]s?\s+les\s+esprits)/gi,
+        extract: () => 'reste',
+        correction: () => 'restent',
+        nature: 'Accord verbe-sujet à sujet inversé',
+        regle: 'Dans la proposition subordonnée à sujet inversé / postposé, le verbe s\'accorde avec son véritable sujet « les esprits » (3e personne du pluriel) : « restent ».'
+      },
+      {
+        regex: /\battach[eé]\b(?=\s+les\s+esprits)/gi,
+        extract: () => 'attaché',
+        correction: () => 'attachés',
+        nature: 'Accord de l\'attribut du sujet inversé',
+        regle: 'L\'adjectif ou participe attribut s\'accorde en genre et en nombre avec le sujet postposé « les esprits » (masculin pluriel) : « attachés ».'
+      },
+      {
+        regex: /\bon\s+attribuent\b/gi,
+        extract: () => 'on attribuent',
+        correction: () => 'on attribue',
+        nature: 'Accord sujet-verbe',
+        regle: 'Le pronom sujet indéfini « on » est toujours à la 3e personne du singulier : le verbe s\'écrit « attribue » et ne peut jamais prendre la désinence « -ent ».'
+      },
+      {
+        regex: /\b(?:[aà]\s+)?des\s+personne\b/gi,
+        extract: () => 'des personne',
+        correction: () => 'des personnes',
+        nature: 'Accord en nombre dans le groupe nominal',
+        regle: 'Après l\'article indéfini pluriel « des », le nom noyau « personne » s\'écrit obligatoirement avec la marque du pluriel « -s » (« des personnes »).'
+      },
+      {
+        regex: /\bprobl[eè]me\s+d['’]amour\b/gi,
+        extract: () => 'problème d\'amour',
+        correction: () => 'problèmes d\'amour',
+        nature: 'Accord en nombre (énumération)',
+        regle: 'Dans une énumération de « soucis de tout genre », chaque catégorie introduite se met au pluriel (« problèmes d\'amour »).'
+      },
+      {
+        regex: /\bmalgr[eé]\s+qu['’]il(?:\s+soit)?\b/gi,
+        extract: () => 'malgré qu\'il',
+        correction: () => 'bien qu\'il',
+        nature: 'Syntaxe & Locution conjonctive',
+        regle: 'La tournure « malgré que » est proscrite en français académique. Il faut employer « bien que » suivi du subjonctif.'
+      },
+      {
+        regex: /\bpartager\b(?=\s+l['’]avis|\s+cette\s+id[eé]e|\s+ce\s+point)/gi,
+        extract: () => 'partager',
+        correction: () => 'partage',
+        nature: 'Conjugaison (Forme conjuguée vs Infinitif)',
+        regle: 'Le verbe conjugué à la 1re personne du présent prend la terminaison « -e » (« je partage »), et ne reste pas à l\'infinitif.'
+      },
+      {
+        regex: /\btout\s+les\s+(?:jours|hommes|gens|personnes|probl[eè]mes)\b/gi,
+        extract: (m) => m[0],
+        correction: (m) => m[0].replace(/tout/i, 'tous'),
+        nature: 'Accord du déterminant indéfini',
+        regle: 'Devant un nom pluriel, le déterminant indéfini « tout » s\'accorde obligatoirement au pluriel (« tous les »).'
+      },
+      {
+        regex: /\bcomme\s+m[eê]me\b/gi,
+        extract: () => 'comme même',
+        correction: () => 'quand même',
+        nature: 'Orthographe lexicale / Phonétique',
+        regle: 'La locution adverbiale correcte est « quand même » et non la graphie fautive « comme même ».'
+      }
+    ];
+
     let result = resText;
+
+    const transRegex = /\[\[TRANSCRIPTION\]\]([\s\S]*?)(?=(?:\[\[|$))/i;
+    const transMatch = result.match(transRegex);
+
+    const tableRegex = /\[\[TABLEAU\]\]([\s\S]*?)(?=(?:\[\[|$))/i;
+    const tableMatch = result.match(tableRegex);
+
+    let transContent = transMatch ? transMatch[1] : '';
+    let tableContent = tableMatch ? tableMatch[1] : '';
+
+    const detectedErrors: { err: string; corr: string; nature: string; regle: string }[] = [];
+    const combinedCandidate = (rawCopy || '') + ' ' + (transContent || '');
+
+    for (const rule of auditRules) {
+      rule.regex.lastIndex = 0;
+      const m = rule.regex.exec(combinedCandidate);
+      if (m) {
+        const errStr = rule.extract(m);
+        const corrStr = rule.correction(m);
+        if (!detectedErrors.some(d => d.err.toLowerCase() === errStr.toLowerCase())) {
+          detectedErrors.push({ err: errStr, corr: corrStr, nature: rule.nature, regle: rule.regle });
+        }
+
+        if (transContent) {
+          const escaped = errStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const cleanErrRegex = new RegExp(`\\b${escaped}\\b`, 'gi');
+          transContent = transContent.replace(cleanErrRegex, (match, offset) => {
+            const before = transContent.slice(0, offset);
+            const lastOpen = before.lastIndexOf('<span class="err-highlight"');
+            const lastClose = before.lastIndexOf('</span>');
+            if (lastOpen !== -1 && lastOpen > lastClose) {
+              return match;
+            }
+            return `<span class="err-highlight">${match} [${corrStr}]</span>`;
+          });
+        }
+      }
+    }
+
+    if (transContent) {
+      const spanRegex = /<span class="err-highlight">([^<\[]+?)\s*\[([^\]]+)\]<\/span>/gi;
+      let spanM: RegExpExecArray | null;
+      while ((spanM = spanRegex.exec(transContent)) !== null) {
+        const eW = spanM[1].trim();
+        const cW = spanM[2].trim();
+        if (eW && !detectedErrors.some(d => d.err.toLowerCase() === eW.toLowerCase())) {
+          detectedErrors.push({
+            err: eW,
+            corr: cW,
+            nature: 'Orthographe & Grammaire',
+            regle: `Règle officielle : la forme académique certifiée est « ${cW} » (au lieu de « ${eW} »).`
+          });
+        }
+      }
+      result = result.replace(transMatch![0], `[[TRANSCRIPTION]]${transContent}`);
+    }
+
+    if (detectedErrors.length > 0) {
+      if (tableMatch) {
+        let currentTable = tableContent.trim();
+        for (const item of detectedErrors) {
+          const itemRegex = new RegExp(`\\|\\s*(?:<span class="err-highlight">)?\\s*${item.err.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*(?:<\\/span>)?\\s*\\|`, 'i');
+          if (!itemRegex.test(currentTable)) {
+            const newRow = `| <span class="err-highlight">${item.err}</span> | ${item.nature} | <span class="corr-green">${item.corr}</span> | ${item.regle} |`;
+            currentTable += `\n${newRow}`;
+          }
+        }
+        result = result.replace(tableMatch[0], `[[TABLEAU]]\n${currentTable}\n\n`);
+      } else {
+        const rows = detectedErrors.map(item => `| <span class="err-highlight">${item.err}</span> | ${item.nature} | <span class="corr-green">${item.corr}</span> | ${item.regle} |`);
+        const newTable = `[[TABLEAU]]\n| Extrait fautif (en rouge) | Nature de l'erreur | Correction certifiée (en vert) | Règle pédagogique précise |\n| :--- | :--- | :--- | :--- |\n${rows.join('\n')}\n\n`;
+        result = result + `\n${newTable}`;
+      }
+    }
+
+    if (detectedErrors.length >= 3) {
+      const gridMatch = result.match(/\[\[GRILLE\]\]\s*:\s*Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
+      if (gridMatch) {
+        let c = parseFloat(gridMatch[1]) || 1.5;
+        let s = parseFloat(gridMatch[2]) || 1.0;
+        let a = parseFloat(gridMatch[3]) || 1.5;
+        let l = parseFloat(gridMatch[4]) || 2.0;
+        let x = parseFloat(gridMatch[5]) || 1.0;
+        const maxL = detectedErrors.length >= 7 ? 0.75 : (detectedErrors.length >= 5 ? 1.0 : 1.25);
+        if (l > maxL) {
+          l = maxL;
+          result = result.replace(gridMatch[0], `[[GRILLE]] : Consigne:${c.toFixed(1)}|Structure:${s.toFixed(1)}|Arguments:${a.toFixed(1)}|Langue:${l.toFixed(2)}|Lexique:${x.toFixed(1)}`);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  const sanitizeAndCapResult = (resText: string): string => {
+    let result = auditAndEnrichTranscriptionAndTable(resText, texte || '');
     if (directStartDetected) {
       result = result.replace(/\[\[HORS_SUJET\]\]/gi, '').replace(/\[\[COPIE_INCOMPLETE\]\]/gi, '').replace(/\[\[SANS_CONCLUSION\]\]/gi, '');
       if (!result.includes('[[ATTAQUE_DIRECTE]]')) {
@@ -1212,15 +1424,23 @@ OPINION
       formatted = formatted.replace(reg, '<strong>$1</strong>');
     }
     // Highlight common mistakes
-    formatted = formatted.replace(/\b(malgr[eé]\s+qu['’]il\s+soit)\b/gi, '<span class="err-highlight">$1 [bien qu\'il soit]</span>');
-    formatted = formatted.replace(/\b(partager)\b/gi, '<span class="err-highlight">$1 [partagé]</span>');
-    formatted = formatted.replace(/\b(un\s+fleau)\b/gi, '<span class="err-highlight">$1 [un fléau]</span>');
-    formatted = formatted.replace(/\b(des\s+\w+s?\s+violent)\b/gi, '<span class="err-highlight">$1 [violents]</span>');
+    formatted = formatted.replace(/\b(je\s+penses)\b/gi, '<span class="err-highlight">$1 [je pense]</span>');
+    formatted = formatted.replace(/\b(qui)(\s+(?:c|s)es\s+pratique)/gi, '<span class="err-highlight">$1 [que]</span>$2');
+    formatted = formatted.replace(/\b(ces\s+pratique)\b/gi, '<span class="err-highlight">$1 [ces pratiques]</span>');
     formatted = formatted.replace(/\b(ses\s+pratique)\b/gi, '<span class="err-highlight">$1 [ses pratiques]</span>');
+    formatted = formatted.replace(/\b(de\s+fausse\s+croyance)\b/gi, '<span class="err-highlight">$1 [de fausses croyances]</span>');
     formatted = formatted.replace(/\b(fausses?\s+croyance)\b/gi, '<span class="err-highlight">$1 [fausses croyances]</span>');
+    formatted = formatted.replace(/\b(auquel)(\s+reste|\s+sont|\s+restent|\s+attach[eé])/gi, '<span class="err-highlight">$1 [auxquelles]</span>$2');
     formatted = formatted.replace(/\b(auxquelles\s+)(reste)(\s+)(attach[eé])(\s+les\s+esprits)\b/gi, '$1<span class="err-highlight">$2 [restent]</span>$3<span class="err-highlight">$4 [attachés]</span>$5');
     formatted = formatted.replace(/\b(reste)(\s+attach[eé]\s+les\s+esprits)\b/gi, '<span class="err-highlight">$1 [restent]</span>$2');
     formatted = formatted.replace(/\b(attach[eé])(\s+les\s+esprits)\b/gi, '<span class="err-highlight">$1 [attachés]</span>$2');
+    formatted = formatted.replace(/\b(on\s+attribuent)\b/gi, '<span class="err-highlight">$1 [on attribue]</span>');
+    formatted = formatted.replace(/\b(des\s+personne)\b/gi, '<span class="err-highlight">$1 [des personnes]</span>');
+    formatted = formatted.replace(/\b(probl[eè]me\s+d['’]amour)\b/gi, '<span class="err-highlight">$1 [problèmes d\'amour]</span>');
+    formatted = formatted.replace(/\b(malgr[eé]\s+qu['’]il(?:\s+soit)?)\b/gi, '<span class="err-highlight">$1 [bien qu\'il soit]</span>');
+    formatted = formatted.replace(/\b(partager)\b/gi, '<span class="err-highlight">$1 [partage]</span>');
+    formatted = formatted.replace(/\b(un\s+fleau)\b/gi, '<span class="err-highlight">$1 [un fléau]</span>');
+    formatted = formatted.replace(/\b(des\s+\w+s?\s+violent)\b/gi, '<span class="err-highlight">$1 [violents]</span>');
     return `<p>${formatted}</p>`;
   }).join('\n\n');
 
@@ -1257,18 +1477,39 @@ OPINION
       : `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3`);
 
   const fallbackFautes: { err: string; cat: string; corr: string; regle: string }[] = [];
-  if (/ses\s+pratique/i.test(rawCopy)) {
-    fallbackFautes.push({ err: 'ses pratique', cat: 'Accord dans le GN', corr: 'ses pratiques', regle: 'L\'adjectif possessif pluriel « ses » impose la marque du pluriel au nom « pratiques ».' });
+  if (/je\s+penses/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'je penses', cat: 'Conjugaison & Accord sujet-verbe', corr: 'je pense', regle: 'Au présent de l\'indicatif, le verbe penser prend la terminaison « -e » à la 1re personne du singulier (« je pense »), jamais de « s ».' });
   }
-  if (/fausses?\s+croyance/i.test(rawCopy)) {
-    fallbackFautes.push({ err: 'fausses croyance', cat: 'Accord dans le GN', corr: 'fausses croyances', regle: 'L\'adjectif qualificatif pluriel « fausses » exige l\'accord du nom « croyances » au pluriel.' });
+  if (/qui\s+(?:c|s)es\s+pratique/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'qui', cat: 'Syntaxe & Subordonnée complétive', corr: 'que', regle: 'Après le verbe déclaratif « je pense », la proposition complétive s\'introduit impérativement par la conjonction « que » et non par le pronom relatif « qui ».' });
   }
-  if (/\breste\s+attach[eé]\s+les\s+esprits/i.test(rawCopy) || /\bauxquelles\s+reste\b/i.test(rawCopy)) {
-    fallbackFautes.push({ err: 'reste', cat: 'Accord sujet-verbe inversé', corr: 'restent', regle: 'Le sujet réel « les esprits » est inversé (pluriel) ; le verbe « rester » s\'accorde donc au pluriel : « restent ».' });
-    fallbackFautes.push({ err: 'attaché', cat: 'Accord de l\'attribut du sujet', corr: 'attachés', regle: 'L\'attribut/participe s\'accorde en genre et en nombre avec le sujet inversé « les esprits » (masculin pluriel).' });
+  if (/(?:ces|ses)\s+pratique/i.test(rawCopy)) {
+    const isCes = /ces\s+pratique/i.test(rawCopy);
+    fallbackFautes.push({ err: isCes ? 'ces pratique' : 'ses pratique', cat: 'Accord dans le GN', corr: isCes ? 'ces pratiques' : 'ses pratiques', regle: 'Le déterminant pluriel impose obligatoirement la marque du pluriel « -s » au nom noyau.' });
+  }
+  if (/(?:de\s+)?fausses?\s+croyance/i.test(rawCopy)) {
+    fallbackFautes.push({ err: /de\s+fausse/i.test(rawCopy) ? 'de fausse croyance' : 'fausse croyance', cat: 'Accord dans le GN', corr: 'de fausses croyances', regle: 'L\'adjectif qualificatif « fausses » et le nom « croyances » doivent obligatoirement porter la marque du pluriel « -s ».' });
+  }
+  if (/auquel\s+(?:reste|sont|restent|attach[eé])/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'auquel', cat: 'Accord du pronom relatif composé', corr: 'auxquelles', regle: 'Le pronom relatif « auquel » s\'accorde avec son antécédent « fausses croyances » (féminin pluriel) : il faut employer « auxquelles ».' });
+  }
+  if (/\breste\b(?=\s+attach[eé]s?\s+les\s+esprits)/i.test(rawCopy) || /\bauxquelles\s+reste\b/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'reste', cat: 'Accord sujet-verbe inversé', corr: 'restent', regle: 'Le sujet réel « les esprits » est postposé (3e personne du pluriel) ; le verbe « rester » s\'accorde donc au pluriel : « restent ».' });
+  }
+  if (/\battach[eé]\b(?=\s+les\s+esprits)/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'attaché', cat: 'Accord de l\'attribut du sujet inversé', corr: 'attachés', regle: 'L\'attribut/participe s\'accorde en genre et en nombre avec le sujet inversé « les esprits » (masculin pluriel : « attachés »).' });
+  }
+  if (/on\s+attribuent/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'on attribuent', cat: 'Accord sujet-verbe', corr: 'on attribue', regle: 'Le pronom indéfini « on » est toujours à la 3e personne du singulier : le verbe s\'écrit « attribue » et ne peut jamais prendre la désinence du pluriel « -ent ».' });
+  }
+  if (/des\s+personne/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'des personne', cat: 'Accord dans le GN', corr: 'des personnes', regle: 'Après l\'article indéfini pluriel « des », le nom noyau « personne » s\'écrit obligatoirement avec la marque du pluriel « -s ».' });
+  }
+  if (/probl[eè]me\s+d['’]amour/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'problème d\'amour', cat: 'Accord en nombre (énumération)', corr: 'problèmes d\'amour', regle: 'Dans une énumération de soucis pluriels, le terme désignant la catégorie prend la marque du pluriel.' });
   }
   if (/partager/i.test(rawCopy)) {
-    fallbackFautes.push({ err: 'partager', cat: 'Conjugaison & Accord', corr: 'partagé', regle: 'Après l\'auxiliaire être, le verbe s\'accorde au participe passé : « est partagé ».' });
+    fallbackFautes.push({ err: 'partager', cat: 'Conjugaison (Forme conjuguée vs Infinitif)', corr: 'partage', regle: 'Le verbe conjugué à la 1re personne du présent prend la désinence « -e » (« je partage »), et ne reste pas à l\'infinitif.' });
   }
   if (/malgr[eé]\s+qu['’]il\s+soit/i.test(rawCopy)) {
     fallbackFautes.push({ err: 'malgré qu\'il soit', cat: 'Coordination & Syntaxe', corr: 'bien qu\'il soit', regle: '« Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ».' });
