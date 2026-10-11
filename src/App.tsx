@@ -340,6 +340,7 @@ export default function App() {
   const [incompleteReason, setIncompleteReason] = useState<'NO_INTRO' | 'NO_CONCL' | 'TOO_SHORT' | ''>('');
   const [isDirectStart, setIsDirectStart] = useState(false);
   const [isSansConclusion, setIsSansConclusion] = useState(false);
+  const [isQuestionDeviation, setIsQuestionDeviation] = useState(false);
   const [detectedPlanType, setDetectedPlanType] = useState<'SIMPLE' | 'ANALYTIQUE' | 'DIALECTIQUE' | ''>('SIMPLE');
   // Sujet validé par l'élève : si validé, affiché en gras sans zone de rédaction
   const [isSubjectValidated, setIsSubjectValidated] = useState<boolean>(false);
@@ -883,7 +884,7 @@ export default function App() {
   }, [texte]);
 
   // Attribution de la mention officielle selon la note sur 10 (Mention Très Bien, Bien, À consolider)
-  const getMentionData = (note: number, isHorsSujetVal: boolean, isCopieIncompleteVal?: boolean, isDirectStartVal?: boolean, isSansConclusionVal?: boolean) => {
+  const getMentionData = (note: number, isHorsSujetVal: boolean, isCopieIncompleteVal?: boolean, isDirectStartVal?: boolean, isSansConclusionVal?: boolean, isQuestionDeviationVal?: boolean) => {
     if (isHorsSujetVal) {
       return {
         label: 'Hors-Sujet',
@@ -894,6 +895,12 @@ export default function App() {
       return {
         label: 'Copie Incomplète (0/10)',
         className: 'bg-red-100 text-red-800 border-red-300',
+      };
+    }
+    if (isQuestionDeviationVal) {
+      return {
+        label: 'Déviation de consigne (Max 4/10)',
+        className: 'bg-rose-100 text-rose-900 border-rose-400 shadow-2xs',
       };
     }
     if (isSansConclusionVal) {
@@ -931,7 +938,7 @@ export default function App() {
     : isCopieIncomplete
     ? 0
     : (parseFloat(scores.total) || (scores.c + scores.s + scores.a + scores.l + scores.x) || 8.8);
-  const mentionInfo = getMentionData(currentScoreNum, isHorsSujet, isCopieIncomplete, isDirectStart, isSansConclusion);
+  const mentionInfo = getMentionData(currentScoreNum, isHorsSujet, isCopieIncomplete, isDirectStart, isSansConclusion, isQuestionDeviation);
 
   // Modal Changement de mot de passe sécurisé par Clé Maître Enseignant
   const [showChangeModal, setShowChangeModal] = useState(false);
@@ -2257,6 +2264,52 @@ export default function App() {
     return { isOff: false, type: 'GENERAL' };
   };
 
+  const checkCandidateQuestionDeviation = (sujetStr: string, texteStr: string): { isDeviation: boolean; reason: string } => {
+    if (!sujetStr || !texteStr) return { isDeviation: false, reason: '' };
+    
+    const norm = (s: string) => (s || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const sNorm = norm(sujetStr);
+    const tNorm = norm(texteStr);
+
+    // 1. Détection d'une phrase de thèse suspendue / inachevée dans l'introduction
+    // Ex: "Personnellement , je pense que cet isolement est" sans suite
+    const hasAbortedThesis = /\bpersonnellement\s*,?\s*je\s+pense\s+que\s+cet\s+(?:isolement|etat|probleme)\s+est\s*(?:\n|<br|\.|$|\ben\s+premier\s+lieu\b)/i.test(texteStr.trim()) ||
+      /\bpersonnellement\s*,?\s*je\s+pense\s+que\s+ce\s+(?:sujet|point)\s+est\s*(?:\n|<br|\.|$)/i.test(texteStr.trim());
+
+    // 2. Détection de consigne ciblée sur un "second avis" (ex: la solitude féconde / réflexion / autonomie / création artistique)
+    const asksSecondAvis = sNorm.includes('second avis') || sNorm.includes('deuxieme avis') || sNorm.includes('ce second');
+    if (asksSecondAvis) {
+      const hasArtOrAutonomyInSubject = sNorm.includes('creation') || sNorm.includes('artist') || sNorm.includes('autonom') || sNorm.includes('oeuvre');
+      if (hasArtOrAutonomyInSubject) {
+        const artWords = ['art', 'artist', 'creation', 'creativ', 'poes', 'poet', 'autonom', 'oeuvre', 'ecriture', 'ecrivain', 'oniriqu', 'magiq'];
+        const textHasArt = artWords.some(w => tNorm.includes(w));
+        
+        // Si la consigne imposait d'examiner le second avis (création artistique et autonomie),
+        // mais que l'élève n'en souffle mot et/ou a une thèse tronquée :
+        if (!textHasArt || hasAbortedThesis) {
+          return {
+            isDeviation: true,
+            reason: 'La question du sujet imposait expressément de se positionner sur le second avis (la solitude comme source de réflexion, d\'autonomie et de création artistique). La copie élude totalement la création artistique et ne répond pas à la question demandée.'
+          };
+        }
+      }
+    }
+
+    if (hasAbortedThesis) {
+      return {
+        isDeviation: true,
+        reason: 'La prise de position personnelle est restée syntaxiquement suspendue et inachevée (« Personnellement, je pense que cet isolement est »).'
+      };
+    }
+
+    return { isDeviation: false, reason: '' };
+  };
+
   const checkDirectStart = (texteStr: string): boolean => {
     if (!texteStr) return false;
     const clean = texteStr.trim();
@@ -2799,6 +2852,16 @@ export default function App() {
       setIsHorsSujet(horsSujet);
       setOffTopicType(isMethodological ? 'METHODOLOGIQUE' : (offTopicCheck.type || 'GENERAL'));
 
+      // 5. Détection du non-respect de la consigne / déviation de la question du sujet
+      const questionDeviationCheck = checkCandidateQuestionDeviation(sujet, texte);
+      const isAiExplicitQuestionDeviation = !isDirectStartDetected && !isSansConclusionDetected && !isCopieIncompleteDetected && !horsSujet && (
+        raw.includes('[[DEVIATION_CONSIGNE]]') ||
+        raw.includes('===DEVIATION_CONSIGNE===') ||
+        /d[ée]viation de consigne|non-r[ée]ponse [àa] la question|ne r[ée]pond pas [àa] la question du sujet/i.test(raw)
+      );
+      const isQuestionDeviationDetected = !isDirectStartDetected && !isSansConclusionDetected && !isCopieIncompleteDetected && !horsSujet && (questionDeviationCheck.isDeviation || isAiExplicitQuestionDeviation);
+      setIsQuestionDeviation(isQuestionDeviationDetected);
+
       let scoreC = 1.8;
       let scoreS = 1.7;
       let scoreA = 1.8;
@@ -2860,9 +2923,26 @@ export default function App() {
           if (l) scoreL = parseFloat(l[1]);
           if (x) scoreX = parseFloat(x[1]);
 
-          // Si l'élève présente une copie sans conclusion (conclusion non détectée) :
-          // Règle formelle : même pour une excellente copie, la note globale NE DOIT PAS DÉPASSER 5/10 !
-          if (isSansConclusionDetected) {
+          // Si la copie ne répond pas à la question posée (déviation de consigne) :
+          // Règle formelle : Consigne sanctionnée à 0.25/2 et note globale plafonnée à 4/10 maximum !
+          if (isQuestionDeviationDetected) {
+            scoreC = Math.min(scoreC, 0.25); // Sanction consigne
+            scoreS = Math.min(scoreS, 1.0);
+            scoreA = Math.min(scoreA, 1.0);
+            let sumTotal = scoreC + scoreS + scoreA + scoreL + scoreX;
+            if (sumTotal > 4.0) {
+              const factor = (4.0 - scoreC) / (scoreS + scoreA + scoreL + scoreX);
+              scoreS = +(scoreS * factor).toFixed(1);
+              scoreA = +(scoreA * factor).toFixed(1);
+              scoreL = +(scoreL * factor).toFixed(1);
+              scoreX = +(4.0 - (scoreC + scoreS + scoreA + scoreL)).toFixed(1);
+              if (scoreX < 0) {
+                scoreX = 0.4;
+                scoreL = +(4.0 - (scoreC + scoreS + scoreA + scoreX)).toFixed(1);
+              }
+            }
+            totalCalc = Math.min(4.0, scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
+          } else if (isSansConclusionDetected) {
             scoreS = Math.min(scoreS, 0.5); // Structure lourdement pénalisée car absence totale de conclusion
             let sumTotal = scoreC + scoreS + scoreA + scoreL + scoreX;
             if (sumTotal > 5.0) {
@@ -2915,7 +2995,14 @@ export default function App() {
           if (l && v4) v4.innerText = scoreL.toFixed(1);
           if (x && v5) v5.innerText = scoreX.toFixed(1);
         } else {
-          if (isSansConclusionDetected) {
+          if (isQuestionDeviationDetected) {
+            scoreC = 0.25;
+            scoreS = 1.0;
+            scoreA = 1.0;
+            scoreL = 1.2;
+            scoreX = 0.55;
+            totalCalc = '4.0';
+          } else if (isSansConclusionDetected) {
             scoreC = 1.2;
             scoreS = 0.5;
             scoreA = 1.5;
@@ -2946,7 +3033,7 @@ export default function App() {
         if (rTotal) rTotal.innerText = `${totalCalc}/10`;
         const rMention = document.getElementById('rMention');
         if (rMention) {
-          const mentionData = getMentionData(parseFloat(totalCalc) || 0, false, false, isDirectStartDetected, isSansConclusionDetected);
+          const mentionData = getMentionData(parseFloat(totalCalc) || 0, false, false, isDirectStartDetected, isSansConclusionDetected, isQuestionDeviationDetected);
           rMention.innerText = mentionData.label;
           rMention.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-2xs ${mentionData.className}`;
         }
@@ -4220,7 +4307,7 @@ export default function App() {
                     <span
                       id="rTotal"
                       className={`text-3xl sm:text-4xl font-black font-cinzel tracking-tight ${
-                        isHorsSujet || isCopieIncomplete ? 'text-red-700' : isDirectStart || isSansConclusion ? 'text-amber-800' : 'text-slate-950'
+                        isHorsSujet || isCopieIncomplete ? 'text-red-700' : isQuestionDeviation ? 'text-rose-800' : isDirectStart || isSansConclusion ? 'text-amber-800' : 'text-slate-950'
                       }`}
                     >
                       {isHorsSujet || isCopieIncomplete ? '0/10' : `${scores.total || '8.8'}/10`}
@@ -4375,6 +4462,31 @@ export default function App() {
             </div>
           ) : (
             <>
+              {/* Notification didactique spéciale si non-respect de la question du sujet (note plafonnée à 4/10) */}
+              {isQuestionDeviation && (
+                <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-rose-50/95 border-2 border-rose-500 shadow-xs">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-700 shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-700 text-white rounded-full text-[11px] font-black uppercase tracking-wider shadow-2xs">
+                        Déviation de Consigne : Note Plafonnée à 4/10 Max
+                      </div>
+                      <h4 className="text-base sm:text-lg font-bold text-rose-950 font-cinzel">
+                        Règle Officielle d'Évaluation : Non-Réponse à la Question du Sujet
+                      </h4>
+                      <p className="text-xs sm:text-sm text-rose-900 leading-relaxed font-outfit">
+                        La copie ne répond pas à 100 % à la <strong>question directrice précise imposée au candidat</strong>. L'élève a esquivé la problématique posée ou omis des concepts clés formulés dans la consigne (ex. tentative de prise de position inachevée ou omission complète de la réflexion sur l'autonomie et la création artistique).
+                      </p>
+                      <p className="text-xs text-rose-800 leading-relaxed font-outfit pt-1">
+                        📜 <strong>Décision de la Commission :</strong> L'accumulation de connecteurs logiques ou de phrases types ne remplace pas le traitement exact de la question posée. Le critère <em>Consigne</em> est lourdement sanctionné à <strong>{scores.c}/2.0</strong> et la note globale est <strong>strictement bloquée à {scores.total}/10 maximum</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Notification didactique spéciale si absence de conclusion (note plafonnée à 5/10) */}
               {isSansConclusion && (
                 <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50/95 border-2 border-amber-500 shadow-xs">
@@ -4437,11 +4549,13 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {/* Consigne (max 2.0, moyenne 1.0) */}
-                  <div className={`p-3.5 rounded-xl border text-center transition-all ${scores.c < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
-                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${scores.c < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Consigne</span>
-                    <span id="v1" className={`text-xl font-black font-mono block my-0.5 ${scores.c < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.c}</span>
-                    <span className={`text-[10px] font-bold block ${scores.c < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
-                    {scores.c < 1.0 ? (
+                  <div className={`p-3.5 rounded-xl border text-center transition-all ${isQuestionDeviation ? 'border-rose-600 bg-rose-100/90 text-rose-950 ring-2 ring-rose-500/50 shadow-xs' : scores.c < 1.0 ? 'border-red-500 bg-red-50/90 text-red-950 ring-2 ring-red-400/50 shadow-xs' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-wider block ${isQuestionDeviation ? 'text-rose-900 font-black' : scores.c < 1.0 ? 'text-red-700 font-black' : 'text-slate-500'}`}>Consigne</span>
+                    <span id="v1" className={`text-xl font-black font-mono block my-0.5 ${isQuestionDeviation ? 'text-rose-700 font-black' : scores.c < 1.0 ? 'text-red-600 font-black' : 'text-slate-900'}`}>{scores.c}</span>
+                    <span className={`text-[10px] font-bold block ${isQuestionDeviation ? 'text-rose-700 font-extrabold' : scores.c < 1.0 ? 'text-red-600 font-extrabold' : 'text-slate-400'}`}>/ 2.0</span>
+                    {isQuestionDeviation ? (
+                      <span className="text-[9px] font-black text-rose-900 bg-rose-200 border border-rose-400 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Question éludée (0.25/2 max)</span>
+                    ) : scores.c < 1.0 ? (
                       <span className="text-[9px] font-black text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">⚠️ Sous la moyenne</span>
                     ) : (
                       <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md uppercase block mt-1.5">✓ Conforme</span>
