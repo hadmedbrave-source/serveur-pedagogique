@@ -899,7 +899,7 @@ export default function App() {
     }
     if (isQuestionDeviationVal) {
       return {
-        label: 'Déviation de consigne (Max 4/10)',
+        label: 'Déviation de consigne',
         className: 'bg-rose-100 text-rose-900 border-rose-400 shadow-2xs',
       };
     }
@@ -1607,7 +1607,7 @@ export default function App() {
     return filteredLines.join('\n');
   };
 
-  const formatReformulation = (rawMd: string): string => {
+  const formatReformulation = (rawMd: string, hideSectionB: boolean = false): string => {
     if (!rawMd) return '';
     // Nettoyer toute injection intempestive de structure de plan dans la section 5
     let cleanedMd = rawMd
@@ -1618,8 +1618,17 @@ export default function App() {
       .replace(/Pour tout sujet demandant un avis ou un point de vue personnel[^\n]*/gi, '')
       .trim();
 
+    // RÈGLE FORMELLE : En cas de déviation de la consigne ou de hors-sujet, neutraliser complètement la partie B
+    if (hideSectionB) {
+      cleanedMd = cleanedMd.replace(/(?:^|\n)#{1,4}\s*B\.\s*Texte\s+Intégral[\s\S]*$/i, '');
+    }
+
     let parsed = marked.parse(cleanedMd) as string;
     parsed = parsed.replace(/&#39;/g, "'");
+
+    if (hideSectionB) {
+      parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?$)/i, '');
+    }
 
     // Remplacement et stylisation chromatique stricte des cartes de phrases de l'élève (Section 5.A)
     // Phrase 1 : Thème Indigo
@@ -1666,7 +1675,10 @@ export default function App() {
       '<span style="background:#ecfdf5; color:#047857; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1.5px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px; margin-right:6px; box-shadow:0 1px 2px rgba(4,120,87,0.08);">✨ Reformulation puissante certifiée (1ère Bac) :</span>');
 
     // Mise en page soignée pour Section B : Texte Intégral Réécrit & Fluidifié
-    parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?<\/h[1-4]>)([\s\S]*?)$/i, (m, hTag, content) => {
+    if (hideSectionB) {
+      parsed = parsed.replace(/(?:<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?$)/i, '');
+    } else {
+      parsed = parsed.replace(/(<h[1-4]>.*?B\.\s*Texte\s+Intégral[\s\S]*?<\/h[1-4]>)([\s\S]*?)$/i, (m, hTag, content) => {
       // 1. Remplacement méthodologique strict : "Cependant" est formellement interdit pour introduire les conséquences
       let cleanContent = content;
 
@@ -1727,6 +1739,7 @@ export default function App() {
         </div>
       `;
     });
+    }
 
     // Connecteurs en bleu
     parsed = highlightConnectors(parsed);
@@ -2924,24 +2937,24 @@ export default function App() {
           if (x) scoreX = parseFloat(x[1]);
 
           // Si la copie ne répond pas à la question posée (déviation de consigne) :
-          // Règle formelle : Consigne sanctionnée à 0.25/2 et note globale plafonnée à 4/10 maximum !
+          // Règle formelle : Consigne sanctionnée à 0.25/2 et note globale plafonnée à 2/10 maximum !
           if (isQuestionDeviationDetected) {
             scoreC = Math.min(scoreC, 0.25); // Sanction consigne
-            scoreS = Math.min(scoreS, 1.0);
-            scoreA = Math.min(scoreA, 1.0);
+            scoreS = Math.min(scoreS, 0.5);
+            scoreA = Math.min(scoreA, 0.25);
             let sumTotal = scoreC + scoreS + scoreA + scoreL + scoreX;
-            if (sumTotal > 4.0) {
-              const factor = (4.0 - scoreC) / (scoreS + scoreA + scoreL + scoreX);
+            if (sumTotal > 2.0) {
+              const factor = (2.0 - scoreC) / (scoreS + scoreA + scoreL + scoreX);
               scoreS = +(scoreS * factor).toFixed(1);
               scoreA = +(scoreA * factor).toFixed(1);
               scoreL = +(scoreL * factor).toFixed(1);
-              scoreX = +(4.0 - (scoreC + scoreS + scoreA + scoreL)).toFixed(1);
+              scoreX = +(2.0 - (scoreC + scoreS + scoreA + scoreL)).toFixed(1);
               if (scoreX < 0) {
-                scoreX = 0.4;
-                scoreL = +(4.0 - (scoreC + scoreS + scoreA + scoreX)).toFixed(1);
+                scoreX = 0.3;
+                scoreL = +(2.0 - (scoreC + scoreS + scoreA + scoreX)).toFixed(1);
               }
             }
-            totalCalc = Math.min(4.0, scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
+            totalCalc = Math.min(2.0, scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
           } else if (isSansConclusionDetected) {
             scoreS = Math.min(scoreS, 0.5); // Structure lourdement pénalisée car absence totale de conclusion
             let sumTotal = scoreC + scoreS + scoreA + scoreL + scoreX;
@@ -2997,11 +3010,11 @@ export default function App() {
         } else {
           if (isQuestionDeviationDetected) {
             scoreC = 0.25;
-            scoreS = 1.0;
-            scoreA = 1.0;
-            scoreL = 1.2;
-            scoreX = 0.55;
-            totalCalc = '4.0';
+            scoreS = 0.5;
+            scoreA = 0.25;
+            scoreL = 0.6;
+            scoreX = 0.4;
+            totalCalc = '2.0';
           } else if (isSansConclusionDetected) {
             scoreC = 1.2;
             scoreS = 0.5;
@@ -3080,7 +3093,8 @@ export default function App() {
       const parsedReform = extract('REFORMULATION');
       if (outReform) {
         let reformContent = parsedReform || '### Optimisation Stylistique\n> Maintien de la concordance des temps et de l’élégance académique.';
-        outReform.innerHTML = formatReformulation(reformContent);
+        const shouldHideB = isQuestionDeviationDetected || horsSujet;
+        outReform.innerHTML = formatReformulation(reformContent, shouldHideB);
       }
 
       const typePlan = extract('TYPE').toUpperCase();
@@ -4462,7 +4476,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              {/* Notification didactique spéciale si non-respect de la question du sujet (note plafonnée à 4/10) */}
+              {/* Notification didactique spéciale si non-respect de la question du sujet (note sanctionnée à 2/10) */}
               {isQuestionDeviation && (
                 <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-rose-50/95 border-2 border-rose-500 shadow-xs">
                   <div className="flex items-start gap-3.5">
@@ -4471,7 +4485,7 @@ export default function App() {
                     </div>
                     <div className="space-y-1">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-700 text-white rounded-full text-[11px] font-black uppercase tracking-wider shadow-2xs">
-                        Déviation de Consigne : Note Plafonnée à 4/10 Max
+                        Déviation de Consigne : Note Sanctionnée à 2/10
                       </div>
                       <h4 className="text-base sm:text-lg font-bold text-rose-950 font-cinzel">
                         Règle Officielle d'Évaluation : Non-Réponse à la Question du Sujet
@@ -4770,10 +4784,12 @@ export default function App() {
               <div className="mb-8">
                 <div className="mb-3">
                   <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 5. Optimisation Stylistique & Version Continue d'Excellence (Texte Optimisé • Min. 18 lignes)
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> {isQuestionDeviation || isHorsSujet ? "5. Optimisation Stylistique (Chirurgie des Phrases Faibles)" : "5. Optimisation Stylistique & Version Continue d'Excellence (Texte Optimisé • Min. 18 lignes)"}
                   </h3>
                   <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                    Chirurgie des phrases faibles et réécriture intégrale en texte optimisé d'au moins 18 lignes rédigées, articulé par des liens logiques puissants en bleu et des exemples tirés de l'œuvre en gras vert émeraude. Langage fort, limpide et rigoureux, sans recours à un registre soutenu artificiel.
+                    {isQuestionDeviation || isHorsSujet
+                      ? "Chirurgie ciblée des phrases faibles réelles de l'élève. En raison de la déviation par rapport à la question du sujet (ou du hors-sujet), la partie B (texte intégral d'excellence réécrit) n'est pas affichée."
+                      : "Chirurgie des phrases faibles et réécriture intégrale en texte optimisé d'au moins 18 lignes rédigées, articulé par des liens logiques puissants en bleu et des exemples tirés de l'œuvre en gras vert émeraude. Langage fort, limpide et rigoureux, sans recours à un registre soutenu artificiel."}
                   </p>
                 </div>
                 <div id="outReform" className="p-4 sm:p-6 rounded-xl bg-amber-50/40 border border-amber-200 leading-relaxed text-sm sm:text-base"></div>
@@ -5021,7 +5037,11 @@ export default function App() {
                   {archiveActiveTab === 'optimized' && (
                     <div className="p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-amber-50/30 border border-amber-200 leading-relaxed text-slate-900 text-xs sm:text-sm break-words overflow-x-hidden">
                       {viewingArchiveItem.reformulations ? (
-                        <div dangerouslySetInnerHTML={{ __html: viewingArchiveItem.reformulations }} />
+                        <div dangerouslySetInnerHTML={{
+                          __html: (viewingArchiveItem.isHorsSujet || viewingArchiveItem.isQuestionDeviation || /d[ée]viation|hors-sujet/i.test(viewingArchiveItem.reformulations || ''))
+                            ? viewingArchiveItem.reformulations.replace(/<div style="margin-top:28px; background:#ffffff; border:2px solid #0b1528[\s\S]*?<\/div>\s*<\/div>/gi, '')
+                            : viewingArchiveItem.reformulations
+                        }} />
                       ) : (
                         <p className="text-slate-400 italic">Aucune version optimisée sauvegardée pour cette copie.</p>
                       )}
