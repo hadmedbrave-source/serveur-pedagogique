@@ -596,6 +596,8 @@ RÈGLES D'OR ABSOLUES :
   2. Tu DOIS STRICTEMENT attribuer la note éliminatoire de 0/10 :
      [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0
   3. L'ensemble des critères est frappé de caducité académique.
+  4. ⚠️ INTERDICTION FORMELLE DE GÉNÉRER LA PARTIE « B. TEXTE INTÉGRAL RÉÉCRIT & FLUIDIFIÉ » :
+     En cas de hors-sujet, ne génère jamais de version continue réécrite d'excellence dans [[REFORMULATION]] ! Fournis uniquement le volet A (Chirurgie stylistique des phrases faibles réelles de l'élève).
 
 - RÈGLE CAPITALISSIME D'ADÉQUATION STRICTE À 100% À LA QUESTION DU SUJET (DÉVIATION DE LA CONSIGNE / NON-RÉPONSE À LA QUESTION DU SUJET) :
   RÈGLE N°1.1 INTRANSIGEANTE :
@@ -608,14 +610,16 @@ RÈGLES D'OR ABSOLUES :
        b) OU consacre l'essentiel de son texte au premier avis ou à une analyse pathologique (choc, maladie, complexe d'infériorité) sans instruire le débat demandé par la question,
        c) OU passe complètement sous silence les dimensions clés imposées par la question (ex: AUCUNE mention de « la création artistique », de l'autonomie ou de la poésie créatrice),
        d) OU plaque un plan passe-partout « avantages/inconvénients » au lieu de répondre à la question posée :
-  3. SANCTION OFFICIELLE DE DÉVIATION DE LA CONSIGNE (NOTE GLOBALE BLOQUÉE À 4/10 MAXIMUM) :
+  3. SANCTION OFFICIELLE DE DÉVIATION DE LA CONSIGNE (NOTE GLOBALE STRICTEMENT BLOQUÉE À 2/10 MAXIMUM) :
      - Tu DOIS commencer le tout début de ta réponse par [[DEVIATION_CONSIGNE]].
      - La note du critère Consigne dans [[GRILLE]] DOIT ÊTRE STRICTEMENT SANCTIONNÉE À 0.25/2.0 au maximum : Consigne:0.25 !
-     - La note d'Arguments doit être sévèrement réduite (arguments hors du cadre de la question posée, max 1.0/2).
-     - LA NOTE GLOBALE EST STRICTEMENT PLAFONNÉE À 4.0/10 MAXIMUM (la somme Consigne+Structure+Arguments+Langue+Lexique NE DOIT EN AUCUN CAS DÉPASSER 4.0/10 ! INTERDICTION STRICTE D'ATTRIBUER 5, 6, 7 OU 8/10 À UN DEVOIR QUI N'A PAS RÉPONDU À LA QUESTION DU SUJET !).
+     - La note d'Arguments doit être sévèrement réduite (arguments hors du cadre de la question posée, max 0.25/2).
+     - LA NOTE GLOBALE EST STRICTEMENT PLAFONNÉE À 2.0/10 MAXIMUM (la somme Consigne+Structure+Arguments+Langue+Lexique NE DOIT EN AUCUN CAS DÉPASSER 2.0/10 ! INTERDICTION STRICTE D'ATTRIBUER UNE NOTE SUPÉRIEURE À 2/10 À UN DEVOIR QUI N'A PAS RÉPONDU À LA QUESTION DU SUJET !). Exemple de grille : Consigne:0.25|Structure:0.5|Arguments:0.25|Langue:0.6|Lexique:0.4.
      - Dans le [[BILAN]], consacre expressément le tout premier paragraphe à dénoncer ce non-respect de la question :
        * Rappelle la question exacte du sujet : « Partagez-vous ce second avis ? ».
        * Démontre que la copie n'a pas répondu à cette question, qu'elle a laissé sa prise de position inachevée (« Personnellement, je pense que cet isolement est »), et qu'elle a totalement ignoré « la création artistique ».
+     - ⚠️ INTERDICTION FORMELLE DE GÉNÉRER LA PARTIE « B. TEXTE INTÉGRAL RÉÉCRIT & FLUIDIFIÉ » :
+       En cas de déviation par rapport à la question du sujet (comme en cas de hors-sujet), NE GÉNÈRE EN AUCUN CAS la partie B dans [[REFORMULATION]] ! Limite-toi EXCLUSIVEMENT au volet A (Chirurgie stylistique des phrases faibles réelles de l'élève). Ne propose aucun texte intégral réécrit d'excellence pour un devoir qui n'a pas répondu à la consigne du sujet.
 
 - SANCTION ÉLIMINATOIRE MAJEURE : COPIE INCOMPLÈTE TRONQUÉE (ABSENCE TOTALE D'INTRODUCTION ET DE CONCLUSION, OU < 25 MOTS) = 0/10 OBLIGATOIRE :
   RÈGLE N°2 INTRANSIGEANTE : Si la copie de l'élève est tronquée, ne comporte ni introduction ni conclusion, ou est trop courte (< 25 mots), la sanction éliminatoire de 0/10 est immédiatement appliquée :
@@ -946,6 +950,7 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
      * Donne un diagnostic didactique précis pour chacune.
      * Produis une REFORMULATION PUISSANTE ET NATURELLE (niveau 1ère Bac) avec des liens logiques solides, SANS JAMAIS RECOURIR À UN REGISTRE SOUTENU ARTIFICIEL.
    - Dans [[REFORMULATION]] Volet B (Texte Intégral Réécrit - Version Continue) :
+     * ⚠️ RÈGLE FORMELLE SUR LA DÉVIATION DE SUJET ET LE HORS-SUJET : Si la copie présente une déviation par rapport à la question du sujet ([[DEVIATION_CONSIGNE]]) ou est hors-sujet ([[HORS_SUJET]]), TU NE DOIS EN AUCUN CAS RÉDIGER CE VOLET B ! Laisse ce volet B totalement absent pour ne jamais modéliser une copie hors consigne.
      * RÈGLE DE PLAN : Si le sujet demande un avis ou point de vue personnel (« Partagez-vous », « Pensez-vous que », etc.), CE TEXTE OPTIMISÉ ADOPTE STRICTEMENT LE PLAN SIMPLE pour défendre ce point de vue de manière univoque sans aucune contradiction. Interdiction formelle d'y mettre un plan dialectique ou d'écrire « PLAN DIALECTIQUE » !
      * DÉTECTION DU THÈME PRINCIPAL DU SUJET (OBLIGATION FORMELLE) : Détecter et formuler avec précision le véritable thème (ex: « la question de l'autorité parentale et de l'autonomie accordée aux jeunes enfants », « le recours aux guérisseurs », etc.). ⚠️ INTERDICTION STRICTE D'INJECTER UNE CITATION BRUTE OU TRONQUÉE DU SUJET dans l'amorce (comme « la question posée par « « Il est temps que les parents arrêtent... en » ») !
      * AMORCE SOIGNÉE : Si le sujet se rattache à une œuvre (ex: La Boîte à Merveilles), débuter obligatoirement par « Quand on plonge dans la lecture attentive du roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui, on se rend compte que [THÈME DU SUJET DÉTECTÉ ET FORMULÉ AVEC PRÉCISION] constitue une interrogation existentielle et éducative déterminante pour chaque conscience en formation... ». Si le sujet est un phénomène de société général sans rapport avec une œuvre au programme (ex: guérisseurs), IL EST STRICTEMENT INTERDIT DE COMMENCER PAR « Quand on plonge... » ! Débuter par une amorce sociétale adaptée.
@@ -963,7 +968,7 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
    - Rédige l'essai en paragraphes fluides avec les balises demandées, sans titres scolaires mécaniques.
 4. RÈGLES DE NOTATION INTRANSIGEANTES DU BACCALAURÉAT :
    - ABSENCE TOTALE D'INTRODUCTION ET DE CONCLUSION (COPIE TRONQUÉE) = 0/10 OBLIGATOIRE (SANS MENTION DU BADGE HORS-SUJET) : Si la copie de l'élève n'a ni introduction ni conclusion ou est trop courte (< 25 mots), commence impérativement par [[COPIE_INCOMPLETE]] (JAMAIS [[HORS_SUJET]]) et attribue STRICTEMENT la note éliminatoire de 0/10 : [[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0 !
-   - NON-RESPECT DE LA QUESTION DU SUJET / DÉVIATION DE LA CONSIGNE = NOTE GLOBALE PLAFONNÉE À 4/10 MAXIMUM : Si le candidat ne répond pas à 100% à la question spécifique posée par le sujet (par exemple s'il esquive la question « Partagez-vous ce second avis ? », omet totalement la « création artistique » et l'« autonomie », traite des causes médicales/pathologiques au lieu d'instruire le débat, ou laisse une prise de position inachevée comme « Personnellement, je pense que cet isolement est »), commence impérativement par [[DEVIATION_CONSIGNE]], attribue au maximum Consigne:0.25, et PLAFONNE STRICTEMENT LA NOTE GLOBALE À 4/10 MAXIMUM (la somme des critères ne doit en aucun cas dépasser 4.0/10) ! Dénonce impérativement cette dérive dès le début du [[BILAN]].
+   - NON-RESPECT DE LA QUESTION DU SUJET / DÉVIATION DE LA CONSIGNE = NOTE GLOBALE STRICTEMENT PLAFONNÉE À 2/10 MAXIMUM : Si le candidat ne répond pas à 100% à la question spécifique posée par le sujet (par exemple s'il esquive la question « Partagez-vous ce second avis ? », omet totalement la « création artistique » et l'« autonomie », traite des causes médicales/pathologiques au lieu d'instruire le débat, ou laisse une prise de position inachevée comme « Personnellement, je pense que cet isolement est »), commence impérativement par [[DEVIATION_CONSIGNE]], attribue au maximum Consigne:0.25, et PLAFONNE STRICTEMENT LA NOTE GLOBALE À 2/10 MAXIMUM (la somme des critères ne doit en aucun cas dépasser 2.0/10) ! Dénonce impérativement cette dérive dès le début du [[BILAN]].
    - ATTAQUE DIRECTE SANS INTRODUCTION (« PERSONNELLEMENT / POUR MA PART / DE MA PART / POUR MOI... ») AVEC DÉVELOPPEMENT ET CONCLUSION = NOTE MAX 5/10 : Si l'élève commence directement par son avis sans introduction préalable mais avec un développement et une conclusion, commence par [[ATTAQUE_DIRECTE]] (JAMAIS [[HORS_SUJET]] NI [[COPIE_INCOMPLETE]]), attribue au maximum Structure:0.5 et PLAFONNE LA NOTE GLOBALE À 5/10 MAXIMUM (la somme des 5 critères ne doit pas dépasser 5.0) !
    - ABSENCE DE CONCLUSION (CONCLUSION NON DÉTECTÉE / SANS CONCLUSION) = NOTE GLOBALE PLAFONNÉE À 5/10 MAXIMUM (SANS MENTION DU BADGE HORS-SUJET) : Si la copie présente une introduction et un développement (même d'excellente facture) mais que la conclusion n'est pas détectée ou n'a pas été écrite, commence impérativement par [[SANS_CONCLUSION]] (JAMAIS [[HORS_SUJET]] NI [[COPIE_INCOMPLETE]]), attribue au maximum Structure:0.5 et PLAFONNE STRICTEMENT LA NOTE GLOBALE À 5/10 MAXIMUM (la somme des 5 critères ne doit pas dépasser 5.0) !
    - AMORCE DE L'INTRODUCTION SANS BONNE ACCROCHE = 0.75 POUR LA STRUCTURE : Si la copie contient une introduction mais que celle-ci ne présente pas le sujet avec une bonne amorce (démarrage abrupt, phrase banale, absence de cadrage liminaire), attribue STRICTEMENT la note de 0.75 pour la Structure (Structure:0.75) dans [[GRILLE]] et justifie cette pénalité dans le [[BILAN]].`
@@ -1238,18 +1243,18 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
       const gridMatch = result.match(/\[\[GRILLE\]\]\s*:\s*Consigne:([\d.]+)\|Structure:([\d.]+)\|Arguments:([\d.]+)\|Langue:([\d.]+)\|Lexique:([\d.]+)/i);
       if (gridMatch) {
         let c = Math.min(parseFloat(gridMatch[1]) || 0.25, 0.25); // Sanction consigne non respectée
-        let s = Math.min(parseFloat(gridMatch[2]) || 1.0, 1.0);
-        let a = Math.min(parseFloat(gridMatch[3]) || 1.0, 1.0);
-        let l = parseFloat(gridMatch[4]) || 1.2;
-        let x = parseFloat(gridMatch[5]) || 0.55;
+        let s = Math.min(parseFloat(gridMatch[2]) || 0.5, 0.5);
+        let a = Math.min(parseFloat(gridMatch[3]) || 0.25, 0.25);
+        let l = parseFloat(gridMatch[4]) || 0.6;
+        let x = parseFloat(gridMatch[5]) || 0.4;
         let total = c + s + a + l + x;
-        if (total > 4.0) {
-          const factor = (4.0 - c) / (s + a + l + x);
+        if (total > 2.0) {
+          const factor = (2.0 - c) / (s + a + l + x);
           s = +(s * factor).toFixed(1);
           a = +(a * factor).toFixed(1);
           l = +(l * factor).toFixed(1);
-          x = +(4.0 - (c + s + a + l)).toFixed(1);
-          if (x < 0) { x = 0.4; l = +(4.0 - (c + s + a + x)).toFixed(1); }
+          x = +(2.0 - (c + s + a + l)).toFixed(1);
+          if (x < 0) { x = 0.3; l = +(2.0 - (c + s + a + x)).toFixed(1); }
         }
         result = result.replace(gridMatch[0], `[[GRILLE]] : Consigne:${c.toFixed(1)}|Structure:${s.toFixed(1)}|Arguments:${a.toFixed(1)}|Langue:${l.toFixed(1)}|Lexique:${x.toFixed(1)}`);
       }
@@ -1261,6 +1266,15 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
     } else if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
       result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
     }
+
+    // RÈGLE ABSOLUE : En cas de déviation de consigne ou de hors-sujet, supprimer totalement la partie B (Texte Intégral Réécrit)
+    const isAnyDeviationOrOff = questionDeviationDetected || offTopicDetected || 
+      result.includes('[[DEVIATION_CONSIGNE]]') || result.includes('[[HORS_SUJET]]') || 
+      /d[ée]viation de consigne|non-r[ée]ponse [àa] la question|ne r[ée]pond pas [àa] la question du sujet/i.test(result);
+    if (isAnyDeviationOrOff) {
+      result = result.replace(/###\s*B\.\s*Texte\s+Intégral[\s\S]*?(?=\n\[\[|$)/i, '');
+    }
+
     return result;
   };
 
@@ -1561,12 +1575,16 @@ OPINION
 
   const isDirectStart = isCandidateDirectStartWithDevAndConcl(rawCopy);
   const isMissingConcl = !isDirectStart && isCandidateMissingConclusion(rawCopy);
-  const structureScore = isDirectStart ? 0.5 : (isMissingConcl ? 0.5 : (hasGoodAmorce ? 1.7 : 0.75));
+  const questionDeviation = isCandidateQuestionDeviation(topic || '', rawCopy || '');
+  const isDeviating = !isDirectStart && !isMissingConcl && questionDeviation.isDeviation;
+  const structureScore = isDirectStart ? 0.5 : (isMissingConcl ? 0.5 : (isDeviating ? 0.8 : (hasGoodAmorce ? 1.7 : 0.75)));
   const grilleOutput = isDirectStart
     ? `[[ATTAQUE_DIRECTE]]\n[[GRILLE]] : Consigne:1.0|Structure:0.5|Arguments:1.5|Langue:1.25|Lexique:0.75`
     : (isMissingConcl
       ? `[[SANS_CONCLUSION]]\n[[GRILLE]] : Consigne:1.2|Structure:0.5|Arguments:1.5|Langue:1.2|Lexique:0.6`
-      : `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3`);
+      : (isDeviating
+        ? `[[DEVIATION_CONSIGNE]]\n[[GRILLE]] : Consigne:0.25|Structure:0.5|Arguments:0.25|Langue:0.6|Lexique:0.4`
+        : `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3`));
 
   const fallbackFautes: { err: string; cat: string; corr: string; regle: string }[] = [];
   if (/je\s+penses/i.test(rawCopy)) {
@@ -1671,7 +1689,7 @@ ${fallbackTableauRows}
   - **Reformulation puissante et naturelle (Niveau 1ère Bac) :**
     > *« En guise de conclusion, l'expérience montre que la lucidité personnelle et la solidarité humaine se complètent pour donner son plein sens à la vie. »*
 
-### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
+${isDeviating ? '' : `### B. Texte Intégral Réécrit & Fluidifié (Version Continue d'Excellence - Texte Optimisé)
 ${(() => {
   const analysis = detectSubjectAnalysis(topic || '');
 
@@ -1737,7 +1755,7 @@ ${(() => {
 > **En second lieu**, cette indispensable fidélité aux impératifs sociaux ne saurait toutefois se muer en un assujettissement passif ou en un conformisme frileux qui étoufferait le libre arbitre et la liberté de pensée. L'esprit humain ne saurait s'épanouir dans la seule répétition machinale des habitudes établies. Dès lors, le discernement critique et la liberté intérieure s'affirment comme le moteur vital du progrès éthique et du bonheur partagé.
 
 > **En définitive**, ce parcours réflexif démontre avec clarté que la véritable maturité réside dans l'alliance féconde de la lucidité d'esprit et de la générosité envers autrui. Loin de s'exclure mutuellement, la force de conviction personnelle et l'attention fraternelle envers ses semblables se complètent pour bâtir une société équilibrée, harmonieuse et profondément humaine. En conclusion, ne revient-il pas dès lors à chacun d'entre nous d'assumer ce double devoir d'exigence intérieure et de bienveillance active au quotidien ?`;
-})()}
+})()}`}
 
 [[TYPE]]
 ${isAnalytic || (topic && (topic.toLowerCase().includes('guérisseur') || topic.toLowerCase().includes('guerisseur') || (topic.toLowerCase().includes('cause') && topic.toLowerCase().includes('conséquence')))) ? 'ANALYTIQUE' : 'OPINION'}
