@@ -3086,7 +3086,16 @@ export default function App() {
       const outBilan = document.getElementById('outBilan');
       const parsedBilan = extract('BILAN');
       if (outBilan) {
-        outBilan.innerHTML = marked.parse(parsedBilan || '### Diagnostic Didactique Global\n- Respect du thème et cohérence générale de la production écrite.') as string;
+        let bilanText = parsedBilan || '### Diagnostic Didactique Global\n- Respect du thème et cohérence générale de la production écrite.';
+        if (isQuestionDeviationDetected && !bilanText.includes('Audit Didactique Prioritaire') && !bilanText.includes('Déviation par rapport à la Question')) {
+          const deviationHeader = `### ⚠️ Audit Didactique Prioritaire : Non-Respect de la Consigne & Déviation du Sujet\n` +
+            `- **Question Officielle Imposée au Candidat :** Le sujet demandait expressément de répondre à : *« ${sujet.slice(0, 180)} »*.\n` +
+            `- **Constat d'esquive thématique & didactique :** La copie rédigée ne répond pas à 100% à cette question directrice. L'élève a éludé la problématique posée, n'a pas affirmé une réponse claire, ou a omis des notions fondamentales du sujet.\n` +
+            `- **Impact direct sur le barème officiel :** À l'Examen Régional, un devoir qui ne répond pas à la question posée ne peut pas valider les critères Consigne et Argumentation. La note globale est **strictement bloquée à 2.0/10**.\n` +
+            `- **Neutralisation des sections 3 et 5 :** Le diagnostic des fautes (Section 3) et l'optimisation stylistique (Section 5) sont désactivés car il est inutile d'optimiser une production en déviation de consigne.\n\n`;
+          bilanText = deviationHeader + bilanText;
+        }
+        outBilan.innerHTML = marked.parse(bilanText) as string;
       }
 
       const outReform = document.getElementById('outReform');
@@ -4753,8 +4762,8 @@ export default function App() {
                 <div id="outTrans" className="writing-ruled-zone p-6 rounded-xl border border-slate-200 bg-white leading-relaxed"></div>
               </div>
 
-              {/* 3. Diagnostic Chirurgical des Fautes (Tableau) */}
-              <div className="mb-8">
+              {/* 3. Diagnostic Chirurgical des Fautes (Tableau) - Masqué en cas de déviation de consigne */}
+              <div className={isQuestionDeviation ? 'hidden' : 'mb-8'}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                   <div>
                     <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
@@ -4774,22 +4783,27 @@ export default function App() {
 
               {/* 4. Audit Méthodologique & Progression (Bilan) */}
               <div className="mb-8">
-                <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2 mb-3">
-                  <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 4. Audit Méthodologique & Progression Pédagogique
-                </h3>
+                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                  <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 4. Audit Méthodologique & Progression Pédagogique
+                  </h3>
+                  {isQuestionDeviation && (
+                    <span className="bg-rose-100 text-rose-900 border border-rose-300 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-2xs">
+                      ⚠️ Audit Didactique : Déviation de Consigne
+                    </span>
+                  )}
+                </div>
                 <div id="outBilan" className="p-4 sm:p-6 rounded-xl bg-slate-50 border border-slate-200 leading-relaxed text-sm sm:text-base"></div>
               </div>
 
-              {/* 5. Optimisation Stylistique (Texte Optimisé - Min. 18 lignes) */}
-              <div className="mb-8">
+              {/* 5. Optimisation Stylistique (Chirurgie des Phrases Faibles) - Masqué en cas de déviation de consigne */}
+              <div className={isQuestionDeviation ? 'hidden' : 'mb-8'}>
                 <div className="mb-3">
                   <h3 className="font-outfit text-sm font-bold text-slate-900 uppercase flex items-center gap-2">
-                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> {isQuestionDeviation || isHorsSujet ? "5. Optimisation Stylistique (Chirurgie des Phrases Faibles)" : "5. Optimisation Stylistique & Version Continue d'Excellence (Texte Optimisé • Min. 18 lignes)"}
+                    <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block"></span> 5. Optimisation Stylistique & Version Continue d'Excellence (Texte Optimisé • Min. 18 lignes)
                   </h3>
                   <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                    {isQuestionDeviation || isHorsSujet
-                      ? "Chirurgie ciblée des phrases faibles réelles de l'élève. En raison de la déviation par rapport à la question du sujet (ou du hors-sujet), la partie B (texte intégral d'excellence réécrit) n'est pas affichée."
-                      : "Chirurgie des phrases faibles et réécriture intégrale en texte optimisé d'au moins 18 lignes rédigées, articulé par des liens logiques puissants en bleu et des exemples tirés de l'œuvre en gras vert émeraude. Langage fort, limpide et rigoureux, sans recours à un registre soutenu artificiel."}
+                    Chirurgie des phrases faibles et réécriture intégrale en texte optimisé d'au moins 18 lignes rédigées, articulé par des liens logiques puissants en bleu et des exemples tirés de l'œuvre en gras vert émeraude. Langage fort, limpide et rigoureux, sans recours à un registre soutenu artificiel.
                   </p>
                 </div>
                 <div id="outReform" className="p-4 sm:p-6 rounded-xl bg-amber-50/40 border border-amber-200 leading-relaxed text-sm sm:text-base"></div>
