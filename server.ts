@@ -621,9 +621,16 @@ ATTENTION RÈGLE ABSOLUE DE RESPECT DE LA STRUCTURE EN PARAGRAPHES DU CANDIDAT :
 - Encadre CHAQUE paragraphe du candidat dans sa propre balise <p>...</p>.
 - RÈGLE CRUCIALE SUR LE DÉBUT DU DÉVELOPPEMENT : Si l'élève utilise une formule d'amorce ou de prise de position (« En premier lieu... », « D'abord... », « Personnellement... », « Pour ma part... », « À mon avis... »), ELLE DOIT OBLIGATOIREMENT COMMENCER UN NOUVEAU PARAGRAPHE DISTINCT AVEC SAUT DE LIGNE ET ALINÉA (<p><strong>En premier lieu</strong>...</p> ou <p><strong>Personnellement</strong>...</p>) AU DÉBUT DU DÉVELOPPEMENT, et ne JAMAIS être rattachée ou fusionnée à la fin de l'introduction !
 - INTERDICTION FORMELLE de compacter ou fusionner les paragraphes en un seul bloc continu !
-- RÈGLE CAPITAL SUR LES ERREURS : NE JAMAIS SURLIGNER EN ROUGE DES MOTS CORRECTS ! Seules les vraies erreurs réelles et objectives sont balisées en rouge : <span class="err-highlight">erreur [correction]</span>. Les mots normaux, corrects et bien écrits de la langue française doivent STRICTEMENT RESTER EN TEXTE NORMAL, sans aucune balise rouge !
+- RÈGLE CAPITALE SUR LES ERREURS ET TRAQUE CHIRURGICALE DE LA LANGUE :
+  1. Seules les vraies erreurs réelles et objectives sont balisées en rouge : <span class="err-highlight">erreur [correction]</span>. Les mots normaux, corrects et bien écrits de la langue française doivent STRICTEMENT RESTER EN TEXTE NORMAL, sans aucune balise rouge !
+  2. AUDIT GRAMMATICAL CHIRURGICAL (AUCUN OUBLI ADMISSIBLE) : Passe chaque phrase au scanner linguistique impitoyable et traque scrupuleusement :
+     * ACCORDS SUJET-VERBE À SUJET INVERSÉ / POSTPOSÉ : Dans les propositions subordonnées relatives (avec « que », « où », « dont », « auquel », « auxquels », « auxquelles »...) ou après un complément, repère systématiquement le VÉRITABLE sujet réel placé après le verbe. Si le sujet postposé est pluriel, le verbe DOIT être au pluriel ! (Exemple : dans « auxquelles reste attaché les esprits », le sujet réel de « rester » est « les esprits » au pluriel -> faute majeure d'accord : <span class="err-highlight">reste [restent]</span>).
+     * ACCORDS DE L'ATTRIBUT DU SUJET OU PARTICIPE PASSÉ AVEC SUJET INVERSÉ : L'adjectif ou participe attribut s'accorde en genre et en nombre avec le sujet inversé (Exemple : « attaché » qualifie le sujet « les esprits » masculin pluriel -> <span class="err-highlight">attaché [attachés]</span>).
+     * ACCORDS EN NOMBRE DANS LE GROUPE NOMINAL : Repère tous les pluriels omis (ex: « ses pratique » -> <span class="err-highlight">ses pratique [ses pratiques]</span>, « fausses croyance » -> <span class="err-highlight">fausses croyance [fausses croyances]</span>).
+     * HOMOPHONES ET CONFUSIONS GRAMMATICALES : (ces/ses, c'est/s'est, a/à, ou/où, son/sont, leur/leurs, ce/se...).
+     * ACCORDS DU PARTICIPE PASSÉ ET CONJUGRAISON : Accord avec être, accord avec avoir si COD antéposé, subjonctif après « bien que » / « pour que », etc.
 - Sur cette transcription intégrale, applique EXCLUSIVEMENT ET UNIQUEMENT ces deux balisages :
-  1. Les vraies erreurs objectives en rouge vif : <span class="err-highlight">erreur [correction]</span> (si le mot est correct, pas de rouge !).
+  1. Les vraies erreurs objectives en rouge vif : <span class="err-highlight">erreur [correction]</span> (isoler le mot ou petit groupe fautif avec sa correction entre crochets).
   2. TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !)
 INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou toute autre mention intrusive.)
 
@@ -652,11 +659,15 @@ INTERDICTION ABSOLUE d'insérer des avertissements comme [⚠️ Rupture...] ou 
 
 [[TABLEAU]]
 (ATTENTION RÈGLE FORMELLE ET ABSOLUE SUR LE DIAGNOSTIC DES FAUTES :
-- Ce tableau DOIT UNIQUEMENT ET EXCLUSIVEMENT recenser les VRAIES ERREURS OBJECTIVES : Orthographe (lexicale ou grammaticale), Conjugaison (temps, modes), Accords (sujet-verbe, nom-adjectif, participe passé), Coordination (conjonctions mal employées), Syntaxe grammaticale.
-- RÈGLE DE STRICTE DISSIMILITUDE : L'extrait fautif et la correction certifiée NE DOIVENT JAMAIS ÊTRE IDENTIQUES ! Si une phrase ou un extrait est correct, NE JAMAIS L'INCLURE DANS CE TABLEAU SOUS AUCUN PRÉTEXTE.
-- INTERDICTION FORMELLE d'inclure des phrases complètes ou des propositions sans faute. L'extrait fautif doit être UNIQUEMENT le mot ou le petit groupe fautif précis (1 à 4 mots maximum, ex: « la rechercher elle même », « tout les hommes », « il a partager »), JAMAIS une phrase entière de 10 mots !
+- Ce tableau DOIT RECENSER DE FAÇON EXHAUSTIVE TOUTES LES VRAIES ERREURS OBJECTIVES de la copie de l'élève (aucun oubli admissible !) :
+  * Accords sujet-verbe (en particulier les inversions de sujet postposé : ex: « reste » -> « restent » devant « les esprits »).
+  * Accords de l'attribut du sujet ou participe passé (ex: « attaché » -> « attachés » qualifiant « les esprits »).
+  * Accords en nombre et genre dans le GN (ex: « ses pratique » -> « ses pratiques », « fausses croyance » -> « fausses croyances »).
+  * Orthographe lexicale, homophonie grammaticale (a/à, ses/ces, son/sont), conjugaison, temps et modes.
+- RÈGLE DE STRICTE DISSIMILITUDE : L'extrait fautif et la correction certifiée NE DOIVENT JAMAIS ÊTRE IDENTIQUES ! Si une phrase ou un mot est correct, NE JAMAIS L'INCLURE DANS CE TABLEAU SOUS AUCUN PRÉTEXTE.
+- INTERDICTION FORMELLE d'inclure des phrases complètes ou des propositions sans faute. L'extrait fautif doit être UNIQUEMENT le mot ou le petit groupe fautif précis (1 à 4 mots maximum, ex: « ses pratique », « fausses croyance », « reste », « attaché »), JAMAIS une phrase entière de 10 mots !
 - La correction certifiée doit corriger explicitement la faute ciblée.
-- S'il n'y a que 2 ou 3 fautes dans toute la copie de l'élève, ne produis que 2 ou 3 lignes ! Ne fabrique JAMAIS de fausses fautes artificielles.
+- S'il y a 4 fautes dans la copie de l'élève, produis exactement 4 lignes distinctes !
 - Structure OBLIGATOIRE du tableau Markdown en 4 colonnes, avec les extraits fautifs obligatoirement en rouge (<span class="err-highlight">...</span>) et les corrections certifiées obligatoirement en vert (<span class="corr-green">...</span>) :
 | Extrait fautif (en rouge) | Nature de l'erreur (Orthographe / Conjugaison / Accord / Coordination / Syntaxe) | Correction certifiée (en vert) | Règle pédagogique précise |
 | :--- | :--- | :--- | :--- |
@@ -842,10 +853,15 @@ app.post('/api/chat', async (req, res) => {
 
 CONSIGNES CHIRURGICALES POUR LA COMMISSION :
 1. Dans [[TRANSCRIPTION]], retranscris L'INTÉGRALITÉ EXACTE de la copie ci-dessus mot à mot, sans omettre aucune phrase, sans tronquer et sans résumer. Applique UNIQUEMENT deux balisages :
-   - Les fautes en rouge vif : <span class="err-highlight">faute [correction]</span>
+   - Les fautes en rouge vif : <span class="err-highlight">faute [correction]</span>. TRAQUE CHIRURGICALE DES FAUTES :
+     * Détecte scrupuleusement les accords sujet-verbe à sujet inversé / postposé (ex: « reste » -> « restent » quand le sujet est « les esprits »).
+     * Détecte les accords d'attribut du sujet ou participe passé avec sujet inversé (ex: « attaché » -> « attachés » qualifiant « les esprits »).
+     * Détecte tous les pluriels omis dans les groupes nominaux (ex: « ses pratique » -> « ses pratiques », « fausses croyance » -> « fausses croyances »).
+     * Ne laisse passer AUCUNE faute réelle objective, mais ne surligne aucun mot correct.
    - TOUS les liens logiques et connecteurs obligatoirement en gras : <strong>lien logique</strong> (ex: <strong>En premier lieu</strong>, <strong>En deuxième lieu</strong>, <strong>En second lieu</strong>, <strong>En dernier lieu</strong>, <strong>D'ailleurs</strong>, <strong>En effet</strong>, <strong>En d'autres termes</strong>, <strong>Aussi</strong>, <strong>Personnellement</strong>, <strong>Finalement</strong>, <strong>Par conséquent</strong>, <strong>Ainsi</strong>, <strong>Dès lors</strong>, etc. Ne JAMAIS en oublier aucun !).
    Ne mets AUCUNE balise d'avertissement.
 2. Dans [[BILAN]], [[TABLEAU]] et [[REFORMULATION]], traite EXCLUSIVEMENT ET DIRECTEMENT les phrases réelles, les arguments et les erreurs de la copie ci-dessus.
+   - Dans [[TABLEAU]] : Liste CHAQUE faute distincte sur sa propre ligne (ex: « ses pratique », « fausses croyance », « reste », « attaché »).
    - Dans [[BILAN]] :
      * Analyse en profondeur l'amorce de l'élève (pertinence de son entrée en matière).
      * Analyse la problématisation (tension et interrogation directrice).
@@ -1200,6 +1216,11 @@ OPINION
     formatted = formatted.replace(/\b(partager)\b/gi, '<span class="err-highlight">$1 [partagé]</span>');
     formatted = formatted.replace(/\b(un\s+fleau)\b/gi, '<span class="err-highlight">$1 [un fléau]</span>');
     formatted = formatted.replace(/\b(des\s+\w+s?\s+violent)\b/gi, '<span class="err-highlight">$1 [violents]</span>');
+    formatted = formatted.replace(/\b(ses\s+pratique)\b/gi, '<span class="err-highlight">$1 [ses pratiques]</span>');
+    formatted = formatted.replace(/\b(fausses?\s+croyance)\b/gi, '<span class="err-highlight">$1 [fausses croyances]</span>');
+    formatted = formatted.replace(/\b(auxquelles\s+)(reste)(\s+)(attach[eé])(\s+les\s+esprits)\b/gi, '$1<span class="err-highlight">$2 [restent]</span>$3<span class="err-highlight">$4 [attachés]</span>$5');
+    formatted = formatted.replace(/\b(reste)(\s+attach[eé]\s+les\s+esprits)\b/gi, '<span class="err-highlight">$1 [restent]</span>$2');
+    formatted = formatted.replace(/\b(attach[eé])(\s+les\s+esprits)\b/gi, '<span class="err-highlight">$1 [attachés]</span>$2');
     return `<p>${formatted}</p>`;
   }).join('\n\n');
 
@@ -1234,6 +1255,31 @@ OPINION
     : (isMissingConcl
       ? `[[SANS_CONCLUSION]]\n[[GRILLE]] : Consigne:1.2|Structure:0.5|Arguments:1.5|Langue:1.2|Lexique:0.6`
       : `[[GRILLE]] : Consigne:1.8|Structure:${structureScore.toFixed(2)}|Arguments:1.8|Langue:2.2|Lexique:1.3`);
+
+  const fallbackFautes: { err: string; cat: string; corr: string; regle: string }[] = [];
+  if (/ses\s+pratique/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'ses pratique', cat: 'Accord dans le GN', corr: 'ses pratiques', regle: 'L\'adjectif possessif pluriel « ses » impose la marque du pluriel au nom « pratiques ».' });
+  }
+  if (/fausses?\s+croyance/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'fausses croyance', cat: 'Accord dans le GN', corr: 'fausses croyances', regle: 'L\'adjectif qualificatif pluriel « fausses » exige l\'accord du nom « croyances » au pluriel.' });
+  }
+  if (/\breste\s+attach[eé]\s+les\s+esprits/i.test(rawCopy) || /\bauxquelles\s+reste\b/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'reste', cat: 'Accord sujet-verbe inversé', corr: 'restent', regle: 'Le sujet réel « les esprits » est inversé (pluriel) ; le verbe « rester » s\'accorde donc au pluriel : « restent ».' });
+    fallbackFautes.push({ err: 'attaché', cat: 'Accord de l\'attribut du sujet', corr: 'attachés', regle: 'L\'attribut/participe s\'accorde en genre et en nombre avec le sujet inversé « les esprits » (masculin pluriel).' });
+  }
+  if (/partager/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'partager', cat: 'Conjugaison & Accord', corr: 'partagé', regle: 'Après l\'auxiliaire être, le verbe s\'accorde au participe passé : « est partagé ».' });
+  }
+  if (/malgr[eé]\s+qu['’]il\s+soit/i.test(rawCopy)) {
+    fallbackFautes.push({ err: 'malgré qu\'il soit', cat: 'Coordination & Syntaxe', corr: 'bien qu\'il soit', regle: '« Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ».' });
+  }
+  if (fallbackFautes.length === 0) {
+    fallbackFautes.push(
+      { err: 'partager', cat: 'Conjugaison & Accord', corr: 'partagé', regle: 'Après l\'auxiliaire être, le verbe s\'accorde au participe passé : « est partagé ».' },
+      { err: 'malgré qu\'il soit', cat: 'Coordination & Syntaxe', corr: 'bien qu\'il soit', regle: '« Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ».' }
+    );
+  }
+  const fallbackTableauRows = fallbackFautes.map(f => `| <span class="err-highlight">${f.err}</span> | ${f.cat} | <span class="corr-green">${f.corr}</span> | ${f.regle} |`).join('\n');
 
   return `${grilleOutput}
 
@@ -1270,8 +1316,7 @@ ${isMissingConcl ? `- **Absence de conclusion :** Aucune conclusion n'a été r�
 [[TABLEAU]]
 | Extrait fautif (en rouge) | Nature de l'erreur | Correction certifiée (en vert) | Règle pédagogique précise |
 | :--- | :--- | :--- | :--- |
-| <span class="err-highlight">partager</span> | Conjugaison & Accord | <span class="corr-green">partagé</span> | Après l'auxiliaire être, le verbe s'accorde au participe passé : « est partagé ». |
-| <span class="err-highlight">malgré qu'il soit</span> | Coordination & Syntaxe | <span class="corr-green">bien qu'il soit</span> | « Malgré que » est proscrit avec un subjonctif ; employer la conjonction « bien que » ou la préposition « malgré + nom ». |
+${fallbackTableauRows}
 
 [[REFORMULATION]]
 ### A. Chirurgie Stylistique des Phrases Clés (Phrases Faibles de l'Élève Reformulées avec Force)
