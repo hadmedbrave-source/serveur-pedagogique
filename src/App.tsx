@@ -1423,9 +1423,8 @@ export default function App() {
     return res;
   };
 
-  const cleanTableMarkdown = (tableMd: string): string => {
-    if (!tableMd) return tableMd;
-    const lines = tableMd.split('\n');
+  const cleanTableMarkdown = (tableMd: string, candidateText: string = ''): string => {
+    const lines = (tableMd || '').split('\n');
     const filteredLines: string[] = [];
     for (const line of lines) {
       if (!line.includes('|')) {
@@ -1481,6 +1480,123 @@ export default function App() {
         filteredLines.push(line);
       }
     }
+
+    const appAuditRules = [
+      {
+        regex: /\bje\s+penses\b/i,
+        err: 'je penses',
+        corr: 'je pense',
+        nature: 'Conjugaison & Accord sujet-verbe',
+        regle: 'Au présent de l\'indicatif, les verbes du premier groupe prennent la terminaison « -e » à la 1re personne du singulier (« je pense »), jamais de « s ».'
+      },
+      {
+        regex: /\bqui\s+(?=(?:c|s)es\s+pratique|ces\s+pratiques|ses\s+pratiques)/i,
+        err: 'qui',
+        corr: 'que',
+        nature: 'Syntaxe & Subordonnée complétive',
+        regle: 'Après le verbe déclaratif « je pense », la proposition complétive s\'introduit impérativement par la conjonction « que » et non par le pronom relatif « qui ».'
+      },
+      {
+        regex: /\b(ces|ses)\s+pratique\b/i,
+        err: (m: RegExpExecArray) => `${m[1]} pratique`,
+        corr: (m: RegExpExecArray) => `${m[1]} pratiques`,
+        nature: 'Accord dans le GN',
+        regle: 'Le déterminant pluriel impose obligatoirement la marque du pluriel « -s » au nom noyau.'
+      },
+      {
+        regex: /\bde\s+fausse\s+croyance\b/i,
+        err: () => 'de fausse croyance',
+        corr: () => 'de fausses croyances',
+        nature: 'Accord dans le GN',
+        regle: 'L\'adjectif qualificatif « fausses » et le nom « croyances » doivent obligatoirement porter la marque du pluriel « -s ».'
+      },
+      {
+        regex: /\bfausses?\s+croyance\b/i,
+        err: (m: RegExpExecArray) => m[0],
+        corr: () => 'fausses croyances',
+        nature: 'Accord dans le GN',
+        regle: 'Le nom noyau « croyance » doit obligatoirement s\'accorder au pluriel avec la marque « -s ».'
+      },
+      {
+        regex: /\bauquel\b(?=\s+reste|\s+sont|\s+restent|\s+attach[eé])/i,
+        err: () => 'auquel',
+        corr: () => 'auxquelles',
+        nature: 'Accord du pronom relatif composé',
+        regle: 'Le pronom relatif « auquel » s\'accorde avec son antécédent « fausses croyances » (féminin pluriel) : il faut employer « auxquelles ».'
+      },
+      {
+        regex: /\breste\b(?=\s+attach[eé]s?\s+les\s+esprits)/i,
+        err: () => 'reste',
+        corr: () => 'restent',
+        nature: 'Accord sujet-verbe à sujet inversé',
+        regle: 'Dans la proposition relative à sujet postposé, le verbe s\'accorde avec son sujet réel « les esprits » (3e personne du pluriel) : « restent ».'
+      },
+      {
+        regex: /\battach[eé]\b(?=\s+les\s+esprits)/i,
+        err: () => 'attaché',
+        corr: () => 'attachés',
+        nature: 'Accord de l\'attribut du sujet inversé',
+        regle: 'L\'attribut du sujet s\'accorde en genre et en nombre avec le sujet postposé « les esprits » (masculin pluriel : « attachés »).'
+      },
+      {
+        regex: /\bon\s+attribuent\b/i,
+        err: () => 'on attribuent',
+        corr: () => 'on attribue',
+        nature: 'Accord sujet-verbe',
+        regle: 'Le pronom indéfini « on » est toujours à la 3e personne du singulier : le verbe s\'écrit « attribue » et ne peut jamais prendre la désinence du pluriel « -ent ».'
+      },
+      {
+        regex: /\b(?:[aà]\s+)?des\s+personne\b/i,
+        err: () => 'des personne',
+        corr: () => 'des personnes',
+        nature: 'Accord en nombre dans le GN',
+        regle: 'Après l\'article indéfini pluriel « des », le nom noyau « personne » s\'écrit obligatoirement avec la marque du pluriel « -s ».'
+      },
+      {
+        regex: /\bprobl[eè]me\s+d['’]amour\b/i,
+        err: () => 'problème d\'amour',
+        corr: () => 'problèmes d\'amour',
+        nature: 'Accord en nombre (énumération)',
+        regle: 'Dans une énumération de soucis pluriels, le terme désignant la catégorie prend la marque du pluriel (« problèmes d\'amour »).'
+      },
+      {
+        regex: /\bmalgr[eé]\s+qu['’]il(?:\s+soit)?\b/i,
+        err: () => 'malgré qu\'il',
+        corr: () => 'bien qu\'il',
+        nature: 'Syntaxe & Locution conjonctive',
+        regle: 'La tournure « malgré que » est proscrite en français académique. Il faut employer « bien que » suivi du subjonctif.'
+      },
+      {
+        regex: /\bpartager\b(?=\s+l['’]avis|\s+cette\s+id[eé]e|\s+ce\s+point)/i,
+        err: () => 'partager',
+        corr: () => 'partage',
+        nature: 'Conjugaison (Forme conjuguée vs Infinitif)',
+        regle: 'Le verbe conjugué à la 1re personne du présent prend la terminaison « -e » (« je partage »), et ne reste pas à l\'infinitif.'
+      }
+    ];
+
+    if (candidateText) {
+      for (const r of appAuditRules) {
+        const m = r.regex.exec(candidateText);
+        if (m) {
+          const eStr = typeof r.err === 'function' ? r.err(m) : r.err;
+          const cStr = typeof r.corr === 'function' ? r.corr(m) : r.corr;
+          const exists = filteredLines.some(l => {
+            const low = l.toLowerCase();
+            return low.includes(eStr.toLowerCase());
+          });
+          if (!exists) {
+            filteredLines.push(`| <span class="err-highlight">${eStr}</span> | ${r.nature} | <span class="corr-green">${cStr}</span> | ${r.regle} |`);
+          }
+        }
+      }
+    }
+
+    if (filteredLines.length > 0 && !filteredLines.some(l => l.includes('---'))) {
+      filteredLines.unshift('| :--- | :--- | :--- | :--- |');
+      filteredLines.unshift('| Extrait fautif (en rouge) | Nature de l\'erreur | Correction certifiée (en vert) | Règle pédagogique précise |');
+    }
+
     return filteredLines.join('\n');
   };
 
@@ -1888,10 +2004,62 @@ export default function App() {
     const applyHighlights = (str: string) => {
       let res = str;
 
-      // 1. Transformer les éventuelles notations explicites [faute -> correction] ou [faute] en erreurs rouges
-      res = res.replace(/(?<!<span class="err-highlight"[^>]*>)(\[[^\]]+\])(?!<\/span>)/g, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;">$1</span>');
+      const errStyle = 'color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;';
 
-      // 2. Transformer les balises <strong[^>]*> existantes contenant un connecteur en connecteurs stylisés en couleur
+      // 1. Transformer les éventuelles notations explicites [faute -> correction] ou [faute] en erreurs rouges
+      res = res.replace(/(?<!<span class="err-highlight"[^>]*>)(\[[^\]]+\])(?!<\/span>)/g, `<span class="err-highlight" style="${errStyle}">$1</span>`);
+
+      // Fonction d'application sécurisée d'une règle d'erreur pour éviter tout double balisage
+      const applyGrammarRule = (source: string, pattern: RegExp, wrapper: (...args: string[]) => string) => {
+        return source.replace(pattern, (...args) => {
+          const match = args[0];
+          const offset = args[args.length - 2] as number;
+          const before = source.slice(0, offset);
+          const lastOpen = before.lastIndexOf('<span class="err-highlight"');
+          const lastClose = before.lastIndexOf('</span>');
+          if (lastOpen !== -1 && lastOpen > lastClose) {
+            return match;
+          }
+          return wrapper(...args);
+        });
+      };
+
+      // 2. Traque déterministe des erreurs réelles de la copie
+      res = applyGrammarRule(res, /\b(je\s+penses)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [je pense]</span>`);
+      res = applyGrammarRule(res, /\b(qui)(?=\s+(?:c|s)es\s+pratique)/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [que]</span>`);
+      res = applyGrammarRule(res, /\b(ces\s+pratique)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [ces pratiques]</span>`);
+      res = applyGrammarRule(res, /\b(ses\s+pratique)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [ses pratiques]</span>`);
+      res = applyGrammarRule(res, /\b(de\s+fausse\s+croyance)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [de fausses croyances]</span>`);
+      res = applyGrammarRule(res, /\b(fausses?\s+croyance)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [fausses croyances]</span>`);
+      res = applyGrammarRule(res, /\b(auquel)(?=\s+(?:reste|sont|restent|attach[eé]))/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [auxquelles]</span>`);
+      res = applyGrammarRule(res, /\b(reste)(?=\s+attach[eé]s?\s+les\s+esprits)/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [restent]</span>`);
+      res = applyGrammarRule(res, /\b(attach[eé])(?=\s+les\s+esprits)/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [attachés]</span>`);
+      res = applyGrammarRule(res, /\b(on\s+attribuent)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [on attribue]</span>`);
+      res = applyGrammarRule(res, /\b(des\s+personne)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [des personnes]</span>`);
+      res = applyGrammarRule(res, /\b(probl[eè]me\s+d['’]amour)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [problèmes d'amour]</span>`);
+      res = applyGrammarRule(res, /\b(malgr[eé]\s+qu['’]il(?:\s+soit)?)\b/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [bien qu'il soit]</span>`);
+      res = applyGrammarRule(res, /\b(partager)(?=\s+(?:l['’]avis|cette\s+id[eé]e|ce\s+point))/gi, (m) => `<span class="err-highlight" style="${errStyle}">${m} [partage]</span>`);
+
+      // 3. Si le tableau d'erreurs contient d'autres extraits fautifs, les surligner aussi
+      if (tableRaw) {
+        const lines = tableRaw.split('\n');
+        for (const l of lines) {
+          if (!l.includes('|') || l.includes('---') || l.toLowerCase().includes('extrait')) continue;
+          const parts = l.split('|').map(p => p.trim()).filter(Boolean);
+          if (parts.length >= 3) {
+            const rawErr = parts[0].replace(/<[^>]*>/g, '').trim();
+            const rawCorr = parts[2].replace(/<[^>]*>/g, '').trim();
+            if (rawErr && rawErr.length >= 2 && rawErr !== '-' && rawErr !== '?' && !rawErr.includes(' ') && rawErr.length < 25) {
+              const esc = rawErr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              res = applyGrammarRule(res, new RegExp(`\\b(${esc})\\b`, 'gi'), (m) => {
+                return `<span class="err-highlight" style="${errStyle}">${m}${rawCorr ? ` [${rawCorr}]` : ''}</span>`;
+              });
+            }
+          }
+        }
+      }
+
+      // 4. Transformer les balises <strong[^>]*> existantes contenant un connecteur en connecteurs stylisés en couleur
       res = res.replace(/<strong(?!\s+class="conn-student")[^>]*>([\s\S]*?)<\/strong>/gi, (m, inner) => {
         const trimmed = inner.replace(/<[^>]*>/g, '').trim();
         const matched = connectors.find(c => c.toLowerCase() === trimmed.toLowerCase());
@@ -1902,7 +2070,7 @@ export default function App() {
         return m;
       });
 
-      // 3. Connecteurs en couleur s'ils ne le sont pas encore (triés du plus long au plus court)
+      // 5. Connecteurs en couleur s'ils ne le sont pas encore (triés du plus long au plus court)
       const sortedConnectors = [...connectors].sort((a, b) => b.length - a.length);
       for (const c of sortedConnectors) {
         const escaped = c
@@ -1913,8 +2081,8 @@ export default function App() {
         res = res.replace(regex, `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:2px 7px !important; border-radius:5px !important; border:1.5px solid ${style.border} !important; display:inline-block !important; margin:1px 2px !important; box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;">$1</strong>`);
       }
 
-      // 3. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
-      res = res.replace(/<span class="err-highlight"(?! style)/gi, '<span class="err-highlight" style="color:#dc2626 !important; background-color:#fee2e2 !important; font-weight:800 !important; border:1px solid #fca5a5 !important; text-decoration:underline wavy #ef4444 !important; padding:2px 6px !important; border-radius:4px !important; display:inline-block !important; margin:1px 2px !important;"');
+      // 6. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
+      res = res.replace(/<span class="err-highlight"(?! style)/gi, `<span class="err-highlight" style="${errStyle}"`);
 
       return res;
     };
@@ -2804,7 +2972,7 @@ export default function App() {
 
       const outTable = document.getElementById('outTable');
       const rawTable = extract('TABLEAU');
-      const parsedTable = cleanTableMarkdown(rawTable);
+      const parsedTable = cleanTableMarkdown(rawTable, texte);
       if (outTable) {
         outTable.innerHTML = marked.parse(parsedTable || '| Extrait fautif (en rouge) | Nature | Correction (en vert) | Règle |\n| :--- | :--- | :--- | :--- |\n| Syntaxe | Ponctuation | Soigner les alinéas | Règle officielle |') as string;
       }
