@@ -486,30 +486,57 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         );
       }
     } else if (step === 'CONCL') {
-      const pvdDialectique = conclPointDeVue.trim() || `le juste équilibre entre respect des principes et discernement personnel doit guider notre jugement sur ${theme}`;
-      const pvdSimple = conclPointDeVue.trim() || subjectAnalysis.conclusionFerme;
+      // Nettoyage rigoureux pour éviter toute répétition de formules (ex: "je confirme" ou "d'après ce qui précède")
+      const cleanPointDeVue = (raw: string) => {
+        return raw
+          .trim()
+          .replace(/^d['’]après ce qui précède,?\s*/i, '')
+          .replace(/^au terme de (cette réflexion|notre analyse|notre réflexion),?\s*/i, '')
+          .replace(/^en définitive,?\s*/i, '')
+          .replace(/^en somme,?\s*/i, '')
+          .replace(/^pour conclure,?\s*/i, '')
+          .replace(/^à la lumière de (la démonstration|ce) qui précède,?\s*/i, '')
+          .replace(/^je confirme tenacement (que\s*)?/i, '')
+          .replace(/^je confirme (que\s*)?/i, '')
+          .replace(/^je soutiens fermement (que\s*)?/i, '')
+          .replace(/^je soutiens sans réserve (que\s*)?/i, '')
+          .replace(/^il apparaît incontestable (que\s*)?/i, '')
+          .replace(/^il est indéniable (que\s*)?/i, '')
+          .replace(/^pour ma part,?\s*/i, '')
+          .replace(/^en ce qui me concerne,?\s*/i, '')
+          .replace(/^j['’]estime (que\s*)?/i, '')
+          .replace(/^je demeure convaincu (que\s*)?/i, '')
+          .replace(/^que\s+/i, '')
+          .trim();
+      };
+
+      const rawPvdDialectique = conclPointDeVue.trim() || `le juste équilibre entre respect des principes et discernement personnel doit guider notre jugement sur ${theme}`;
+      const rawPvdSimple = conclPointDeVue.trim() || subjectAnalysis.conclusionFerme;
+      const cleanPvdDialectique = cleanPointDeVue(rawPvdDialectique);
+      const cleanPvdSimple = cleanPointDeVue(rawPvdSimple);
+
       const ouv = conclOuverture.trim() || (selectedPlan === 'SIMPLE'
         ? 'Dès lors, comment encourager chaque individu à cultiver cette autonomie face aux pressions extérieures ?'
         : 'Dès lors, comment les générations futures sauront-elles concilier ces exigences face aux nouveaux défis contemporains ?');
 
       if (selectedPlan === 'SIMPLE') {
         // Plan Simple : Zéro nuance ! Réaffirmation catégorique et tenace du point de vue personnel défendu
-        // Variante 1 : « Clarté & Fermeté Directe » (avec amorce demandée "D'après ce qui précède, je confirme tenacement que...")
+        // Variante 1 : « Clarté & Fermeté Directe » (formulation unique et limpide, sans AUCUNE répétition de "je confirme")
         setVarianteA(
-          `${conclBilan}au terme de notre analyse, d'après ce qui précède, je confirme tenacement que ${pvdSimple}. L'ensemble des arguments développés et les scènes marquantes de « ${selectedOeuvre} » prouvent sans l'ombre d'un doute la justesse de cette prise de position. ${ouv}`
+          `D'après ce qui précède, je confirme tenacement que ${cleanPvdSimple}. L'ensemble des arguments développés et les illustrations de « ${selectedOeuvre} » prouvent sans l'ombre d'un doute la justesse de cette prise de position. ${ouv}`
         );
 
         // Variante 2 : « Élégance & Conviction Inébranlable 50/50 »
         setVarianteB(
-          `${conclBilan}à la lumière de la démonstration rigoureuse qui précède, il apparaît incontestable que ${pvdSimple}. Dès lors, je soutiens avec une conviction inébranlable et sans la moindre réserve la validité de ce point de vue personnel. Une perspective stimulante demeure toutefois ouverte : ${ouv}`
+          `En définitive, à la lumière de la démonstration rigoureuse qui précède, il apparaît incontestable que ${cleanPvdSimple}. Dès lors, je soutiens avec une conviction inébranlable et sans la moindre réserve la validité de ce point de vue personnel. Une perspective stimulante demeure toutefois ouverte : ${ouv}`
         );
       } else {
         // Plan Dialectique : Synthèse équilibrée
         setVarianteA(
-          `${conclBilan}au terme de notre réflexion sur ${theme}, il apparaît clairement que ces deux points de vue se complètent et s'éclairent mutuellement. Pour ma part, j'estime que ${pvdDialectique}. ${ouv}`
+          `En définitive, au terme de notre réflexion sur ${theme}, il apparaît clairement que ces deux points de vue se complètent et s'éclairent mutuellement. Pour ma part, j'estime que ${cleanPvdDialectique}. ${ouv}`
         );
         setVarianteB(
-          `${conclBilan}l'examen attentif de cette problématique permet de dégager une synthèse équilibrée et féconde. En ce qui me concerne, je demeure convaincu que ${pvdDialectique}. Dès lors, une question essentielle demeure ouverte : ${ouv}`
+          `Au terme de cette réflexion, l'examen attentif de cette problématique permet de dégager une synthèse équilibrée et féconde. En ce qui me concerne, je demeure convaincu que ${cleanPvdDialectique}. Dès lors, une question essentielle demeure ouverte : ${ouv}`
         );
       }
     }
@@ -1636,7 +1663,25 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  const full = `${conclBilan}${conclPointDeVue} ${conclOuverture}`.trim();
+                  const rawPvd = conclPointDeVue.trim() || (selectedPlan === 'SIMPLE' ? subjectAnalysis.conclusionFerme : `le juste équilibre entre les différentes exigences doit guider notre jugement`);
+                  const cleanPvd = rawPvd
+                    .replace(/^d['’]après ce qui précède,?\s*/i, '')
+                    .replace(/^je confirme tenacement (que\s*)?/i, '')
+                    .replace(/^je confirme (que\s*)?/i, '')
+                    .replace(/^que\s+/i, '')
+                    .trim();
+
+                  let prefix = conclBilan.trim();
+                  if (prefix.endsWith('que')) {
+                    prefix += ' ';
+                  } else if (!prefix.endsWith(',') && !prefix.endsWith('.')) {
+                    prefix += ', ';
+                  } else {
+                    prefix += ' ';
+                  }
+
+                  const endPunct = cleanPvd.endsWith('.') ? '' : '.';
+                  const full = `${prefix}${cleanPvd}${endPunct} ${conclOuverture.trim()}`.trim();
                   handleApplyVariant(full);
                 }}
                 className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 transition cursor-pointer shadow-md"
