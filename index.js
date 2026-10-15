@@ -318,17 +318,26 @@ app.delete('/api/archives/:id', (req, res) => {
   return res.status(404).json({ success: false, message: 'Archive non trouvée.' });
 });
 
-// Initialisation des clients IA
-const openaiApiKey = process.env.OPENAI_API_KEY;
+// Initialisation des clients IA (détection automatique de OPENAI_API_KEY, OPEN_IA, OPENIA, etc.)
+const openaiApiKey = (
+  process.env.OPENAI_API_KEY ||
+  process.env.OPEN_IA ||
+  process.env.OPENIA ||
+  process.env.OPEN_AI ||
+  process.env.OPENAI ||
+  process.env.OPENAI_KEY ||
+  process.env.OPEN_IA_KEY ||
+  ''
+).trim();
 const openaiModel = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const openai = openaiApiKey && openaiApiKey !== 'MY_OPENAI_API_KEY' && openaiApiKey.trim() !== ''
   ? new OpenAI({ apiKey: openaiApiKey })
   : null;
 
 if (openai) {
-  console.log(`[OpenAI] Clé OPENAI_API_KEY détectée. Moteur principal actif : ${openaiModel}`);
+  console.log(`[OpenAI] Clé IA détectée. Moteur principal actif : ${openaiModel}`);
 } else {
-  console.log('[OpenAI] Aucune clé OPENAI_API_KEY détectée dans les variables d\'environnement.');
+  console.log('[OpenAI] Aucune clé OpenAI / OPEN_IA détectée dans les variables d\'environnement.');
 }
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -467,6 +476,10 @@ RÈGLES D'OR ABSOLUES :
   - Chaque paragraphe du développement doit découler directement de la problématique posée et former une unité de sens cohérente et homogène.
   - Les exemples tirés des trois œuvres au programme (*La Boîte à Merveilles*, *Antigone*, *Le Dernier Jour d'un Condamné*) doivent illustrer avec une justesse psychologique et littéraire absolue le thème précis du sujet (ex: solitude, superstition, autorité parentale, justice, liberté, condamnation, etc.).
   - L'enchaînement logique entre les paragraphes doit être d'une fluidité naturelle et irréprochable du premier mot de l'introduction au dernier mot de la conclusion.
+- VALIDATION FORMELLE DE LA CONCLUSION :
+  Toute copie comportant un paragraphe final de clôture (ex: « D'après ce qui précède », « En conclusion », « En définitive », « En somme », « Je confirme tenacement », « Pour clore »...) POSSÈDE PLEINEMENT SA CONCLUSION. Il est STRICTEMENT INTERDIT d'affirmer que le texte manque de conclusion lorsqu'un tel paragraphe est présent.
+- ATTRIBUTION D'UNE NOTE D'EXCELLENCE :
+  Une copie complète (Introduction avec bonne amorce, deux axes de développement solides et illustrés d'œuvres, et conclusion ferme avec ouverture) mérite entre 9/10 et 9.5/10 (ex: Consigne:2.0|Structure:1.8|Arguments:1.8|Langue:2.1|Lexique:1.3).
 
 STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
 
