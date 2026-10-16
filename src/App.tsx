@@ -6087,34 +6087,15 @@ export default function App() {
         </div>
 
         {/* -------------------- VERSO (PAGE 2) -------------------- */}
-        {/* STRICTEMENT SANS "Nom du candidat", "rappel du sujet", ni "version continue d'excellence" */}
+        {/* STRICTEMENT SANS "Nom du candidat", "rappel du sujet", ni "version continue d'excellence", SANS en-tête */}
         {/* Contient UNIQUEMENT le Texte Optimisé balisé avec les liens logiques et les exemples des œuvres */}
         <div id="print-page-verso" className="duplex-page duplex-page-verso">
-          <div>
-            <div className="duplex-header">
-              <h1 className="duplex-school-title">CENTRE AL AKHAWAYN</h1>
-              <p className="duplex-school-subtitle">
-                Expertise &amp; Ingénierie Pédagogique • Excellence Académique
-              </p>
-              <div className="duplex-divider" />
-            </div>
-
-            <div className="duplex-section-banner-verso">
-              PAGE 2 • VERSO : TEXTE OPTIMISÉ (LIENS LOGIQUES &amp; EXEMPLES DES ŒUVRES)
-            </div>
-
-            <div
-              className="duplex-body-content duplex-verso-content"
-              dangerouslySetInnerHTML={{
-                __html: getVersoOptimizedHtml(),
-              }}
-            />
-          </div>
-
-          <div className="duplex-footer">
-            <span>Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale • Document Didactique Certifié</span>
-            <span>Document Officiel d'Examen • Page 2 / 2 (Verso)</span>
-          </div>
+          <div
+            className="duplex-body-content duplex-verso-content"
+            dangerouslySetInnerHTML={{
+              __html: getVersoOptimizedHtml(),
+            }}
+          />
         </div>
       </div>
 
