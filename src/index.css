@@ -491,9 +491,156 @@
   pointer-events: none;
 }
 
+/* Document Duplex 2 Pages pour Impression & PDF Officiel */
+#akhawayn-official-duplex-doc {
+  display: none;
+}
+
+.duplex-page {
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  padding: 12mm 14mm;
+  background: white;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+.duplex-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.duplex-school-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20pt;
+  font-weight: 900;
+  color: #0b1528;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.duplex-school-subtitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 9.5pt;
+  font-weight: 700;
+  color: #b45309;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  margin: 4px 0 6px 0;
+}
+
+.duplex-divider {
+  height: 2px;
+  background: #0b1528;
+  margin: 5px 0 10px 0;
+}
+
+.duplex-id-card {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 9.5pt;
+  font-family: 'Outfit', sans-serif;
+}
+
+.duplex-id-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  line-height: 1.35;
+}
+
+.duplex-subject-box {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 9pt;
+}
+
+.duplex-section-banner {
+  background: #0b1528;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 9pt;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Calibration Page 1 (Recto) */
+.duplex-page-recto .duplex-body-content {
+  flex-grow: 1;
+  font-size: 13pt;
+  line-height: 2.1;
+  color: #1e293b;
+  text-align: justify;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.duplex-page-recto .duplex-body-content p {
+  text-indent: 2.6rem;
+  margin-bottom: 16px;
+  line-height: 2.1;
+}
+
+/* Calibration Page 2 (Verso) : Pleine page, texte grand et interligne généreux */
+.duplex-page-verso .duplex-body-content {
+  flex-grow: 1;
+  font-size: 14pt;
+  line-height: 2.3;
+  color: #1e293b;
+  text-align: justify;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  letter-spacing: 0.15px;
+}
+
+.duplex-page-verso .duplex-body-content p {
+  text-indent: 2.8rem;
+  margin-bottom: 22px;
+  line-height: 2.3;
+  font-size: 14pt;
+}
+
+.duplex-score-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 9pt;
+  color: #92400e;
+  margin-top: 8px;
+  text-align: center;
+  font-family: 'Outfit', sans-serif;
+}
+
+.duplex-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 8pt;
+  color: #64748b;
+  margin-top: 8px;
+  font-family: 'Outfit', sans-serif;
+}
+
 @page {
   size: A4 portrait;
-  margin: 10mm 12mm;
+  margin: 8mm 10mm;
 }
 
 @media print {
@@ -505,24 +652,177 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  .no-print {
+
+  /* Masquer tous les composants de l'interface utilisateur web interactive */
+  .no-print,
+  #reportSection,
+  nav,
+  header,
+  footer,
+  aside,
+  form,
+  button,
+  .web-screen-only {
     display: none !important;
   }
-  #reportSection {
+
+  /* Afficher UNIQUEMENT le document officiel recto/verso de 2 pages */
+  #akhawayn-official-duplex-doc {
     display: block !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
     width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
   }
-  .writing-ruled-zone {
-    background-image: none !important;
+
+  .duplex-page {
+    width: 100% !important;
+    min-height: 275mm !important;
+    box-sizing: border-box !important;
+    padding: 8mm 10mm !important;
+    background: white !important;
+    color: #0f172a !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
-  .stamp-cachet-diagonal {
-    opacity: 0.95 !important;
+
+  .duplex-page-recto {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .duplex-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .duplex-page-verso {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .duplex-header {
+    text-align: center !important;
+    margin-bottom: 8px !important;
+  }
+
+  .duplex-school-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 20pt !important;
+    font-weight: 900 !important;
+    color: #0b1528 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+  }
+
+  .duplex-school-subtitle {
+    font-size: 9.5pt !important;
+    font-weight: 700 !important;
+    color: #b45309 !important;
+    letter-spacing: 1.3px !important;
+    text-transform: uppercase !important;
+    margin: 3px 0 6px 0 !important;
+  }
+
+  .duplex-divider {
+    height: 2px !important;
+    background: #0b1528 !important;
+    margin: 4px 0 8px 0 !important;
+  }
+
+  .duplex-id-card {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 7px 11px !important;
+    margin-bottom: 10px !important;
+    font-size: 9pt !important;
+  }
+
+  .duplex-id-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 4px 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  .duplex-subject-box {
+    margin-top: 5px !important;
+    padding-top: 5px !important;
+    border-top: 1px dashed #cbd5e1 !important;
+    font-size: 8.5pt !important;
+  }
+
+  .duplex-section-banner {
+    background: #0b1528 !important;
+    color: white !important;
+    padding: 5px 12px !important;
+    border-radius: 6px !important;
+    font-size: 8.5pt !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.8px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 10px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  .duplex-page-recto .duplex-body-content {
+    flex-grow: 1 !important;
+    font-size: 13pt !important;
+    line-height: 2.1 !important;
+    color: #1e293b !important;
+    text-align: justify !important;
+  }
+
+  .duplex-page-recto .duplex-body-content p {
+    text-indent: 2.6rem !important;
+    margin-bottom: 16px !important;
+    line-height: 2.1 !important;
+  }
+
+  .duplex-page-verso .duplex-body-content {
+    flex-grow: 1 !important;
+    font-size: 14pt !important;
+    line-height: 2.3 !important;
+    color: #1e293b !important;
+    text-align: justify !important;
+    margin-top: 24px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .duplex-page-verso .duplex-body-content p {
+    text-indent: 2.8rem !important;
+    margin-bottom: 22px !important;
+    line-height: 2.3 !important;
+  }
+
+  .duplex-score-box {
+    background: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+    padding: 5px 10px !important;
+    border-radius: 6px !important;
+    font-size: 8.5pt !important;
+    color: #92400e !important;
+    margin-top: 6px !important;
+    text-align: center !important;
+  }
+
+  .duplex-footer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-top: 6px !important;
+    border-top: 1px solid #e2e8f0 !important;
+    font-size: 7.5pt !important;
+    color: #64748b !important;
+    margin-top: 6px !important;
   }
 }
 
