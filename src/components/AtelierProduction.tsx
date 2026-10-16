@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Sparkles,
   BookOpen,
   CheckCircle,
   HelpCircle,
@@ -21,6 +20,7 @@ import {
   Layers,
   Info,
   Target,
+  Wrench,
 } from 'lucide-react';
 import {
   CONNECTORS_BY_ROLE,
@@ -194,26 +194,150 @@ function analyzeSubjectText(rawSubject: string): SubjectAnalysis {
     arg2SimpleExplication = 'En effet, partager son pain et ses peines renforce la concorde civile et élève moralement la communauté.';
     questionSimple = 'en quoi la solidarité active s\'impose-t-elle comme le rempart essentiel contre l\'isolement et la détresse';
     conclusionFerme = 'la solidarité entre les hommes demeure le trésor inaltérable qui donne tout son sens à la vie en société';
-  } else if (clean.length > 15) {
-    const excerpt = clean
-      .replace(/partagez-vous ce point de vue\s*\??/gi, '')
-      .replace(/partagez-vous ce second avis\s*\??/gi, '')
-      .replace(/qu'en pensez-vous\s*\??/gi, '')
+  } else if (lower.includes('désobé') || lower.includes('desobe') || lower.includes('loi') || lower.includes('révolte') || lower.includes('revolte') || lower.includes('devoir moral') || lower.includes('créon') || lower.includes('creon')) {
+    themeName = 'le devoir de désobéissance morale face à une loi injuste';
+    these1 = 'la fidélité à sa conscience et aux devoirs sacrés autorise à refuser les lois tyranniques des hommes';
+    these1Explication = 'En effet, la dignité morale exige de s\'insurger contre les ordres arbitraires, quitte à en payer le prix fort.';
+    these2 = 'le respect de la loi et de l\'ordre public est indispensable pour préserver la paix civile et éviter l\'anarchie';
+    these2Explication = 'En effet, si chaque citoyen décidait d\'obéir uniquement à ses propres règles, la vie en société deviendrait impossible.';
+    questionCentrale = 'doit-on privilégier la fidélité absolue à sa conscience ou la soumission aux règles de la cité';
+    theseSimpleAvis = 'la conscience morale et la fidélité aux valeurs sacrées surpassent impérativement l\'obéissance aveugle aux lois humaines';
+    arg1Simple = 'la dignité d\'un être libre se mesure à sa capacité de refuser l\'injustice et l\'oppression d\'État';
+    arg1SimpleExplication = 'En effet, dire « non » face à l\'arbitraire permet de sauvegarder l\'honneur de l\'esprit humain.';
+    arg2Simple = 'l\'histoire humaine progresse grâce aux actes de courage qui dénoncent les dérives de l\'autorité';
+    arg2SimpleExplication = 'En effet, l\'obéissance passive légitime la tyrannie, alors que l\'insoumission morale réveille les consciences endormies.';
+    questionSimple = 'en quoi le refus de la soumission servile constitue-t-il la plus haute preuve de grandeur morale';
+    conclusionFerme = 'la voix sacrée de la conscience morale doit toujours prévaloir sur les décrets arbitraires du pouvoir';
+  } else if (lower.includes('enfance') || lower.includes('souvenir') || lower.includes('adulte') || lower.includes('nostalgie')) {
+    themeName = 'l\'enfance et la nostalgie de l\'innocence perdue';
+    these1 = 'l\'enfance représente le paradis de l\'innocence, de la liberté d\'imaginer et de l\'émerveillement spontané';
+    these1Explication = 'En effet, l\'enfant n\'est pas encore aliéné par les calculs, les hypocrisies et les soucis matériels qui accablent les adultes.';
+    these2 = 'l\'enfance comporte aussi sa part de fragilité, de peurs irrationnelles et de dépendance douloureuse face au monde des grands';
+    these2Explication = 'En effet, l\'enfant souffre souvent de ne pas être compris et subit des angoisses qu\'il ne parvient pas toujours à verbaliser.';
+    questionCentrale = 'l\'enfance constitue-t-elle l\'âge d\'or de l\'existence ou une étape jalonnée de vulnérabilités méconnues';
+    theseSimpleAvis = 'l\'enfance demeure le sanctuaire sacré de l\'innocence et la plus pure période de la vie humaine';
+    arg1Simple = 'le regard poétique de l\'enfant enchante le réel et le préserve de la mesquinerie des adultes';
+    arg1SimpleExplication = 'En effet, la capacité d\'émerveillement de l\'enfance transforme le moindre objet en trésor et rend le quotidien magique.';
+    arg2Simple = 'les souvenirs lumineux forgés durant l\'enfance constituent le socle inaltérable qui réconforte l\'adulte à jamais';
+    arg2SimpleExplication = 'En effet, puiser dans la tendresse de ses premières années apporte une force morale indispensable pour affronter les épreuves futures.';
+    questionSimple = 'en quoi l\'enfance s\'impose-t-elle comme le refuge le plus précieux de notre mémoire affective';
+    conclusionFerme = 'l\'innocence de l\'enfance demeure la boussole lumineuse qui préserve l\'humanité dans le cœur de chaque adulte';
+  } else if (lower.includes('campagne') || lower.includes('village') || lower.includes('ville') || lower.includes('nature') || lower.includes('rural')) {
+    themeName = 'le choix entre la quiétude de la campagne et les opportunités de la ville';
+    these1 = 'la campagne offre une vie saine, paisible et harmonieuse, loin de la pollution et du stress moderne';
+    these1Explication = 'En effet, le contact direct avec la nature et la simplicité des rapports humains procurent une véritable sérénité d\'esprit.';
+    these2 = 'la grande ville offre des infrastructures médicales, éducatives et culturelles indispensables au progrès individuel';
+    these2Explication = 'En effet, l\'accès aux universités, aux emplois qualifiés et aux services publics s\'avère bien plus aisé en milieu urbain.';
+    questionCentrale = 'vaut-il mieux privilégier la tranquillité rurale ou s\'orienter vers le dynamisme citadin';
+    theseSimpleAvis = 'la vie en milieu naturel et rural offre les conditions les plus favorables à un bonheur authentique et durable';
+    arg1Simple = 'le calme de la nature préserve la santé physique et libère l\'esprit des agressions du monde urbain';
+    arg1SimpleExplication = 'En effet, respirer un air pur et vivre à un rythme humain évite les angoisses et les maladies générées par la vie citadine.';
+    arg2Simple = 'la proximité fraternelle et la solidarité sont bien plus vivantes dans un village que dans l\'anonymat urbain';
+    arg2SimpleExplication = 'En effet, les liens de voisinage ruraux reposent sur la sincérité et l\'entraide, loin de l\'individualisme des métropoles.';
+    questionSimple = 'en quoi le retour à la terre et à la simplicité rurale constitue-t-il la réponse la plus sage au mal-être contemporain';
+    conclusionFerme = 'la sérénité de la vie simple au contact de la nature surpasse de loin les mirages artificiels des grandes villes';
+  } else if (lower.includes('travail') || lower.includes('métier') || lower.includes('effort') || lower.includes('dignité') || lower.includes('pauvret')) {
+    themeName = 'la dignité par le travail et le refus de la déchéance morale';
+    these1 = 'le travail honnête et acharné est le seul moyen de préserver son honneur et son indépendance financière';
+    these1Explication = 'En effet, gagner sa subsistance à la sueur de son front protège l\'homme de la mendicité et lui confère le respect de ses pairs.';
+    these2 = 'la dureté du labeur manuel peut parfois user prématurément le corps et priver l\'être de loisirs essentiels';
+    these2Explication = 'En effet, des conditions de travail pénibles ou mal rémunérées peuvent engendrer une fatigue épuisante qui pèse sur l\'épanouissement personnel.';
+    questionCentrale = 'le travail manuel doit-il être envisagé comme la source suprême de la dignité ou comme un fardeau aliénant';
+    theseSimpleAvis = 'le travail honnête constitue le pilier fondamental de la fierté individuelle et de l\'honneur familial';
+    arg1Simple = 'l\'effort personnel et le métier traditionnel garantissent l\'autonomie morale sans dépendre de quiconque';
+    arg1SimpleExplication = 'En effet, refuser la facilité et travailler dignement préserve la famille de la honte de l\'endettement.';
+    arg2Simple = 'le labeur confère à l\'homme une stature morale respectable au sein de sa communauté';
+    arg2SimpleExplication = 'En effet, celui qui gagne sa vie honnêtement s\'attire l\'estime sincère de ses semblables et transmet un exemple lumineux à ses enfants.';
+    questionSimple = 'en quoi l\'attachement au travail digne demeure-t-il le plus sûr rempart contre la déchéance et l\'humiliation';
+    conclusionFerme = 'la dignité acquise par l\'effort honnête et le travail courageux reste la plus inaliénable des richesses';
+  } else if (lower.includes('pardon') || lower.includes('vengeance') || lower.includes('haine') || lower.includes('rancune')) {
+    themeName = 'le pardon face à la soif de vengeance et de haine';
+    these1 = 'le pardon et la réconciliation permettent d\'apaiser les cœurs et de briser le cycle infini de la violence';
+    these1Explication = 'En effet, pardonner n\'est pas un signe de faiblesse, mais une force morale supérieure qui libère l\'être de l\'amertume destructrice.';
+    these2 = 'le sentiment de justice blessée exige parfois une sanction exemplaire pour réparer le tort subi';
+    these2Explication = 'En effet, laisser un affront impuni peut encourager la récidive et créer une frustration légitime chez la victime.';
+    questionCentrale = 'le pardon constitue-t-il la plus haute preuve de grandeur d\'âme ou une faiblesse face à l\'injustice';
+    theseSimpleAvis = 'la noblesse du pardon et le refus de la haine surpassent infiniment les dérives amères de la vengeance';
+    arg1Simple = 'la vengeance détruit celui qui l\'exerce en l\'enfermant dans une spirale d\'animosité stérile';
+    arg1SimpleExplication = 'En effet, céder à la rancune ronge la paix intérieure et n\'efface jamais la douleur du mal déjà commis.';
+    arg2Simple = 'le pardon élève la conscience humaine et restaure la fraternité indispensable à la vie collective';
+    arg2SimpleExplication = 'En effet, savoir pardonner désamorce les conflits et ouvre la voie à une réconciliation durable et digne.';
+    questionSimple = 'en quoi le choix du pardon s\'impose-t-il comme le chemin le plus lumineux vers la paix de l\'esprit';
+    conclusionFerme = 'la grandeur de l\'âme humaine réside dans sa capacité souveraine à préférer le pardon à la vengeance aveugle';
+  } else if (lower.includes('femme') || lower.includes('mariage') || lower.includes('épous') || lower.includes('fille')) {
+    themeName = 'la condition de la femme et la liberté du choix matrimonial';
+    these1 = 'la femme a le droit inaliénable de décider de son destin et de consentir librement à son mariage';
+    these1Explication = 'En effet, imposer une union sans amour ni consentement mutuel viole la dignité de la personne et hypothèque son bonheur futur.';
+    these2 = 'le respect des coutumes familiales et des alliances traditionnelles vise souvent à préserver la réputation du clan';
+    these2Explication = 'En effet, les aînés cherchent fréquemment à assurer la sécurité financière de leur fille selon les codes ancestraux.';
+    questionCentrale = 'faut-il subordonner le mariage aux intérêts de la famille ou consacrer le libre choix de la femme';
+    theseSimpleAvis = 'l\'émancipation de la femme et son plein droit au libre choix constituent un impératif éthique et social indiscutable';
+    arg1Simple = 'le consentement sincère des époux est le seul fondement solide d\'un foyer harmonieux et épanoui';
+    arg1SimpleExplication = 'En effet, un mariage forcé engendre l\'amertume, la solitude morale et la dislocation progressive de la famille.';
+    arg2Simple = 'l\'épanouissement de toute société moderne exige la reconnaissance de la pleine dignité féminine';
+    arg2SimpleExplication = 'En effet, une communauté qui prive ses femmes d\'autonomie et d\'éducation se condamne à la stagnation et à l\'injustice.';
+    questionSimple = 'en quoi le respect des droits de la femme est-il indispensable pour bâtir une société équitable et moderne';
+    conclusionFerme = 'la liberté de conscience et l\'autonomie des femmes représentent le pilier inviolable du progrès et de la justice humaine';
+  } else if (lower.includes('fête') || lower.includes('achoura') || lower.includes('joie') || lower.includes('célébr')) {
+    themeName = 'la célébration des fêtes traditionnelles et la joie partagée';
+    these1 = 'les fêtes comme l\'Achoura illuminent le quotidien modeste et renforcent les liens fraternels et familiaux';
+    these1Explication = 'En effet, les préparatifs joyeux, les cadeaux offerts et les chants dissipent les soucis ordinaires et réchauffent les foyers.';
+    these2 = 'les dépenses occasionnées par ces festivités peuvent parfois fragiliser le budget des familles démunies';
+    these2Explication = 'En effet, la pression sociale pousse certains parents à s\'endetter lourdement pour sauver les apparences au détriment de l\'essentiel.';
+    questionCentrale = 'les fêtes traditionnelles représentent-elles une source pure de bonheur collectif ou une charge financière pesante';
+    theseSimpleAvis = 'les moments de fête et de partage constituent un trésor inestimable qui transcende les difficultés de l\'existence';
+    arg1Simple = 'la joie des fêtes insuffle un élan d\'espoir et d\'émerveillement indispensable à l\'équilibre moral des enfants';
+    arg1SimpleExplication = 'En effet, les souvenirs lumineux d\'une fête réussie illuminent la mémoire et forgent un attachement affectif ineffaçable.';
+    arg2Simple = 'ces célébrations raniment les traditions de générosité, de pardon mutuel et d\'entraide chaleureuse';
+    arg2SimpleExplication = 'En effet, partager des douceurs et visiter ses proches abolit les rancunes et resserre la communauté humaine.';
+    questionSimple = 'en quoi la ferveur des fêtes traditionnelles revitalise-t-elle le lien social et la mémoire affective';
+    conclusionFerme = 'la magie des fêtes collectives demeure le refuge le plus précieux de notre patrimoine culturel et émotionnel';
+  } else if (lower.includes('amitié') || lower.includes('ami') || lower.includes('trahison') || lower.includes('confiance')) {
+    themeName = 'la valeur de l\'amitié véritable et l\'épreuve de la confiance';
+    these1 = 'une amitié sincère et désintéressée est le plus précieux des réconforts face aux épreuves de la vie';
+    these1Explication = 'En effet, pouvoir confier ses doutes et ses joies à un ami fidèle brise la solitude et double le courage.';
+    these2 = 'la déception amicale ou la trahison peut causer des blessures affectives plus cruelles que l\'hostilité déclarée';
+    these2Explication = 'En effet, voir sa confiance trahie par un proche ébranle durablement la foi en l\'humanité et incite au repli sur soi.';
+    questionCentrale = 'l\'amitié authentique est-elle le refuge le plus sûr ou expose-t-elle à des déceptions douloureuses';
+    theseSimpleAvis = 'l\'amitié véritable et la loyauté morale représentent le plus noble des trésors de l\'existence humaine';
+    arg1Simple = 'un véritable ami offre un soutien moral inconditionnel qui transcende les vicissitudes matérielles';
+    arg1SimpleExplication = 'En effet, dans la maladie ou le revers de fortune, la présence loyale d\'un ami fidèle vaut tous les biens du monde.';
+    arg2Simple = 'la sincérité partagée permet de s\'élever mutuellement par des conseils lucides et bienveillants';
+    arg2SimpleExplication = 'En effet, un ami authentique n\'hésite pas à dire la vérité avec tendresse pour aider l\'autre à progresser.';
+    questionSimple = 'en quoi la fidélité en amitié constitue-t-elle le rempart le plus solide contre l\'isolement moral';
+    conclusionFerme = 'la loyauté et l\'amour fraternel en amitié demeurent le sommet de la noblesse d\'âme et de l\'éthique humaine';
+  } else if (clean.length > 5) {
+    // Extraction dynamique ultra-précise de la consigne pour éviter tout "Hors-Sujet"
+    const quoteMatch = clean.match(/«([^»]+)»/) || clean.match(/"([^"]+)"/);
+    const explicitQuote = quoteMatch ? quoteMatch[1].trim() : '';
+
+    const cleanedTopic = explicitQuote || clean
+      .replace(/^sujet\s*:\s*/i, '')
+      .replace(/^consigne\s*:\s*/i, '')
+      .replace(/partagez-vous (ce|cet) (point de vue|avis)\s*\??/gi, '')
+      .replace(/qu['’]en pensez-vous\s*\??/gi, '')
+      .replace(/êtes-vous d['’]accord avec cette affirmation\s*\??/gi, '')
       .replace(/dans quelle mesure\s*\??/gi, '')
+      .replace(/rédigez un texte argumentatif[^\n.]*?[.:?]/gi, '')
+      .replace(/à l['’]aide d['’]arguments pertinents[^\n.]*?[.:?]/gi, '')
       .trim();
-    themeName = `la réflexion autour de l'idée selon laquelle « ${excerpt.slice(0, 75)}${excerpt.length > 75 ? '...' : ''} »`;
-    these1 = 'cette idée met en lumière une exigence essentielle';
-    these1Explication = 'En effet, ce principe permet d\'éclairer nos choix quotidiens et de maintenir un cap moral cohérent.';
-    these2 = 'd\'autres facteurs essentiels doivent être pris en compte pour nuancer ce jugement';
-    these2Explication = 'En effet, la réalité est diverse et nécessite d\'adapter ses principes à chaque situation concrète.';
-    questionCentrale = 'dans quelle mesure ce constat correspond-il fidèlement à la complexité de nos vies';
-    theseSimpleAvis = 'cette position s\'impose comme une évidence incontestable qui mérite notre plein assentiment';
-    arg1Simple = 'elle met en lumière une vérité humaine profonde validée par l\'expérience';
-    arg1SimpleExplication = 'En effet, agir selon cette règle donne du sens à nos démarches et garantit notre intégrité morale.';
-    arg2Simple = 'elle offre des bienfaits concrets et durables pour l\'épanouissement individuel et collectif';
-    arg2SimpleExplication = 'En effet, la cohérence entre nos principes et nos actes procure la paix de l\'esprit et l\'estime d\'autrui.';
-    questionSimple = 'en quoi cette prise de position s\'impose-t-elle comme une vérité salutaire et incontestable';
-    conclusionFerme = 'cette thèse triomphe sans équivoque et doit guider nos convictions avec fermeté et détermination';
+
+    const shortExcerpt = cleanedTopic.length > 12 ? cleanedTopic : clean;
+    const coreClaim = shortExcerpt.replace(/[.?!\s]+$/, '').trim();
+
+    themeName = `la question de savoir si « ${coreClaim} »`;
+    these1 = `l'affirmation selon laquelle « ${coreClaim} » repose sur des fondements solides et légitimes`;
+    these1Explication = `En effet, souscrire à cette idée permet d'éclairer nos choix quotidiens et de préserver un cap moral en parfaite adéquation avec le sujet imposé.`;
+    these2 = `concernant la réflexion sur « ${coreClaim} », il convient de nuancer ce jugement face à d'autres réalités complémentaires`;
+    these2Explication = `En effet, ériger cette seule vision en vérité exclusive sans examiner ses limites concrètes risque d'occulter des aspects déterminants du problème.`;
+    questionCentrale = `dans quelle mesure l'affirmation selon laquelle « ${coreClaim} » s'impose-t-elle comme une vérité indiscutable`;
+    theseSimpleAvis = `l'affirmation affirmant que « ${coreClaim} » constitue une certitude inébranlable et salutaire`;
+    arg1Simple = `défendre résolument que « ${coreClaim} » répond à une exigence éthique et humaine fondamentale directement ancrée dans le sujet`;
+    arg1SimpleExplication = `En effet, rester fidèle à ce principe protège la dignité de l'individu et donne un sens rigoureux à son engagement personnel.`;
+    arg2Simple = `en outre, considérer que « ${coreClaim} » favorise l'harmonie et l'équilibre individuel face aux pressions extérieures`;
+    arg2SimpleExplication = `En effet, une telle conviction prémunit contre les compromissions faciles et consolide l'autonomie morale de chacun.`;
+    questionSimple = `en quoi soutenir avec force que « ${coreClaim} » s'impose-t-il comme une évidence méthodologique et morale`;
+    conclusionFerme = `l'idée selon laquelle « ${coreClaim} » triomphe avec éclat et doit guider nos convictions avec une détermination sans faille`;
   }
 
   return {
@@ -568,25 +692,25 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
   const oeuvreActiveData = OEUVRES_DATA[selectedOeuvre] || OEUVRES_DATA['La Boîte à Merveilles'];
 
   return (
-    <div className="mb-6 bg-white border-2 border-slate-300 rounded-2xl text-slate-800 shadow-xl overflow-hidden transition-all animate-fade-in font-sans">
+    <div className="mb-6 bg-white border-2 border-rose-300 rounded-2xl text-slate-800 shadow-xl overflow-hidden transition-all animate-fade-in font-sans">
       {/* ======================================================== */}
-      {/* 1. BARRE DE TITRE SUPÉRIEURE LUMINEUSE ET ÉLÉGANTE      */}
+      {/* 1. BARRE DE TITRE SUPÉRIEURE (COULEUR ROSE AVEC SYMBOLE D'ATELIER) */}
       {/* ======================================================== */}
-      <div className="p-4 bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3.5 sm:p-4 bg-rose-50 border-b border-rose-200 flex flex-wrap items-center justify-between gap-3 text-rose-950">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-700 shadow-2xs">
-            <Sparkles className="w-5 h-5 text-amber-600 animate-pulse" />
+          <div className="w-9 h-9 rounded-xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-800 shadow-2xs">
+            <Wrench className="w-5 h-5 text-rose-700" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-slate-900 font-outfit tracking-tight">
+              <h2 className="text-base font-bold text-rose-950 font-outfit tracking-tight">
                 Atelier de Production Écrite
               </h2>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-rose-200/80 text-rose-950 border border-rose-300">
                 1ère BAC Régional
               </span>
             </div>
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="text-xs text-rose-900/80 font-medium">
               Méthodologie officielle pas à pas • Arguments clairs et expliqués • Exemples adaptés à l'argument
             </p>
           </div>
@@ -858,7 +982,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 onClick={() => generateTwoVariants('INTRO')}
                 className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
               >
-                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                <PenTool className="w-3.5 h-3.5 text-slate-950" />
                 <span>Générer 2 Reformulations (Introduction)</span>
               </button>
             </div>
@@ -1082,7 +1206,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 onClick={() => generateTwoVariants('DEV_AXE1')}
                 className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
               >
-                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                <PenTool className="w-3.5 h-3.5 text-slate-950" />
                 <span>Générer 2 Reformulations (Axe 1)</span>
               </button>
             </div>
@@ -1332,7 +1456,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 onClick={() => generateTwoVariants('DEV_AXE2')}
                 className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
               >
-                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                <PenTool className="w-3.5 h-3.5 text-slate-950" />
                 <span>Générer 2 Reformulations (Axe 2)</span>
               </button>
             </div>
@@ -1587,7 +1711,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 onClick={() => generateTwoVariants('CONCL')}
                 className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
               >
-                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+                <PenTool className="w-3.5 h-3.5 text-slate-950" />
                 <span>Générer 2 Reformulations (Conclusion)</span>
               </button>
             </div>
@@ -1739,7 +1863,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <PenTool className="w-4 h-4 text-amber-600" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 font-outfit">
