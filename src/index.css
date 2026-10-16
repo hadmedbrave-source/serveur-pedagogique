@@ -644,16 +644,19 @@
 }
 
 @media print {
-  html, body {
+  html, body, #root, #root > div {
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
     color: #0f172a !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    height: auto !important;
+    min-height: auto !important;
   }
 
-  /* Masquer tous les composants de l'interface utilisateur web interactive */
+  /* Masquer TOUT l'écran web interactif de façon absolue et irréversible */
+  #web-app-screen,
   .no-print,
   #reportSection,
   nav,
@@ -664,20 +667,33 @@
   button,
   .web-screen-only {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* Afficher UNIQUEMENT le document officiel recto/verso de 2 pages */
   #akhawayn-official-duplex-doc {
     display: block !important;
+    visibility: visible !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
   }
 
+  #akhawayn-official-duplex-doc * {
+    visibility: visible !important;
+  }
+
   .duplex-page {
     width: 100% !important;
     min-height: 275mm !important;
+    height: 275mm !important;
+    max-height: 275mm !important;
     box-sizing: border-box !important;
     padding: 8mm 10mm !important;
     background: white !important;
@@ -685,6 +701,7 @@
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
+    overflow: hidden !important;
   }
 
   .duplex-page-recto {
@@ -703,6 +720,8 @@
   .duplex-page-verso {
     page-break-before: always !important;
     break-before: page !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
   .duplex-header {
