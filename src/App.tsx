@@ -1376,19 +1376,15 @@ export default function App() {
     }
   };
 
-  const handlePrintPdf = async () => {
+  const handlePrintPdf = () => {
     const origTitle = document.title;
     const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
     document.title = `Document_2Pages_Recto_Verso_${cleanName}`;
     try {
-      await handleExportPdf();
-    } catch (e) {
-      console.warn('Export PDF:', e);
-    }
-    try {
       window.print();
     } catch (e) {
       console.warn('Print window:', e);
+      handleExportPdf();
     }
     setTimeout(() => {
       document.title = origTitle;
@@ -3792,6 +3788,9 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 font-sans p-3 sm:p-6 md:p-10 antialiased selection:bg-amber-100 selection:text-amber-900">
       
+      {/* CONTENEUR GLOBAL DE L'APPLICATION WEB (MASQUÉ À 100% LORS DE L'IMPRESSION) */}
+      <div id="web-app-screen" className="web-screen-only no-print">
+      
       {/* BARRE SUPÉRIEURE DISCRÈTE D'ADMINISTRATION & ARCHIVES */}
       <div className="max-w-5xl mx-auto mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3 px-1 sm:px-2 no-print">
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -5825,6 +5824,8 @@ export default function App() {
           </div>
         </div>
       )}
+      </div>
+
       {/* ========================================================================= */}
       {/* DOCUMENT OFFICIEL DUPLEX (2 PAGES A4 STRICTES POUR IMPRESSION & PDF)     */}
       {/* Recto : Entête Centre Al Akhawayn, Nom de l'élève, Sujet, Copie         */}
