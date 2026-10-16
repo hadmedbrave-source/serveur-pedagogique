@@ -20,7 +20,6 @@ import {
   Printer,
   RefreshCw,
   Scale,
-  Sparkles,
   User,
   AlertCircle,
   AlertTriangle,
@@ -35,6 +34,7 @@ import {
   X,
   Filter,
   Edit3,
+  Wrench,
 } from 'lucide-react';
 import { AtelierProduction } from './components/AtelierProduction';
 
@@ -357,6 +357,7 @@ export default function App() {
   // État de l'Atelier de Production (rédaction guidée et scaffolding)
   const [showAtelier, setShowAtelier] = useState<boolean>(false);
   const [atelierSubjectWarning, setAtelierSubjectWarning] = useState<string | null>(null);
+  const [duplexOptimizedHtml, setDuplexOptimizedHtml] = useState<string>('');
 
   const handleToggleAtelier = () => {
     if (!showAtelier) {
@@ -1375,70 +1376,102 @@ export default function App() {
     }
   };
 
-  const handlePrintPdf = () => {
+  const handlePrintPdf = async () => {
     const origTitle = document.title;
-    const cleanName = (studentName.trim() || 'CANDIDAT').replace(/\s+/g, '_');
-    document.title = `Rapport_Expertise_Bac_${cleanName}`;
-    window.print();
+    const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
+    document.title = `Document_2Pages_Recto_Verso_${cleanName}`;
+    try {
+      await handleExportPdf();
+    } catch (e) {
+      console.warn('Export PDF:', e);
+    }
+    try {
+      window.print();
+    } catch (e) {
+      console.warn('Print window:', e);
+    }
     setTimeout(() => {
       document.title = origTitle;
     }, 1500);
   };
 
   const handleExportPdf = async () => {
-    const reportElement = document.getElementById('reportSection');
-    if (!reportElement) {
-      alert("Veuillez d'abord générer l'expertise didactique.");
+    const rectoEl = document.getElementById('print-page-recto');
+    const versoEl = document.getElementById('print-page-verso');
+    if (!rectoEl || !versoEl) {
+      try {
+        window.print();
+      } catch {}
       return;
     }
 
     setIsGeneratingPdf(true);
     try {
       const origTitle = document.title;
-      const cleanName = (studentName.trim() || 'CANDIDAT').replace(/\s+/g, '_');
-      document.title = `Rapport_Expertise_Bac_${cleanName}`;
+      const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
+      document.title = `Document_2Pages_Recto_Verso_${cleanName}`;
 
-      const canvas = await html2canvas(reportElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        windowWidth: 1200,
-        ignoreElements: (el) => el.classList.contains('no-print'),
-      });
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.96);
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
-
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Premiere page A4
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-      heightLeft -= pdfHeight;
-
-      // Pages suivantes si le rapport est long
-      while (heightLeft > 0) {
-        position -= pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-        heightLeft -= pdfHeight;
+      // Rendre les éléments temporairement visibles et isolés hors écran pour html2canvas
+      const docContainer = document.getElementById('akhawayn-official-duplex-doc');
+      if (docContainer) {
+        docContainer.style.display = 'block';
+        docContainer.style.position = 'fixed';
+        docContainer.style.left = '-9999px';
+        docContainer.style.top = '0';
+        docContainer.style.width = '210mm';
+        docContainer.style.zIndex = '9999';
+        docContainer.style.background = '#ffffff';
       }
 
-      pdf.save(`Rapport_Expertise_Bac_${cleanName}.pdf`);
+      // 1. Page 1 (Recto)
+      const canvasRecto = await html2canvas(rectoEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 800,
+      });
+      const imgDataRecto = canvasRecto.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgDataRecto, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+
+      // 2. Page 2 (Verso)
+      pdf.addPage();
+      const canvasVerso = await html2canvas(versoEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 800,
+      });
+      const imgDataVerso = canvasVerso.toDataURL('image/jpeg', 0.95);
+      pdf.addImage(imgDataVerso, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+
+      // Rétablir l'état normal
+      if (docContainer) {
+        docContainer.style.display = '';
+        docContainer.style.position = '';
+        docContainer.style.left = '';
+        docContainer.style.top = '';
+        docContainer.style.width = '';
+        docContainer.style.zIndex = '';
+        docContainer.style.background = '';
+      }
+
+      pdf.save(`Document_2Pages_Recto_Verso_${cleanName}.pdf`);
       document.title = origTitle;
     } catch (err) {
-      console.error("Erreur génération PDF direct, ouverture de l'impression système:", err);
-      handlePrintPdf();
+      console.error("Erreur génération PDF:", err);
+      try {
+        window.print();
+      } catch {}
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -1748,7 +1781,7 @@ export default function App() {
       '<span style="background:#f1f5f9; color:#334155; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1px solid #cbd5e1; display:inline-flex; align-items:center; gap:4px; margin-right:6px;">🔍 Diagnostic didactique :</span>');
 
     parsed = parsed.replace(/<strong>Reformulation(?:\s+(?:claire|puissante)(?:\s+et\s+naturelle)?)?(?:\s*\([^)]*\))?\s*:?<\/strong>/gi, 
-      '<span style="background:#ecfdf5; color:#047857; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1.5px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px; margin-right:6px; box-shadow:0 1px 2px rgba(4,120,87,0.08);">✨ Reformulation puissante certifiée (1ère Bac) :</span>');
+      '<span style="background:#ecfdf5; color:#047857; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; border:1.5px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px; margin-right:6px; box-shadow:0 1px 2px rgba(4,120,87,0.08);">Reformulation puissante certifiée (1ère Bac) :</span>');
 
     // Mise en page soignée pour Section B : Texte Intégral Réécrit & Fluidifié
     if (hideSectionB) {
@@ -3223,9 +3256,10 @@ export default function App() {
       const outReform = document.getElementById('outReform');
       const parsedReform = extract('REFORMULATION');
       if (outReform) {
-        let reformContent = parsedReform || '### Optimisation Stylistique\n> Maintien de la concordance des temps et de l’élégance académique.';
         const shouldHideB = isQuestionDeviationDetected || horsSujet;
-        outReform.innerHTML = formatReformulation(reformContent, shouldHideB);
+        const formattedReform = formatReformulation(parsedReform, shouldHideB);
+        outReform.innerHTML = formattedReform;
+        setDuplexOptimizedHtml(formattedReform);
       }
 
       const typePlan = extract('TYPE').toUpperCase();
@@ -4079,7 +4113,7 @@ export default function App() {
 
                         {item.conseilsEnseignant && (
                           <div className="text-[11px] text-amber-900 bg-amber-50/80 border border-amber-200 p-1.5 rounded-md mb-2 flex items-start gap-1.5 font-medium">
-                            <Sparkles className="w-3 h-3 text-amber-600 shrink-0 mt-0.5" />
+                            <BookOpen className="w-3 h-3 text-amber-600 shrink-0 mt-0.5" />
                             <span><strong>Piste didactique :</strong> {item.conseilsEnseignant}</span>
                           </div>
                         )}
@@ -4188,36 +4222,33 @@ export default function App() {
         {/* Zone de rédaction manuscrite */}
         <div className="border-2 border-slate-900 rounded-xl p-3.5 sm:p-5 mb-8 bg-white shadow-sm overflow-hidden">
           {/* En-tête : Titre à GAUCHE, Palette et les deux options à DROITE */}
-          <div className="mb-4 flex flex-col md:flex-row md:items-start justify-between gap-3">
-            {/* À GAUCHE : Manuscrit Rédactionnel du Candidat et Bouton Atelier */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h2 className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 whitespace-normal sm:whitespace-nowrap shrink-0 pt-0.5">
+          {/* En-tête : Titre à GAUCHE, Palette et Options (Atelier, Colorier, Noir) à DROITE */}
+          <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            {/* À GAUCHE : Titre Manuscrit Rédactionnel du Candidat + Bouton Atelier au-dessous */}
+            <div className="flex flex-col items-start gap-2">
+              <h2 className="font-outfit text-xs sm:text-sm font-bold text-slate-900 uppercase flex items-center gap-2 whitespace-normal sm:whitespace-nowrap shrink-0">
                 <span className="w-1.5 h-4 bg-[#c5221f] rounded-full inline-block shrink-0"></span>
                 <span>Manuscrit Rédactionnel du Candidat</span>
               </h2>
 
-              {/* Bouton officiel de l'Atelier de Production */}
+              {/* Bouton au-dessous du Manuscrit Rédactionnel du Candidat (couleur rose & symbole d'atelier Wrench) */}
               <button
                 type="button"
                 onClick={handleToggleAtelier}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 border ${
                   showAtelier
-                    ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400 ring-offset-1 shadow-sm'
-                    : 'bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 hover:border-amber-400'
+                    ? 'bg-rose-200 text-rose-950 border-rose-400 ring-2 ring-rose-400/50 shadow-sm'
+                    : 'bg-rose-50 text-rose-900 border-rose-300 hover:bg-rose-100 hover:border-rose-400'
                 }`}
                 title="Ouvrir l'Atelier de Production : aide pas-à-pas, connecteurs colorés, exemples des œuvres et 2 variantes de reformulation"
               >
-                <Sparkles className={`w-3.5 h-3.5 ${showAtelier ? 'text-slate-950' : 'text-amber-600'}`} />
+                <Wrench className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                 <span>Atelier de Production</span>
-                {showAtelier ? (
-                  <span className="text-[10px] bg-amber-200 text-amber-950 px-1.5 py-0.2 rounded font-semibold">Ouvert</span>
-                ) : (
-                  <span className="text-[10px] bg-amber-200/70 text-amber-900 px-1.5 py-0.2 rounded font-semibold border border-amber-300">Nouveau</span>
-                )}
+                {showAtelier && <span className="text-[10px] font-black text-rose-700">●</span>}
               </button>
             </div>
 
-            {/* À DROITE : La palette et les deux options */}
+            {/* À DROITE : La palette d'encres et les boutons d'options alignés */}
             <div className="flex flex-col items-start md:items-end gap-2 w-full md:w-auto">
               {/* Palette d'encres */}
               <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 border border-slate-300/80 px-2.5 py-1 rounded-full shadow-2xs max-w-full">
@@ -4234,7 +4265,6 @@ export default function App() {
                         key={ink.id}
                         type="button"
                         onMouseDown={(e) => {
-                          // Empêche la perte du mot sélectionné dans l'éditeur de texte
                           e.preventDefault();
                         }}
                         onClick={() => applyInkToSelection(ink.hex)}
@@ -4255,9 +4285,10 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Les deux options : "Colorier les liens logiques" à côté de "Tout en noir" */}
+              {/* Les options alignées : "Colorier les liens logiques" et "Tout en noir" */}
               <div className="flex flex-wrap items-center gap-2">
-                {/* Bouton pour surligner automatiquement tous les liens logiques (sans étoile) */}
+
+                {/* Bouton Colorier les liens logiques */}
                 <button
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
@@ -4419,9 +4450,7 @@ export default function App() {
             <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden">
               <div className="transform -rotate-24 select-none px-8 py-5 sm:px-14 sm:py-7 border-6 sm:border-8 border-red-600/90 rounded-2xl sm:rounded-3xl bg-red-600/[0.08] backdrop-blur-[1px] shadow-2xl flex flex-col items-center justify-center text-center max-w-[90vw] border-double">
                 <div className="flex items-center gap-2 sm:gap-3 text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] mb-1">
-                  <span>★</span>
                   <span>DIRECTION DES EXAMENS DU BACCALAURÉAT</span>
-                  <span>★</span>
                 </div>
                 <div className="text-4xl sm:text-7xl font-black font-cinzel text-red-600 tracking-[0.18em] sm:tracking-[0.22em] drop-shadow-xs uppercase border-y-2 sm:border-y-4 border-red-600/80 py-1.5 sm:py-2.5 my-1">
                   HORS-SUJET
@@ -4440,9 +4469,7 @@ export default function App() {
             <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden">
               <div className="transform -rotate-24 select-none px-8 py-5 sm:px-14 sm:py-7 border-6 sm:border-8 border-red-600/90 rounded-2xl sm:rounded-3xl bg-red-600/[0.08] backdrop-blur-[1px] shadow-2xl flex flex-col items-center justify-center text-center max-w-[90vw] border-double">
                 <div className="flex items-center gap-2 sm:gap-3 text-red-600 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] mb-1">
-                  <span>★</span>
                   <span>DIRECTION DES EXAMENS DU BACCALAURÉAT</span>
-                  <span>★</span>
                 </div>
                 <div className="text-3xl sm:text-6xl font-black font-cinzel text-red-600 tracking-[0.15em] sm:tracking-[0.18em] drop-shadow-xs uppercase border-y-2 sm:border-y-4 border-red-600/80 py-1.5 sm:py-2.5 my-1">
                   COPIE INCOMPLÈTE
@@ -5133,9 +5160,9 @@ export default function App() {
                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <button
                         type="button"
-                        onClick={() => window.print()}
+                        onClick={handlePrintPdf}
                         className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95"
-                        title="Imprimer pour réviser à la maison"
+                        title="Imprimer ou télécharger le document PDF officiel de 2 pages (Recto / Verso)"
                       >
                         <Printer className="w-3.5 h-3.5 text-amber-400" />
                         <span className="hidden sm:inline">Imprimer</span>
@@ -5186,7 +5213,6 @@ export default function App() {
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    <span>✨</span>
                     <span>Texte Optimisé</span>
                   </button>
                   <button
@@ -5799,6 +5825,162 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* ========================================================================= */}
+      {/* DOCUMENT OFFICIEL DUPLEX (2 PAGES A4 STRICTES POUR IMPRESSION & PDF)     */}
+      {/* Recto : Entête Centre Al Akhawayn, Nom de l'élève, Sujet, Copie         */}
+      {/* Verso : Entête Centre Al Akhawayn, Texte Optimisé                       */}
+      {/* ========================================================================= */}
+      <div id="akhawayn-official-duplex-doc" aria-hidden="true">
+        {/* -------------------- RECTO (PAGE 1) -------------------- */}
+        <div id="print-page-recto" className="duplex-page duplex-page-recto">
+          <div>
+            <div className="duplex-header">
+              <h1 className="duplex-school-title">CENTRE AL AKHAWAYN</h1>
+              <p className="duplex-school-subtitle">
+                Expertise &amp; Ingénierie Pédagogique • Excellence Académique
+              </p>
+              <div className="duplex-divider" />
+            </div>
+
+            <div className="duplex-id-card">
+              <div className="duplex-id-grid">
+                <div>
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>Candidat(e) :</span>{' '}
+                  <strong style={{ color: '#0b1528', fontWeight: 800, fontSize: '10pt' }}>
+                    {((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName) || '').trim() || 'Candidat officiel'}
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>Filière :</span>{' '}
+                  <strong style={{ color: '#0b1528', fontWeight: 800 }}>
+                    {((viewingArchiveItem ? viewingArchiveItem.filiere : filiere) || '').trim() || '1ère Année Baccalauréat'}
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>Session :</span>{' '}
+                  <strong style={{ color: '#0b1528' }}>
+                    {viewingArchiveItem?.date || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>Discipline :</span>{' '}
+                  <strong style={{ color: '#0b1528' }}>Français • Épreuve de Production Écrite (Régional)</strong>
+                </div>
+              </div>
+              <div className="duplex-subject-box">
+                <span style={{ color: '#b45309', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Sujet Officiel Imposé :
+                </span>
+                <p style={{ margin: '3px 0 0 0', fontStyle: 'italic', color: '#1e293b', lineHeight: 1.4 }}>
+                  « {((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '').trim() || 'Consigne officielle d\'examen du Baccalauréat'} »
+                </p>
+              </div>
+            </div>
+
+            <div className="duplex-section-banner">
+              PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT
+            </div>
+
+            <div className="duplex-body-content">
+              {(() => {
+                const activeCopy = viewingArchiveItem ? viewingArchiveItem.texte : (texte || '');
+                const raw = activeCopy.trim();
+                if (!raw) {
+                  return (
+                    <p style={{ fontStyle: 'italic', color: '#94a3b8' }}>
+                      (Aucun texte rédigé pour le moment dans l'espace manuscrit).
+                    </p>
+                  );
+                }
+                const editorEl = editorRef.current;
+                if (!viewingArchiveItem && editorEl && editorEl.innerHTML && (editorEl.innerHTML.includes('<span') || editorEl.innerHTML.includes('<strong') || editorEl.innerHTML.includes('<font'))) {
+                  return (
+                    <div
+                      dangerouslySetInnerHTML={{ __html: editorEl.innerHTML }}
+                      style={{ lineHeight: 2.1, fontSize: '13pt', textAlign: 'justify' }}
+                    />
+                  );
+                }
+                const paras = raw.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
+                return paras.map((p: string, idx: number) => (
+                  <p key={idx} style={{ textIndent: '2.6rem', marginBottom: '16px', lineHeight: 2.1, fontSize: '13pt', textAlign: 'justify' }}>
+                    {p.trim()}
+                  </p>
+                ));
+              })()}
+            </div>
+          </div>
+
+          <div>
+            {(viewingArchiveItem?.score || scores.total) && (
+              <div className="duplex-score-box">
+                <span>
+                  Évaluation Pédagogique Officielle : Note globale attribuée : <strong>{viewingArchiveItem ? viewingArchiveItem.score : scores.total} / 10</strong>{' '}
+                  {!viewingArchiveItem && mentionInfo.label ? `(${mentionInfo.label})` : ''}
+                </span>
+              </div>
+            )}
+
+            <div className="duplex-footer">
+              <span>Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale</span>
+              <span>Document Officiel d'Examen • Page 1 / 2 (Recto)</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="duplex-page-break" />
+
+        {/* -------------------- VERSO (PAGE 2) -------------------- */}
+        <div id="print-page-verso" className="duplex-page duplex-page-verso">
+          <div>
+            <div className="duplex-header">
+              <h1 className="duplex-school-title">CENTRE AL AKHAWAYN</h1>
+              <p className="duplex-school-subtitle">
+                Expertise &amp; Ingénierie Pédagogique • Excellence Académique
+              </p>
+              <div className="duplex-divider" />
+            </div>
+
+            <div
+              className="duplex-body-content"
+              dangerouslySetInnerHTML={{
+                __html: (() => {
+                  if (viewingArchiveItem && viewingArchiveItem.reformulations) {
+                    return viewingArchiveItem.reformulations;
+                  }
+                  if (duplexOptimizedHtml) {
+                    return duplexOptimizedHtml;
+                  }
+                  const outEl = document.getElementById('outReform');
+                  if (outEl && outEl.innerHTML && outEl.innerHTML.trim().length > 60) {
+                    return outEl.innerHTML;
+                  }
+                  const activeSujetStr = ((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || 'ce sujet de réflexion').slice(0, 85);
+                  return `
+                    <p style="text-indent: 2.8rem; margin-bottom: 22px; line-height: 2.3; font-size: 14pt; text-align: justify;">
+                      <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 8px; border-radius:5px; border:1px solid #bfdbfe;">Dans la vie quotidienne comme au fil des œuvres au programme</strong>, la question soulevée par « ${activeSujetStr} » invite à une réflexion approfondie. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 8px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, il convient d'examiner cette problématique avec méthode et clarté afin d'en mesurer la portée humaine et éthique.
+                    </p>
+                    <p style="text-indent: 2.8rem; margin-bottom: 22px; line-height: 2.3; font-size: 14pt; text-align: justify;">
+                      <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 8px; border-radius:5px; border:1px solid #bfdbfe;">En premier lieu</strong>, l'expérience personnelle et littéraire prouve que chaque être humain traverse des moments décisifs qui forgent son jugement. Ainsi, comme l'illustre <strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:2px 8px; border-radius:5px; border:1px solid #a7f3d0;">la quête d'autonomie et le refuge imaginaire de Sidi Mohammed dans « La Boîte à Merveilles »</strong>, le recul intérieur et l'attachement aux valeurs morales permettent de résister aux pesanteurs du quotidien.
+                    </p>
+                    <p style="text-indent: 2.8rem; margin-bottom: 22px; line-height: 2.3; font-size: 14pt; text-align: justify;">
+                      <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 8px; border-radius:5px; border:1px solid #bfdbfe;">En second lieu</strong>, la lucidité et la constance permettent de surmonter les épreuves avec dignité. De la même façon, à l'image du <strong style="color:#047857; font-weight:800; font-style:italic; background-color:#ecfdf5; padding:2px 8px; border-radius:5px; border:1px solid #a7f3d0;">plaidoyer humaniste de Victor Hugo contre l'échafaud dans « Le Dernier Jour d'un Condamné »</strong>, la défense sincère de principes justes fortifie la conscience humaine face aux dérives de l'autorité ou de la facilité.
+                    </p>
+                    <p style="text-indent: 2.8rem; margin-bottom: 18px; line-height: 2.3; font-size: 14pt; text-align: justify;">
+                      <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 8px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, il apparaît clairement que ce sujet touche à des valeurs universelles : la force d'esprit, la fidélité à soi-même et la dignité de nos choix de vie.
+                    </p>
+                  `;
+                })(),
+              }}
+            />
+          </div>
+
+          <div className="duplex-footer">
+            <span>Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale • Document Didactique Certifié</span>
+            <span>Document Officiel d'Examen • Page 2 / 2 (Verso)</span>
+          </div>
+        </div>
+      </div>
 
     </div>
   );
