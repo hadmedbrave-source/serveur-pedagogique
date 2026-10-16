@@ -1,15 +1,13 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --navy-primary: #0b1528;
-    --navy-deep: #060b14;
-    --crimson: #c5221f;
-    --gold: #b45309;
-    --gold-light: #f59e0b;
-    --emerald-custom: #065f46;
-    --indigo-custom: #312e81;
-  }
+:root {
+  --navy-primary: #0b1528;
+  --navy-deep: #060b14;
+  --crimson: #c5221f;
+  --gold: #b45309;
+  --gold-light: #f59e0b;
+  --emerald-custom: #065f46;
+  --indigo-custom: #312e81;
 }
 
 .font-cinzel {
