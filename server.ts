@@ -326,11 +326,149 @@ app.delete('/api/archives/:id', (req, res) => {
   return res.status(404).json({ success: false, message: 'Archive non trouvée.' });
 });
 
-// Initialize OpenAI client if key is configured
-const openaiApiKey = process.env.OPENAI_API_KEY;
-const openai = openaiApiKey && openaiApiKey !== 'MY_OPENAI_API_KEY'
-  ? new OpenAI({ apiKey: openaiApiKey })
-  : null;
+// =========================================================================
+// GESTION DES SUJETS DÉPOSÉS PAR L'ENSEIGNANT (SYNCHRONISATION MULTI-APPAREILS)
+// =========================================================================
+const TEACHER_SUBJECTS_FILE = path.join(__dirname, 'teacher_subjects.json');
+
+function loadTeacherSubjects(): any[] {
+  try {
+    if (fs.existsSync(TEACHER_SUBJECTS_FILE)) {
+      const content = fs.readFileSync(TEACHER_SUBJECTS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.error('Error reading teacher_subjects:', e);
+  }
+  return [
+    {
+      id: 'enseignant-solitude-compagnie-2011',
+      titre: "Solitude versus Compagnie",
+      oeuvre: "La Boîte à Merveilles",
+      region: "Académie Régionale Casablanca-Settat",
+      annee: "2011",
+      session: "Session Normale",
+      consigne: "« Certaines personnes aiment rester seules ; d'autres, au contraire, aiment avoir de la compagnie (des ami(e)s...) »\n\nEt vous, que préférez-vous ? Développez votre réflexion dans un texte d'une vingtaine de lignes en vous appuyant sur des arguments et des exemples précis.",
+      typePlanSuggere: "Plan Simple",
+      conseilsEnseignant: "Mobilisez l'expérience de la solitude de Sidi Mohammed dans La Boîte à Merveilles face au besoin de sociabilité et de solidarité humaine.",
+      sourceEnseignant: true,
+      dateAjout: "16/10/2026"
+    }
+  ];
+}
+
+function saveTeacherSubjects(data: any[]) {
+  try {
+    fs.writeFileSync(TEACHER_SUBJECTS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Error writing teacher_subjects:', e);
+  }
+}
+
+app.get('/api/teacher-subjects', (req, res) => {
+  res.json(loadTeacherSubjects());
+});
+
+app.post('/api/teacher-subjects', (req, res) => {
+  const newSub = req.body;
+  if (!newSub || !newSub.titre || !newSub.consigne) {
+    return res.status(400).json({ success: false, message: 'Titre et consigne requis.' });
+  }
+  const current = loadTeacherSubjects();
+  const filtered = current.filter((s: any) => s.id !== newSub.id);
+  const entry = {
+    ...newSub,
+    id: newSub.id || `teacher-${Date.now()}`,
+    sourceEnseignant: true,
+    dateAjout: newSub.dateAjout || new Date().toLocaleDateString('fr-FR'),
+  };
+  filtered.unshift(entry);
+  saveTeacherSubjects(filtered);
+  return res.json({ success: true, subject: entry, subjects: filtered });
+});
+
+app.delete('/api/teacher-subjects/:id', (req, res) => {
+  const { id } = req.params;
+  const current = loadTeacherSubjects();
+  const filtered = current.filter((s: any) => s.id !== id);
+  saveTeacherSubjects(filtered);
+  return res.json({ success: true, count: filtered.length });
+});
+
+// Recherche intelligente de la clé API OpenAI sous toutes ses variantes possibles
+function getOpenAIApiKey(): string {
+  const possibleKeys = [
+    process.env.OPENAI_API_KEY,
+    process.env.OPEN_IA,
+    process.env['open ia'],
+    process.env['OPEN IA'],
+    process.env['open_ia'],
+    process.env['Open IA'],
+    process.env['OPEN-IA'],
+    process.env.OPEN_AI_KEY,
+    process.env.OPEN_AI_API_KEY,
+    process.env.OPENAI_KEY,
+    process.env.OPEN_IA_KEY,
+    process.env.OPEN_IA_API_KEY,
+    process.env.OPENIA_KEY,
+    process.env.OPENIA_API_KEY,
+    process.env.OPENIA,
+    process.env.OPENAI,
+    process.env.OPEN_AI,
+  ];
+  for (const k of possibleKeys) {
+    if (k && typeof k === 'string' && k.trim() !== '' && k !== 'MY_OPENAI_API_KEY') {
+      return k.trim();
+    }
+  }
+  for (const [key, value] of Object.entries(process.env)) {
+    if (!value || typeof value !== 'string' || value.includes('MY_')) continue;
+    const cleanKey = key.toLowerCase().replace(/[\s_-]+/g, '');
+    if (
+      cleanKey === 'openia' ||
+      cleanKey === 'openiaapikey' ||
+      cleanKey === 'openiakey' ||
+      cleanKey === 'openaikey' ||
+      cleanKey === 'openaiapikey' ||
+      cleanKey === 'openai'
+    ) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
+function getOpenAIClient(): OpenAI | null {
+  const key = getOpenAIApiKey();
+  if (key) {
+    return new OpenAI({ apiKey: key });
+  }
+  return null;
+}
+
+const initialOpenAiKey = getOpenAIApiKey();
+if (initialOpenAiKey) {
+  console.log('[OpenAI] Clé API OpenAI détectée et configurée avec succès.');
+} else {
+  console.log('[OpenAI] Aucune variable OPENAI_API_KEY / OPEN_IA détectée pour le moment.');
+}
+
+// Route de santé (Healthcheck) pour Railway / Render / monitoring
+app.get('/api/health', (req, res) => {
+  const hasOpenAI = Boolean(getOpenAIApiKey());
+  const hasGemini = Boolean(geminiApiKey && geminiApiKey !== 'MY_GEMINI_API_KEY' && geminiApiKey.trim() !== '');
+  res.json({
+    status: 'ok',
+    uptime: Math.floor(process.uptime()),
+    providers: {
+      openai: hasOpenAI,
+      gemini: hasGemini,
+    },
+    port: PORT,
+    nodeEnv: process.env.NODE_ENV || 'development',
+  });
+});
 
 // Initialize Gemini client as fallback or primary if configured
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1220,6 +1358,9 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
 
   const sanitizeAndCapResult = (resText: string): string => {
     let result = auditAndEnrichTranscriptionAndTable(resText, texte || '');
+    if (!missingConclDetected) {
+      result = result.replace(/\[\[SANS_CONCLUSION\]\]/gi, '');
+    }
     if (directStartDetected) {
       result = result.replace(/\[\[HORS_SUJET\]\]/gi, '').replace(/\[\[COPIE_INCOMPLETE\]\]/gi, '').replace(/\[\[SANS_CONCLUSION\]\]/gi, '');
       if (!result.includes('[[ATTAQUE_DIRECTE]]')) {
@@ -1243,7 +1384,7 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
         }
         result = result.replace(gridMatch[0], `[[GRILLE]] : Consigne:${c.toFixed(1)}|Structure:${s.toFixed(1)}|Arguments:${a.toFixed(1)}|Langue:${l.toFixed(1)}|Lexique:${x.toFixed(1)}`);
       }
-    } else if (missingConclDetected || result.includes('[[SANS_CONCLUSION]]') || /absence de conclusion|sans conclusion|aucune conclusion n'a été|n'a pas rédigé de conclusion|n'a pas écrit de conclusion|faute de conclusion/i.test(result)) {
+    } else if (missingConclDetected) {
       result = result.replace(/\[\[HORS_SUJET\]\]/gi, '').replace(/\[\[COPIE_INCOMPLETE\]\]/gi, '').replace(/\[\[ATTAQUE_DIRECTE\]\]/gi, '');
       if (!result.includes('[[SANS_CONCLUSION]]')) {
         result = `[[SANS_CONCLUSION]]\n` + result;
@@ -1310,20 +1451,26 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
   };
 
   try {
-    // 1. Try OpenAI if configured
-    if (openai) {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: finalUserPrompt }
-        ],
-        temperature: 0.3
-      });
-      let result = response.choices[0].message.content || '';
-      if (result) {
-        result = sanitizeAndCapResult(result);
-        return res.json({ result });
+    // 1. Priorité OpenAI si une clé est configurée (Railway, etc.)
+    const clientOpenAI = getOpenAIClient();
+    if (clientOpenAI) {
+      try {
+        const modelName = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+        const response = await clientOpenAI.chat.completions.create({
+          model: modelName,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: finalUserPrompt }
+          ],
+          temperature: 0.3
+        });
+        let result = response.choices[0]?.message?.content || '';
+        if (result && result.trim().length > 50) {
+          result = sanitizeAndCapResult(result);
+          return res.json({ result });
+        }
+      } catch (openAiErr: any) {
+        console.error('[OpenAI Error]:', openAiErr?.message || openAiErr);
       }
     }
 
