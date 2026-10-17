@@ -559,11 +559,24 @@
   line-height: 1.35;
 }
 
+.duplex-top-block {
+  flex-shrink: 0;
+}
+
+.duplex-bottom-block {
+  flex-shrink: 0;
+}
+
 .duplex-subject-box {
-  margin-top: 5px;
-  padding-top: 5px;
-  border-top: 1px dashed #cbd5e1;
-  font-size: 8pt;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-left: 5px solid #0b1528;
+  border-radius: 6px;
+  font-size: 9.5pt;
+  line-height: 1.48;
+  color: #0f172a;
 }
 
 .duplex-section-banner {
@@ -580,53 +593,63 @@
   text-align: center;
 }
 
-/* Calibration Page 1 (Recto) */
+/* Calibration Page 1 (Recto) : Remplissage harmonieux pleine page */
 .duplex-page-recto .duplex-body-content {
   flex-grow: 1;
-  font-size: 11pt;
-  line-height: 1.85;
-  color: #1e293b;
-  text-align: justify;
-  text-justify: inter-word;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  margin-top: 6px;
-  margin-bottom: 6px;
-}
-
-.duplex-page-recto .duplex-body-content p {
-  text-indent: 2.2rem;
-  margin-top: 0;
-  margin-bottom: 10px;
-  line-height: inherit;
-  text-align: justify;
-  text-justify: inter-word;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-}
-
-.recto-formatted-content p {
-  margin-top: 0 !important;
-  margin-bottom: 8px !important;
-  text-indent: 2.2rem !important;
-  text-align: justify !important;
-  text-justify: inter-word !important;
-}
-
-/* Calibration Page 2 (Verso) : Pleine page calibrée dynamiquement, 100% justifié */
-.duplex-page-verso .duplex-body-content {
-  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
   color: #0f172a;
   text-align: justify;
   text-justify: inter-word;
   hyphens: auto;
   -webkit-hyphens: auto;
-  margin-top: 4px;
-  margin-bottom: 4px;
+  margin: 6px 0;
+  overflow: hidden;
+}
+
+.duplex-page-recto .duplex-body-content p {
+  text-indent: 2.8rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: inherit;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  word-break: break-word;
+  color: #0f172a;
+}
+
+.recto-formatted-content p {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  text-indent: 2.8rem !important;
+  text-align: justify !important;
+  text-justify: inter-word !important;
+  color: #0f172a !important;
+}
+
+/* Calibration Page 2 (Verso) : Pleine page calibrée dynamiquement, 100% justifié */
+.duplex-page-verso .duplex-body-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  color: #0f172a;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  margin: 6px 0;
+  overflow: hidden;
   letter-spacing: 0.05px;
 }
 
 .duplex-page-verso .duplex-body-content p {
+  text-indent: 2.8rem;
+  margin-top: 0;
+  margin-bottom: 0;
   text-align: justify !important;
   text-justify: inter-word !important;
   hyphens: auto !important;
