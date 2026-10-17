@@ -1545,7 +1545,11 @@ export default function App() {
     let extractedParagraphs: string[] = [];
 
     if (sourceHtml) {
-      let clean = sourceHtml;
+      // 1. Détection prioritaire directe de la Section B (Texte Intégral Réécrit & Fluidifié)
+      const sectionBMatch = sourceHtml.match(/(?:B\.\s*TEXTE\s+INTÉGRAL\s+RÉÉCRIT|B\.\s*Texte\s+Intégral)[\s\S]*?(<p[\s\S]*)/i);
+      let targetText = sectionBMatch ? sectionBMatch[1] : sourceHtml;
+
+      let clean = targetText;
       // Supprimer les cartes d'erreurs/phrases faibles de la section 5.A
       clean = clean.replace(/<div class="phrase-card-[^"]*"[\s\S]*?<\/div>\s*<\/div>/gi, '');
       clean = clean.replace(/<div[^>]*class="[^"]*phrase-card[^"]*"[\s\S]*?<\/div>/gi, '');
@@ -1561,11 +1565,27 @@ export default function App() {
       clean = clean.replace(/<h[1-4][^>]*>[\s\S]*?<\/h[1-4]>/gi, '');
       clean = clean.replace(/<div[^>]*background:#0b1528[^>]*>[\s\S]*?<\/div>/gi, '');
 
+      // Sanitarisation moderne des connecteurs et exemples pour mise en page fluide sans boîtes rigides
+      clean = clean.replace(/<strong[^>]*class="[^"]*conn-student[^"]*"[^>]*>([\s\S]*?)<\/strong>/gi, (m, txt) => {
+        return `<strong style="color: #1d4ed8; font-weight: 800; background: #eff6ff; padding: 1px 5px; border-radius: 4px; display: inline; margin: 0;">${txt.trim()}</strong>`;
+      });
+      clean = clean.replace(/<strong[^>]*class="[^"]*work-example[^"]*"[^>]*>([\s\S]*?)<\/strong>/gi, (m, txt) => {
+        return `<strong style="color: #047857; font-weight: 700; font-style: italic; background: #ecfdf5; padding: 1px 5px; border-radius: 4px; display: inline; margin: 0;">${txt.trim()}</strong>`;
+      });
+      clean = clean.replace(/<\/strong>\s+([,;:?.!])/g, '</strong>$1');
+
       const matches = clean.match(/<p[^>]*>[\s\S]*?<\/p>/gi);
       if (matches && matches.length >= 2) {
         extractedParagraphs = matches
           .map((p) => p.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim())
-          .filter((p) => p.length > 25 && !p.includes('PHRASE FAIBLE') && !p.includes('Diagnostic didactique'));
+          .filter((p) => {
+            const plain = p.replace(/<[^>]*>/g, '').trim();
+            return plain.length > 25 &&
+              !plain.includes('PHRASE FAIBLE') &&
+              !plain.includes('Diagnostic didactique') &&
+              !plain.includes('Nom du candidat') &&
+              !plain.includes('Sujet :');
+          });
       }
     }
 
@@ -1654,7 +1674,7 @@ export default function App() {
       .map((inner, idx) => {
         const isLast = idx === extractedParagraphs.length - 1;
         const mb = isLast ? '0px' : marginBottom;
-        return `<p style="text-indent: ${textIndent}; margin-top: 0; margin-bottom: ${mb}; line-height: ${lineHeight}; font-size: ${fontSize}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; word-break: break-word; color: #1e293b; font-family: 'Newsreader', Georgia, serif;">${inner}</p>`;
+        return `<p style="text-indent: ${textIndent}; margin-top: 0; margin-bottom: ${mb}; line-height: ${lineHeight}; font-size: ${fontSize}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; word-break: break-word; color: #0f172a; font-family: 'Newsreader', Georgia, serif;">${inner}</p>`;
       })
       .join('\n');
   };
@@ -1702,7 +1722,7 @@ export default function App() {
         docContainer.style.position = 'fixed';
         docContainer.style.left = '-9999px';
         docContainer.style.top = '0';
-        docContainer.style.width = '210mm';
+        docContainer.style.width = '794px';
         docContainer.style.zIndex = '9999';
         docContainer.style.background = '#ffffff';
       }
@@ -1815,8 +1835,10 @@ export default function App() {
         .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         .replace(/['’]/g, "['’]");
       const regex = new RegExp(`(?<!<strong class="conn-student"[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
-      res = res.replace(regex, '<strong class="conn-student" style="color:#1d4ed8 !important; font-weight:800 !important; background-color:#eff6ff !important; padding:2px 7px !important; border-radius:4px !important; border:1px solid #bfdbfe !important; display:inline-block !important; margin:1px 2px !important;">$1</strong>');
+      res = res.replace(regex, '<strong class="conn-student" style="color:#1d4ed8 !important; font-weight:800 !important; background-color:#eff6ff !important; padding:1px 5px !important; border-radius:4px !important; border:1px solid #bfdbfe !important; display:inline !important; margin:0 !important;">$1</strong>');
     }
+    // Supprimer les espaces parasites créés avant les signes de ponctuation
+    res = res.replace(/<\/strong>\s+([,;:?.!])/g, '</strong>$1');
     return res;
   };
 
@@ -2475,7 +2497,7 @@ export default function App() {
         const matched = connectors.find(c => c.toLowerCase() === trimmed.toLowerCase());
         if (matched) {
           const style = getConnectorStyle(matched);
-          return `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:2px 7px !important; border-radius:5px !important; border:1.5px solid ${style.border} !important; display:inline-block !important; margin:1px 2px !important; box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;">${inner}</strong>`;
+          return `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:1px 5px !important; border-radius:4px !important; border:1px solid ${style.border} !important; display:inline !important; margin:0 !important;">${inner}</strong>`;
         }
         return m;
       });
@@ -2488,10 +2510,13 @@ export default function App() {
           .replace(/['’]/g, "['’]");
         const style = getConnectorStyle(c);
         const regex = new RegExp(`(?<!<strong class="conn-student"[^>]*>)(?<![a-zA-ZÀ-ÿ0-9_])(${escaped})(?![a-zA-ZÀ-ÿ0-9_])(?!<\\/strong>)`, 'gi');
-        res = res.replace(regex, `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:2px 7px !important; border-radius:5px !important; border:1.5px solid ${style.border} !important; display:inline-block !important; margin:1px 2px !important; box-shadow:0 1px 2px rgba(0,0,0,0.05) !important;">$1</strong>`);
+        res = res.replace(regex, `<strong class="conn-student font-bold" title="${style.category}" style="color:${style.color} !important; font-weight:800 !important; background-color:${style.bg} !important; padding:1px 5px !important; border-radius:4px !important; border:1px solid ${style.border} !important; display:inline !important; margin:0 !important;">$1</strong>`);
       }
 
-      // 6. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
+      // 6. Supprimer tout espace parasite créé avant une ponctuation
+      res = res.replace(/<\/strong>\s+([,;:?.!])/g, '</strong>$1');
+
+      // 7. Si la balise <span class="err-highlight"> existe déjà sans inline style, lui ajouter le style rouge
       res = res.replace(/<span class="err-highlight"(?! style)/gi, `<span class="err-highlight" style="${errStyle}"`);
 
       return res;
@@ -5348,40 +5373,17 @@ export default function App() {
             <div className="bg-slate-50/95 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs">
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                 
-                {/* Pôle 1 : Nouveau Bouton Unique de Téléchargement du Document Officiel (2 Pages Calibrées) */}
+                {/* Pôle 1 : Bouton Bleu Officiel Unique « TÉLÉCHARGER PDF (2 PAGES) » - Bouton Imprimer supprimé */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <button
                     type="button"
                     onClick={handleExportPdf}
                     disabled={isGeneratingPdf}
-                    className="h-14 px-6 sm:px-8 rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 hover:from-blue-800 hover:via-indigo-800 hover:to-slate-950 text-white font-black transition-all cursor-pointer flex items-center justify-center gap-3 shadow-md hover:shadow-lg active:scale-[0.98] disabled:opacity-60 border border-blue-400/30 group"
-                    title="Télécharger le document officiel de deux pages (Recto / Verso) parfaitement ajusté et calibré"
+                    className="h-12 px-6 sm:px-8 rounded-xl bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-md active:scale-[0.98] disabled:opacity-50"
+                    title="Télécharger directement le document officiel de 2 pages A4 (Recto : copie élève & note, Verso : modèle calibré pleine page 100% justifié)"
                   >
-                    {isGeneratingPdf ? (
-                      <div className="flex items-center gap-2.5 text-xs sm:text-sm uppercase tracking-wider font-extrabold">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Calibrage &amp; Téléchargement en cours...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                          <FileDown className="w-5 h-5 text-amber-300" />
-                        </div>
-                        <div className="flex flex-col text-left">
-                          <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-white">
-                              Télécharger le document (2 Pages)
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-amber-400/20 border border-amber-300/40 text-[10px] font-black text-amber-300">
-                              RECTO / VERSO
-                            </span>
-                          </div>
-                          <span className="text-[10px] sm:text-[11px] text-blue-200/90 font-medium normal-case">
-                            Calibré pleine page • Écriture visible • 100% justifié
-                          </span>
-                        </div>
-                      </>
-                    )}
+                    <FileDown className="w-4 h-4 text-white" />
+                    <span>{isGeneratingPdf ? 'GÉNÉRATION DU PDF EN COURS...' : 'TÉLÉCHARGER PDF (2 PAGES)'}</span>
                   </button>
                 </div>
 
