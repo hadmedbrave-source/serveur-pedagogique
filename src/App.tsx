@@ -352,6 +352,7 @@ export default function App() {
   const [studentName, setStudentName] = useState('');
   const [filiere, setFiliere] = useState('1ère BAC - Sciences Expérimentales');
   const [sujet, setSujet] = useState('');
+  const [activeSubjectItem, setActiveSubjectItem] = useState<RegionalSubject | null>(null);
   const [texte, setTexte] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -783,6 +784,7 @@ export default function App() {
   };
 
   const handleLoadSubject = (subjectItem: RegionalSubject) => {
+    setActiveSubjectItem(subjectItem);
     setSujet(subjectItem.consigne);
     setIsSubjectValidated(true);
     if (subjectItem.typePlanSuggere === 'Plan Simple') {
@@ -4467,7 +4469,12 @@ export default function App() {
                 id="sujet"
                 rows={3}
                 value={sujet}
-                onChange={(e) => setSujet(e.target.value)}
+                onChange={(e) => {
+                  setSujet(e.target.value);
+                  if (activeSubjectItem && e.target.value.trim() !== activeSubjectItem.consigne.trim()) {
+                    setActiveSubjectItem(null);
+                  }
+                }}
                 placeholder="Saisissez ou collez ici la consigne du sujet de réflexion..."
                 className="w-full p-3.5 bg-white border border-slate-300 rounded-lg text-sm leading-relaxed text-slate-800 focus:border-[#0b1528] focus:ring-4 focus:ring-slate-900/5 outline-none transition resize-y"
               />
@@ -4615,8 +4622,11 @@ export default function App() {
           {/* Composant Atelier de Production (rédaction guidée étape par étape) */}
           {showAtelier && (
             <AtelierProduction
+              key={activeSubjectItem?.id || 'custom-' + (sujet ? sujet.slice(0, 20) : 'none')}
               sujet={sujet}
               isSubjectValidated={isSubjectValidated}
+              activeSubjectItem={activeSubjectItem}
+              initialPlanType={detectedPlanType || 'DIALECTIQUE'}
               onInjectContent={handleInjectFromAtelier}
               onClose={() => setShowAtelier(false)}
             />
@@ -5342,12 +5352,23 @@ export default function App() {
                   <button
                     type="button"
                     onClick={handlePrintPdf}
-                    className="h-12 px-6 sm:px-7 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-sm active:scale-[0.98]"
-                    title="Imprimer ou enregistrer au format PDF le document officiel de 2 pages (Recto / Verso)"
+                    className="h-12 px-5 sm:px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-sm active:scale-[0.98]"
+                    title="Imprimer directement le document officiel de 2 pages (Recto / Verso)"
                   >
                     <Printer className="w-4 h-4 text-amber-400" />
-                    <span>Imprimer le Document Officiel (Recto / Verso)</span>
+                    <span>Imprimer (Recto / Verso)</span>
                     <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-black text-amber-300">2 PAGES</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    disabled={isGeneratingPdf}
+                    className="h-12 px-5 sm:px-6 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] disabled:opacity-50"
+                    title="Télécharger directement le fichier PDF officiel (2 pages A4 nettes)"
+                  >
+                    <FileDown className="w-4 h-4 text-white" />
+                    <span>{isGeneratingPdf ? 'Génération du PDF...' : 'Télécharger PDF (2 Pages)'}</span>
                   </button>
                 </div>
 
