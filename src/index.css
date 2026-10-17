@@ -496,14 +496,16 @@
 
 .duplex-page {
   width: 210mm;
-  min-height: 297mm;
+  height: 297mm;
+  max-height: 297mm;
   box-sizing: border-box;
-  padding: 12mm 14mm;
+  padding: 10mm 14mm;
   background: white;
   color: #0f172a;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow: hidden;
   font-family: 'Newsreader', Georgia, serif;
 }
 
@@ -574,6 +576,7 @@
   text-transform: uppercase;
   margin-bottom: 12px;
   font-family: 'Outfit', sans-serif;
+  text-align: center;
 }
 
 /* Calibration Page 1 (Recto) */
@@ -583,33 +586,42 @@
   line-height: 2.1;
   color: #1e293b;
   text-align: justify;
-  margin-top: 12px;
-  margin-bottom: 12px;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 .duplex-page-recto .duplex-body-content p {
   text-indent: 2.6rem;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   line-height: 2.1;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
-/* Calibration Page 2 (Verso) : Pleine page, texte grand et interligne généreux */
+/* Calibration Page 2 (Verso) : Pleine page calibrée dynamiquement, 100% justifié */
 .duplex-page-verso .duplex-body-content {
   flex-grow: 1;
-  font-size: 14pt;
-  line-height: 2.3;
   color: #1e293b;
   text-align: justify;
-  margin-top: 24px;
-  margin-bottom: 24px;
-  letter-spacing: 0.15px;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  letter-spacing: 0.1px;
 }
 
 .duplex-page-verso .duplex-body-content p {
-  text-indent: 2.8rem;
-  margin-bottom: 22px;
-  line-height: 2.3;
-  font-size: 14pt;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  word-break: break-word;
 }
 
 .duplex-score-box {
@@ -647,7 +659,7 @@ body.is-printing-duplex #akhawayn-official-duplex-doc {
 
 @page {
   size: A4 portrait;
-  margin: 6mm 8mm;
+  margin: 0;
 }
 
 @media print {
@@ -687,8 +699,8 @@ body.is-printing-duplex #akhawayn-official-duplex-doc {
   #akhawayn-official-duplex-doc {
     display: block !important;
     visibility: visible !important;
-    width: 100% !important;
-    margin: 0 !important;
+    width: 210mm !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     background: white !important;
     position: static !important;
@@ -701,17 +713,19 @@ body.is-printing-duplex #akhawayn-official-duplex-doc {
   }
 
   .duplex-page {
-    width: 100% !important;
-    height: 275mm !important;
-    max-height: 275mm !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
     box-sizing: border-box !important;
-    padding: 5mm 8mm !important;
+    padding: 8mm 12mm !important;
     background: white !important;
     color: #0f172a !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
     overflow: hidden !important;
+    margin: 0 auto !important;
   }
 
   /* Page 1 (Recto) : Terminer sur cette page et basculer sur la page 2 */
@@ -728,8 +742,10 @@ body.is-printing-duplex #akhawayn-official-duplex-doc {
     page-break-before: always !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
-    padding: 12mm 14mm !important;
-    justify-content: flex-start !important;
+    padding: 8mm 12mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 
   .duplex-header {
@@ -809,6 +825,9 @@ body.is-printing-duplex #akhawayn-official-duplex-doc {
     line-height: 1.65 !important;
     color: #1e293b !important;
     text-align: justify !important;
+    text-justify: inter-word !important;
+    hyphens: auto !important;
+    -webkit-hyphens: auto !important;
     margin-top: 4px !important;
     margin-bottom: 4px !important;
   }
@@ -818,28 +837,30 @@ body.is-printing-duplex #akhawayn-official-duplex-doc {
     margin-bottom: 8px !important;
     line-height: 1.65 !important;
     font-size: 10.5pt !important;
+    text-align: justify !important;
+    text-justify: inter-word !important;
+    hyphens: auto !important;
+    -webkit-hyphens: auto !important;
   }
 
-  /* Verso (Page 2) : Pleine page, grand texte optimisé avec connecteurs et exemples, SANS en-tête ni sujet */
+  /* Verso (Page 2) : Pleine page calibrée dynamiquement, grand texte optimisé avec connecteurs et exemples */
   .duplex-page-verso .duplex-body-content {
     flex-grow: 1 !important;
-    font-size: 13.5pt !important;
-    line-height: 2.15 !important;
     color: #1e293b !important;
     text-align: justify !important;
-    margin: 0 !important;
-    letter-spacing: 0.15px !important;
+    text-justify: inter-word !important;
+    hyphens: auto !important;
+    -webkit-hyphens: auto !important;
+    margin: 4px 0 !important;
+    letter-spacing: 0.1px !important;
   }
 
   .duplex-page-verso .duplex-body-content p {
-    text-indent: 2.8rem !important;
-    margin-bottom: 22px !important;
-    line-height: 2.15 !important;
-    font-size: 13.5pt !important;
-  }
-
-  .duplex-page-verso .duplex-body-content p:last-child {
-    margin-bottom: 0 !important;
+    text-align: justify !important;
+    text-justify: inter-word !important;
+    hyphens: auto !important;
+    -webkit-hyphens: auto !important;
+    word-break: break-word !important;
   }
 
   .duplex-score-box {
