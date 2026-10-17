@@ -569,9 +569,62 @@ export interface ModelArgument {
 export function getModelArgumentsForTheme(
   themeName: string,
   oeuvreName: string,
-  axe: 'these' | 'antithese'
+  axe: 'these' | 'antithese',
+  plan?: 'DIALECTIQUE' | 'SIMPLE',
+  stance?: 'A' | 'B'
 ): ModelArgument[] {
   const norm = (themeName + ' ' + oeuvreName).toLowerCase();
+
+  // 1. SOLITUDE VERSUS COMPAGNIE & AMITIÉ
+  if (norm.includes('compagnie') || (norm.includes('ami') && (norm.includes('solitude') || norm.includes('seul')))) {
+    const solArgs: ModelArgument[] = [
+      {
+        id: 'sol-comp-1',
+        titreCourt: 'Le calme et l\'imagination créatrice',
+        argumentClair: 'Aimer rester seul permet de se recueillir dans le calme, de préserver sa liberté d\'esprit et de stimuler son imagination.',
+        explicationSimple: 'En effet, loin de l\'agitation et des bavardages futiles du monde extérieur, l\'esprit trouve le silence indispensable pour rêver et créer son propre univers.',
+        exempleAssocie: 'Comme en témoigne le jeune Sidi Mohammed dans La Boîte à Merveilles, qui trouve dans sa bulle solitaire et ses objets modestes un refuge féerique enchanté.',
+      },
+      {
+        id: 'sol-comp-2',
+        titreCourt: 'L\'autonomie et la paix intérieure',
+        argumentClair: 'Le recueillement solitaire forge une véritable indépendance morale en apprenant à ne pas dépendre constamment du regard d\'autrui.',
+        explicationSimple: 'En effet, savoir vivre sereinement avec soi-même apprend à assumer ses choix personnels sans subir les influences ou la pression du groupe.',
+        exempleAssocie: 'Comme l\'illustre la force morale d\'Antigone qui, dans le secret de sa conscience solitaire, puise le courage d\'obéir à son devoir sacré.',
+      },
+    ];
+
+    const compArgs: ModelArgument[] = [
+      {
+        id: 'comp-anti-1',
+        titreCourt: 'La chaleur humaine et le soutien des amis',
+        argumentClair: 'Rechercher la compagnie et s\'entourer d\'amis fidèles apporte un soutien moral inestimable et protège contre le désespoir.',
+        explicationSimple: 'En effet, l\'être humain est un être social qui a un besoin vital d\'écoute, de tendresse et de dialogue sincère pour surmonter les épreuves de l\'existence.',
+        exempleAssocie: 'Comme en témoigne la solidarité réconfortante des femmes de Dar Chouafa dans La Boîte à Merveilles, consolant Lalla Zoubida après la disparition temporaire de Zineb.',
+      },
+      {
+        id: 'comp-anti-2',
+        titreCourt: 'L\'ouverture d\'esprit et le vivre-ensemble',
+        argumentClair: 'La fréquentation de compagnons bienveillants favorise la générosité, la tolérance mutuelle et l\'épanouissement au sein du groupe.',
+        explicationSimple: 'En effet, l\'isolement permanent risque d\'enfermer l\'individu dans l\'égoïsme, tandis que la compagnie d\'autrui enrichit l\'expérience humaine par le partage.',
+        exempleAssocie: 'Comme le prouve la complicité chaleureuse entre Maâlem Abdeslem et son apprenti ou la convivialité des cérémonies qui resserrent les liens de la communauté.',
+      },
+    ];
+
+    // En Plan Simple : selon la prise de position de l'élève (Option A = Compagnie / Amis, Option B = Solitude)
+    if (plan === 'SIMPLE') {
+      if (stance === 'B') {
+        // Option B : Défense de la Solitude
+        return axe === 'these' ? [solArgs[0]] : [solArgs[1]];
+      } else {
+        // Option A (défaut) : Défense de la Compagnie & Amitié
+        return axe === 'these' ? [compArgs[0]] : [compArgs[1]];
+      }
+    }
+
+    // En Plan Dialectique : Thèse (Axe 1) = Solitude, Antithèse (Axe 2) = Compagnie
+    return axe === 'these' ? solArgs : compArgs;
+  }
 
   if (norm.includes('solitude') || norm.includes('seul')) {
     if (axe === 'these') {
