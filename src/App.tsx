@@ -1881,7 +1881,7 @@ export default function App() {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(7.5);
         pdf.setTextColor(100, 116, 139);
-        pdf.text('Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale', marginX, 287.5);
+        pdf.text('Centre Al Akhawayn Tamansourte', marginX, 287.5);
         pdf.text(`Document Officiel d'Examen • Page ${pageNumber} / 2 (${pageTitle})`, pageWidth - marginX, 287.5, { align: 'right' });
       };
 
@@ -1979,7 +1979,7 @@ export default function App() {
       });
 
       // 3. Bannière Section Recto
-      const bannerY = 44 + sujetBoxHeight + 3.5;
+      const bannerY = 44 + sujetBoxHeight + 4;
       pdf.setFillColor(11, 21, 40);
       pdf.roundedRect(marginX, bannerY, contentWidth, 6, 1, 1, 'F');
       pdf.setFontSize(8);
@@ -1987,10 +1987,9 @@ export default function App() {
       pdf.setTextColor(255, 255, 255);
       pdf.text("PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT", pageWidth / 2, bannerY + 4.2, { align: 'center' });
 
-      // 4. Copie de l'élève (Remplissage et calibration pleine page)
-      const copyStartY = bannerY + 9;
+      // 4. Copie de l'élève (Espace aéré entre la barre et l'introduction)
+      const copyStartY = bannerY + 14; // Espace aéré et élégant avant l'introduction
       const activeScore = viewingArchiveItem ? viewingArchiveItem.score : scores.total;
-      const copyEndY = activeScore ? 267 : 280;
 
       const rawParas = activeCopyText.trim().split(/\n\s*\n/).filter(Boolean);
       const paras = rawParas.length > 0 ? rawParas : [activeCopyText.trim() || "(Aucun texte rédigé pour le moment dans l'espace de composition)"];
@@ -2022,7 +2021,7 @@ export default function App() {
         const textWithIndent = indentStr + p.trim();
         const splitLines = pdf.splitTextToSize(textWithIndent, contentWidth);
         pdf.text(textWithIndent, marginX, currentCopyY, { align: 'justify', maxWidth: contentWidth, lineHeightFactor: copyLineFactor });
-        currentCopyY += splitLines.length * (copyFontSize * 0.3527 * copyLineFactor) + 4.5;
+        currentCopyY += splitLines.length * (copyFontSize * 0.3527 * copyLineFactor) + 5;
       });
 
       // 5. Cartouche Note Officielle Recto
@@ -2051,7 +2050,7 @@ export default function App() {
       pdf.setTextColor(255, 255, 255);
       pdf.text("PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE", pageWidth / 2, 28.5, { align: 'center' });
 
-      // 2. Modèle d'excellence (100% justifié, plein format A4)
+      // 2. Modèle d'excellence (Saut de ligne aéré avant l'introduction)
       const versoHtml = getVersoOptimizedHtml();
       const versoParas = versoHtml
         .split(/<\/p>/i)
@@ -2080,12 +2079,13 @@ export default function App() {
       pdf.setFontSize(versoFontSize);
       pdf.setTextColor(15, 23, 42);
 
-      let currentVersoY = 37;
+      // Saut de ligne net avant l'introduction de la page 2
+      let currentVersoY = 44; // Espace aéré et saut de ligne avant l'intro
       versoParas.forEach((p: string) => {
         const textWithIndent = indentStr + p.trim();
         const splitLines = pdf.splitTextToSize(textWithIndent, contentWidth);
         pdf.text(textWithIndent, marginX, currentVersoY, { align: 'justify', maxWidth: contentWidth, lineHeightFactor: versoLineFactor });
-        currentVersoY += splitLines.length * (versoFontSize * 0.3527 * versoLineFactor) + 5;
+        currentVersoY += splitLines.length * (versoFontSize * 0.3527 * versoLineFactor) + 6.5;
       });
 
       // ========================================================
@@ -6658,7 +6658,7 @@ export default function App() {
             )}
 
             <div className="duplex-footer">
-              <span>Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale</span>
+              <span>Centre Al Akhawayn Tamansourte</span>
               <span>Document Officiel d'Examen • Page 1 / 2 (Recto)</span>
             </div>
           </div>
@@ -6690,7 +6690,7 @@ export default function App() {
 
           <div className="duplex-bottom-block">
             <div className="duplex-footer">
-              <span>Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale</span>
+              <span>Centre Al Akhawayn Tamansourte</span>
               <span>Document Officiel d'Examen • Page 2 / 2 (Verso)</span>
             </div>
           </div>
