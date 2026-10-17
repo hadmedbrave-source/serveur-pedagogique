@@ -76,6 +76,25 @@ interface SubjectAnalysis {
   conclusionFermeAlt?: string;
 }
 
+// Fonction de contraction grammaticale française irréprochable (ex: "de + le choix" -> "du choix", "à + le choix" -> "au choix")
+function contractPreposition(prep: 'de' | 'à', text: string): string {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return '';
+  if (prep === 'de') {
+    if (trimmed.startsWith('le ')) return 'du ' + trimmed.slice(3);
+    if (trimmed.startsWith('les ')) return 'des ' + trimmed.slice(4);
+    if (trimmed.startsWith("l'") || trimmed.startsWith('l’')) return "de l'" + trimmed.slice(2);
+    if (/^[aeiouyhéèêàâôûîï]/i.test(trimmed)) return "d'" + trimmed;
+    return 'de ' + trimmed;
+  } else {
+    // prep === 'à'
+    if (trimmed.startsWith('le ')) return 'au ' + trimmed.slice(3);
+    if (trimmed.startsWith('les ')) return 'aux ' + trimmed.slice(4);
+    if (trimmed.startsWith("l'") || trimmed.startsWith('l’')) return "à l'" + trimmed.slice(2);
+    return 'à ' + trimmed;
+  }
+}
+
 function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | null): SubjectAnalysis {
   const clean = (rawSubject || '')
     .replace(/^Sujet\s*:\s*/i, '')
@@ -162,32 +181,32 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
   ) {
     themeName = 'le choix entre la solitude et la recherche de compagnie';
     these1 = 'certaines personnes aiment rester seules pour goûter au calme, affirmer leur autonomie et stimuler leur imagination';
-    these1Explication = 'En effet, le recueillement solitaire offre un havre protecteur pour rêver et réfléchir en profondeur sans subir le bruit ou la futilité du monde extérieur, comme Sidi Mohammed dans son monde intérieur.';
-    these2 = 'd\'autres, au contraire, ont un besoin impérieux d\'avoir de la compagnie et de s\'entourer d\'amis pour partager les joies de la vie et briser l\'isolement';
-    these2Explication = 'En effet, l\'être humain est un être éminemment social qui a un besoin vital de dialogue sincère, de tendresse et de solidarité pour s\'épanouir harmonieusement au milieu des siens.';
-    questionCentrale = 'convient-il de rechercher la tranquillité bienfaisante de la solitude ou de privilégier la chaleur vivifiante de la compagnie et de l\'amitié';
+    these1Explication = 'En effet, le recueillement solitaire offre un havre protecteur pour réfléchir et rêver en profondeur, à l\'image de Sidi Mohammed dans son univers secret.';
+    these2 = 'd\'autres en revanche ressentent le besoin vital d\'avoir de la compagnie et de s\'entourer d\'amis pour partager les joies de la vie et surmonter l\'isolement';
+    these2Explication = 'En effet, l\'être humain a un besoin fondamental d\'écoute, de dialogue sincère et d\'entraide pour s\'épanouir harmonieusement au milieu des siens.';
+    questionCentrale = 'convient-il de rechercher la tranquillité de la solitude ou de privilégier la chaleur de la compagnie et de l\'amitié';
 
     // Option A : Préférer avoir de la compagnie (défense de la sociabilité et des amis)
     hasDualOptions = true;
-    optionAName = 'Préférer avoir de la compagnie (les amis, la sociabilité)';
+    optionAName = 'Préférer avoir de la compagnie (l\'amitié, la vie sociale)';
     optionBName = 'Préférer rester seul(e) (le calme, l\'autonomie, l\'imagination)';
 
-    theseSimpleAvis = 'la recherche de la compagnie et de l\'amitié sincère constitue le plus précieux des épanouissements humains face aux dangers de l\'isolement';
-    arg1Simple = 's\'entourer d\'amis et de proches apporte un réconfort moral inestimable et brise la solitude pesante';
-    arg1SimpleExplication = 'En effet, partager ses émotions et ses joies avec des personnes de confiance réchauffe le cœur et rend l\'individu bien plus fort face aux épreuves.';
-    arg2Simple = 'la compagnie et la vie sociale favorisent l\'ouverture d\'esprit, la générosité et l\'apprentissage du vivre-ensemble';
-    arg2SimpleExplication = 'En effet, nul ne peut s\'épanouir dans le repli stérile sur soi : c\'est par le contact bienveillant d\'autrui que se forgent la tolérance et la vraie maturité.';
-    questionSimple = 'en quoi le choix de la compagnie et des liens d\'amitié s\'impose-t-il comme le garant suprême d\'une vie accomplie';
-    conclusionFerme = 'la chaleur de la compagnie et la sincérité des liens amicaux constituent le trésor inestimable qui illumine et donne tout son sens à l\'existence';
+    theseSimpleAvis = 'la recherche de la compagnie et l\'attachement à des amis sincères sont indispensables pour s\'épanouir et briser l\'isolement';
+    arg1Simple = 's\'entourer d\'amis et de proches apporte un réconfort moral inestimable face aux épreuves de l\'existence';
+    arg1SimpleExplication = 'En effet, pouvoir confier ses doutes et partager ses peines avec des personnes de confiance réchauffe le cœur et rend plus fort face aux difficultés.';
+    arg2Simple = 'la compagnie et la vie en société favorisent l\'ouverture d\'esprit, la solidarité et l\'apprentissage du vivre-ensemble';
+    arg2SimpleExplication = 'En effet, le repli sur soi enferme l\'individu dans l\'égoïsme, tandis que le contact d\'autrui forge la tolérance et la générosité.';
+    questionSimple = 'pour quelles raisons la présence d\'amis et la chaleur humaine sont-elles indispensables à notre bonheur';
+    conclusionFerme = 'la présence d\'amis fidèles et la chaleur des relations humaines constituent le plus précieux des trésors pour mener une vie équilibrée et heureuse';
 
     // Option B : Préférer rester seul(e)
-    theseSimpleAvisAlt = 'la solitude choisie et le recueillement personnel constituent le sanctuaire indispensable de l\'autonomie et de la créativité';
-    arg1SimpleAlt = 'la solitude choisie offre un havre indispensable pour stimuler l\'imagination et féconder la création artistique';
-    arg1SimpleExplicationAlt = 'En effet, loin du tumulte extérieur et de la banalité des bavardages, l\'esprit s\'évade et invente un univers féerique et protecteur.';
-    arg2SimpleAlt = 'l\'isolement volontaire permet de prendre du recul sur soi-même et de forger une véritable indépendance d\'esprit';
-    arg2SimpleExplicationAlt = 'En effet, apprendre à vivre sereinement avec soi-même apprend à assumer ses choix sans dépendre constamment du regard d\'autrui.';
-    questionSimpleAlt = 'en quoi la solitude choisie constitue-t-elle un espace privilégié de réflexion, d\'autonomie et de réalisation de soi';
-    conclusionFermeAlt = 'la solitude choisie constitue le sanctuaire fécond de l\'autonomie, de la méditation et de la création artistique';
+    theseSimpleAvisAlt = 'la solitude choisie et le recueillement constituent un espace précieux pour forger son autonomie et stimuler sa créativité';
+    arg1SimpleAlt = 'la solitude choisie offre un refuge calme et protecteur pour laisser libre cours à son imagination';
+    arg1SimpleExplicationAlt = 'En effet, loin du bruit et de l\'agitation du monde extérieur, l\'esprit trouve le silence nécessaire pour méditer et inventer son propre univers, à l\'image de Sidi Mohammed.';
+    arg2SimpleAlt = 'apprendre à vivre avec soi-même fortifie l\'indépendance morale et la paix intérieure';
+    arg2SimpleExplicationAlt = 'En effet, l\'isolement volontaire permet de prendre du recul sur ses choix et d\'agir selon ses propres convictions sans dépendre du regard des autres.';
+    questionSimpleAlt = 'en quoi la solitude choisie constitue-t-elle un espace privilégié de réflexion, d\'autonomie et d\'épanouissement personnel';
+    conclusionFermeAlt = 'la solitude choisie n\'est nullement un fardeau, mais un refuge fécond qui permet à l\'esprit de s\'épanouir et de cultiver sa véritable liberté';
   } else if (lower.includes('solitude') || lower.includes('seul')) {
     themeName = 'la solitude et son impact sur l\'individu';
     these1 = 'la solitude choisie permet à l\'individu de se recueillir, d\'affirmer son autonomie et de stimuler son imagination';
@@ -735,12 +754,12 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
       if (selectedPlan === 'DIALECTIQUE') {
         // Variante 1 : Clarté & Simplicité Directe (Vocabulaire accessible, arguments nets et bien expliqués)
         setVarianteA(
-          `De nos jours, ${theme} occupe une place centrale dans les débats actuels. Si certains affirment avec conviction que ${t1}, d'autres en revanche estiment au contraire que ${t2}. Dès lors, ${qCentral} ? Afin de répondre clairement à cette question, nous examinerons d'abord les raisons qui soutiennent la première idée, avant d'aborder dans un second temps les nuances et les réserves nécessaires.`
+          `Dans l'œuvre « ${selectedOeuvre} » comme dans notre société, la question relative ${contractPreposition('à', theme)} suscite de vives discussions. Si certains affirment avec conviction que ${t1}, d'autres en revanche estiment au contraire que ${t2}. Dès lors, ${qCentral} ? Pour répondre clairement à cette interrogation, nous examinerons d'abord les raisons qui soutiennent la première idée, avant d'aborder dans un second temps les nuances et les réserves nécessaires.`
         );
 
         // Variante 2 : Élégance & Nuance Académique (50% soutenu / 50% simple et fort, structure officielle)
         setVarianteB(
-          `Force est de constater que la problématique inhérente à ${theme} interpelle profondément notre société contemporaine. Tandis qu'une partie de l'opinion défend l'idée selon laquelle ${t1}, une analyse plus attentive conduit d'autres observateurs à soutenir en revanche que ${t2}. Il importe dès lors de s'interroger : ${qCentral} ? Pour éclairer cette réflexion, nous mettrons en lumière dans un premier temps le bien-fondé de cette position, avant d'en mesurer dans un second temps les limites légitimes.`
+          `Force est de constater que la problématique inhérente ${contractPreposition('à', theme)} interpelle vivement notre réflexion contemporaine. Tandis qu'une partie de l'opinion défend l'idée selon laquelle ${t1}, d'autres observateurs font valoir en revanche que ${t2}. Il importe dès lors de s'interroger : ${qCentral} ? Pour éclairer ce débat, nous analyserons dans un premier temps le bien-fondé de cette position, avant d'en mesurer dans un second temps les limites légitimes.`
         );
       } else {
         // Plan Simple : Plaidoyer et défense résolue du point de vue personnel ancré dans l'œuvre avec annonce des 2 arguments
@@ -749,14 +768,14 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         const arg2 = dev2Argument.trim() || currentArg2Simple;
         const qSimple = currentQuestionSimple;
 
-        // Variante 1 : Clarté & Simplicité Directe
+        // Variante 1 : Clarté & Simplicité Directe (Fluide, sans faute de contraction, prise de position directe sans redondance)
         setVarianteA(
-          `${oeuvreIntroPhrase}, la réflexion autour de ${theme} occupe une place prépondérante. Pour ma part, je partage pleinement ce point de vue et je soutiens fermement que ${avis}. Dès lors, ${qSimple} ? Afin de justifier cette conviction avec méthode, nous démontrerons d'abord que ${arg1}, avant d'expliquer dans un second temps que ${arg2}.`
+          `Dans l'œuvre « ${selectedOeuvre} » comme au sein de notre quotidien, la réflexion relative ${contractPreposition('à', theme)} occupe une place prépondérante. Pour ma part, je soutiens fermement que ${avis}. Dès lors, ${qSimple} ? Afin de justifier ce point de vue, nous verrons d'abord que ${arg1}, puis nous montrerons dans un second temps que ${arg2}.`
         );
 
-        // Variante 2 : Élégance Équilibrée 50/50
+        // Variante 2 : Élégance Équilibrée 50/50 (Tournure soignée, registre académique équilibré, argumentation solide)
         setVarianteB(
-          `${oeuvreIntroPhrase}, la problématique relative à ${theme} interpelle notre réflexion avec une remarquable acuité. Loin de toute hésitation, j'adhère sans réserve à la thèse affirmant que ${avis}. Il convient dès lors de poser la question essentielle : par quelles raisons cette conception s'impose-t-elle comme une certitude ? Pour éclairer cette réflexion, nous mettrons d'abord en lumière le fait que ${arg1}, puis nous soulignerons combien ${arg2}.`
+          `Dans l'œuvre « ${selectedOeuvre} » comme au cœur des débats actuels, la problématique inhérente ${contractPreposition('à', theme)} interpelle vivement notre conscience. Loin de toute hésitation, j'adhère sans réserve à l'idée selon laquelle ${avis}. Il convient dès lors de poser la question essentielle : ${qSimple} ? Pour approfondir cette réflexion, nous mettrons d'abord en lumière le fait que ${arg1}, avant de souligner combien ${arg2}.`
         );
       }
     } else if (step === 'DEV_AXE1') {
@@ -846,7 +865,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
           .trim();
       };
 
-      const rawPvdDialectique = conclPointDeVue.trim() || `le juste équilibre entre respect des principes et discernement personnel doit guider notre jugement sur ${theme}`;
+      const rawPvdDialectique = conclPointDeVue.trim() || `le juste équilibre entre respect des principes et discernement personnel doit guider notre réflexion`;
       const rawPvdSimple = conclPointDeVue.trim() || currentConclusionFerme;
       const cleanPvdDialectique = cleanPointDeVue(rawPvdDialectique);
       const cleanPvdSimple = cleanPointDeVue(rawPvdSimple);
@@ -859,7 +878,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         // Plan Simple : Zéro nuance ! Réaffirmation catégorique et tenace du point de vue personnel défendu
         // Variante 1 : « Clarté & Fermeté Directe » (formulation unique et limpide, sans AUCUNE répétition de "je confirme")
         setVarianteA(
-          `D'après ce qui précède, je confirme tenacement que ${cleanPvdSimple}. L'ensemble des arguments développés et les illustrations de « ${selectedOeuvre} » prouvent sans l'ombre d'un doute la justesse de cette prise de position. ${ouv}`
+          `D'après ce qui précède, je réaffirme avec conviction que ${cleanPvdSimple}. L'ensemble des arguments développés et les exemples tirés de « ${selectedOeuvre} » prouvent sans l'ombre d'un doute la justesse de cette prise de position. ${ouv}`
         );
 
         // Variante 2 : « Élégance & Conviction Inébranlable 50/50 »
@@ -869,10 +888,10 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
       } else {
         // Plan Dialectique : Synthèse équilibrée
         setVarianteA(
-          `En définitive, au terme de notre réflexion sur ${theme}, il apparaît clairement que ces deux points de vue se complètent et s'éclairent mutuellement. Pour ma part, j'estime que ${cleanPvdDialectique}. ${ouv}`
+          `En définitive, au terme de notre réflexion relative ${contractPreposition('à', theme)}, il apparaît clairement que ces deux points de vue se complètent et s'éclairent mutuellement. Pour ma part, j'estime que ${cleanPvdDialectique}. ${ouv}`
         );
         setVarianteB(
-          `Au terme de cette réflexion, l'examen attentif de cette problématique permet de dégager une synthèse équilibrée et féconde. En ce qui me concerne, je demeure convaincu que ${cleanPvdDialectique}. Dès lors, une question essentielle demeure ouverte : ${ouv}`
+          `Au terme de cette réflexion, l'examen attentif de la problématique inhérente ${contractPreposition('à', theme)} permet de dégager une synthèse équilibrée et féconde. En ce qui me concerne, je demeure convaincu que ${cleanPvdDialectique}. Dès lors, une question essentielle demeure ouverte : ${ouv}`
         );
       }
     }
