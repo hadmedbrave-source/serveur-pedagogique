@@ -636,6 +636,15 @@
   font-family: 'Outfit', sans-serif;
 }
 
+/* État déclenché par le bouton Imprimer pour forcer le reflow immédiat */
+body.is-printing-duplex #web-app-screen {
+  display: none !important;
+}
+body.is-printing-duplex #akhawayn-official-duplex-doc {
+  display: block !important;
+  visibility: visible !important;
+}
+
 @page {
   size: A4 portrait;
   margin: 6mm 8mm;
