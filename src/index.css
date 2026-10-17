@@ -109,12 +109,12 @@
 #outReform .conn-student {
   color: #1d4ed8 !important;
   background-color: #eff6ff !important;
-  padding: 2px 7px !important;
+  padding: 1px 5px !important;
   border-radius: 4px !important;
   font-weight: 800 !important;
   border: 1px solid #bfdbfe !important;
-  display: inline-block !important;
-  margin: 1px 2px !important;
+  display: inline !important;
+  margin: 0 !important;
 }
 
 .conn-model,
@@ -263,11 +263,11 @@
   color: #1d4ed8 !important;
   font-weight: 800 !important;
   background-color: #eff6ff !important;
-  padding: 2px 7px !important;
+  padding: 1px 5px !important;
   border-radius: 4px !important;
   border: 1px solid #bfdbfe !important;
-  display: inline-block !important;
-  margin: 1px 2px !important;
+  display: inline !important;
+  margin: 0 !important;
 }
 
 #outReform .conn-student:hover {
@@ -495,11 +495,12 @@
 }
 
 .duplex-page {
-  width: 210mm;
-  height: 297mm;
-  max-height: 297mm;
+  width: 794px;
+  height: 1123px;
+  max-width: 794px;
+  max-height: 1123px;
   box-sizing: border-box;
-  padding: 10mm 14mm;
+  padding: 8mm 13mm;
   background: white;
   color: #0f172a;
   display: flex;
@@ -511,15 +512,15 @@
 
 .duplex-header {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .duplex-school-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 20pt;
+  font-size: 18pt;
   font-weight: 900;
   color: #0b1528;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   margin: 0;
   line-height: 1.1;
@@ -527,54 +528,54 @@
 
 .duplex-school-subtitle {
   font-family: 'Outfit', sans-serif;
-  font-size: 9.5pt;
+  font-size: 8.5pt;
   font-weight: 700;
   color: #b45309;
-  letter-spacing: 1.3px;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  margin: 4px 0 6px 0;
+  margin: 2px 0 5px 0;
 }
 
 .duplex-divider {
   height: 2px;
-  background: #0b1528;
-  margin: 5px 0 10px 0;
+  background: linear-gradient(to right, #0b1528 75%, #b45309 75%);
+  margin: 4px 0 8px 0;
 }
 
 .duplex-id-card {
   background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  font-size: 9.5pt;
+  padding: 6px 12px;
+  margin-bottom: 8px;
+  font-size: 8.5pt;
   font-family: 'Outfit', sans-serif;
 }
 
 .duplex-id-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
+  gap: 3px 12px;
   line-height: 1.35;
 }
 
 .duplex-subject-box {
-  margin-top: 6px;
-  padding-top: 6px;
+  margin-top: 5px;
+  padding-top: 5px;
   border-top: 1px dashed #cbd5e1;
-  font-size: 9pt;
+  font-size: 8pt;
 }
 
 .duplex-section-banner {
   background: #0b1528;
   color: white;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 6px;
-  font-size: 9pt;
+  font-size: 8.5pt;
   font-weight: 800;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-family: 'Outfit', sans-serif;
   text-align: center;
 }
@@ -582,30 +583,8 @@
 /* Calibration Page 1 (Recto) */
 .duplex-page-recto .duplex-body-content {
   flex-grow: 1;
-  font-size: 13pt;
-  line-height: 2.1;
-  color: #1e293b;
-  text-align: justify;
-  text-justify: inter-word;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
-
-.duplex-page-recto .duplex-body-content p {
-  text-indent: 2.6rem;
-  margin-bottom: 14px;
-  line-height: 2.1;
-  text-align: justify;
-  text-justify: inter-word;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-}
-
-/* Calibration Page 2 (Verso) : Pleine page calibrée dynamiquement, 100% justifié */
-.duplex-page-verso .duplex-body-content {
-  flex-grow: 1;
+  font-size: 11pt;
+  line-height: 1.85;
   color: #1e293b;
   text-align: justify;
   text-justify: inter-word;
@@ -613,27 +592,60 @@
   -webkit-hyphens: auto;
   margin-top: 6px;
   margin-bottom: 6px;
-  letter-spacing: 0.1px;
 }
 
-.duplex-page-verso .duplex-body-content p {
+.duplex-page-recto .duplex-body-content p {
+  text-indent: 2.2rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  line-height: inherit;
   text-align: justify;
   text-justify: inter-word;
   hyphens: auto;
   -webkit-hyphens: auto;
-  word-break: break-word;
+}
+
+.recto-formatted-content p {
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+  text-indent: 2.2rem !important;
+  text-align: justify !important;
+  text-justify: inter-word !important;
+}
+
+/* Calibration Page 2 (Verso) : Pleine page calibrée dynamiquement, 100% justifié */
+.duplex-page-verso .duplex-body-content {
+  flex-grow: 1;
+  color: #0f172a;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  letter-spacing: 0.05px;
+}
+
+.duplex-page-verso .duplex-body-content p {
+  text-align: justify !important;
+  text-justify: inter-word !important;
+  hyphens: auto !important;
+  -webkit-hyphens: auto !important;
+  word-break: break-word !important;
+  color: #0f172a !important;
 }
 
 .duplex-score-box {
   background: #fffbeb;
   border: 1px solid #fde68a;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 6px;
-  font-size: 9pt;
+  font-size: 8.5pt;
   color: #92400e;
-  margin-top: 8px;
+  margin-top: 6px;
   text-align: center;
   font-family: 'Outfit', sans-serif;
+  font-weight: 700;
 }
 
 .duplex-footer {
