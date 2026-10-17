@@ -318,26 +318,125 @@ app.delete('/api/archives/:id', (req, res) => {
   return res.status(404).json({ success: false, message: 'Archive non trouvée.' });
 });
 
-// Initialisation des clients IA (détection automatique de OPENAI_API_KEY, OPEN_IA, OPENIA, etc.)
-const openaiApiKey = (
-  process.env.OPENAI_API_KEY ||
-  process.env.OPEN_IA ||
-  process.env.OPENIA ||
-  process.env.OPEN_AI ||
-  process.env.OPENAI ||
-  process.env.OPENAI_KEY ||
-  process.env.OPEN_IA_KEY ||
-  ''
-).trim();
+// =========================================================================
+// GESTION DES SUJETS DÉPOSÉS PAR L'ENSEIGNANT (SYNCHRONISATION MULTI-APPAREILS)
+// =========================================================================
+const TEACHER_SUBJECTS_FILE = path.join(__dirname, 'teacher_subjects.json');
+
+function loadTeacherSubjects() {
+  try {
+    if (fs.existsSync(TEACHER_SUBJECTS_FILE)) {
+      const content = fs.readFileSync(TEACHER_SUBJECTS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.error('Error reading teacher_subjects:', e);
+  }
+  return [
+    {
+      id: 'enseignant-solitude-compagnie-2011',
+      titre: "Solitude versus Compagnie",
+      oeuvre: "La Boîte à Merveilles",
+      region: "Académie Régionale Casablanca-Settat",
+      annee: "2011",
+      session: "Session Normale",
+      consigne: "« Certaines personnes aiment rester seules ; d'autres, au contraire, aiment avoir de la compagnie (des ami(e)s...) »\\n\\nEt vous, que préférez-vous ? Développez votre réflexion dans un texte d'une vingtaine de lignes en vous appuyant sur des arguments et des exemples précis.",
+      typePlanSuggere: "Plan Simple",
+      conseilsEnseignant: "Mobilisez l'expérience de la solitude de Sidi Mohammed dans La Boîte à Merveilles face au besoin de sociabilité et de solidarité humaine.",
+      sourceEnseignant: true,
+      dateAjout: "16/10/2026"
+    }
+  ];
+}
+
+function saveTeacherSubjects(data) {
+  try {
+    fs.writeFileSync(TEACHER_SUBJECTS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Error writing teacher_subjects:', e);
+  }
+}
+
+app.get('/api/teacher-subjects', (req, res) => {
+  res.json(loadTeacherSubjects());
+});
+
+app.post('/api/teacher-subjects', (req, res) => {
+  const newSub = req.body;
+  if (!newSub || !newSub.titre || !newSub.consigne) {
+    return res.status(400).json({ success: false, message: 'Titre et consigne requis.' });
+  }
+  const current = loadTeacherSubjects();
+  const filtered = current.filter((s) => s.id !== newSub.id);
+  const entry = {
+    ...newSub,
+    id: newSub.id || `teacher-${Date.now()}`,
+    sourceEnseignant: true,
+    dateAjout: newSub.dateAjout || new Date().toLocaleDateString('fr-FR'),
+  };
+  filtered.unshift(entry);
+  saveTeacherSubjects(filtered);
+  return res.json({ success: true, subject: entry, subjects: filtered });
+});
+
+app.delete('/api/teacher-subjects/:id', (req, res) => {
+  const { id } = req.params;
+  const current = loadTeacherSubjects();
+  const filtered = current.filter((s) => s.id !== id);
+  saveTeacherSubjects(filtered);
+  return res.json({ success: true, count: filtered.length });
+});
+
+// Recherche intelligente et universelle de la variable OpenAI (supporte open ia, OPEN_IA, OPENAI_API_KEY, etc.)
+function findOpenAIApiKey() {
+  const directCandidates = [
+    process.env.OPENAI_API_KEY,
+    process.env.OPEN_IA,
+    process.env['open ia'],
+    process.env['OPEN IA'],
+    process.env['open_ia'],
+    process.env['Open IA'],
+    process.env['OPEN-IA'],
+    process.env.OPENIA,
+    process.env.OPEN_AI,
+    process.env.OPENAI,
+    process.env.OPENAI_KEY,
+    process.env.OPEN_IA_KEY,
+    process.env.OPENIA_KEY,
+    process.env.OPEN_IA_API_KEY,
+    process.env.OPENIA_API_KEY,
+  ];
+  for (const val of directCandidates) {
+    if (val && typeof val === 'string' && val.trim() !== '' && !val.includes('MY_')) {
+      return val.trim();
+    }
+  }
+  for (const [key, value] of Object.entries(process.env)) {
+    if (!value || typeof value !== 'string' || value.includes('MY_')) continue;
+    const cleanKey = key.toLowerCase().replace(/[\s_-]+/g, '');
+    if (
+      cleanKey === 'openia' ||
+      cleanKey === 'openiaapikey' ||
+      cleanKey === 'openiakey' ||
+      cleanKey === 'openaikey' ||
+      cleanKey === 'openaiapikey' ||
+      cleanKey === 'openai'
+    ) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
+const openaiApiKey = findOpenAIApiKey();
 const openaiModel = process.env.OPENAI_MODEL || "gpt-4o-mini";
-const openai = openaiApiKey && openaiApiKey !== 'MY_OPENAI_API_KEY' && openaiApiKey.trim() !== ''
-  ? new OpenAI({ apiKey: openaiApiKey })
-  : null;
+const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
 
 if (openai) {
-  console.log(`[OpenAI] Clé IA détectée. Moteur principal actif : ${openaiModel}`);
+  console.log(`[OpenAI] Clé IA détectée avec succès (variable "open ia" / "OPEN_IA"). Moteur actif : ${openaiModel}`);
 } else {
-  console.log('[OpenAI] Aucune clé OpenAI / OPEN_IA détectée dans les variables d\'environnement.');
+  console.log('[OpenAI] Aucune variable OpenAI / "open ia" détectée dans l\'environnement.');
 }
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -444,6 +543,56 @@ function isCandidateTextOffTopic(sujet, texte) {
   // Contrôle du Hors-Sujet Thématique : seulement si le texte n'a strictement AUCUN mot ou racine en commun avec le sujet
   if (matches === 0 && textWords.length >= 8) {
     return true; // Zéro mot-clé en commun : hors-sujet thématique avéré
+  }
+
+  return false;
+}
+
+function isCandidateMissingConclusion(texte) {
+  if (!texte) return false;
+  const clean = texte.trim();
+  const words = clean.split(/\s+/).filter(w => w.length > 0);
+  if (words.length < 30) return false;
+
+  const norm = clean.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const conclRegex = /(?:d['’]apres ce qui precede|d['’]apres ce qui|au terme de cette analyse|au terme de notre reflexion|au terme de nos reflexions|au terme de ma reflexion|au terme de ce parcours|au terme de ce travail|au terme de cette etude|au terme de ce debat|au terme de|je confirme tenacement|je confirme avec conviction|je confirme avec force|je confirme sans reserve|je confirme|nous confirmons|en conclusion|pour conclure|en guise de conclusion|en guise d['’]epilogue|en guise de bilan|en guise de synthese|en definitive|en somme|en resume|pour resumer|finalement|pour clore|pour finir|pour terminer|pour achever|ainsi donc|tout compte fait|en fin de compte|en derniere analyse|a la lumiere de ce qui precede|au vu de ce qui precede|au vu de tout ce qui precede|au regard de ce qui precede|il ressort de cette analyse|il ressort de ce qui precede|il ressort clairement|il resulte de ce qui precede|il s['’]ensuit donc|il apparait ainsi|il apparait clairement|il apparait nettement|nous pouvons donc conclure|on peut en conclure|il convient de conclure|il convient de retenir|on retiendra en somme|on retiendra en definitive|on retiendra que|en fin d['’]analyse|en recapitulant|pour dresser le bilan|au bilan|tout bien considere|tout bien pese|somme toute|au bout du compte|en dernier ressort|force est de conclure|force est de constater en conclusion|pour clore notre reflexion|pour clore cette analyse|pour achever cette analyse|pour clore ce debat)\b/i;
+
+  if (conclRegex.test(norm)) {
+    return false;
+  }
+
+  const cleanParas = clean.replace(/<\/p>|<br\s*\/?>/gi, '\n\n');
+  const paras = cleanParas.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
+
+  if (paras.length >= 4) {
+    const lastP = paras[paras.length - 1];
+    const lastPLow = lastP.toLowerCase();
+    const isDevContinuation = /^\s*(?:en premier lieu|en deuxi[eè]me lieu|en troisi[eè]me lieu|d['’]une part|premi[eè]rement)\b/i.test(lastPLow);
+    if (!isDevContinuation) {
+      return false;
+    }
+  }
+
+  if (paras.length === 3) {
+    const lastP = paras[paras.length - 1];
+    const lastPLow = lastP.toLowerCase();
+    const isClosingOrStance = /^\s*(?:ainsi|d[eè]s lors|par cons[eé]quent|pour ma part|personnellement|en somme|en d[eè]finitive|d['’]apr[eè]s|au terme|on peut affirmer|il convient|au total)\b/i.test(lastPLow);
+    if (isClosingOrStance || conclRegex.test(lastPLow)) {
+      return false;
+    }
+  }
+
+  if (paras.length <= 2 && words.length >= 40) {
+    return true;
+  }
+
+  if (paras.length === 3) {
+    const p3 = paras[2].toLowerCase();
+    const isStillDev = /^\s*(?:en second lieu|en deuxi[eè]me lieu|d['’]autre part|ensuite|puis)\b/i.test(p3);
+    if (isStillDev) {
+      return true;
+    }
   }
 
   return false;
@@ -641,6 +790,9 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
       });
       let result = response.choices[0]?.message?.content || '';
       if (result) {
+        if (!isCandidateMissingConclusion(texte || '')) {
+          result = result.replace(/\[\[SANS_CONCLUSION\]\]/gi, '');
+        }
         if (offTopicDetected && !result.toUpperCase().includes('HORS_SUJET') && !result.toUpperCase().includes('HORS-SUJET') && !result.toUpperCase().includes('HORS SUJET')) {
           result = `[[HORS_SUJET]]\n[[GRILLE]] : Consigne:0.0|Structure:0.0|Arguments:0.0|Langue:0.0|Lexique:0.0\n\n` + result;
         }
@@ -909,6 +1061,19 @@ ${isAnalytic ? '' : `<div style="background:#0b1528; color:#f8fafc; padding:10px
 
 // Servir les fichiers statiques construits pour la production sur Railway
 const distPath = path.join(__dirname, 'dist');
+
+// Si le dossier dist n'a pas été construit par Railway, le générer automatiquement au démarrage
+if (!fs.existsSync(distPath) || !fs.existsSync(path.join(distPath, 'index.html'))) {
+  try {
+    console.log('[Auto-Build] Dossier dist introuvable. Exécution automatique de npm run build...');
+    const { execSync } = await import('child_process');
+    execSync('npm run build', { stdio: 'inherit' });
+    console.log('[Auto-Build] Build de l\'interface terminé avec succès !');
+  } catch (buildErr) {
+    console.error('[Auto-Build Erreur]', buildErr);
+  }
+}
+
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
