@@ -1513,78 +1513,160 @@ export default function App() {
     }
   };
 
-  // Calibration intelligente de la typographie du Recto (Page 1) pour remplir harmonieusement la page sans couper de texte
+  // Formate et met en valeur le sujet officiel avec la question / consigne en gras bien visible
+  const renderFormattedSujet = (rawSujet: string) => {
+    const text = (rawSujet || '').trim();
+    if (!text) {
+      return (
+        <span style={{ fontStyle: 'italic', color: '#64748b', fontSize: '9.5pt' }}>
+          Consigne officielle d'examen régional du Baccalauréat
+        </span>
+      );
+    }
+
+    // Directives et tournures interrogatives typiques des sujets du Régional
+    const directiveRegex = /\b(partagez-vous|qu'en pensez-vous|pensez-vous|croyez-vous|êtes-vous|développez|dans un texte|rédigez|justifiez|appuyez|exprimez|dites ce que|selon vous|accordez-vous|donnez votre avis|votre point de vue)\b/i;
+
+    // Découpage en phrases
+    const sentences = text.split(/(?<=[.?!…»])\s+/);
+
+    if (sentences.length > 1) {
+      return (
+        <div style={{ fontSize: '9.6pt', lineHeight: 1.48 }}>
+          {sentences.map((sentence, idx) => {
+            const isQuestion = sentence.includes('?');
+            const isDirective = directiveRegex.test(sentence);
+            const isQuote = /^[«"“]/.test(sentence.trim()) || /[»"”]$/.test(sentence.trim());
+
+            if (isQuestion || isDirective) {
+              return (
+                <strong
+                  key={idx}
+                  style={{
+                    fontWeight: 800,
+                    color: '#0b1528',
+                    display: 'inline',
+                    letterSpacing: '0.1px',
+                  }}
+                >
+                  {sentence}{' '}
+                </strong>
+              );
+            }
+
+            return (
+              <span
+                key={idx}
+                style={{
+                  fontStyle: isQuote ? 'italic' : 'normal',
+                  color: isQuote ? '#1e293b' : '#334155',
+                }}
+              >
+                {sentence}{' '}
+              </span>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // Cas d'une phrase unique ou consigne directe
+    const hasQuestion = text.includes('?');
+    const isDirective = directiveRegex.test(text);
+
+    return (
+      <div style={{ fontSize: '9.6pt', lineHeight: 1.48 }}>
+        {hasQuestion || isDirective ? (
+          <strong style={{ fontWeight: 800, color: '#0b1528', letterSpacing: '0.1px' }}>
+            {text}
+          </strong>
+        ) : (
+          <span style={{ color: '#0f172a' }}>
+            <strong style={{ fontWeight: 800, color: '#0b1528' }}>Consigne : </strong>
+            <span style={{ fontStyle: 'italic' }}>« {text} »</span>
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  // Calibration intelligente de la typographie du Recto (Page 1) pour remplir harmonieusement toute la page
   const renderRectoContent = () => {
-    const activeCopy = viewingArchiveItem ? viewingArchiveItem.texte : (texte || '');
+    let activeCopy = viewingArchiveItem ? viewingArchiveItem.texte : (texte || '');
+    if (!viewingArchiveItem && editorRef.current && editorRef.current.innerText && editorRef.current.innerText.trim()) {
+      activeCopy = editorRef.current.innerText;
+    }
     const raw = activeCopy.trim();
     if (!raw) {
       return (
-        <p style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '12pt', marginTop: '20px' }}>
-          (Aucun texte rédigé pour le moment dans l'espace manuscrit).
+        <p style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '12pt', textAlign: 'center', margin: 'auto 0' }}>
+          (Aucun texte rédigé pour le moment dans l'espace de composition).
         </p>
       );
     }
 
-    const wordCount = raw.split(/\s+/).length;
-    let fontSize = '12pt';
-    let lineHeight = 2.05;
-    let marginBottom = '16px';
-    let textIndent = '2.5rem';
+    const words = raw.split(/\s+/).filter(Boolean);
+    const wordCount = words.length;
 
-    if (wordCount < 80) {
-      fontSize = '13pt';
-      lineHeight = 2.3;
-      marginBottom = '20px';
+    // Calibration dynamique de la typographie pour remplir harmonieusement la page 1 (Recto)
+    let fontSize = '12.5pt';
+    let lineHeight = 2.15;
+    let textIndent = '2.8rem';
+
+    if (wordCount < 90) {
+      fontSize = '13.8pt';
+      lineHeight = 2.35;
+      textIndent = '3.0rem';
+    } else if (wordCount < 160) {
+      fontSize = '12.6pt';
+      lineHeight = 2.15;
       textIndent = '2.8rem';
-    } else if (wordCount < 140) {
-      fontSize = '12pt';
-      lineHeight = 2.05;
-      marginBottom = '16px';
+    } else if (wordCount < 240) {
+      fontSize = '11.6pt';
+      lineHeight = 1.95;
       textIndent = '2.5rem';
-    } else if (wordCount < 210) {
-      fontSize = '11pt';
-      lineHeight = 1.85;
-      marginBottom = '12px';
+    } else if (wordCount < 330) {
+      fontSize = '10.6pt';
+      lineHeight = 1.75;
       textIndent = '2.2rem';
-    } else if (wordCount < 280) {
-      fontSize = '10pt';
-      lineHeight = 1.65;
-      marginBottom = '10px';
-      textIndent = '2rem';
+    } else if (wordCount < 420) {
+      fontSize = '9.8pt';
+      lineHeight = 1.55;
+      textIndent = '1.9rem';
     } else {
-      fontSize = '9.5pt';
-      lineHeight = 1.45;
-      marginBottom = '8px';
-      textIndent = '1.7rem';
+      fontSize = '9.0pt';
+      lineHeight = 1.38;
+      textIndent = '1.6rem';
     }
 
-    const editorEl = editorRef.current;
-    if (!viewingArchiveItem && editorEl && editorEl.innerHTML && (editorEl.innerHTML.includes('<span') || editorEl.innerHTML.includes('<strong') || editorEl.innerHTML.includes('<font'))) {
+    let paras = raw.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
+    if (paras.length === 1 && raw.includes('\n')) {
+      paras = raw.split(/\n+/).filter((p: string) => p.trim().length > 0);
+    }
+
+    return paras.map((p: string, idx: number) => {
       return (
-        <div
-          dangerouslySetInnerHTML={{ __html: editorEl.innerHTML }}
-          style={{ lineHeight, fontSize, textAlign: 'justify', color: '#1e293b' }}
-          className="recto-formatted-content"
-        />
+        <p
+          key={idx}
+          style={{
+            textIndent,
+            marginTop: '0px',
+            marginBottom: '0px',
+            lineHeight,
+            fontSize,
+            textAlign: 'justify',
+            textJustify: 'inter-word',
+            wordBreak: 'break-word',
+            hyphens: 'auto',
+            WebkitHyphens: 'auto',
+            color: '#0f172a',
+            fontFamily: "'Newsreader', Georgia, serif",
+          }}
+        >
+          {p.trim()}
+        </p>
       );
-    }
-
-    const paras = raw.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
-    return paras.map((p: string, idx: number) => (
-      <p
-        key={idx}
-        style={{
-          textIndent,
-          marginBottom,
-          lineHeight,
-          fontSize,
-          textAlign: 'justify',
-          color: '#1e293b',
-        }}
-      >
-        {p.trim()}
-      </p>
-    ));
+    });
   };
 
   // Extraction et calibration dynamique du texte optimisé pour le Verso (Page 2)
@@ -1697,48 +1779,39 @@ export default function App() {
     // Calibration intelligente de la typographie du Verso pour remplir harmonieusement toute la page sans déborder
     const totalWords = extractedParagraphs.reduce((acc, p) => acc + p.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length, 0);
 
-    let fontSize = '12.8pt';
+    let fontSize = '12.5pt';
     let lineHeight = 2.15;
-    let marginBottom = '18px';
     let textIndent = '2.8rem';
 
-    if (totalWords < 130) {
-      fontSize = '14.2pt';
-      lineHeight = 2.45;
-      marginBottom = '24px';
-      textIndent = '3.2rem';
-    } else if (totalWords < 190) {
-      fontSize = '13.2pt';
-      lineHeight = 2.25;
-      marginBottom = '20px';
-      textIndent = '2.9rem';
-    } else if (totalWords < 260) {
-      fontSize = '12.2pt';
-      lineHeight = 2.05;
-      marginBottom = '16px';
-      textIndent = '2.6rem';
-    } else if (totalWords < 330) {
-      fontSize = '11.2pt';
-      lineHeight = 1.85;
-      marginBottom = '12px';
+    if (totalWords < 140) {
+      fontSize = '13.8pt';
+      lineHeight = 2.35;
+      textIndent = '3.0rem';
+    } else if (totalWords < 210) {
+      fontSize = '12.6pt';
+      lineHeight = 2.15;
+      textIndent = '2.8rem';
+    } else if (totalWords < 300) {
+      fontSize = '11.6pt';
+      lineHeight = 1.95;
+      textIndent = '2.5rem';
+    } else if (totalWords < 400) {
+      fontSize = '10.6pt';
+      lineHeight = 1.75;
       textIndent = '2.2rem';
-    } else if (totalWords < 420) {
-      fontSize = '10.2pt';
-      lineHeight = 1.65;
-      marginBottom = '10px';
+    } else if (totalWords < 500) {
+      fontSize = '9.8pt';
+      lineHeight = 1.55;
       textIndent = '1.9rem';
     } else {
-      fontSize = '9.4pt';
-      lineHeight = 1.45;
-      marginBottom = '7px';
+      fontSize = '9.0pt';
+      lineHeight = 1.38;
       textIndent = '1.6rem';
     }
 
     return extractedParagraphs
-      .map((inner, idx) => {
-        const isLast = idx === extractedParagraphs.length - 1;
-        const mb = isLast ? '0px' : marginBottom;
-        return `<p style="text-indent: ${textIndent}; margin-top: 0; margin-bottom: ${mb}; line-height: ${lineHeight}; font-size: ${fontSize}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; word-break: break-word; color: #0f172a; font-family: 'Newsreader', Georgia, serif;">${inner}</p>`;
+      .map((inner) => {
+        return `<p style="text-indent: ${textIndent}; margin-top: 0; margin-bottom: 0; line-height: ${lineHeight}; font-size: ${fontSize}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; word-break: break-word; color: #0f172a; font-family: 'Newsreader', Georgia, serif;">${inner}</p>`;
       })
       .join('\n');
   };
@@ -1758,18 +1831,21 @@ export default function App() {
 
     const rectoEl = document.getElementById('print-page-recto');
     const versoEl = document.getElementById('print-page-verso');
-    if (!rectoEl || !versoEl) {
-      try {
-        window.print();
-      } catch {}
+    const docContainer = document.getElementById('akhawayn-official-duplex-doc');
+
+    if (!rectoEl || !versoEl || !docContainer) {
+      setSubjectLoadNotice("Erreur : Document introuvable. Veuillez réessayer.");
+      setTimeout(() => setSubjectLoadNotice(null), 3000);
       return;
     }
 
     setIsGeneratingPdf(true);
+    setSubjectLoadNotice("Génération et téléchargement direct du Dossier Officiel en cours...");
+
     try {
       const origTitle = document.title;
       const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
-      document.title = `Document_Officiel_2Pages_${cleanName}`;
+      document.title = `Dossier_Officiel_Examen_${cleanName}`;
 
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -1780,19 +1856,19 @@ export default function App() {
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       // Rendre les éléments temporairement visibles et isolés hors écran pour html2canvas avec dimensions A4 exactes
-      const docContainer = document.getElementById('akhawayn-official-duplex-doc');
-      if (docContainer) {
-        docContainer.style.display = 'block';
-        docContainer.style.position = 'fixed';
-        docContainer.style.left = '-9999px';
-        docContainer.style.top = '0';
-        docContainer.style.width = '794px';
-        docContainer.style.zIndex = '9999';
-        docContainer.style.background = '#ffffff';
-      }
+      docContainer.style.display = 'block';
+      docContainer.style.position = 'fixed';
+      docContainer.style.left = '-9999px';
+      docContainer.style.top = '0';
+      docContainer.style.width = '794px';
+      docContainer.style.zIndex = '9999';
+      docContainer.style.background = '#ffffff';
 
-      // Attendre un court tick pour le rendu DOM
-      await new Promise((resolve) => setTimeout(resolve, 80));
+      // Attendre le chargement des polices et le rendu du DOM
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 120));
 
       const a4WidthPx = 794;
       const a4HeightPx = 1123;
@@ -1808,7 +1884,7 @@ export default function App() {
         windowWidth: a4WidthPx,
         windowHeight: a4HeightPx,
       });
-      const imgDataRecto = canvasRecto.toDataURL('image/jpeg', 0.96);
+      const imgDataRecto = canvasRecto.toDataURL('image/jpeg', 0.98);
       pdf.addImage(imgDataRecto, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
       // 2. Page 2 (Verso)
@@ -1823,18 +1899,21 @@ export default function App() {
         windowWidth: a4WidthPx,
         windowHeight: a4HeightPx,
       });
-      const imgDataVerso = canvasVerso.toDataURL('image/jpeg', 0.96);
+      const imgDataVerso = canvasVerso.toDataURL('image/jpeg', 0.98);
       pdf.addImage(imgDataVerso, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
-      pdf.save(`Document_Officiel_2Pages_${cleanName}.pdf`);
+      // Téléchargement direct immédiat sans dialogue d'impression
+      const filename = `Dossier_Officiel_Examen_2Pages_${cleanName}.pdf`;
+      pdf.save(filename);
       document.title = origTitle;
+
+      setSubjectLoadNotice(`Dossier officiel « ${filename} » téléchargé avec succès !`);
+      setTimeout(() => setSubjectLoadNotice(null), 4500);
     } catch (err) {
-      console.error("Erreur génération PDF:", err);
-      try {
-        window.print();
-      } catch {}
+      console.error("Erreur lors de la génération directe du PDF:", err);
+      setSubjectLoadNotice("Erreur technique lors de la création du fichier. Veuillez réessayer.");
+      setTimeout(() => setSubjectLoadNotice(null), 4000);
     } finally {
-      const docContainer = document.getElementById('akhawayn-official-duplex-doc');
       if (docContainer) {
         docContainer.removeAttribute('style');
       }
@@ -5459,17 +5538,17 @@ export default function App() {
             <div className="bg-slate-50/95 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs">
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                 
-                {/* Pôle 1 : Bouton Bleu Officiel Unique « TÉLÉCHARGER PDF (2 PAGES) » - Bouton Imprimer supprimé */}
+                {/* Pôle 1 : Bouton Professionnel de Téléchargement Direct du Dossier Officiel (PDF 2 Pages A4) */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <button
                     type="button"
                     onClick={handleExportPdf}
                     disabled={isGeneratingPdf}
-                    className="h-12 px-6 sm:px-8 rounded-xl bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-md active:scale-[0.98] disabled:opacity-50"
-                    title="Télécharger directement le document officiel de 2 pages A4 (Recto : copie élève & note, Verso : modèle calibré pleine page 100% justifié)"
+                    className="h-12 px-6 sm:px-8 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-800 hover:to-indigo-900 active:from-blue-900 active:to-indigo-950 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-md active:scale-[0.98] disabled:opacity-50 border border-blue-600/40"
+                    title="Télécharger directement le Dossier Officiel d'Examen Régional (2 pages A4 exactes, Recto & Verso, sans passer par l'impression)"
                   >
-                    <FileDown className="w-4 h-4 text-white" />
-                    <span>{isGeneratingPdf ? 'GÉNÉRATION DU PDF EN COURS...' : 'TÉLÉCHARGER PDF (2 PAGES)'}</span>
+                    <FileDown className="w-4 h-4 text-amber-300 shrink-0" />
+                    <span>{isGeneratingPdf ? 'GÉNÉRATION DU DOSSIER OFFICIEL EN COURS...' : 'TÉLÉCHARGER LE DOSSIER OFFICIEL D\'EXAMEN (PDF 2 PAGES)'}</span>
                   </button>
                 </div>
 
@@ -5545,11 +5624,11 @@ export default function App() {
                         type="button"
                         onClick={handleExportPdf}
                         disabled={isGeneratingPdf}
-                        className="px-3 sm:px-4 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-sm disabled:opacity-60"
-                        title="Télécharger le document officiel de 2 pages (Recto / Verso) calibré et justifié"
+                        className="px-3.5 sm:px-4 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-sm disabled:opacity-60"
+                        title="Téléchargement direct du Dossier Officiel d'Examen (2 pages A4)"
                       >
                         <FileDown className="w-3.5 h-3.5 text-amber-300" />
-                        <span>{isGeneratingPdf ? 'Génération...' : 'Télécharger (2 Pages)'}</span>
+                        <span>{isGeneratingPdf ? 'Génération du dossier...' : 'Télécharger le Dossier Officiel d\'Examen (PDF)'}</span>
                       </button>
                       <button
                         type="button"
@@ -6304,7 +6383,7 @@ export default function App() {
       <div id="akhawayn-official-duplex-doc" aria-hidden="true">
         {/* -------------------- RECTO (PAGE 1) -------------------- */}
         <div id="print-page-recto" className="duplex-page duplex-page-recto">
-          <div>
+          <div className="duplex-top-block">
             <div className="duplex-header">
               <h1 className="duplex-school-title">CENTRE AL AKHAWAYN</h1>
               <p className="duplex-school-subtitle">
@@ -6339,25 +6418,27 @@ export default function App() {
                 </div>
               </div>
               <div className="duplex-subject-box">
-                <span style={{ color: '#b45309', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  Sujet Officiel Imposé :
-                </span>
-                <p style={{ margin: '3px 0 0 0', fontStyle: 'italic', color: '#1e293b', lineHeight: 1.4 }}>
-                  « {((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '').trim() || 'Consigne officielle d\'examen du Baccalauréat'} »
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  <span style={{ color: '#0b1528', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.6px', fontSize: '8pt', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px' }}>
+                    Sujet Officiel d'Examen Régional
+                  </span>
+                </div>
+                <div className="duplex-subject-text">
+                  {renderFormattedSujet((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '')}
+                </div>
               </div>
             </div>
 
             <div className="duplex-section-banner">
               PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT
             </div>
-
-            <div className="duplex-body-content duplex-recto-content">
-              {renderRectoContent()}
-            </div>
           </div>
 
-          <div>
+          <div className="duplex-body-content duplex-recto-content">
+            {renderRectoContent()}
+          </div>
+
+          <div className="duplex-bottom-block">
             {(viewingArchiveItem?.score || scores.total) && (
               <div className="duplex-score-box">
                 <span>
@@ -6377,20 +6458,28 @@ export default function App() {
         {/* -------------------- VERSO (PAGE 2) -------------------- */}
         {/* Modèle rédactionnel d'excellence calibré et 100% justifié pour remplir harmonieusement la page */}
         <div id="print-page-verso" className="duplex-page duplex-page-verso">
-          <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%', justifyContent: 'space-between' }}>
-            <div>
-              <div className="duplex-section-banner" style={{ background: '#0b1528', color: '#ffffff', marginBottom: '14px' }}>
-                PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE
-              </div>
-
-              <div
-                className="duplex-body-content duplex-verso-content"
-                dangerouslySetInnerHTML={{
-                  __html: getVersoOptimizedHtml(),
-                }}
-              />
+          <div className="duplex-top-block">
+            <div className="duplex-header">
+              <h1 className="duplex-school-title">CENTRE AL AKHAWAYN</h1>
+              <p className="duplex-school-subtitle">
+                Expertise &amp; Ingénierie Pédagogique • Excellence Académique
+              </p>
+              <div className="duplex-divider" />
             </div>
 
+            <div className="duplex-section-banner" style={{ background: '#0b1528', color: '#ffffff', marginBottom: '8px' }}>
+              PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE
+            </div>
+          </div>
+
+          <div
+            className="duplex-body-content duplex-verso-content"
+            dangerouslySetInnerHTML={{
+              __html: getVersoOptimizedHtml(),
+            }}
+          />
+
+          <div className="duplex-bottom-block">
             <div className="duplex-footer">
               <span>Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale</span>
               <span>Document Officiel d'Examen • Page 2 / 2 (Verso)</span>
