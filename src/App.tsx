@@ -1523,10 +1523,9 @@ export default function App() {
     ));
   };
 
-  // Extraction et génération du texte optimisé pour le Verso (Page 2)
-  // STRICTEMENT SANS "Nom du candidat", "rappel du sujet", ni "version continue d'excellence"
-  // Contient UNIQUEMENT le texte optimisé balisé avec liens logiques en bleu et exemples des œuvres en vert émeraude,
-  // avec une écriture généreuse (12.8pt / interligne 2.15) pour remplir toute la page.
+  // Extraction et calibration dynamique du texte optimisé pour le Verso (Page 2)
+  // Calibré et 100% justifié pour s'inscrire parfaitement dans une seule page (A4 Verso)
+  // et remplir harmonieusement l'espace sans aucun débordement.
   const getVersoOptimizedHtml = (): string => {
     let sourceHtml = '';
     if (viewingArchiveItem && viewingArchiveItem.reformulations) {
@@ -1540,6 +1539,11 @@ export default function App() {
       }
     }
 
+    const activeSujet = ((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '').trim();
+    const lowerSujet = activeSujet.toLowerCase();
+
+    let extractedParagraphs: string[] = [];
+
     if (sourceHtml) {
       let clean = sourceHtml;
       // Supprimer les cartes d'erreurs/phrases faibles de la section 5.A
@@ -1548,7 +1552,6 @@ export default function App() {
       clean = clean.replace(/📌\s*\d+\.\s*PHRASE FAIBLE[\s\S]*?(?=<p|<div style="margin-top:28px|$)/gi, '');
       clean = clean.replace(/Diagnostic didactique[\s\S]*?<\/div>/gi, '');
       clean = clean.replace(/🔍\s*Diagnostic didactique\s*:?[\s\S]*?(?=<p|<strong|$)/gi, '');
-      // Supprimer formellement tout titre, nom, sujet ou mention "version continue d'excellence"
       clean = clean.replace(/B\.\s*TEXTE\s+INTÉGRAL\s+RÉÉCRIT[^\n<]*/gi, '');
       clean = clean.replace(/VERSION\s+CONTINUE\s+D['’]EXCELLENCE[^\n<]*/gi, '');
       clean = clean.replace(/EXEMPLES\s+EN\s+GRAS\s*•\s*CONNECTEURS\s+EN\s+BLEU/gi, '');
@@ -1560,95 +1563,108 @@ export default function App() {
 
       const matches = clean.match(/<p[^>]*>[\s\S]*?<\/p>/gi);
       if (matches && matches.length >= 2) {
-        return matches
-          .map((p) => {
-            const inner = p.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim();
-            return `<p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">${inner}</p>`;
-          })
-          .join('\n');
+        extractedParagraphs = matches
+          .map((p) => p.replace(/^<p[^>]*>/i, '').replace(/<\/p>$/i, '').trim())
+          .filter((p) => p.length > 25 && !p.includes('PHRASE FAIBLE') && !p.includes('Diagnostic didactique'));
       }
     }
 
-    // Génération automatique d'excellence balisée (liens logiques en bleu, œuvres en émeraude)
-    const activeSujet = ((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '').trim();
-    const lowerSujet = activeSujet.toLowerCase();
-
-    if (lowerSujet.includes('parent') || lowerSujet.includes('libert') || lowerSujet.includes('choix') || lowerSujet.includes('décid') || lowerSujet.includes('jeune') || lowerSujet.includes('enfant')) {
-      return `
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dans toute société en constante évolution</strong>, la conciliation entre l'encadrement indispensable de l'autorité parentale et la soif légitime d'émancipation des jeunes constitue une dialectique éducative fondamentale. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, s'interroger sur l'étendue des choix que les familles doivent consentir à leurs enfants invite à peser avec discernement la sécurité affective et l'apprentissage de la responsabilité individuelle.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En premier lieu</strong>, l'expérience protectrice des parents s'avère un rempart salutaire face aux périls de l'inconstance juvénile. À cet égard, comme le montre <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la bienveillance vigilante de Maâlem Abdeslam dans « La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, le cadre familial procure à l'enfant les repères moraux indispensables pour affronter la précarité et préserver la dignité du foyer.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Cependant</strong>, un excès de tutelle risque d'étouffer l'esprit d'initiative et de provoquer des ruptures dramatiques au sein de la cellule familiale. De la même manière, à l'image de <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la révolte héroïque d'Antigone face à l'intransigeance royale de Créon chez Jean Anouilh</strong>, le refus du dialogue et l'imposition unilatérale de décisions figées engendrent la détresse de la jeunesse au lieu de garantir son épanouissement.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, l'équilibre éducatif ne réside ni dans une contrainte tyrannique ni dans un laxisme démissionnaire, mais dans une écoute mutuelle où l'expérience des aînés éclaire pas à pas la liberté grandissante des enfants.
-        </p>
-      `;
+    // Modèles d'excellence calibrés si aucun texte n'est issu de l'évaluation
+    if (extractedParagraphs.length < 2) {
+      if (lowerSujet.includes('solitud') || lowerSujet.includes('seul') || lowerSujet.includes('compagnie') || lowerSujet.includes('ami') || lowerSujet.includes('isol')) {
+        extractedParagraphs = [
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dans l'existence quotidienne comme au cœur des œuvres littéraires</strong>, la recherche de la solitude et le désir de vivre entouré de compagnons révèlent deux aspirations fondamentales de l'âme humaine. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, convient-il de privilégier le recueillement solitaire pour nourrir son intériorité, ou importe-t-il au contraire de rechercher la compagnie d'autrui pour s'épanouir ?`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">D'une part</strong>, la solitude offre un espace fécond de méditation, de sérénité et d'affirmation de soi. En effet, comme l'illustre <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">l'expérience initiatique du jeune Sidi Mohammed dans « La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, c'est dans le silence de son univers intime et le dialogue avec ses menus objets que l'enfant fait éclore une sensibilité poétique singulière, se préservant ainsi des querelles futiles du monde extérieur.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Cependant</strong>, l'être humain ne saurait vivre dans un isolement absolu sans éprouver un vide affectif profond. À cet égard, la chaleur des amitiés fidèles et la solidarité du groupe apportent un réconfort irremplaçable face aux épreuves. De même, à l'image du <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">douloureux sentiment d'abandon ressenti par le captif de Victor Hugo dans « Le Dernier Jour d'un Condamné »</strong>, l'absence de lien fraternel plonge l'homme dans la détresse morale et transforme l'isolement en supplice.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, la solitude et la vie en communauté ne s'excluent pas mais s'enrichissent mutuellement : savoir goûter au calme solitaire permet de mieux apprécier la valeur authentique de la compagnie.`
+        ];
+      } else if (lowerSujet.includes('parent') || lowerSujet.includes('libert') || lowerSujet.includes('choix') || lowerSujet.includes('décid') || lowerSujet.includes('jeune') || lowerSujet.includes('enfant')) {
+        extractedParagraphs = [
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dans toute société en constante évolution</strong>, la conciliation entre l'encadrement indispensable de l'autorité parentale et la soif légitime d'émancipation des jeunes constitue une dialectique éducative fondamentale. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, s'interroger sur l'étendue des choix que les familles doivent consentir à leurs enfants invite à peser avec discernement la sécurité affective et l'apprentissage de la responsabilité individuelle.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En premier lieu</strong>, l'expérience protectrice des parents s'avère un rempart salutaire face aux périls de l'inconstance juvénile. À cet égard, comme le montre <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la bienveillance vigilante de Maâlem Abdeslam dans « La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, le cadre familial procure à l'enfant les repères moraux indispensables pour affronter la précarité et préserver la dignité du foyer.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Cependant</strong>, un excès de tutelle risque d'étouffer l'esprit d'initiative et de provoquer des ruptures dramatiques au sein de la cellule familiale. De la même manière, à l'image de <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la révolte héroïque d'Antigone face à l'intransigeance royale de Créon chez Jean Anouilh</strong>, le refus du dialogue et l'imposition unilatérale de décisions figées engendrent la détresse de la jeunesse au lieu de garantir son épanouissement.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, l'équilibre éducatif ne réside ni dans une contrainte tyrannique ni dans un laxisme démissionnaire, mais dans une écoute mutuelle où l'expérience des aînés éclaire pas à pas la liberté grandissante des enfants.`
+        ];
+      } else if (lowerSujet.includes('guérisseur') || lowerSujet.includes('guerisseur') || lowerSujet.includes('charlatan') || lowerSujet.includes('chouafa') || lowerSujet.includes('voyan') || lowerSujet.includes('superstition')) {
+        extractedParagraphs = [
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dans de nombreuses sociétés traditionnelles comme au Maroc</strong>, le recours obstiné aux guérisseurs et aux charlatans continue de concurrencer les acquis de la science médicale moderne. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, il est impératif d'élucider les causes profondes qui incitent tant de citoyens à confier leur santé à l'illusion, d'en évaluer les conséquences périlleuses et de proposer les remèdes indispensables pour éradiquer ce fléau.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">D'une part</strong>, ce comportement s'enracine dans la vulnérabilité psychologique face à la douleur et l'héritage de croyances séculaires. Ainsi, comme en témoigne <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la détresse de Lalla Zoubida et Lalla Aïcha recourant au sanctuaire de Sidi Ali Boughaleb dans « La Boîte à Merveilles »</strong>, le dénuement et l'angoisse de la maladie poussent souvent les âmes fragiles à espérer des miracles là où seule la raison médicale devrait opérer.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Par conséquent</strong>, les répercussions s'avèrent désastreuses, provoquant des retards de diagnostic fatals, des complications sanitaires irréversibles et l'exploitation pécuniaire de foyers modestes. De surcroît, à l'image du <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">combat humaniste de Victor Hugo contre l'obscurantisme dans « Le Dernier Jour d'un Condamné »</strong>, tolérer ces pratiques rétrogrades revient à abandonner la santé publique aux dérives de l'ignorance et de la fatalité.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, la disparition de ces charlatans exige une action solidaire et résolue : démocratiser l'accès aux dispensaires modernes, sanctionner pénalement l'exercice illégal de la médecine et diffuser massivement la culture scientifique à l'école.`
+        ];
+      } else if (lowerSujet.includes('mort') || lowerSujet.includes('peine') || lowerSujet.includes('justice') || lowerSujet.includes('prison') || lowerSujet.includes('condamn') || lowerSujet.includes('crime')) {
+        extractedParagraphs = [
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Au cœur de l'histoire des civilisations</strong>, la finalité du châtiment pénal et la sacralité de la vie humaine constituent le socle de toute éthique judiciaire. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, la question de savoir si la société a le droit d'ôter la vie pour punir le crime impose une analyse rigoureuse de la justice face à la tentation de la vengeance institutionnalisée.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En premier lieu</strong>, la peine capitale bafoue la dignité ontologique de l'être humain et supprime toute perspective de rédemption morale. C'est précisément ce que démontre <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">le plaidoyer poignant de Victor Hugo dans « Le Dernier Jour d'un Condamné »</strong>, où le supplice mental et l'agonie indicible du captif révèlent la barbarie insoutenable de la guillotine.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En second lieu</strong>, la véritable grandeur de la loi réside dans l'équité et la correction des coupables plutôt que dans l'expiation sanguinaire. À l'image du <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">sacrifice sublime d'Antigone contre la démesure punitive de Créon chez Jean Anouilh</strong>, une justice aveugle et inflexible ne fait qu'engendrer le deuil et corrompre la conscience collective d'un peuple.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, la justice authentique ne saurait se confondre avec des représailles légales : une nation éclairée protège ses membres en éduquant, en réinsérant et en plaçant la dignité humaine au-dessus de tout châtiment irréparable.`
+        ];
+      } else {
+        const cleanSujetStr = activeSujet ? activeSujet.slice(0, 95) : "la réflexion proposée par ce sujet";
+        extractedParagraphs = [
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dans la réalité contemporaine comme au cœur des chefs-d'œuvre littéraires</strong>, la problématique soulevée par « ${cleanSujetStr} » invite à un examen philosophique approfondi. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, il convient d'analyser cette assertion avec méthode et lucidité afin de discerner les fondements éthiques et les enjeux humains qui en découlent.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En premier lieu</strong>, les expériences humaines et littéraires attestent que la fidélité aux valeurs morales constitue le véritable rempart de la conscience individuelle. Ainsi, comme l'illustre <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la force d'intériorité et la quête de pureté de Sidi Mohammed dans « La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, le recul spirituel permet à l'être humain de transcender la solitude et de préserver son authenticité face aux épreuves.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En second lieu</strong>, le courage de s'opposer aux injustices et de défendre ses convictions confère toute sa noblesse à l'existence. De la même manière, à l'image du <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">combat humaniste immortalisé par Victor Hugo dans « Le Dernier Jour d'un Condamné »</strong>, l'élévation de la pensée et la défense indéfectible de la justice demeurent les seules voies capables d'éclairer la destinée commune.`,
+          `<strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, il apparaît clairement que ce questionnement touche aux vertus cardinales de l'humanité : la liberté de jugement, la probité intellectuelle et la responsabilité solidaire de chaque individu face à sa communauté.`
+        ];
+      }
     }
 
-    if (lowerSujet.includes('guérisseur') || lowerSujet.includes('guerisseur') || lowerSujet.includes('charlatan') || lowerSujet.includes('chouafa') || lowerSujet.includes('voyan') || lowerSujet.includes('superstition')) {
-      return `
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dans de nombreuses sociétés traditionnelles comme au Maroc</strong>, le recours obstiné aux guérisseurs et aux charlatans continue de concurrencer les acquis de la science médicale moderne. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, il est impératif d'élucider les causes profondes qui incitent tant de citoyens à confier leur santé à l'illusion, d'en évaluer les conséquences périlleuses et de proposer les remèdes indispensables pour éradiquer ce fléau.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">D'une part</strong>, ce comportement s'enracine dans la vulnérabilité psychologique face à la douleur et l'héritage de croyances séculaires. Ainsi, comme en témoigne <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la détresse de Lalla Zoubida et Lalla Aïcha recourant au sanctuaire de Sidi Ali Boughaleb dans « La Boîte à Merveilles »</strong>, le dénuement et l'angoisse de la maladie poussent souvent les âmes fragiles à espérer des miracles là où seule la raison médicale devrait opérer.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Par conséquent</strong>, les répercussions s'avèrent désastreuses, provoquant des retards de diagnostic fatals, des complications sanitaires irréversibles et l'exploitation pécuniaire de foyers modestes. De surcroît, à l'image du <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">combat humaniste de Victor Hugo contre l'obscurantisme dans « Le Dernier Jour d'un Condamné »</strong>, tolérer ces pratiques rétrogrades revient à abandonner la santé publique aux dérives de l'ignorance et de la fatalité.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, la disparition de ces charlatans exige une action solidaire et résolue : démocratiser l'accès aux dispensaires modernes, sanctionner pénalement l'exercice illégal de la médecine et diffuser massivement la culture scientifique à l'école.
-        </p>
-      `;
+    // Calibration intelligente de la typographie du Verso pour remplir harmonieusement toute la page sans déborder
+    const totalWords = extractedParagraphs.reduce((acc, p) => acc + p.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length, 0);
+
+    let fontSize = '12.8pt';
+    let lineHeight = 2.15;
+    let marginBottom = '18px';
+    let textIndent = '2.8rem';
+
+    if (totalWords < 130) {
+      fontSize = '14.2pt';
+      lineHeight = 2.45;
+      marginBottom = '24px';
+      textIndent = '3.2rem';
+    } else if (totalWords < 190) {
+      fontSize = '13.2pt';
+      lineHeight = 2.25;
+      marginBottom = '20px';
+      textIndent = '2.9rem';
+    } else if (totalWords < 260) {
+      fontSize = '12.2pt';
+      lineHeight = 2.05;
+      marginBottom = '16px';
+      textIndent = '2.6rem';
+    } else if (totalWords < 330) {
+      fontSize = '11.2pt';
+      lineHeight = 1.85;
+      marginBottom = '12px';
+      textIndent = '2.2rem';
+    } else if (totalWords < 420) {
+      fontSize = '10.2pt';
+      lineHeight = 1.65;
+      marginBottom = '10px';
+      textIndent = '1.9rem';
+    } else {
+      fontSize = '9.4pt';
+      lineHeight = 1.45;
+      marginBottom = '7px';
+      textIndent = '1.6rem';
     }
 
-    if (lowerSujet.includes('mort') || lowerSujet.includes('peine') || lowerSujet.includes('justice') || lowerSujet.includes('prison') || lowerSujet.includes('condamn') || lowerSujet.includes('crime')) {
-      return `
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Au cœur de l'histoire des civilisations</strong>, la finalité du châtiment pénal et la sacralité de la vie humaine constituent le socle de toute éthique judiciaire. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, la question de savoir si la société a le droit d'ôter la vie pour punir le crime impose une analyse rigoureuse de la justice face à la tentation de la vengeance institutionnalisée.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En premier lieu</strong>, la peine capitale bafoue la dignité ontologique de l'être humain et supprime toute perspective de rédemption morale. C'est précisément ce que démontre <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">le plaidoyer poignant de Victor Hugo dans « Le Dernier Jour d'un Condamné »</strong>, où le supplice mental et l'agonie indicible du captif révèlent la barbarie insoutenable de la guillotine.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En second lieu</strong>, la véritable grandeur de la loi réside dans l'équité et la correction des coupables plutôt que dans l'expiation sanguinaire. À l'image du <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">sacrifice sublime d'Antigone contre la démesure punitive de Créon chez Jean Anouilh</strong>, une justice aveugle et inflexible ne fait qu'engendrer le deuil et corrompre la conscience collective d'un peuple.
-        </p>
-        <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-          <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, la justice authentique ne saurait se confondre avec des représailles légales : une nation éclairée protège ses membres en éduquant, en réinsérant et en plaçant la dignité humaine au-dessus de tout châtiment irréparable.
-        </p>
-      `;
-    }
-
-    const cleanSujetStr = activeSujet ? activeSujet.slice(0, 95) : "la réflexion proposée par ce sujet";
-    return `
-      <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-        <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dans la réalité contemporaine comme au cœur des chefs-d'œuvre littéraires</strong>, la problématique soulevée par « ${cleanSujetStr} » invite à un examen philosophique approfondi. <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">Dès lors</strong>, il convient d'analyser cette assertion avec méthode et lucidité afin de discerner les fondements éthiques et les enjeux humains qui en découlent.
-      </p>
-      <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-        <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En premier lieu</strong>, les expériences humaines et littéraires attestent que la fidélité aux valeurs morales constitue le véritable rempart de la conscience individuelle. Ainsi, comme l'illustre <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">la force d'intériorité et la quête de pureté de Sidi Mohammed dans « La Boîte à Merveilles » d'Ahmed Sefrioui</strong>, le recul spirituel permet à l'être humain de transcender la solitude et de préserver son authenticité face aux épreuves.
-      </p>
-      <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-        <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En second lieu</strong>, le courage de s'opposer aux injustices et de défendre ses convictions confère toute sa noblesse à l'existence. De la même manière, à l'image du <strong style="color:#047857; font-weight:800; background-color:#ecfdf5; padding:2px 7px; border-radius:5px; border:1px solid #a7f3d0; font-style:italic;">combat humaniste immortalisé par Victor Hugo dans « Le Dernier Jour d'un Condamné »</strong>, l'élévation de la pensée et la défense indéfectible de la justice demeurent les seules voies capables d'éclairer la destinée commune.
-      </p>
-      <p style="text-indent: 2.8rem; margin-bottom: 20px; line-height: 2.15; font-size: 12.8pt; text-align: justify; color: #1e293b;">
-        <strong style="color:#1d4ed8; font-weight:800; background-color:#eff6ff; padding:2px 7px; border-radius:5px; border:1px solid #bfdbfe;">En définitive</strong>, il apparaît clairement que ce questionnement touche aux vertus cardinales de l'humanité : la liberté de jugement, la probité intellectuelle et la responsabilité solidaire de chaque individu face à sa communauté.
-      </p>
-    `;
+    return extractedParagraphs
+      .map((inner, idx) => {
+        const isLast = idx === extractedParagraphs.length - 1;
+        const mb = isLast ? '0px' : marginBottom;
+        return `<p style="text-indent: ${textIndent}; margin-top: 0; margin-bottom: ${mb}; line-height: ${lineHeight}; font-size: ${fontSize}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; word-break: break-word; color: #1e293b; font-family: 'Newsreader', Georgia, serif;">${inner}</p>`;
+      })
+      .join('\n');
   };
 
   const handlePrintPdf = () => {
-    // 1. Nettoyer tout style résiduel sur le conteneur duplex
-    const docContainer = document.getElementById('akhawayn-official-duplex-doc');
-    if (docContainer) {
-      docContainer.removeAttribute('style');
-    }
+    handleExportPdf();
+  };
 
-    // 2. Synchroniser le texte du recto depuis l'éditeur pour être 100% à jour
+  const handleExportPdf = async () => {
+    // 1. Synchroniser le texte du recto depuis l'éditeur pour être 100% à jour
     if (editorRef.current) {
       const liveText = editorRef.current.innerText || '';
       if (liveText && liveText.trim() !== texte.trim()) {
@@ -1656,33 +1672,6 @@ export default function App() {
       }
     }
 
-    const origTitle = document.title;
-    const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
-    document.title = `Document_2Pages_Recto_Verso_${cleanName}`;
-    
-    // Activer la classe explicite d'impression pour forcer le calcul du DOM
-    document.body.classList.add('is-printing-duplex');
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        try {
-          window.print();
-        } catch (e) {
-          console.warn('Print window error:', e);
-          handleExportPdf();
-        } finally {
-          setTimeout(() => {
-            document.body.classList.remove('is-printing-duplex');
-            document.title = origTitle;
-            const containerAfter = document.getElementById('akhawayn-official-duplex-doc');
-            if (containerAfter) containerAfter.removeAttribute('style');
-          }, 1000);
-        }
-      });
-    });
-  };
-
-  const handleExportPdf = async () => {
     const rectoEl = document.getElementById('print-page-recto');
     const versoEl = document.getElementById('print-page-verso');
     if (!rectoEl || !versoEl) {
@@ -1696,7 +1685,7 @@ export default function App() {
     try {
       const origTitle = document.title;
       const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
-      document.title = `Document_2Pages_Recto_Verso_${cleanName}`;
+      document.title = `Document_Officiel_2Pages_${cleanName}`;
 
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -1706,7 +1695,7 @@ export default function App() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      // Rendre les éléments temporairement visibles et isolés hors écran pour html2canvas
+      // Rendre les éléments temporairement visibles et isolés hors écran pour html2canvas avec dimensions A4 exactes
       const docContainer = document.getElementById('akhawayn-official-duplex-doc');
       if (docContainer) {
         docContainer.style.display = 'block';
@@ -1718,15 +1707,24 @@ export default function App() {
         docContainer.style.background = '#ffffff';
       }
 
+      // Attendre un court tick pour le rendu DOM
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      const a4WidthPx = 794;
+      const a4HeightPx = 1123;
+
       // 1. Page 1 (Recto)
       const canvasRecto = await html2canvas(rectoEl, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: 800,
+        width: a4WidthPx,
+        height: a4HeightPx,
+        windowWidth: a4WidthPx,
+        windowHeight: a4HeightPx,
       });
-      const imgDataRecto = canvasRecto.toDataURL('image/jpeg', 0.95);
+      const imgDataRecto = canvasRecto.toDataURL('image/jpeg', 0.96);
       pdf.addImage(imgDataRecto, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
       // 2. Page 2 (Verso)
@@ -1736,12 +1734,15 @@ export default function App() {
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        windowWidth: 800,
+        width: a4WidthPx,
+        height: a4HeightPx,
+        windowWidth: a4WidthPx,
+        windowHeight: a4HeightPx,
       });
-      const imgDataVerso = canvasVerso.toDataURL('image/jpeg', 0.95);
+      const imgDataVerso = canvasVerso.toDataURL('image/jpeg', 0.96);
       pdf.addImage(imgDataVerso, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
-      pdf.save(`Document_2Pages_Recto_Verso_${cleanName}.pdf`);
+      pdf.save(`Document_Officiel_2Pages_${cleanName}.pdf`);
       document.title = origTitle;
     } catch (err) {
       console.error("Erreur génération PDF:", err);
@@ -5347,28 +5348,40 @@ export default function App() {
             <div className="bg-slate-50/95 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs">
               <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                 
-                {/* Pôle 1 : Impression Officielle du Document 2 Pages (Recto / Verso) */}
+                {/* Pôle 1 : Nouveau Bouton Unique de Téléchargement du Document Officiel (2 Pages Calibrées) */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handlePrintPdf}
-                    className="h-12 px-5 sm:px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-sm active:scale-[0.98]"
-                    title="Imprimer directement le document officiel de 2 pages (Recto / Verso)"
-                  >
-                    <Printer className="w-4 h-4 text-amber-400" />
-                    <span>Imprimer (Recto / Verso)</span>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-black text-amber-300">2 PAGES</span>
-                  </button>
-
                   <button
                     type="button"
                     onClick={handleExportPdf}
                     disabled={isGeneratingPdf}
-                    className="h-12 px-5 sm:px-6 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] disabled:opacity-50"
-                    title="Télécharger directement le fichier PDF officiel (2 pages A4 nettes)"
+                    className="h-14 px-6 sm:px-8 rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 hover:from-blue-800 hover:via-indigo-800 hover:to-slate-950 text-white font-black transition-all cursor-pointer flex items-center justify-center gap-3 shadow-md hover:shadow-lg active:scale-[0.98] disabled:opacity-60 border border-blue-400/30 group"
+                    title="Télécharger le document officiel de deux pages (Recto / Verso) parfaitement ajusté et calibré"
                   >
-                    <FileDown className="w-4 h-4 text-white" />
-                    <span>{isGeneratingPdf ? 'Génération du PDF...' : 'Télécharger PDF (2 Pages)'}</span>
+                    {isGeneratingPdf ? (
+                      <div className="flex items-center gap-2.5 text-xs sm:text-sm uppercase tracking-wider font-extrabold">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Calibrage &amp; Téléchargement en cours...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                          <FileDown className="w-5 h-5 text-amber-300" />
+                        </div>
+                        <div className="flex flex-col text-left">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-white">
+                              Télécharger le document (2 Pages)
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-amber-400/20 border border-amber-300/40 text-[10px] font-black text-amber-300">
+                              RECTO / VERSO
+                            </span>
+                          </div>
+                          <span className="text-[10px] sm:text-[11px] text-blue-200/90 font-medium normal-case">
+                            Calibré pleine page • Écriture visible • 100% justifié
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -5442,12 +5455,13 @@ export default function App() {
                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <button
                         type="button"
-                        onClick={handlePrintPdf}
-                        className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95"
-                        title="Imprimer ou télécharger le document PDF officiel de 2 pages (Recto / Verso)"
+                        onClick={handleExportPdf}
+                        disabled={isGeneratingPdf}
+                        className="px-3 sm:px-4 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95 shadow-sm disabled:opacity-60"
+                        title="Télécharger le document officiel de 2 pages (Recto / Verso) calibré et justifié"
                       >
-                        <Printer className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="hidden sm:inline">Imprimer</span>
+                        <FileDown className="w-3.5 h-3.5 text-amber-300" />
+                        <span>{isGeneratingPdf ? 'Génération...' : 'Télécharger (2 Pages)'}</span>
                       </button>
                       <button
                         type="button"
@@ -6188,15 +6202,27 @@ export default function App() {
         </div>
 
         {/* -------------------- VERSO (PAGE 2) -------------------- */}
-        {/* STRICTEMENT SANS "Nom du candidat", "rappel du sujet", ni "version continue d'excellence", SANS en-tête */}
-        {/* Contient UNIQUEMENT le Texte Optimisé balisé avec les liens logiques et les exemples des œuvres */}
+        {/* Modèle rédactionnel d'excellence calibré et 100% justifié pour remplir harmonieusement la page */}
         <div id="print-page-verso" className="duplex-page duplex-page-verso">
-          <div
-            className="duplex-body-content duplex-verso-content"
-            dangerouslySetInnerHTML={{
-              __html: getVersoOptimizedHtml(),
-            }}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%', justifyContent: 'space-between' }}>
+            <div>
+              <div className="duplex-section-banner" style={{ background: '#0b1528', color: '#ffffff', marginBottom: '14px' }}>
+                PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE
+              </div>
+
+              <div
+                className="duplex-body-content duplex-verso-content"
+                dangerouslySetInnerHTML={{
+                  __html: getVersoOptimizedHtml(),
+                }}
+              />
+            </div>
+
+            <div className="duplex-footer">
+              <span>Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale</span>
+              <span>Document Officiel d'Examen • Page 2 / 2 (Verso)</span>
+            </div>
+          </div>
         </div>
       </div>
 
