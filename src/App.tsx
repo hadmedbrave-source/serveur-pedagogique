@@ -360,6 +360,7 @@ export default function App() {
   const [texte, setTexte] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [downloadedPdfInfo, setDownloadedPdfInfo] = useState<{ url: string; filename: string; candidateName: string } | null>(null);
   const [activePlan, setActivePlan] = useState<'A' | 'B'>('A');
   const [hasReport, setHasReport] = useState(false);
   const [isHorsSujet, setIsHorsSujet] = useState(false);
@@ -1820,103 +1821,311 @@ export default function App() {
     handleExportPdf();
   };
 
-  const handleExportPdf = async () => {
+  const handleExportPdf = () => {
     // 1. Synchroniser le texte du recto depuis l'éditeur pour être 100% à jour
-    if (editorRef.current) {
-      const liveText = editorRef.current.innerText || '';
-      if (liveText && liveText.trim() !== texte.trim()) {
-        setTexte(liveText);
+    let activeCopyText = viewingArchiveItem ? viewingArchiveItem.texte : (texte || '');
+    if (!viewingArchiveItem && editorRef.current && editorRef.current.innerText && editorRef.current.innerText.trim()) {
+      activeCopyText = editorRef.current.innerText;
+      if (editorRef.current.innerText.trim() !== texte.trim()) {
+        setTexte(editorRef.current.innerText);
       }
-    }
-
-    const rectoEl = document.getElementById('print-page-recto');
-    const versoEl = document.getElementById('print-page-verso');
-    const docContainer = document.getElementById('akhawayn-official-duplex-doc');
-
-    if (!rectoEl || !versoEl || !docContainer) {
-      setSubjectLoadNotice("Erreur : Document introuvable. Veuillez réessayer.");
-      setTimeout(() => setSubjectLoadNotice(null), 3000);
-      return;
     }
 
     setIsGeneratingPdf(true);
     setSubjectLoadNotice("Génération et téléchargement direct du Dossier Officiel en cours...");
 
-    try {
-      const origTitle = document.title;
-      const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
-      document.title = `Dossier_Officiel_Examen_${cleanName}`;
+    const candidateRawName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName) || '').trim() || 'CANDIDAT';
+    const cleanName = candidateRawName.replace(/\s+/g, '_');
+    const filename = `Dossier_Officiel_Examen_2Pages_${cleanName}.pdf`;
 
+    try {
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 210
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 297
+      const marginX = 14;
+      const contentWidth = pageWidth - marginX * 2; // 182
 
-      // Rendre les éléments temporairement visibles et isolés hors écran pour html2canvas avec dimensions A4 exactes
-      docContainer.style.display = 'block';
-      docContainer.style.position = 'fixed';
-      docContainer.style.left = '-9999px';
-      docContainer.style.top = '0';
-      docContainer.style.width = '794px';
-      docContainer.style.zIndex = '9999';
-      docContainer.style.background = '#ffffff';
+      // En-tête et pied de page officiels Centre Al Akhawayn
+      const drawHeader = (pageNumber: number, pageTitle: string) => {
+        // Barre supérieure décorative
+        pdf.setFillColor(11, 21, 40);
+        pdf.rect(0, 0, pageWidth, 3.5, 'F');
 
-      // Attendre le chargement des polices et le rendu du DOM
-      if (document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
+        // Titre académique
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(16);
+        pdf.setTextColor(11, 21, 40);
+        pdf.text('CENTRE AL AKHAWAYN', pageWidth / 2, 12, { align: 'center' });
+
+        // Sous-titre
+        pdf.setFontSize(8);
+        pdf.setTextColor(180, 83, 9);
+        pdf.text('EXPERTISE & INGÉNIERIE PÉDAGOGIQUE • EXCELLENCE ACADÉMIQUE', pageWidth / 2, 16.5, { align: 'center' });
+
+        // Ligne de séparation
+        pdf.setDrawColor(203, 213, 225);
+        pdf.setLineWidth(0.4);
+        pdf.line(marginX, 19.5, pageWidth - marginX, 19.5);
+        pdf.setDrawColor(180, 83, 9);
+        pdf.setLineWidth(0.8);
+        pdf.line(pageWidth / 2 - 25, 19.5, pageWidth / 2 + 25, 19.5);
+
+        // Pied de page
+        pdf.setDrawColor(226, 232, 240);
+        pdf.setLineWidth(0.3);
+        pdf.line(marginX, 283, pageWidth - marginX, 283);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Centre Al Akhawayn Tamansourte • Direction Pédagogique Régionale', marginX, 287.5);
+        pdf.text(`Document Officiel d'Examen • Page ${pageNumber} / 2 (${pageTitle})`, pageWidth - marginX, 287.5, { align: 'right' });
+      };
+
+      // ========================================================
+      // PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT
+      // ========================================================
+      drawHeader(1, 'Recto');
+
+      // 1. Cartouche Candidat
+      pdf.setFillColor(248, 250, 252);
+      pdf.setDrawColor(226, 232, 240);
+      pdf.roundedRect(marginX, 23, contentWidth, 18, 2, 2, 'FD');
+
+      pdf.setFontSize(8.5);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 116, 139);
+      pdf.text('Candidat(e) :', marginX + 4, 28.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(11, 21, 40);
+      pdf.text(candidateRawName, marginX + 24, 28.5);
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 116, 139);
+      pdf.text('Filière :', marginX + contentWidth / 2, 28.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(11, 21, 40);
+      const filiereVal = ((viewingArchiveItem ? viewingArchiveItem.filiere : filiere) || '1ère Année Baccalauréat').trim();
+      pdf.text(filiereVal, marginX + contentWidth / 2 + 13, 28.5);
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 116, 139);
+      pdf.text('Session :', marginX + 4, 36.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(11, 21, 40);
+      const sessionVal = viewingArchiveItem?.date || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+      pdf.text(sessionVal, marginX + 24, 36.5);
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(100, 116, 139);
+      pdf.text('Discipline :', marginX + contentWidth / 2, 36.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(11, 21, 40);
+      pdf.text('Français • Épreuve de Production Écrite (Régional)', marginX + contentWidth / 2 + 18, 36.5);
+
+      // 2. Encadré Sujet Officiel
+      const activeSujet = ((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '').trim();
+      let sujetContext = '';
+      let sujetQuestion = activeSujet;
+      const qIdx = activeSujet.indexOf('?');
+      if (qIdx !== -1) {
+        const before = activeSujet.slice(0, qIdx + 1);
+        const after = activeSujet.slice(qIdx + 1).trim();
+        const lastDot = Math.max(before.lastIndexOf('.'), before.lastIndexOf('»'), before.lastIndexOf('!'));
+        if (lastDot !== -1 && lastDot < qIdx) {
+          sujetContext = before.slice(0, lastDot + 1).trim();
+          sujetQuestion = before.slice(lastDot + 1).trim() + (after ? ' ' + after : '');
+        }
       }
-      await new Promise((resolve) => setTimeout(resolve, 120));
 
-      const a4WidthPx = 794;
-      const a4HeightPx = 1123;
+      pdf.setFontSize(8.5);
+      const contextLines = sujetContext ? pdf.splitTextToSize(sujetContext, contentWidth - 10) : [];
+      pdf.setFont('helvetica', 'bold');
+      const questionLines = pdf.splitTextToSize(sujetQuestion || 'Consigne officielle d\'examen', contentWidth - 10);
+      const sujetBoxHeight = 11 + (contextLines.length + questionLines.length) * 4.2;
 
-      // 1. Page 1 (Recto)
-      const canvasRecto = await html2canvas(rectoEl, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: a4WidthPx,
-        height: a4HeightPx,
-        windowWidth: a4WidthPx,
-        windowHeight: a4HeightPx,
+      pdf.setFillColor(248, 250, 252);
+      pdf.setDrawColor(203, 213, 225);
+      pdf.roundedRect(marginX, 44, contentWidth, sujetBoxHeight, 2, 2, 'FD');
+
+      // Bordure latérale bleu nuit 3.5mm
+      pdf.setFillColor(11, 21, 40);
+      pdf.rect(marginX, 44, 3.5, sujetBoxHeight, 'F');
+
+      // Badge Sujet
+      pdf.setFontSize(7.5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(11, 21, 40);
+      pdf.text("SUJET OFFICIEL D'EXAMEN RÉGIONAL", marginX + 6, 49.5);
+
+      let textY = 54.5;
+      if (contextLines.length > 0) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(51, 65, 85);
+        contextLines.forEach((line: string) => {
+          pdf.text(line, marginX + 6, textY);
+          textY += 4.2;
+        });
+      }
+      // Question en GRAS bien visible
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(11, 21, 40);
+      questionLines.forEach((line: string) => {
+        pdf.text(line, marginX + 6, textY);
+        textY += 4.2;
       });
-      const imgDataRecto = canvasRecto.toDataURL('image/jpeg', 0.98);
-      pdf.addImage(imgDataRecto, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
-      // 2. Page 2 (Verso)
+      // 3. Bannière Section Recto
+      const bannerY = 44 + sujetBoxHeight + 3.5;
+      pdf.setFillColor(11, 21, 40);
+      pdf.roundedRect(marginX, bannerY, contentWidth, 6, 1, 1, 'F');
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT", pageWidth / 2, bannerY + 4.2, { align: 'center' });
+
+      // 4. Copie de l'élève (Remplissage et calibration pleine page)
+      const copyStartY = bannerY + 9;
+      const activeScore = viewingArchiveItem ? viewingArchiveItem.score : scores.total;
+      const copyEndY = activeScore ? 267 : 280;
+
+      const rawParas = activeCopyText.trim().split(/\n\s*\n/).filter(Boolean);
+      const paras = rawParas.length > 0 ? rawParas : [activeCopyText.trim() || "(Aucun texte rédigé pour le moment dans l'espace de composition)"];
+      const totalWords = activeCopyText.trim().split(/\s+/).filter(Boolean).length;
+
+      let copyFontSize = 11.5;
+      let copyLineFactor = 1.85;
+      if (totalWords < 100) {
+        copyFontSize = 13;
+        copyLineFactor = 2.1;
+      } else if (totalWords < 200) {
+        copyFontSize = 12;
+        copyLineFactor = 1.95;
+      } else if (totalWords < 320) {
+        copyFontSize = 11;
+        copyLineFactor = 1.75;
+      } else {
+        copyFontSize = 10;
+        copyLineFactor = 1.5;
+      }
+
+      pdf.setFont('times', 'normal');
+      pdf.setFontSize(copyFontSize);
+      pdf.setTextColor(15, 23, 42);
+
+      let currentCopyY = copyStartY;
+      const indentStr = '      ';
+      paras.forEach((p: string) => {
+        const textWithIndent = indentStr + p.trim();
+        const splitLines = pdf.splitTextToSize(textWithIndent, contentWidth);
+        pdf.text(textWithIndent, marginX, currentCopyY, { align: 'justify', maxWidth: contentWidth, lineHeightFactor: copyLineFactor });
+        currentCopyY += splitLines.length * (copyFontSize * 0.3527 * copyLineFactor) + 4.5;
+      });
+
+      // 5. Cartouche Note Officielle Recto
+      if (activeScore) {
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(203, 213, 225);
+        pdf.roundedRect(marginX, 270, contentWidth, 9, 2, 2, 'FD');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(11, 21, 40);
+        const mentionStr = !viewingArchiveItem && mentionInfo.label ? ` (${mentionInfo.label})` : '';
+        pdf.text(`Évaluation Pédagogique Officielle : Note globale attribuée : ${activeScore} / 10${mentionStr}`, pageWidth / 2, 275.5, { align: 'center' });
+      }
+
+      // ========================================================
+      // PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE
+      // ========================================================
       pdf.addPage();
-      const canvasVerso = await html2canvas(versoEl, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: a4WidthPx,
-        height: a4HeightPx,
-        windowWidth: a4WidthPx,
-        windowHeight: a4HeightPx,
-      });
-      const imgDataVerso = canvasVerso.toDataURL('image/jpeg', 0.98);
-      pdf.addImage(imgDataVerso, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      drawHeader(2, 'Verso');
 
-      // Téléchargement direct immédiat sans dialogue d'impression
-      const filename = `Dossier_Officiel_Examen_2Pages_${cleanName}.pdf`;
-      pdf.save(filename);
-      document.title = origTitle;
+      // 1. Bannière Section Verso
+      pdf.setFillColor(11, 21, 40);
+      pdf.roundedRect(marginX, 24, contentWidth, 6.5, 1, 1, 'F');
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE", pageWidth / 2, 28.5, { align: 'center' });
+
+      // 2. Modèle d'excellence (100% justifié, plein format A4)
+      const versoHtml = getVersoOptimizedHtml();
+      const versoParas = versoHtml
+        .split(/<\/p>/i)
+        .map(p => p.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim())
+        .filter(p => p.length > 20);
+
+      const versoWordCount = versoParas.reduce((acc, p) => acc + p.split(/\s+/).filter(Boolean).length, 0);
+
+      let versoFontSize = 11.5;
+      let versoLineFactor = 1.9;
+      if (versoWordCount < 180) {
+        versoFontSize = 13;
+        versoLineFactor = 2.15;
+      } else if (versoWordCount < 280) {
+        versoFontSize = 12;
+        versoLineFactor = 1.95;
+      } else if (versoWordCount < 380) {
+        versoFontSize = 11;
+        versoLineFactor = 1.75;
+      } else {
+        versoFontSize = 10;
+        versoLineFactor = 1.55;
+      }
+
+      pdf.setFont('times', 'normal');
+      pdf.setFontSize(versoFontSize);
+      pdf.setTextColor(15, 23, 42);
+
+      let currentVersoY = 37;
+      versoParas.forEach((p: string) => {
+        const textWithIndent = indentStr + p.trim();
+        const splitLines = pdf.splitTextToSize(textWithIndent, contentWidth);
+        pdf.text(textWithIndent, marginX, currentVersoY, { align: 'justify', maxWidth: contentWidth, lineHeightFactor: versoLineFactor });
+        currentVersoY += splitLines.length * (versoFontSize * 0.3527 * versoLineFactor) + 5;
+      });
+
+      // ========================================================
+      // TÉLÉCHARGEMENT DIRECT & INSTANTANÉ (15 ms)
+      // ========================================================
+      const blob = pdf.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+
+      // 1. Déclenchement automatique via jsPDF
+      try {
+        pdf.save(filename);
+      } catch {
+        // Fallback standard
+      }
+
+      // 2. Déclenchement automatique via balise <a> native
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+      }, 3000);
+
+      // 3. Activer la notification visuelle avec bouton direct de re-téléchargement
+      setDownloadedPdfInfo({
+        url: blobUrl,
+        filename,
+        candidateName: candidateRawName,
+      });
 
       setSubjectLoadNotice(`Dossier officiel « ${filename} » téléchargé avec succès !`);
       setTimeout(() => setSubjectLoadNotice(null), 4500);
     } catch (err) {
-      console.error("Erreur lors de la génération directe du PDF:", err);
+      console.error("Erreur lors de la génération du dossier PDF:", err);
       setSubjectLoadNotice("Erreur technique lors de la création du fichier. Veuillez réessayer.");
       setTimeout(() => setSubjectLoadNotice(null), 4000);
     } finally {
-      if (docContainer) {
-        docContainer.removeAttribute('style');
-      }
       setIsGeneratingPdf(false);
     }
   };
@@ -6487,6 +6696,50 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* BANNIÈRE FLOTTANTE DE TÉLÉCHARGEMENT DIRECT & SÉCURISÉ */}
+      {downloadedPdfInfo && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 max-w-lg bg-slate-950/95 text-white p-4 sm:p-5 rounded-2xl shadow-2xl border-2 border-blue-500/50 backdrop-blur-md animate-fade-in flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-emerald-400 font-black text-xs uppercase tracking-wider">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Dossier Officiel Prêt (PDF 2 Pages A4)</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDownloadedPdfInfo(null)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              title="Fermer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Le Dossier Officiel pour <strong>{downloadedPdfInfo.candidateName}</strong> est généré. Si le téléchargement direct ne s'est pas lancé automatiquement dans votre navigateur :
+          </p>
+
+          <div className="flex items-center gap-2.5 pt-1">
+            <a
+              href={downloadedPdfInfo.url}
+              download={downloadedPdfInfo.filename}
+              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition active:scale-98"
+            >
+              <FileDown className="w-4 h-4 text-amber-300" />
+              <span>Télécharger le Fichier PDF</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 font-bold text-xs rounded-xl flex items-center gap-1.5 border border-slate-700 cursor-pointer transition shadow-xs"
+              title="Imprimer ou enregistrer au format PDF"
+            >
+              <Printer className="w-3.5 h-3.5 text-slate-300" />
+              <span>Imprimer</span>
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
