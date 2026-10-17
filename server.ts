@@ -376,15 +376,46 @@ app.post('/api/teacher-subjects', (req, res) => {
     return res.status(400).json({ success: false, message: 'Titre et consigne requis.' });
   }
   const current = loadTeacherSubjects();
-  const filtered = current.filter((s: any) => s.id !== newSub.id);
+  const subId = newSub.id || `teacher-${Date.now()}`;
+  // Retirer l'ancienne version si elle existait déjà (y compris marqueur isDeleted)
+  const filtered = current.filter((s: any) => s.id !== subId);
+  const nowStr = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const entry = {
     ...newSub,
-    id: newSub.id || `teacher-${Date.now()}`,
+    id: subId,
     sourceEnseignant: true,
+    isModifiedByTeacher: true,
+    isDeleted: false,
+    dateModif: nowStr,
     dateAjout: newSub.dateAjout || new Date().toLocaleDateString('fr-FR'),
   };
   filtered.unshift(entry);
   saveTeacherSubjects(filtered);
+  console.log(`[SERVEUR] Sujet ${subId} enregistré/modifié par l'enseignant avec succès.`);
+  return res.json({ success: true, subject: entry, subjects: filtered });
+});
+
+app.put('/api/teacher-subjects/:id', (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+  if (!updateData || !updateData.titre || !updateData.consigne) {
+    return res.status(400).json({ success: false, message: 'Titre et consigne requis.' });
+  }
+  const current = loadTeacherSubjects();
+  const filtered = current.filter((s: any) => s.id !== id);
+  const nowStr = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const entry = {
+    ...updateData,
+    id,
+    sourceEnseignant: true,
+    isModifiedByTeacher: true,
+    isDeleted: false,
+    dateModif: nowStr,
+    dateAjout: updateData.dateAjout || new Date().toLocaleDateString('fr-FR'),
+  };
+  filtered.unshift(entry);
+  saveTeacherSubjects(filtered);
+  console.log(`[SERVEUR] Sujet ${id} mis à jour par l'enseignant avec succès.`);
   return res.json({ success: true, subject: entry, subjects: filtered });
 });
 
@@ -392,8 +423,15 @@ app.delete('/api/teacher-subjects/:id', (req, res) => {
   const { id } = req.params;
   const current = loadTeacherSubjects();
   const filtered = current.filter((s: any) => s.id !== id);
+  // Enregistrer le marqueur isDeleted: true afin que les sujets de la plateforme soient également masqués sur tous les postes
+  filtered.push({
+    id,
+    isDeleted: true,
+    dateSuppr: new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+  });
   saveTeacherSubjects(filtered);
-  return res.json({ success: true, count: filtered.length });
+  console.log(`[SERVEUR] Sujet ${id} supprimé par l'enseignant.`);
+  return res.json({ success: true, count: filtered.length, id, subjects: filtered });
 });
 
 // Recherche intelligente de la clé API OpenAI sous toutes ses variantes possibles
