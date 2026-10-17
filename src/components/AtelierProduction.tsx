@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   BookOpen,
   CheckCircle,
@@ -30,10 +30,13 @@ import {
   getModelArgumentsForTheme,
   ModelArgument,
 } from '../data/oeuvreExamples';
+import { RegionalSubject } from '../data/regionalSubjects';
 
 interface AtelierProductionProps {
   sujet: string;
   isSubjectValidated: boolean;
+  activeSubjectItem?: RegionalSubject | null;
+  initialPlanType?: 'DIALECTIQUE' | 'SIMPLE' | 'ANALYTIQUE' | '';
   onInjectContent: (content: string, mode?: 'replace' | 'append' | 'insert') => void;
   onClose: () => void;
 }
@@ -59,26 +62,70 @@ interface SubjectAnalysis {
   arg2SimpleExplication: string;
   questionSimple: string;
   conclusionFerme: string;
+
+  // Option alternative pour sujet à deux avis (ex: Solitude vs Compagnie)
+  hasDualOptions?: boolean;
+  optionAName?: string;
+  optionBName?: string;
+  theseSimpleAvisAlt?: string;
+  arg1SimpleAlt?: string;
+  arg1SimpleExplicationAlt?: string;
+  arg2SimpleAlt?: string;
+  arg2SimpleExplicationAlt?: string;
+  questionSimpleAlt?: string;
+  conclusionFermeAlt?: string;
 }
 
-function analyzeSubjectText(rawSubject: string): SubjectAnalysis {
+function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | null): SubjectAnalysis {
   const clean = (rawSubject || '')
     .replace(/^Sujet\s*:\s*/i, '')
     .replace(/^Consigne\s*:\s*/i, '')
     .trim();
 
-  const lower = clean.toLowerCase();
+  const lower = (clean + ' ' + (subjectItem?.titre || '') + ' ' + (subjectItem?.consigne || '')).toLowerCase();
 
-  // Détection de l'œuvre associée
+  // Détection fidèle de l'œuvre associée
   let oeuvre = 'La Boîte à Merveilles';
-  if (lower.includes('antigone') || lower.includes('créon') || lower.includes('creon') || lower.includes('anouilh') || lower.includes('ismène') || lower.includes('ismene')) {
+  if (subjectItem?.oeuvre && subjectItem.oeuvre !== 'Sujet de Société Général' && OEUVRES_DATA[subjectItem.oeuvre]) {
+    oeuvre = subjectItem.oeuvre;
+  } else if (
+    lower.includes('antigone') ||
+    lower.includes('créon') ||
+    lower.includes('creon') ||
+    lower.includes('anouilh') ||
+    lower.includes('ismène') ||
+    lower.includes('ismene') ||
+    lower.includes('polynice') ||
+    lower.includes('thèbes')
+  ) {
     oeuvre = 'Antigone';
-  } else if (lower.includes('condamné') || lower.includes('condamne') || lower.includes('peine de mort') || lower.includes('hugo') || lower.includes('bicêtre') || lower.includes('bicetre') || lower.includes('guillotine')) {
+  } else if (
+    lower.includes('condamné') ||
+    lower.includes('condamne') ||
+    lower.includes('peine de mort') ||
+    lower.includes('hugo') ||
+    lower.includes('bicêtre') ||
+    lower.includes('bicetre') ||
+    lower.includes('guillotine') ||
+    lower.includes('échafaud')
+  ) {
     oeuvre = 'Le Dernier Jour d’un Condamné';
-  } else if (lower.includes('boîte') || lower.includes('boite') || lower.includes('sefrioui') || lower.includes('chouafa') || lower.includes('zoubida') || lower.includes('sidi mohammed')) {
+  } else if (
+    lower.includes('boîte') ||
+    lower.includes('boite') ||
+    lower.includes('sefrioui') ||
+    lower.includes('chouafa') ||
+    lower.includes('zoubida') ||
+    lower.includes('sidi mohammed') ||
+    lower.includes('dar chouafa') ||
+    lower.includes('maâlem') ||
+    lower.includes('abdeslem')
+  ) {
     oeuvre = 'La Boîte à Merveilles';
+  } else if (subjectItem?.oeuvre && OEUVRES_DATA[subjectItem.oeuvre]) {
+    oeuvre = subjectItem.oeuvre;
   } else {
-    oeuvre = 'Sujet de Société Général';
+    oeuvre = 'La Boîte à Merveilles';
   }
 
   // Extraction thématique précise avec arguments clairs et explications simples
@@ -96,7 +143,52 @@ function analyzeSubjectText(rawSubject: string): SubjectAnalysis {
   let questionSimple = 'en quoi cette prise de position constitue-t-elle une évidence incontestable';
   let conclusionFerme = 'ce principe s\'impose avec force comme une vérité fondamentale à préserver';
 
-  if (lower.includes('solitude') || lower.includes('seul')) {
+  let hasDualOptions = false;
+  let optionAName = '';
+  let optionBName = '';
+  let theseSimpleAvisAlt = '';
+  let arg1SimpleAlt = '';
+  let arg1SimpleExplicationAlt = '';
+  let arg2SimpleAlt = '';
+  let arg2SimpleExplicationAlt = '';
+  let questionSimpleAlt = '';
+  let conclusionFermeAlt = '';
+
+  // 1. CAS PARTICULIER FONDAMENTAL : LA SOLITUDE FACE AU BESOIN DE COMPAGNIE ET D'AMITIÉ
+  if (
+    (lower.includes('compagnie') && (lower.includes('seul') || lower.includes('solitude'))) ||
+    lower.includes('solitude versus compagnie') ||
+    (lower.includes('rester seule') && lower.includes('ami'))
+  ) {
+    themeName = 'le choix entre la solitude et la recherche de compagnie';
+    these1 = 'certaines personnes aiment rester seules pour goûter au calme, affirmer leur autonomie et stimuler leur imagination';
+    these1Explication = 'En effet, le recueillement solitaire offre un havre protecteur pour rêver et réfléchir en profondeur sans subir le bruit ou la futilité du monde extérieur, comme Sidi Mohammed dans son monde intérieur.';
+    these2 = 'd\'autres, au contraire, ont un besoin impérieux d\'avoir de la compagnie et de s\'entourer d\'amis pour partager les joies de la vie et briser l\'isolement';
+    these2Explication = 'En effet, l\'être humain est un être éminemment social qui a un besoin vital de dialogue sincère, de tendresse et de solidarité pour s\'épanouir harmonieusement au milieu des siens.';
+    questionCentrale = 'convient-il de rechercher la tranquillité bienfaisante de la solitude ou de privilégier la chaleur vivifiante de la compagnie et de l\'amitié';
+
+    // Option A : Préférer avoir de la compagnie (défense de la sociabilité et des amis)
+    hasDualOptions = true;
+    optionAName = 'Préférer avoir de la compagnie (les amis, la sociabilité)';
+    optionBName = 'Préférer rester seul(e) (le calme, l\'autonomie, l\'imagination)';
+
+    theseSimpleAvis = 'la recherche de la compagnie et de l\'amitié sincère constitue le plus précieux des épanouissements humains face aux dangers de l\'isolement';
+    arg1Simple = 's\'entourer d\'amis et de proches apporte un réconfort moral inestimable et brise la solitude pesante';
+    arg1SimpleExplication = 'En effet, partager ses émotions et ses joies avec des personnes de confiance réchauffe le cœur et rend l\'individu bien plus fort face aux épreuves.';
+    arg2Simple = 'la compagnie et la vie sociale favorisent l\'ouverture d\'esprit, la générosité et l\'apprentissage du vivre-ensemble';
+    arg2SimpleExplication = 'En effet, nul ne peut s\'épanouir dans le repli stérile sur soi : c\'est par le contact bienveillant d\'autrui que se forgent la tolérance et la vraie maturité.';
+    questionSimple = 'en quoi le choix de la compagnie et des liens d\'amitié s\'impose-t-il comme le garant suprême d\'une vie accomplie';
+    conclusionFerme = 'la chaleur de la compagnie et la sincérité des liens amicaux constituent le trésor inestimable qui illumine et donne tout son sens à l\'existence';
+
+    // Option B : Préférer rester seul(e)
+    theseSimpleAvisAlt = 'la solitude choisie et le recueillement personnel constituent le sanctuaire indispensable de l\'autonomie et de la créativité';
+    arg1SimpleAlt = 'la solitude choisie offre un havre indispensable pour stimuler l\'imagination et féconder la création artistique';
+    arg1SimpleExplicationAlt = 'En effet, loin du tumulte extérieur et de la banalité des bavardages, l\'esprit s\'évade et invente un univers féerique et protecteur.';
+    arg2SimpleAlt = 'l\'isolement volontaire permet de prendre du recul sur soi-même et de forger une véritable indépendance d\'esprit';
+    arg2SimpleExplicationAlt = 'En effet, apprendre à vivre sereinement avec soi-même apprend à assumer ses choix sans dépendre constamment du regard d\'autrui.';
+    questionSimpleAlt = 'en quoi la solitude choisie constitue-t-elle un espace privilégié de réflexion, d\'autonomie et de réalisation de soi';
+    conclusionFermeAlt = 'la solitude choisie constitue le sanctuaire fécond de l\'autonomie, de la méditation et de la création artistique';
+  } else if (lower.includes('solitude') || lower.includes('seul')) {
     themeName = 'la solitude et son impact sur l\'individu';
     these1 = 'la solitude choisie permet à l\'individu de se recueillir, d\'affirmer son autonomie et de stimuler son imagination';
     these1Explication = 'En effet, loin du bruit et du regard des autres, l\'esprit trouve le calme nécessaire pour réfléchir et créer son propre monde.';
@@ -362,15 +454,29 @@ function analyzeSubjectText(rawSubject: string): SubjectAnalysis {
 export const AtelierProduction: React.FC<AtelierProductionProps> = ({
   sujet,
   isSubjectValidated,
+  activeSubjectItem,
+  initialPlanType,
   onInjectContent,
   onClose,
 }) => {
   // Analyse sémantique continue du sujet
-  const subjectAnalysis = useMemo(() => analyzeSubjectText(sujet), [sujet]);
+  const subjectAnalysis = useMemo(() => analyzeSubjectText(sujet, activeSubjectItem), [sujet, activeSubjectItem]);
 
-  const [selectedOeuvre, setSelectedOeuvre] = useState<string>(subjectAnalysis.oeuvreProbable);
+  const [selectedOeuvre, setSelectedOeuvre] = useState<string>(() => {
+    if (activeSubjectItem?.oeuvre && OEUVRES_DATA[activeSubjectItem.oeuvre]) {
+      return activeSubjectItem.oeuvre;
+    }
+    return subjectAnalysis.oeuvreProbable;
+  });
+
   const [currentStep, setCurrentStep] = useState<EtapeId>('PLAN');
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('DIALECTIQUE');
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>(() => {
+    return (activeSubjectItem?.typePlanSuggere === 'Plan Simple' || initialPlanType === 'SIMPLE')
+      ? 'SIMPLE'
+      : 'DIALECTIQUE';
+  });
+
+  const [selectedStance, setSelectedStance] = useState<'A' | 'B'>('A');
 
   // Champs de l'Introduction (avec les 4 étapes exactes demandées pour le plan dialectique)
   // 1. Accroche / Sujet amené
@@ -405,6 +511,105 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
   const [conclOuverture, setConclOuverture] = useState('');
   const [conclValidatedText, setConclValidatedText] = useState('');
 
+  // Synchronisation dynamique dès que le sujet ou ses métadonnées changent
+  useEffect(() => {
+    if (activeSubjectItem?.oeuvre && OEUVRES_DATA[activeSubjectItem.oeuvre]) {
+      setSelectedOeuvre(activeSubjectItem.oeuvre);
+    } else if (subjectAnalysis.oeuvreProbable && OEUVRES_DATA[subjectAnalysis.oeuvreProbable]) {
+      setSelectedOeuvre(subjectAnalysis.oeuvreProbable);
+    }
+
+    const planToSet: PlanType = (activeSubjectItem?.typePlanSuggere === 'Plan Simple' || initialPlanType === 'SIMPLE')
+      ? 'SIMPLE'
+      : 'DIALECTIQUE';
+    setSelectedPlan(planToSet);
+
+    if (planToSet === 'SIMPLE') {
+      setDev2Amorce("D'autre part, en second lieu, ");
+      setConclBilan("D'après ce qui précède, je confirme tenacement que ");
+    } else {
+      setDev2Amorce("Cependant, en revanche, ");
+      setConclBilan("En définitive, ");
+    }
+
+    // Réinitialiser les champs pour suivre à 100% le nouveau sujet chargé
+    setIntroAccroche('');
+    setIntroTheses('');
+    setIntroProblematique('');
+    setIntroAnnoncePlan('');
+    setDev1Argument('');
+    setDev1Explication('En effet, ');
+    setDev1Exemple('');
+    setDev2Argument('');
+    setDev2Explication('En effet, ');
+    setDev2Exemple('');
+    setConclPointDeVue('');
+    setConclOuverture('');
+    setShowReformulations(false);
+    setSelectedStance('A');
+  }, [sujet, activeSubjectItem, initialPlanType]);
+
+  // Valeurs de Plan Simple selon le choix de position de l'élève (Option A ou Option B)
+  const currentSimpleAvis = useMemo(() => {
+    if (selectedStance === 'B' && subjectAnalysis.hasDualOptions && subjectAnalysis.theseSimpleAvisAlt) {
+      return subjectAnalysis.theseSimpleAvisAlt;
+    }
+    return subjectAnalysis.theseSimpleAvis;
+  }, [selectedStance, subjectAnalysis]);
+
+  const currentArg1Simple = useMemo(() => {
+    if (selectedStance === 'B' && subjectAnalysis.hasDualOptions && subjectAnalysis.arg1SimpleAlt) {
+      return subjectAnalysis.arg1SimpleAlt;
+    }
+    return subjectAnalysis.arg1Simple;
+  }, [selectedStance, subjectAnalysis]);
+
+  const currentArg1SimpleExplication = useMemo(() => {
+    if (selectedStance === 'B' && subjectAnalysis.hasDualOptions && subjectAnalysis.arg1SimpleExplicationAlt) {
+      return subjectAnalysis.arg1SimpleExplicationAlt;
+    }
+    return subjectAnalysis.arg1SimpleExplication;
+  }, [selectedStance, subjectAnalysis]);
+
+  const currentArg2Simple = useMemo(() => {
+    if (selectedStance === 'B' && subjectAnalysis.hasDualOptions && subjectAnalysis.arg2SimpleAlt) {
+      return subjectAnalysis.arg2SimpleAlt;
+    }
+    return subjectAnalysis.arg2Simple;
+  }, [selectedStance, subjectAnalysis]);
+
+  const currentArg2SimpleExplication = useMemo(() => {
+    if (selectedStance === 'B' && subjectAnalysis.hasDualOptions && subjectAnalysis.arg2SimpleExplicationAlt) {
+      return subjectAnalysis.arg2SimpleExplicationAlt;
+    }
+    return subjectAnalysis.arg2SimpleExplication;
+  }, [selectedStance, subjectAnalysis]);
+
+  const currentQuestionSimple = useMemo(() => {
+    if (selectedStance === 'B' && subjectAnalysis.hasDualOptions && subjectAnalysis.questionSimpleAlt) {
+      return subjectAnalysis.questionSimpleAlt;
+    }
+    return subjectAnalysis.questionSimple;
+  }, [selectedStance, subjectAnalysis]);
+
+  const currentConclusionFerme = useMemo(() => {
+    if (selectedStance === 'B' && subjectAnalysis.hasDualOptions && subjectAnalysis.conclusionFermeAlt) {
+      return subjectAnalysis.conclusionFermeAlt;
+    }
+    return subjectAnalysis.conclusionFerme;
+  }, [selectedStance, subjectAnalysis]);
+
+  const oeuvreIntroPhrase = useMemo(() => {
+    if (selectedOeuvre === 'La Boîte à Merveilles') {
+      return `Dans l'œuvre « La Boîte à Merveilles » d'Ahmed Sefrioui`;
+    } else if (selectedOeuvre === 'Antigone') {
+      return `Dans la pièce tragique « Antigone » de Jean Anouilh`;
+    } else if (selectedOeuvre === 'Le Dernier Jour d’un Condamné') {
+      return `Dans l'œuvre engagée « Le Dernier Jour d’un Condamné » de Victor Hugo`;
+    }
+    return `Dans la littérature comme au sein des débats de société`;
+  }, [selectedOeuvre]);
+
   // État des 2 variantes de reformulation
   const [showReformulations, setShowReformulations] = useState<boolean>(false);
   const [reformulationStep, setReformulationStep] = useState<EtapeId | null>(null);
@@ -422,34 +627,41 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
   // 1. Détection dynamique des exemples adaptés à l'argument du candidat pour l'Axe 1
   const matchingAxe1 = useMemo(() => {
     return findExamplesMatchingArgument(
-      dev1Argument || (selectedPlan === 'SIMPLE' ? subjectAnalysis.arg1Simple : subjectAnalysis.these1),
+      dev1Argument || (selectedPlan === 'SIMPLE' ? currentArg1Simple : subjectAnalysis.these1),
       selectedOeuvre,
       'these'
     );
-  }, [dev1Argument, selectedOeuvre, selectedPlan, subjectAnalysis.arg1Simple, subjectAnalysis.these1]);
+  }, [dev1Argument, selectedOeuvre, selectedPlan, currentArg1Simple, subjectAnalysis.these1]);
 
   // 2. Détection dynamique des exemples adaptés à l'argument du candidat pour l'Axe 2
   const matchingAxe2 = useMemo(() => {
     return findExamplesMatchingArgument(
-      dev2Argument || (selectedPlan === 'SIMPLE' ? subjectAnalysis.arg2Simple : subjectAnalysis.these2),
+      dev2Argument || (selectedPlan === 'SIMPLE' ? currentArg2Simple : subjectAnalysis.these2),
       selectedOeuvre,
       selectedPlan === 'DIALECTIQUE' ? 'antithese' : 'these'
     );
-  }, [dev2Argument, selectedOeuvre, selectedPlan, subjectAnalysis.arg2Simple, subjectAnalysis.these2]);
+  }, [dev2Argument, selectedOeuvre, selectedPlan, currentArg2Simple, subjectAnalysis.these2]);
 
   // Modèles d'arguments clairs et bien expliqués en langage simple pour l'Axe 1 et l'Axe 2
   const modelArgsAxe1 = useMemo(() => {
-    return getModelArgumentsForTheme(subjectAnalysis.themeName, selectedOeuvre, 'these');
-  }, [subjectAnalysis.themeName, selectedOeuvre]);
+    return getModelArgumentsForTheme(
+      subjectAnalysis.themeName,
+      selectedOeuvre,
+      'these',
+      selectedPlan,
+      selectedStance
+    );
+  }, [subjectAnalysis.themeName, selectedOeuvre, selectedPlan, selectedStance]);
 
   const modelArgsAxe2 = useMemo(() => {
-    if (selectedPlan === 'SIMPLE') {
-      const theseArgs = getModelArgumentsForTheme(subjectAnalysis.themeName, selectedOeuvre, 'these');
-      // En plan simple, proposer le 2ème argument modèle de la thèse en priorité pour l'Axe 2
-      return theseArgs.length > 1 ? [theseArgs[1], theseArgs[0]] : theseArgs;
-    }
-    return getModelArgumentsForTheme(subjectAnalysis.themeName, selectedOeuvre, 'antithese');
-  }, [subjectAnalysis.themeName, selectedOeuvre, selectedPlan]);
+    return getModelArgumentsForTheme(
+      subjectAnalysis.themeName,
+      selectedOeuvre,
+      selectedPlan === 'DIALECTIQUE' ? 'antithese' : 'these',
+      selectedPlan,
+      selectedStance
+    );
+  }, [subjectAnalysis.themeName, selectedOeuvre, selectedPlan, selectedStance]);
 
   // Insertion d'un modèle d'argument complet et clair en un clic
   const handleApplyModelArgument = (model: ModelArgument, axe: 1 | 2) => {
@@ -532,19 +744,19 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         );
       } else {
         // Plan Simple : Plaidoyer et défense résolue du point de vue personnel ancré dans l'œuvre avec annonce des 2 arguments
-        const avis = subjectAnalysis.theseSimpleAvis;
-        const arg1 = dev1Argument.trim() || subjectAnalysis.arg1Simple;
-        const arg2 = dev2Argument.trim() || subjectAnalysis.arg2Simple;
-        const qSimple = subjectAnalysis.questionSimple;
+        const avis = currentSimpleAvis;
+        const arg1 = dev1Argument.trim() || currentArg1Simple;
+        const arg2 = dev2Argument.trim() || currentArg2Simple;
+        const qSimple = currentQuestionSimple;
 
         // Variante 1 : Clarté & Simplicité Directe
         setVarianteA(
-          `Dans son œuvre majeure intitulée « ${selectedOeuvre} », la réflexion autour de ${theme} occupe une place prépondérante. Pour ma part, je partage pleinement ce point de vue et je soutiens fermement que ${avis}. Dès lors, ${qSimple} ? Afin de justifier cette conviction avec méthode, nous démontrerons d'abord que ${arg1}, avant d'expliquer dans un second temps que ${arg2}.`
+          `${oeuvreIntroPhrase}, la réflexion autour de ${theme} occupe une place prépondérante. Pour ma part, je partage pleinement ce point de vue et je soutiens fermement que ${avis}. Dès lors, ${qSimple} ? Afin de justifier cette conviction avec méthode, nous démontrerons d'abord que ${arg1}, avant d'expliquer dans un second temps que ${arg2}.`
         );
 
         // Variante 2 : Élégance Équilibrée 50/50
         setVarianteB(
-          `Au cœur de l'œuvre « ${selectedOeuvre} », la problématique relative à ${theme} interpelle notre réflexion avec une remarquable acuité. Loin de toute hésitation, j'adhère sans réserve à la thèse affirmant que ${avis}. Il convient dès lors de poser la question essentielle : par quelles raisons cette conception s'impose-t-elle comme une certitude ? Pour éclairer cette réflexion, nous mettrons d'abord en lumière le fait que ${arg1}, puis nous soulignerons combien ${arg2}.`
+          `${oeuvreIntroPhrase}, la problématique relative à ${theme} interpelle notre réflexion avec une remarquable acuité. Loin de toute hésitation, j'adhère sans réserve à la thèse affirmant que ${avis}. Il convient dès lors de poser la question essentielle : par quelles raisons cette conception s'impose-t-elle comme une certitude ? Pour éclairer cette réflexion, nous mettrons d'abord en lumière le fait que ${arg1}, puis nous soulignerons combien ${arg2}.`
         );
       }
     } else if (step === 'DEV_AXE1') {
@@ -553,10 +765,10 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
       const rawExpl = dev1Explication.trim();
       const rawEx = dev1Exemple.trim();
 
-      const finalArg = rawArg || (selectedPlan === 'SIMPLE' ? subjectAnalysis.arg1Simple : t1);
+      const finalArg = rawArg || (selectedPlan === 'SIMPLE' ? currentArg1Simple : t1);
       const finalExpl = rawExpl && rawExpl !== 'En effet,' && rawExpl !== 'En effet, '
         ? rawExpl
-        : (selectedPlan === 'SIMPLE' ? subjectAnalysis.arg1SimpleExplication : t1Exp);
+        : (selectedPlan === 'SIMPLE' ? currentArg1SimpleExplication : t1Exp);
 
       // Exemple suivant l'argument : si l'élève n'a pas encore saisi d'exemple, on prend le meilleur exemple détecté
       const finalEx = rawEx || (matchingAxe1.bestMatch ? matchingAxe1.bestMatch.phraseComplete : `Comme l'illustre un épisode marquant de « ${selectedOeuvre} »`);
@@ -593,10 +805,10 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         );
       } else {
         // Plan Simple : 2ème argument complémentaire qui fortifie la même thèse (aucune antithèse)
-        const finalArg = rawArg || subjectAnalysis.arg2Simple;
+        const finalArg = rawArg || currentArg2Simple;
         const finalExpl = rawExpl && rawExpl !== 'En effet,' && rawExpl !== 'En effet, '
           ? rawExpl
-          : subjectAnalysis.arg2SimpleExplication;
+          : currentArg2SimpleExplication;
         const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : `À ce propos, un exemple significatif de « ${selectedOeuvre} »`);
 
         // Variante 1 : Clarté & Simplicité (Progression)
@@ -635,7 +847,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
       };
 
       const rawPvdDialectique = conclPointDeVue.trim() || `le juste équilibre entre respect des principes et discernement personnel doit guider notre jugement sur ${theme}`;
-      const rawPvdSimple = conclPointDeVue.trim() || subjectAnalysis.conclusionFerme;
+      const rawPvdSimple = conclPointDeVue.trim() || currentConclusionFerme;
       const cleanPvdDialectique = cleanPointDeVue(rawPvdDialectique);
       const cleanPvdSimple = cleanPointDeVue(rawPvdSimple);
 
@@ -759,17 +971,32 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
       )}
 
       {/* Rappel du Sujet analysé */}
-      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-2 max-w-3xl">
-          <span className="font-bold text-slate-800 shrink-0">Sujet identifié :</span>
+      <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2 max-w-2xl">
+          <span className="font-bold text-slate-800 shrink-0">Sujet actif :</span>
           <span className="text-slate-700 italic truncate" title={subjectAnalysis.cleanSubject}>
             « {subjectAnalysis.cleanSubject || 'Aucun sujet saisi — rédigez ou collez votre consigne ci-dessus.'} »
           </span>
         </div>
-        <div className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-          Thème : {subjectAnalysis.themeName}
+        <div className="flex items-center gap-2 flex-wrap">
+          {activeSubjectItem?.typePlanSuggere && (
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              {activeSubjectItem.typePlanSuggere}
+            </span>
+          )}
+          <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+            Thème : {subjectAnalysis.themeName}
+          </span>
         </div>
       </div>
+
+      {activeSubjectItem?.conseilsEnseignant && (
+        <div className="px-4 py-1.5 bg-amber-50/90 border-b border-amber-200 flex items-center gap-2 text-xs text-amber-950 font-medium">
+          <Lightbulb className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+          <span className="font-bold text-amber-900 shrink-0">Conseil enseignant :</span>
+          <span className="truncate" title={activeSubjectItem.conseilsEnseignant}>{activeSubjectItem.conseilsEnseignant}</span>
+        </div>
+      )}
 
       {/* ======================================================== */}
       {/* 2. BARRE D'ÉTAPES DU PARCOURS PÉDAGOGIQUE                */}
@@ -878,6 +1105,26 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
               </p>
             </div>
 
+            {/* Conseil de l'enseignant ou recommandation de l'examen */}
+            {activeSubjectItem?.conseilsEnseignant && (
+              <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 flex items-start gap-3 shadow-2xs">
+                <Lightbulb className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-bold text-xs flex items-center gap-2">
+                    <span>Conseil pédagogique officiel de l'enseignant :</span>
+                    {activeSubjectItem.typePlanSuggere && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300 font-bold">
+                        Plan préconisé : {activeSubjectItem.typePlanSuggere}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-amber-900 leading-relaxed font-medium">
+                    {activeSubjectItem.conseilsEnseignant}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Option Plan Dialectique */}
               <div
@@ -886,12 +1133,17 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                   setDev2Amorce('Cependant, en revanche, ');
                   setConclBilan('En définitive, ');
                 }}
-                className={`p-4 rounded-xl border-2 transition cursor-pointer ${
+                className={`p-4 rounded-xl border-2 transition cursor-pointer relative ${
                   selectedPlan === 'DIALECTIQUE'
                     ? 'border-blue-600 bg-blue-50/50 shadow-md ring-2 ring-blue-500/20'
                     : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'
                 }`}
               >
+                {activeSubjectItem?.typePlanSuggere === 'Plan Dialectique' && (
+                  <span className="absolute -top-2.5 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                    ★ Recommandé pour ce sujet
+                  </span>
+                )}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 font-bold text-sm text-blue-950 font-outfit">
                     <Scale className="w-4 h-4 text-blue-600" />
@@ -919,12 +1171,17 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                   setDev2Amorce('D\'autre part, ');
                   setConclBilan('D\'après ce qui précède, je confirme tenacement que ');
                 }}
-                className={`p-4 rounded-xl border-2 transition cursor-pointer ${
+                className={`p-4 rounded-xl border-2 transition cursor-pointer relative ${
                   selectedPlan === 'SIMPLE'
                     ? 'border-blue-600 bg-blue-50/50 shadow-md ring-2 ring-blue-500/20'
                     : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'
                 }`}
               >
+                {activeSubjectItem?.typePlanSuggere === 'Plan Simple' && (
+                  <span className="absolute -top-2.5 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                    ★ Recommandé pour ce sujet
+                  </span>
+                )}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 font-bold text-sm text-slate-900 font-outfit">
                     <AlignLeft className="w-4 h-4 text-indigo-600" />
@@ -937,7 +1194,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                   )}
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium mb-3">
-                  Recommandé pour défendre fermement un seul avis (ex : approuver le second avis du sujet).
+                  Recommandé pour défendre fermement un seul avis (ex : approuver l'un des deux avis du sujet).
                   Vous développez deux arguments complémentaires (Axe 1 = 1er Argument, Axe 2 = 2ème Argument) sans contradiction, suivis d'une conclusion tenace sans nuance.
                 </p>
                 <div className="text-[11px] font-semibold text-indigo-900 bg-indigo-50 p-2 rounded-lg border border-indigo-200">
@@ -945,6 +1202,83 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Sélecteur de position pour le Plan Simple (Option A ou Option B) */}
+            {selectedPlan === 'SIMPLE' && (
+              <div className="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-3 shadow-2xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                    <Target className="w-4 h-4 text-indigo-600" />
+                    <span>Prise de position de l'élève pour le Plan Simple :</span>
+                  </span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-200 text-indigo-900">
+                    Avis sélectionné : {selectedStance === 'A' ? 'Position 1' : 'Position 2'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-indigo-900/80 leading-relaxed">
+                  Le Plan Simple impose de soutenir résolument un seul parti pris. Choisissez ci-dessous la position que vous souhaitez développer :
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div
+                    onClick={() => {
+                      setSelectedStance('A');
+                      setDev1Argument('');
+                      setDev2Argument('');
+                      setDev1Exemple('');
+                      setDev2Exemple('');
+                    }}
+                    className={`p-3.5 rounded-xl border-2 transition cursor-pointer flex items-start gap-2.5 ${
+                      selectedStance === 'A'
+                        ? 'border-indigo-600 bg-white shadow-sm ring-1 ring-indigo-500'
+                        : 'border-slate-200 bg-white/70 hover:bg-white hover:border-indigo-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded-full mt-0.5 border flex items-center justify-center shrink-0 ${
+                      selectedStance === 'A' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-400 bg-white'
+                    }`}>
+                      {selectedStance === 'A' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-indigo-950">
+                        {subjectAnalysis.optionAName || 'Position 1 : Premier point de vue'}
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                        {subjectAnalysis.theseSimpleAvis}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      setSelectedStance('B');
+                      setDev1Argument('');
+                      setDev2Argument('');
+                      setDev1Exemple('');
+                      setDev2Exemple('');
+                    }}
+                    className={`p-3.5 rounded-xl border-2 transition cursor-pointer flex items-start gap-2.5 ${
+                      selectedStance === 'B'
+                        ? 'border-indigo-600 bg-white shadow-sm ring-1 ring-indigo-500'
+                        : 'border-slate-200 bg-white/70 hover:bg-white hover:border-indigo-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded-full mt-0.5 border flex items-center justify-center shrink-0 ${
+                      selectedStance === 'B' ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-400 bg-white'
+                    }`}>
+                      {selectedStance === 'B' && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs text-indigo-950">
+                        {subjectAnalysis.optionBName || 'Position 2 : Second point de vue'}
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                        {subjectAnalysis.theseSimpleAvisAlt || subjectAnalysis.these2}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end pt-2">
               <button
@@ -1053,14 +1387,14 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     <>
                       <button
                         type="button"
-                        onClick={() => setIntroTheses(`Pour ma part, je partage pleinement ce second avis et j'affirme avec conviction que ${subjectAnalysis.theseSimpleAvis}. `)}
+                        onClick={() => setIntroTheses(`Pour ma part, je soutiens fermement que ${currentSimpleAvis}. `)}
                         className="text-[11px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 hover:bg-indigo-100 border border-indigo-200 transition font-medium cursor-pointer"
                       >
-                        + Partager le 2ème avis (Ferme)
+                        + Soutenir ma position choisie
                       </button>
                       <button
                         type="button"
-                        onClick={() => setIntroTheses(`À mes yeux, il apparaît incontestable que ${subjectAnalysis.theseSimpleAvis}. `)}
+                        onClick={() => setIntroTheses(`À mes yeux, il apparaît incontestable que ${currentSimpleAvis}. `)}
                         className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition font-medium cursor-pointer"
                       >
                         + Affirmation directe
@@ -1076,7 +1410,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 placeholder={
                   selectedPlan === 'DIALECTIQUE'
                     ? "Certains soutiennent que... tandis que d'autres en revanche estiment au contraire que..."
-                    : "Pour ma part, je soutiens sans hésitation que la solitude constitue le sanctuaire fécond de l'autonomie et de la créativité..."
+                    : `Pour ma part, je soutiens fermement que ${currentSimpleAvis}...`
                 }
                 className="w-full p-3 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-100 outline-none transition"
               />
@@ -1092,7 +1426,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 <div className="flex items-center gap-1 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => setIntroProblematique(`Dès lors, ${selectedPlan === 'SIMPLE' ? subjectAnalysis.questionSimple : subjectAnalysis.questionCentrale} ? `)}
+                    onClick={() => setIntroProblematique(`Dès lors, ${selectedPlan === 'SIMPLE' ? currentQuestionSimple : subjectAnalysis.questionCentrale} ? `)}
                     className="text-[11px] px-2 py-0.5 rounded bg-purple-50 text-purple-900 hover:bg-purple-100 border border-purple-200 transition font-medium cursor-pointer"
                   >
                     + Formule interrogative adaptée
@@ -1114,7 +1448,11 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 rows={2}
                 value={introProblematique}
                 onChange={(e) => setIntroProblematique(e.target.value)}
-                placeholder="Exemple : Dès lors, dans quelle mesure peut-on affirmer que la solitude constitue un espace privilégié de réflexion et d'épanouissement ?"
+                placeholder={
+                  selectedPlan === 'DIALECTIQUE'
+                    ? `Exemple : Dès lors, ${subjectAnalysis.questionCentrale} ?`
+                    : `Exemple : Dès lors, ${currentQuestionSimple} ?`
+                }
                 className="w-full p-3 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none transition"
               />
             </div>
@@ -1132,7 +1470,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     if (selectedPlan === 'DIALECTIQUE') {
                       setIntroAnnoncePlan('Dans un premier temps, nous mettrons en lumière les arguments qui corroborent cette idée, avant d\'examiner dans un second temps les nuances et les réserves qui s\'imposent.');
                     } else {
-                      setIntroAnnoncePlan(`Dans un premier temps, nous démontrerons que ${subjectAnalysis.arg1Simple}, avant d'expliquer dans un second temps que ${subjectAnalysis.arg2Simple}.`);
+                      setIntroAnnoncePlan(`Dans un premier temps, nous démontrerons que ${currentArg1Simple}, avant d'expliquer dans un second temps que ${currentArg2Simple}.`);
                     }
                   }}
                   className="text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-200 transition font-medium cursor-pointer"
@@ -1285,7 +1623,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     rows={2}
                     value={dev1Argument}
                     onChange={(e) => setDev1Argument(e.target.value)}
-                    placeholder={`Exemple : ${selectedPlan === 'DIALECTIQUE' ? subjectAnalysis.these1 : subjectAnalysis.arg1Simple}...`}
+                    placeholder={`Exemple : ${selectedPlan === 'DIALECTIQUE' ? subjectAnalysis.these1 : currentArg1Simple}...`}
                     className="w-full p-2.5 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">
@@ -1303,7 +1641,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     rows={2}
                     value={dev1Explication}
                     onChange={(e) => setDev1Explication(e.target.value)}
-                    placeholder={`Exemple : ${subjectAnalysis.these1Explication}`}
+                    placeholder={`Exemple : ${selectedPlan === 'DIALECTIQUE' ? subjectAnalysis.these1Explication : currentArg1SimpleExplication}`}
                     className="w-full p-2.5 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none transition"
                   />
                 </div>
@@ -1544,7 +1882,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     rows={2}
                     value={dev2Argument}
                     onChange={(e) => setDev2Argument(e.target.value)}
-                    placeholder={`Exemple : ${selectedPlan === 'DIALECTIQUE' ? subjectAnalysis.these2 : subjectAnalysis.arg2Simple}...`}
+                    placeholder={`Exemple : ${selectedPlan === 'DIALECTIQUE' ? subjectAnalysis.these2 : currentArg2Simple}...`}
                     className="w-full p-2.5 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-100 outline-none transition"
                   />
                   <p className="text-[10px] text-slate-500 mt-1">
@@ -1562,7 +1900,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     rows={2}
                     value={dev2Explication}
                     onChange={(e) => setDev2Explication(e.target.value)}
-                    placeholder={`Exemple : ${selectedPlan === 'DIALECTIQUE' ? subjectAnalysis.these2Explication : subjectAnalysis.arg2SimpleExplication}`}
+                    placeholder={`Exemple : ${selectedPlan === 'DIALECTIQUE' ? subjectAnalysis.these2Explication : currentArg2SimpleExplication}`}
                     className="w-full p-2.5 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-100 outline-none transition"
                   />
                 </div>
@@ -1755,7 +2093,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 placeholder={
                   selectedPlan === 'DIALECTIQUE'
                     ? "Exemple : pour ma part, j'estime que le juste équilibre entre liberté individuelle et respect des règles communes doit prévaloir..."
-                    : `Exemple : ${subjectAnalysis.conclusionFerme}...`
+                    : `Exemple : ${currentConclusionFerme}...`
                 }
                 className="w-full p-3 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-rose-600 focus:ring-2 focus:ring-rose-100 outline-none transition"
               />
