@@ -203,6 +203,19 @@ export const getConnectorStyle = (conn: string) => {
 
 export const DEFAULT_REGIONAL_SUBJECTS: RegionalSubject[] = [
   {
+    id: 'enseignant-solitude-compagnie-2011',
+    titre: "Solitude versus Compagnie",
+    oeuvre: 'La Boîte à Merveilles',
+    region: 'Académie Régionale Casablanca-Settat',
+    annee: '2011',
+    session: 'Session Normale',
+    consigne: `« Certaines personnes aiment rester seules ; d'autres, au contraire, aiment avoir de la compagnie (des ami(e)s...) »\n\nEt vous, que préférez-vous ? Développez votre réflexion dans un texte d'une vingtaine de lignes en vous appuyant sur des arguments et des exemples précis tirés de votre expérience et de vos lectures.`,
+    typePlanSuggere: 'Plan Simple',
+    conseilsEnseignant: "Mobilisez l'expérience de la solitude de Sidi Mohammed dans La Boîte à Merveilles face au besoin de sociabilité et de solidarité humaine.",
+    sourceEnseignant: true,
+    dateAjout: '16/10/2026',
+  },
+  {
     id: 'reg-boite-parents-2023',
     titre: "L'autorité parentale et l'autonomie des jeunes dans leurs choix de vie",
     oeuvre: 'La Boîte à Merveilles',
@@ -642,7 +655,9 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return [...parsed, ...DEFAULT_REGIONAL_SUBJECTS];
+          const defaultIds = new Set(DEFAULT_REGIONAL_SUBJECTS.map((s) => s.id));
+          const customs = parsed.filter((s: RegionalSubject) => !defaultIds.has(s.id));
+          return [...customs, ...DEFAULT_REGIONAL_SUBJECTS];
         }
       }
     } catch (e) {
@@ -650,6 +665,49 @@ export default function App() {
     }
     return DEFAULT_REGIONAL_SUBJECTS;
   });
+
+  // Synchronisation automatique des sujets déposés par l'enseignant depuis le serveur (visible par tous les élèves)
+  useEffect(() => {
+    const fetchServerSubjects = async () => {
+      try {
+        const res = await fetch('/api/teacher-subjects');
+        if (res.ok) {
+          const serverSubjects: RegionalSubject[] = await res.json();
+          if (Array.isArray(serverSubjects) && serverSubjects.length > 0) {
+            setRegionalSubjects((prev) => {
+              const defaultIds = new Set(DEFAULT_REGIONAL_SUBJECTS.map((s) => s.id));
+              const map = new Map<string, RegionalSubject>();
+              // Sujets par défaut
+              DEFAULT_REGIONAL_SUBJECTS.forEach((s) => map.set(s.id, s));
+              // Sujets locaux existants
+              prev.forEach((s) => {
+                if (s.sourceEnseignant && !defaultIds.has(s.id)) map.set(s.id, s);
+              });
+              // Sujets officiels du serveur (prioritaires pour tous les élèves)
+              serverSubjects.forEach((s) => map.set(s.id, { ...s, sourceEnseignant: true }));
+              
+              // Trier : Sujets enseignants d'abord, puis officiels
+              const all = Array.from(map.values());
+              const teachers = all.filter((s) => s.sourceEnseignant);
+              const defaults = all.filter((s) => !s.sourceEnseignant);
+              return [...teachers, ...defaults];
+            });
+          }
+        }
+      } catch (err) {
+        // Mode hors-ligne ou fallback local
+      }
+    };
+    fetchServerSubjects();
+
+    const handleAfterPrint = () => {
+      document.body.classList.remove('is-printing-duplex');
+      const docContainer = document.getElementById('akhawayn-official-duplex-doc');
+      if (docContainer) docContainer.removeAttribute('style');
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   // Clé d'habilitation officielle réservée à l'enseignant pour déposer ou administrer les sujets
   const TEACHER_AUTH_KEY = 'hadmed.brave@gmail.com2026';
@@ -780,6 +838,13 @@ export default function App() {
       return updated;
     });
 
+    // Envoi immédiat au serveur pour que TOUS les élèves sur tous les appareils le voient
+    fetch('/api/teacher-subjects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newSub),
+    }).catch((err) => console.warn('Erreur synchronisation serveur:', err));
+
     setTeacherFormSuccess(true);
     setTeacherFormError('');
     setTimeout(() => {
@@ -810,6 +875,11 @@ export default function App() {
         }
         return filtered;
       });
+
+      // Retrait également sur le serveur
+      fetch(`/api/teacher-subjects/${id}`, {
+        method: 'DELETE',
+      }).catch((err) => console.warn('Erreur suppression serveur:', err));
     }
   };
 
@@ -1588,16 +1658,26 @@ export default function App() {
     const cleanName = ((viewingArchiveItem ? viewingArchiveItem.candidateName : studentName).trim() || 'CANDIDAT').replace(/\s+/g, '_');
     document.title = `Document_2Pages_Recto_Verso_${cleanName}`;
     
-    try {
-      window.print();
-    } catch (e) {
-      console.warn('Print window error:', e);
-      handleExportPdf();
-    }
+    // Activer la classe explicite d'impression pour forcer le calcul du DOM
+    document.body.classList.add('is-printing-duplex');
 
-    setTimeout(() => {
-      document.title = origTitle;
-    }, 1500);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try {
+          window.print();
+        } catch (e) {
+          console.warn('Print window error:', e);
+          handleExportPdf();
+        } finally {
+          setTimeout(() => {
+            document.body.classList.remove('is-printing-duplex');
+            document.title = origTitle;
+            const containerAfter = document.getElementById('akhawayn-official-duplex-doc');
+            if (containerAfter) containerAfter.removeAttribute('style');
+          }, 1000);
+        }
+      });
+    });
   };
 
   const handleExportPdf = async () => {
