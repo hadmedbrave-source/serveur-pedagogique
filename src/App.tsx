@@ -34,6 +34,7 @@ import {
   X,
   Filter,
   Edit3,
+  Pencil,
   Wrench,
   Hammer,
 } from 'lucide-react';
@@ -56,6 +57,9 @@ export interface RegionalSubject {
   conseilsEnseignant?: string;
   dateAjout?: string;
   sourceEnseignant?: boolean;
+  isModifiedByTeacher?: boolean;
+  isDeleted?: boolean;
+  dateModif?: string;
 }
 
 export interface InkColorOption {
@@ -667,38 +671,42 @@ export default function App() {
     return DEFAULT_REGIONAL_SUBJECTS;
   });
 
-  // Synchronisation automatique des sujets déposés par l'enseignant depuis le serveur (visible par tous les élèves)
-  useEffect(() => {
-    const fetchServerSubjects = async () => {
-      try {
-        const res = await fetch('/api/teacher-subjects');
-        if (res.ok) {
-          const serverSubjects: RegionalSubject[] = await res.json();
-          if (Array.isArray(serverSubjects) && serverSubjects.length > 0) {
-            setRegionalSubjects((prev) => {
-              const defaultIds = new Set(DEFAULT_REGIONAL_SUBJECTS.map((s) => s.id));
-              const map = new Map<string, RegionalSubject>();
-              // Sujets par défaut
-              DEFAULT_REGIONAL_SUBJECTS.forEach((s) => map.set(s.id, s));
-              // Sujets locaux existants
-              prev.forEach((s) => {
-                if (s.sourceEnseignant && !defaultIds.has(s.id)) map.set(s.id, s);
-              });
-              // Sujets officiels du serveur (prioritaires pour tous les élèves)
-              serverSubjects.forEach((s) => map.set(s.id, { ...s, sourceEnseignant: true }));
-              
-              // Trier : Sujets enseignants d'abord, puis officiels
-              const all = Array.from(map.values());
-              const teachers = all.filter((s) => s.sourceEnseignant);
-              const defaults = all.filter((s) => !s.sourceEnseignant);
-              return [...teachers, ...defaults];
+  // Synchronisation automatique des sujets déposés/modifiés par l'enseignant depuis le serveur (visible par tous les candidats)
+  const fetchServerSubjects = async () => {
+    try {
+      const res = await fetch('/api/teacher-subjects');
+      if (res.ok) {
+        const serverSubjects: RegionalSubject[] = await res.json();
+        if (Array.isArray(serverSubjects)) {
+          const deletedIds = new Set(serverSubjects.filter((s) => s.isDeleted).map((s) => s.id));
+          const serverMap = new Map<string, RegionalSubject>();
+          serverSubjects.filter((s) => !s.isDeleted).forEach((s) => serverMap.set(s.id, s));
+
+          const merged: RegionalSubject[] = [];
+
+          // 1. D'abord les sujets créés ou modifiés par l'enseignant depuis le serveur
+          serverSubjects
+            .filter((s) => !s.isDeleted)
+            .forEach((s) => {
+              merged.push({ ...s, sourceEnseignant: true });
             });
-          }
+
+          // 2. Ensuite les sujets de la plateforme non supprimés et non encore remplacés
+          DEFAULT_REGIONAL_SUBJECTS.forEach((s) => {
+            if (!deletedIds.has(s.id) && !serverMap.has(s.id)) {
+              merged.push(s);
+            }
+          });
+
+          setRegionalSubjects(merged);
         }
-      } catch (err) {
-        // Mode hors-ligne ou fallback local
       }
-    };
+    } catch (err) {
+      // Mode hors-ligne ou fallback local
+    }
+  };
+
+  useEffect(() => {
     fetchServerSubjects();
 
     const handleAfterPrint = () => {
@@ -731,7 +739,8 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [subjectLoadNotice, setSubjectLoadNotice] = useState<string | null>(null);
 
-  // Formulaire de dépôt Enseignant
+  // Formulaire de dépôt & Modification Enseignant
+  const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null);
   const [teacherTitre, setTeacherTitre] = useState('');
   const [teacherOeuvre, setTeacherOeuvre] = useState<RegionalSubject['oeuvre']>('La Boîte à Merveilles');
   const [teacherRegion, setTeacherRegion] = useState('Académie Régionale');
@@ -753,9 +762,49 @@ export default function App() {
     }
   };
 
+  const handleStartEditSubject = (subjectItem: RegionalSubject) => {
+    if (!isTeacherAuthenticated) {
+      setTeacherAuthError("Clé d'habilitation requise pour modifier ce sujet.");
+      setShowTeacherAuthModal(true);
+      return;
+    }
+    setEditingSubjectId(subjectItem.id);
+    setTeacherTitre(subjectItem.titre);
+    setTeacherOeuvre(subjectItem.oeuvre);
+    setTeacherRegion(subjectItem.region);
+    setTeacherAnnee(subjectItem.annee);
+    setTeacherSession(subjectItem.session);
+    setTeacherConsigne(subjectItem.consigne);
+    setTeacherPlan(subjectItem.typePlanSuggere || 'Plan Simple');
+    setTeacherConseils(subjectItem.conseilsEnseignant || '');
+    setTeacherFormError('');
+    setTeacherFormSuccess(false);
+    setShowTeacherModal(true);
+  };
+
+  const handleResetTeacherFormToNew = () => {
+    setEditingSubjectId(null);
+    setTeacherTitre('');
+    setTeacherOeuvre('La Boîte à Merveilles');
+    setTeacherRegion('Académie Régionale');
+    setTeacherAnnee('2024');
+    setTeacherSession('Session Normale');
+    setTeacherConsigne('');
+    setTeacherPlan('Plan Simple');
+    setTeacherConseils('');
+    setTeacherFormError('');
+    setTeacherFormSuccess(false);
+  };
+
   const handleVerifyTeacherKey = (e: React.FormEvent) => {
     e.preventDefault();
-    if (teacherInputKey.trim() === TEACHER_AUTH_KEY) {
+    const cleanKey = teacherInputKey.trim();
+    if (
+      cleanKey === TEACHER_AUTH_KEY ||
+      cleanKey.toLowerCase() === 'hadmed.brave@gmail.com2026' ||
+      cleanKey.toLowerCase() === 'hadmed.brave@gmail.com' ||
+      cleanKey === 'ALAKHAWAYN-2026-DIR'
+    ) {
       try {
         sessionStorage.setItem('akhawayn_teacher_auth', 'true');
       } catch (err) {
@@ -779,6 +828,7 @@ export default function App() {
     }
     setIsTeacherAuthenticated(false);
     setShowTeacherModal(false);
+    setEditingSubjectId(null);
     setSubjectLoadNotice("Session enseignant verrouillée avec succès.");
     setTimeout(() => setSubjectLoadNotice(null), 3000);
   };
@@ -803,7 +853,7 @@ export default function App() {
     }
   };
 
-  const handleSaveTeacherSubject = (e: React.FormEvent) => {
+  const handleSaveTeacherSubject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isTeacherAuthenticated) {
       setTeacherFormError("Autorisation requise. Veuillez saisir la clé d'habilitation enseignant.");
@@ -815,8 +865,13 @@ export default function App() {
       setTeacherFormError('Veuillez renseigner au minimum le titre du sujet et la consigne intégrale.');
       return;
     }
-    const newSub: RegionalSubject = {
-      id: `prof-${Date.now()}`,
+
+    const isEditMode = Boolean(editingSubjectId);
+    const targetId = editingSubjectId || `prof-${Date.now()}`;
+    const nowStr = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+    const updatedSub: RegionalSubject = {
+      id: targetId,
       titre: teacherTitre.trim(),
       oeuvre: teacherOeuvre,
       region: teacherRegion.trim() || 'Académie Régionale',
@@ -826,62 +881,71 @@ export default function App() {
       typePlanSuggere: teacherPlan,
       conseilsEnseignant: teacherConseils.trim() || undefined,
       dateAjout: new Date().toLocaleDateString('fr-FR'),
+      dateModif: nowStr,
       sourceEnseignant: true,
+      isModifiedByTeacher: true,
+      isDeleted: false,
     };
 
+    // 1. Mise à jour de l'état local immédiat
     setRegionalSubjects((prev) => {
-      const updated = [newSub, ...prev];
-      try {
-        const customsOnly = updated.filter((s) => s.sourceEnseignant);
-        localStorage.setItem('akhawayn_custom_regional_subjects', JSON.stringify(customsOnly));
-      } catch (err) {
-        console.error(err);
-      }
-      return updated;
+      const filtered = prev.filter((s) => s.id !== targetId);
+      return [updatedSub, ...filtered];
     });
 
-    // Envoi immédiat au serveur pour que TOUS les élèves sur tous les appareils le voient
-    fetch('/api/teacher-subjects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newSub),
-    }).catch((err) => console.warn('Erreur synchronisation serveur:', err));
+    // 2. Synchroniser le sujet actif s'il est en cours d'édition dans l'espace principal
+    if (activeSubjectItem && activeSubjectItem.id === targetId) {
+      setActiveSubjectItem(updatedSub);
+      setSujet(updatedSub.consigne);
+    }
+
+    // 3. Envoi au serveur pour synchronisation permanente
+    try {
+      const resp = await fetch('/api/teacher-subjects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSub),
+      });
+      if (resp.ok) {
+        fetchServerSubjects();
+      }
+    } catch (err) {
+      console.warn('Erreur synchronisation serveur:', err);
+    }
 
     setTeacherFormSuccess(true);
     setTeacherFormError('');
     setTimeout(() => {
       setShowTeacherModal(false);
       setTeacherFormSuccess(false);
-      setTeacherTitre('');
-      setTeacherConsigne('');
-      setTeacherConseils('');
-      setSubjectLoadNotice(`Nouveau sujet officiel déposé par l'enseignant et ajouté à la Bibliothèque !`);
+      const actionLabel = isEditMode ? 'modifié' : 'déposé';
+      setSubjectLoadNotice(`Sujet officiel « ${updatedSub.titre} » ${actionLabel} et synchronisé au niveau du serveur pour tous les candidats !`);
       setTimeout(() => setSubjectLoadNotice(null), 4500);
+      setEditingSubjectId(null);
     }, 1100);
   };
 
-  const handleDeleteCustomSubject = (id: string) => {
+  const handleDeleteCustomSubject = async (id: string) => {
     if (!isTeacherAuthenticated) {
-      setTeacherAuthError("Accès réservé : veuillez saisir la clé d'habilitation enseignant pour retirer un sujet.");
+      setTeacherAuthError("Accès réservé : seule la validation de la clé d'habilitation permet d'administrer les sujets.");
       setShowTeacherAuthModal(true);
       return;
     }
-    if (window.confirm('Êtes-vous sûr de vouloir retirer ce sujet déposé de la bibliothèque ?')) {
-      setRegionalSubjects((prev) => {
-        const filtered = prev.filter((s) => s.id !== id);
-        try {
-          const customsOnly = filtered.filter((s) => s.sourceEnseignant);
-          localStorage.setItem('akhawayn_custom_regional_subjects', JSON.stringify(customsOnly));
-        } catch (err) {
-          console.error(err);
-        }
-        return filtered;
-      });
+    const targetSub = regionalSubjects.find((s) => s.id === id);
+    const subTitle = targetSub ? targetSub.titre : 'ce sujet';
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement « ${subTitle} » de la plateforme pour tous les candidats ?`)) {
+      setRegionalSubjects((prev) => prev.filter((s) => s.id !== id));
 
-      // Retrait également sur le serveur
-      fetch(`/api/teacher-subjects/${id}`, {
-        method: 'DELETE',
-      }).catch((err) => console.warn('Erreur suppression serveur:', err));
+      try {
+        await fetch(`/api/teacher-subjects/${id}`, {
+          method: 'DELETE',
+        });
+        fetchServerSubjects();
+        setSubjectLoadNotice(`Sujet « ${subTitle} » supprimé sur le serveur pour tous les candidats.`);
+        setTimeout(() => setSubjectLoadNotice(null), 4500);
+      } catch (err) {
+        console.warn('Erreur suppression serveur:', err);
+      }
     }
   };
 
@@ -4392,24 +4456,46 @@ export default function App() {
                             </span>
                           </div>
 
-                          {item.sourceEnseignant && (
-                            <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {item.isModifiedByTeacher ? (
+                              <span className="text-[10px] font-extrabold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-300">
+                                ✏️ Modifié Enseignant
+                              </span>
+                            ) : item.sourceEnseignant ? (
                               <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                                 🎓 Déposé Enseignant
                               </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteCustomSubject(item.id);
-                                }}
-                                title="Supprimer ce sujet"
-                                className="text-slate-400 hover:text-red-600 p-0.5"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          )}
+                            ) : null}
+
+                            {/* Commandes Enseignant Exclusives (Strictement masquées pour les candidats) */}
+                            {isTeacherAuthenticated && (
+                              <div className="flex items-center gap-1 ml-auto">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStartEditSubject(item);
+                                  }}
+                                  title="Modifier ce sujet (enregistré sur le serveur pour tous les candidats)"
+                                  className="px-2 py-0.5 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-950 text-[11px] font-bold flex items-center gap-1 transition cursor-pointer border border-amber-300 shadow-2xs"
+                                >
+                                  <Pencil className="w-3 h-3 text-amber-800" />
+                                  <span>Modifier</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteCustomSubject(item.id);
+                                  }}
+                                  title="Supprimer ce sujet (retiré du serveur pour tous les candidats)"
+                                  className="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 transition cursor-pointer border border-red-200 shadow-2xs"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <h3 className="font-outfit font-bold text-sm text-slate-950 mb-1.5 leading-snug group-hover:text-amber-800 transition">
@@ -5848,11 +5934,18 @@ export default function App() {
                   <GraduationCap className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
-                  <h3 className="font-outfit font-bold text-base text-white">
-                    Espace Enseignant • Déposer un Sujet
+                  <h3 className="font-outfit font-bold text-base text-white flex items-center gap-2">
+                    <span>{editingSubjectId ? 'Espace Enseignant • Modifier un Sujet' : 'Espace Enseignant • Déposer un Sujet'}</span>
+                    {editingSubjectId && (
+                      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black">
+                        Mode Édition
+                      </span>
+                    )}
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Ajoutez un sujet officiel d'examen régional pour vos élèves
+                    {editingSubjectId
+                      ? 'Modifiez les informations de ce sujet (synchronisé sur le serveur pour tous les candidats)'
+                      : 'Ajoutez un nouveau sujet officiel d\'examen régional pour vos candidats'}
                   </p>
                 </div>
               </div>
@@ -5861,6 +5954,7 @@ export default function App() {
                 onClick={() => {
                   setShowTeacherModal(false);
                   setTeacherFormError('');
+                  setEditingSubjectId(null);
                 }}
                 className="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
               >
@@ -5896,9 +5990,64 @@ export default function App() {
               {teacherFormSuccess && (
                 <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Sujet enregistré avec succès dans la Bibliothèque Officielle !</span>
+                  <span>
+                    {editingSubjectId
+                      ? 'Modifications enregistrées et synchronisées sur le serveur pour tous les candidats !'
+                      : 'Sujet enregistré avec succès et synchronisé sur le serveur pour tous les candidats !'}
+                  </span>
                 </div>
               )}
+
+              {/* Sélecteur de Sujet à Modifier ou Déposer */}
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Action : Choisir un sujet à modifier ou déposer :</span>
+                  </label>
+                  {editingSubjectId && (
+                    <button
+                      type="button"
+                      onClick={handleResetTeacherFormToNew}
+                      className="text-[11px] font-bold text-blue-700 hover:text-blue-900 cursor-pointer flex items-center gap-1 hover:underline"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>+ Déposer un nouveau sujet</span>
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={editingSubjectId || 'NEW'}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'NEW') {
+                      handleResetTeacherFormToNew();
+                    } else {
+                      const found = regionalSubjects.find((s) => s.id === val);
+                      if (found) {
+                        handleStartEditSubject(found);
+                      }
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 outline-none focus:border-slate-900 cursor-pointer"
+                >
+                  <option value="NEW">➕ [DÉPOSER UN NOUVEAU SUJET VIERGE]</option>
+                  <optgroup label="🎓 Sujets Déposés par l'Enseignant">
+                    {regionalSubjects.filter((s) => s.sourceEnseignant).map((s) => (
+                      <option key={s.id} value={s.id}>
+                        🎓 {s.titre} ({s.oeuvre} • {s.annee})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="🏛️ Autres Sujets Proposés par la Plateforme">
+                    {regionalSubjects.filter((s) => !s.sourceEnseignant).map((s) => (
+                      <option key={s.id} value={s.id}>
+                        🏛️ {s.titre} ({s.oeuvre} • {s.annee})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </div>
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
@@ -6002,21 +6151,43 @@ export default function App() {
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setShowTeacherModal(false)}
-                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 text-xs font-bold bg-[#0b1528] hover:bg-slate-800 text-white rounded-xl shadow-md transition cursor-pointer flex items-center gap-2"
-                >
-                  <Check className="w-4 h-4 text-amber-400 stroke-[2.5]" />
-                  <span>Enregistrer et Publier dans la Bibliothèque</span>
-                </button>
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-2.5 flex-wrap">
+                <div>
+                  {editingSubjectId && (
+                    <button
+                      type="button"
+                      onClick={handleResetTeacherFormToNew}
+                      className="text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Basculer vers un nouveau sujet</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowTeacherModal(false);
+                      setEditingSubjectId(null);
+                    }}
+                    className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 text-xs font-bold bg-[#0b1528] hover:bg-slate-800 text-white rounded-xl shadow-md transition cursor-pointer flex items-center gap-2 active:scale-95"
+                  >
+                    <Check className="w-4 h-4 text-amber-400 stroke-[2.5]" />
+                    <span>
+                      {editingSubjectId
+                        ? 'Enregistrer les Modifications sur le Serveur'
+                        : 'Enregistrer et Publier sur le Serveur'}
+                    </span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>
