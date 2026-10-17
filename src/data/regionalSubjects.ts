@@ -8,8 +8,10 @@ export interface RegionalSubject {
   consigne: string;
   typePlanSuggere?: 'Plan Simple' | 'Plan Dialectique' | 'Plan Analytique';
   conseilsEnseignant?: string;
-  dateAjout?: string;
   sourceEnseignant?: boolean;
+  isModifiedByTeacher?: boolean;
+  isDeleted?: boolean;
+  dateModif?: string;
 }
 
 export interface InkColorOption {
