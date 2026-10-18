@@ -123,34 +123,41 @@ export const INK_COLORS: InkColorOption[] = [
 ];
 
 export const OFFICIAL_LOGICAL_CONNECTORS = [
-  // Énumération, succession & gradation
+  // 1. Énumération, succession, hiérarchisation & attaque d'axe
   'En premier lieu', 'En deuxième lieu', 'En second lieu', 'En troisième lieu', 'En dernier lieu',
-  "D'ailleurs", 'D’ailleurs', 'Par ailleurs',
-  "En d'autres termes", 'En d’autres termes', 'Autrement dit',
-  // Conclusion, bilan & clôture académique
-  "D'après ce qui précède", 'D’après ce qui précède', "Au terme de notre réflexion", 'Au terme de notre réflexion', 'Au terme de nos réflexions', 'Au terme de cette réflexion', 'Au terme de cette analyse', 'Au terme de ce travail',
+  'Premièrement', 'Deuxièmement', 'Troisièmement',
+  'Tout d’abord', "Tout d'abord", 'D’abord', "D'abord", 'Au préalable', 'Pour commencer', 'Avant tout',
+  'D’une part', "D'une part", 'D’autre part', "D'autre part",
+  "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté', "D'un autre côté", 'D’un autre côté', "De l'autre côté", 'De l’autre côté',
+  'Ensuite', 'Puis', 'Enfin',
+  'De plus', 'En outre', 'De surcroît', 'De surcroit', 'Par ailleurs', "D'ailleurs", 'D’ailleurs',
+  'Qui plus est', 'Également', 'Non seulement', 'Mais aussi', 'Mais encore',
+  // 2. Concession, opposition & antithèse
+  'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre',
+  'Certes', 'Sans doute', 'Bien loin de', 'Alors que', 'Tandis que', 'Bien que', 'Quoique', 'Même si',
+  // 3. Cause, explication, justification & exemples
+  'En effet', 'En réalité', 'De fait', 'En fait', 'À vrai dire', 'A vrai dire',
+  'Car', 'Puisque', 'Étant donné que', 'Etant donné que', 'Vu que', 'Sous prétexte que', 'Grâce à', 'À cause de', 'A cause de',
+  'À cet égard', 'A cet égard', "À titre d'exemple", "A titre d'exemple", "À titre d’exemple", 'Par exemple', 'Notamment',
+  'Comme en témoigne', 'Comme le montre', "Comme l'illustre", 'Comme l’illustre',
+  "C'est ainsi que", 'C’est ainsi que', "C'est le cas de", 'C’est le cas de',
+  // 4. Conséquence, déduction & synthèse intermédiaire
+  'Par conséquent', 'En conséquence', "C'est pourquoi", 'C’est pourquoi', 'Dès lors', 'Ainsi', 'Donc',
+  'De ce fait', "D'où", 'D’où', 'Si bien que', 'De sorte que', 'Par suite',
+  'Aussi donne-t-elle', 'Aussi permet-elle', 'Aussi convient-il', 'Aussi importe-t-il', 'Aussi',
+  'De même', 'Il va de soi que', 'Il est indéniable que', 'Il est certain que',
+  // 5. Prise de position personnelle & point de vue de l'élève
+  'Personnellement', 'Pour ma part', 'À mon avis', 'A mon avis', 'Selon moi', "D'après moi", 'D’après moi',
+  'En ce qui me concerne', 'Quant à moi', 'À mes yeux', 'A mes yeux',
+  // 6. Conclusion, bilan & clôture académique
+  "D'après ce qui précède", 'D’après ce qui précède', "Au terme de notre réflexion", 'Au terme de nos réflexions',
+  'Au terme de cette réflexion', 'Au terme de cette analyse', 'Au terme de ce travail',
   'En guise de conclusion', 'En définitive', 'En somme', 'En résumé', 'En conclusion', 'Pour conclure', 'Finalement',
-  "En guise de synthèse", 'En guise de bilan', "En guise d'épilogue", 'En guise d’épilogue',
+  'En guise de synthèse', 'En guise de bilan', "En guise d'épilogue", 'En guise d’épilogue',
   'À la lumière de ce qui précède', 'A la lumière de ce qui précède', 'Au vu de ce qui précède', 'Au regard de ce qui précède',
   'Tout bien considéré', 'Tout bien pesé', 'Somme toute', 'Au bout du compte',
   'Je confirme tenacement', 'Je confirme avec conviction', 'Je confirme sans réserve', 'Je confirme',
-  'Pour clore notre réflexion', 'Pour achever cette analyse',
-  // Prise de position personnelle
-  'Personnellement', 'Pour ma part', 'À mon avis', 'A mon avis', 'Selon moi', "D'après moi", 'D’après moi', 'En ce qui me concerne',
-  'Tout d’abord', "Tout d'abord", 'D’abord', "D'abord", 'Premièrement', 'Deuxièmement', 'Troisièmement',
-  'Ensuite', 'Puis', 'Enfin',
-  // Concession & opposition
-  'Cependant', 'Toutefois', 'Néanmoins', 'En revanche', 'Au contraire', 'Pourtant', 'Par contre', 'Bien loin de',
-  // Cause & conséquence
-  'Par conséquent', 'En conséquence', "C'est pourquoi", 'C’est pourquoi', 'Dès lors', 'Ainsi',
-  'En effet', 'En réalité', 'De fait', 'En fait',
-  'De plus', 'En outre', 'De surcroît', 'De surcroit',
-  'D’une part', "D'une part", 'D’autre part', "D'autre part",
-  "D'un côté", 'D’un côté', "D'autre côté", 'D’autre côté', "De l'autre côté", 'De l’autre côté',
-  'Non seulement', 'Mais aussi', 'Mais encore',
-  'Aussi donne-t-elle', 'Aussi permet-elle', 'Aussi convient-il', 'Aussi importe-t-il', 'Aussi',
-  'De ce fait', "D'où", 'D’où', 'Certes', 'Sans doute', 'De même',
-  'Il va de soi que', 'Il est indéniable que', 'Il est certain que'
+  'Pour clore notre réflexion', 'Pour achever cette analyse', 'En un mot'
 ];
 
 export const getConnectorStyle = (conn: string) => {
@@ -1514,12 +1521,23 @@ export default function App() {
     }
   };
 
+  // Fonction pour mettre en gras les connecteurs logiques dans le HTML du Recto
+  const formatConnectorsInHtml = (paragraphText: string): string => {
+    let clean = paragraphText.trim().replace(/\s+([,;:?.!…»)])/g, '$1');
+    const sorted = [...OFFICIAL_LOGICAL_CONNECTORS].sort((a, b) => b.length - a.length);
+    const escaped = sorted.map((c) =>
+      c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/['’]/g, "['’]")
+    );
+    const rx = new RegExp(`(?<![a-zA-ZÀ-ÿ0-9_])(${escaped.join('|')})(?![a-zA-ZÀ-ÿ0-9_])`, 'gi');
+    return clean.replace(rx, '<strong style="color: #0b1528; font-weight: 800; font-family: inherit;">$1</strong>');
+  };
+
   // Formate et met en valeur le sujet officiel avec la question / consigne en gras bien visible
   const renderFormattedSujet = (rawSujet: string) => {
     const text = (rawSujet || '').trim();
     if (!text) {
       return (
-        <span style={{ fontStyle: 'italic', color: '#64748b', fontSize: '9.5pt' }}>
+        <span style={{ fontStyle: 'italic', color: '#64748b', fontSize: '11pt' }}>
           Consigne officielle d'examen régional du Baccalauréat
         </span>
       );
@@ -1533,7 +1551,7 @@ export default function App() {
 
     if (sentences.length > 1) {
       return (
-        <div style={{ fontSize: '9.6pt', lineHeight: 1.48 }}>
+        <div style={{ fontSize: '11.5pt', lineHeight: 1.55 }}>
           {sentences.map((sentence, idx) => {
             const isQuestion = sentence.includes('?');
             const isDirective = directiveRegex.test(sentence);
@@ -1547,6 +1565,7 @@ export default function App() {
                     fontWeight: 800,
                     color: '#0b1528',
                     display: 'inline',
+                    fontSize: '12pt',
                     letterSpacing: '0.1px',
                   }}
                 >
@@ -1560,7 +1579,8 @@ export default function App() {
                 key={idx}
                 style={{
                   fontStyle: isQuote ? 'italic' : 'normal',
-                  color: isQuote ? '#1e293b' : '#334155',
+                  color: isQuote ? '#0f172a' : '#1e293b',
+                  fontWeight: isQuote ? 600 : 400,
                 }}
               >
                 {sentence}{' '}
@@ -1576,15 +1596,15 @@ export default function App() {
     const isDirective = directiveRegex.test(text);
 
     return (
-      <div style={{ fontSize: '9.6pt', lineHeight: 1.48 }}>
+      <div style={{ fontSize: '11.8pt', lineHeight: 1.55 }}>
         {hasQuestion || isDirective ? (
-          <strong style={{ fontWeight: 800, color: '#0b1528', letterSpacing: '0.1px' }}>
+          <strong style={{ fontWeight: 800, color: '#0b1528', fontSize: '12.2pt', letterSpacing: '0.1px' }}>
             {text}
           </strong>
         ) : (
           <span style={{ color: '#0f172a' }}>
             <strong style={{ fontWeight: 800, color: '#0b1528' }}>Consigne : </strong>
-            <span style={{ fontStyle: 'italic' }}>« {text} »</span>
+            <span style={{ fontStyle: 'italic', fontWeight: 600 }}>« {text} »</span>
           </span>
         )}
       </div>
@@ -1663,9 +1683,8 @@ export default function App() {
             color: '#0f172a',
             fontFamily: "'Newsreader', Georgia, serif",
           }}
-        >
-          {p.trim()}
-        </p>
+          dangerouslySetInnerHTML={{ __html: formatConnectorsInHtml(p) }}
+        />
       );
     });
   };
@@ -1821,6 +1840,156 @@ export default function App() {
     handleExportPdf();
   };
 
+  // Fonction de rendu typographique de haute précision : connecteurs logiques en gras et justification stricte
+  const renderFormattedJustifiedParagraph = (
+    pdfDoc: jsPDF,
+    rawText: string,
+    startX: number,
+    startY: number,
+    maxWidth: number,
+    indentMm: number,
+    fontSize: number,
+    lineHeightMm: number
+  ): number => {
+    pdfDoc.setFontSize(fontSize);
+    pdfDoc.setFont('times', 'normal');
+    const normalSpaceWidth = pdfDoc.getTextWidth(' ');
+
+    // 0. Nettoyer les espaces orphelins avant les signes de ponctuation
+    const textToProcess = rawText.replace(/\s+([,;:?.!…»)])/g, '$1');
+
+    // 1. Détecter les balises <strong> ou <b> éventuelles (notamment pour le verso)
+    const tagRegex = /<strong[^>]*>([\s\S]*?)<\/strong>|<b[^>]*>([\s\S]*?)<\/b>/gi;
+    const initialSegments: { text: string; isBold: boolean }[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = tagRegex.exec(textToProcess)) !== null) {
+      if (match.index > lastIndex) {
+        initialSegments.push({ text: textToProcess.slice(lastIndex, match.index), isBold: false });
+      }
+      const boldContent = match[1] || match[2] || '';
+      initialSegments.push({ text: boldContent.replace(/<[^>]*>/g, ''), isBold: true });
+      lastIndex = tagRegex.lastIndex;
+    }
+    if (lastIndex < textToProcess.length) {
+      initialSegments.push({ text: textToProcess.slice(lastIndex), isBold: false });
+    }
+
+    // 2. Détecter tous les connecteurs logiques officiels dans les segments non-gras
+    const sortedConns = [...OFFICIAL_LOGICAL_CONNECTORS].sort((a, b) => b.length - a.length);
+    const escaped = sortedConns.map((c) =>
+      c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/['’]/g, "['’]")
+    );
+    const connRegex = new RegExp(`(?<![a-zA-ZÀ-ÿ0-9_])(${escaped.join('|')})(?![a-zA-ZÀ-ÿ0-9_])`, 'gi');
+
+    const refinedSegments: { text: string; isBold: boolean }[] = [];
+    for (const seg of initialSegments) {
+      if (seg.isBold) {
+        refinedSegments.push(seg);
+      } else {
+        let subLast = 0;
+        let subMatch: RegExpExecArray | null;
+        while ((subMatch = connRegex.exec(seg.text)) !== null) {
+          if (subMatch.index > subLast) {
+            refinedSegments.push({ text: seg.text.slice(subLast, subMatch.index), isBold: false });
+          }
+          refinedSegments.push({ text: subMatch[0], isBold: true });
+          subLast = connRegex.lastIndex;
+        }
+        if (subLast < seg.text.length) {
+          refinedSegments.push({ text: seg.text.slice(subLast), isBold: false });
+        }
+      }
+    }
+
+    // 3. Découpage en mots avec attachement strict des ponctuations
+    const words: { text: string; isBold: boolean; width: number }[] = [];
+
+    for (const seg of refinedSegments) {
+      const clean = seg.text
+        .replace(/<[^>]*>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"');
+      const tokens = clean.split(/\s+/).filter(Boolean);
+
+      for (const tok of tokens) {
+        // Si le jeton est uniquement de la ponctuation (ex: ",", ";", ":", ".", "!")
+        // on le colle directement au mot précédent sans espace
+        if (words.length > 0 && /^[.,;:?!…»)]+$/.test(tok)) {
+          words[words.length - 1].text += tok;
+          pdfDoc.setFont('times', words[words.length - 1].isBold ? 'bold' : 'normal');
+          words[words.length - 1].width = pdfDoc.getTextWidth(words[words.length - 1].text);
+        } else if (words.length > 0 && /^[.,;:?!…»)]+/.test(tok)) {
+          // Commence par ponctuation suivi de texte
+          const punctMatch = tok.match(/^[.,;:?!…»)]+/);
+          const punct = punctMatch ? punctMatch[0] : '';
+          const remainder = tok.slice(punct.length);
+          words[words.length - 1].text += punct;
+          pdfDoc.setFont('times', words[words.length - 1].isBold ? 'bold' : 'normal');
+          words[words.length - 1].width = pdfDoc.getTextWidth(words[words.length - 1].text);
+          if (remainder) {
+            pdfDoc.setFont('times', seg.isBold ? 'bold' : 'normal');
+            words.push({ text: remainder, isBold: seg.isBold, width: pdfDoc.getTextWidth(remainder) });
+          }
+        } else {
+          pdfDoc.setFont('times', seg.isBold ? 'bold' : 'normal');
+          words.push({ text: tok, isBold: seg.isBold, width: pdfDoc.getTextWidth(tok) });
+        }
+      }
+    }
+
+    if (words.length === 0) return startY;
+
+    // 4. Justification stricte et placement des mots
+    let currentY = startY;
+    let i = 0;
+
+    while (i < words.length) {
+      const isFirstLine = (currentY === startY);
+      const lineStartX = isFirstLine ? startX + indentMm : startX;
+      const lineAvailableWidth = isFirstLine ? (maxWidth - indentMm) : maxWidth;
+
+      const lineWords: typeof words = [];
+      let currentLineWidth = 0;
+
+      while (i < words.length) {
+        const w = words[i];
+        const spaceNeeded = lineWords.length > 0 ? normalSpaceWidth : 0;
+        if (lineWords.length > 0 && (currentLineWidth + spaceNeeded + w.width > lineAvailableWidth + 0.1)) {
+          break;
+        }
+        lineWords.push(w);
+        currentLineWidth += spaceNeeded + w.width;
+        i++;
+      }
+
+      const isLastLineOfPara = (i >= words.length);
+
+      let spaceWidth = normalSpaceWidth;
+      if (!isLastLineOfPara && lineWords.length > 1) {
+        const wordsOnlyWidth = lineWords.reduce((acc, w) => acc + w.width, 0);
+        spaceWidth = (lineAvailableWidth - wordsOnlyWidth) / (lineWords.length - 1);
+        if (spaceWidth > normalSpaceWidth * 2.8) spaceWidth = normalSpaceWidth * 2.8;
+        if (spaceWidth < normalSpaceWidth * 0.7) spaceWidth = normalSpaceWidth * 0.7;
+      }
+
+      let curX = lineStartX;
+      for (const w of lineWords) {
+        pdfDoc.setFont('times', w.isBold ? 'bold' : 'normal');
+        pdfDoc.setTextColor(w.isBold ? 11 : 15, w.isBold ? 21 : 23, w.isBold ? 40 : 42);
+        pdfDoc.text(w.text, curX, currentY);
+        curX += w.width + spaceWidth;
+      }
+
+      currentY += lineHeightMm;
+    }
+
+    return currentY;
+  };
+
   const handleExportPdf = () => {
     // 1. Synchroniser le texte du recto depuis l'éditeur pour être 100% à jour
     let activeCopyText = viewingArchiveItem ? viewingArchiveItem.texte : (texte || '');
@@ -1926,69 +2095,113 @@ export default function App() {
       pdf.setTextColor(11, 21, 40);
       pdf.text('Français • Épreuve de Production Écrite (Régional)', marginX + contentWidth / 2 + 18, 36.5);
 
-      // 2. Encadré Sujet Officiel
+      // 2. Encadré Sujet Officiel Calibré, Haute Visibilité & Lisibilité
       const activeSujet = ((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '').trim();
       let sujetContext = '';
-      let sujetQuestion = activeSujet;
-      const qIdx = activeSujet.indexOf('?');
-      if (qIdx !== -1) {
-        const before = activeSujet.slice(0, qIdx + 1);
-        const after = activeSujet.slice(qIdx + 1).trim();
-        const lastDot = Math.max(before.lastIndexOf('.'), before.lastIndexOf('»'), before.lastIndexOf('!'));
-        if (lastDot !== -1 && lastDot < qIdx) {
-          sujetContext = before.slice(0, lastDot + 1).trim();
-          sujetQuestion = before.slice(lastDot + 1).trim() + (after ? ' ' + after : '');
+      let sujetQuestion = '';
+
+      if (activeSujet.includes('\n\n')) {
+        const parts = activeSujet.split(/\n\s*\n/).filter(Boolean);
+        if (parts.length >= 2) {
+          sujetContext = parts[0].trim();
+          sujetQuestion = parts.slice(1).join('\n\n').trim();
         }
       }
 
-      pdf.setFontSize(8.5);
-      const contextLines = sujetContext ? pdf.splitTextToSize(sujetContext, contentWidth - 10) : [];
+      if (!sujetContext) {
+        const quoteMatch = activeSujet.match(/^([«"][^»"]+[»"])\s*([\s\S]*)$/);
+        if (quoteMatch) {
+          sujetContext = quoteMatch[1].trim();
+          sujetQuestion = quoteMatch[2].trim();
+        }
+      }
+
+      if (!sujetContext) {
+        const qIdx = activeSujet.indexOf('?');
+        if (qIdx !== -1) {
+          const before = activeSujet.slice(0, qIdx + 1);
+          const after = activeSujet.slice(qIdx + 1).trim();
+          const lastDot = Math.max(before.lastIndexOf('. '), before.lastIndexOf('» '), before.lastIndexOf('! '));
+          if (lastDot !== -1 && lastDot < qIdx) {
+            sujetContext = before.slice(0, lastDot + 1).trim();
+            sujetQuestion = before.slice(lastDot + 1).trim() + (after ? ' ' + after : '');
+          }
+        }
+      }
+
+      if (!sujetContext && !sujetQuestion) {
+        sujetQuestion = activeSujet;
+      }
+
+      // Calibration typographique du sujet (Haute visibilité, contraste net et lisibilité optimale)
+      const sujetContextFontSize = 11.5;
+      const sujetQuestionFontSize = 12.5;
+      const contextLineHeight = 5.8;
+      const questionLineHeight = 6.2;
+
+      pdf.setFontSize(sujetContextFontSize);
+      pdf.setFont('times', 'italic');
+      const contextLines = sujetContext ? pdf.splitTextToSize(sujetContext, contentWidth - 14) : [];
+
+      pdf.setFontSize(sujetQuestionFontSize);
       pdf.setFont('helvetica', 'bold');
-      const questionLines = pdf.splitTextToSize(sujetQuestion || 'Consigne officielle d\'examen', contentWidth - 10);
-      const sujetBoxHeight = 11 + (contextLines.length + questionLines.length) * 4.2;
+      const questionLines = pdf.splitTextToSize(sujetQuestion || "Consigne officielle d'examen régional", contentWidth - 14);
+
+      const contextHeight = contextLines.length * contextLineHeight;
+      const gapBetween = (contextLines.length > 0 && questionLines.length > 0) ? 3.5 : 0;
+      const questionHeight = questionLines.length * questionLineHeight;
+      const sujetBoxHeight = 14 + contextHeight + gapBetween + questionHeight + 4;
 
       pdf.setFillColor(248, 250, 252);
-      pdf.setDrawColor(203, 213, 225);
+      pdf.setDrawColor(100, 116, 139); // Bordure nette et définie
+      pdf.setLineWidth(0.6);
       pdf.roundedRect(marginX, 44, contentWidth, sujetBoxHeight, 2, 2, 'FD');
 
-      // Bordure latérale bleu nuit 3.5mm
+      // Bordure latérale bleu nuit 4.5mm
       pdf.setFillColor(11, 21, 40);
-      pdf.rect(marginX, 44, 3.5, sujetBoxHeight, 'F');
+      pdf.rect(marginX, 44, 4.5, sujetBoxHeight, 'F');
 
-      // Badge Sujet
-      pdf.setFontSize(7.5);
+      // Badge Sujet Officiel : bloc sombre avec typographie blanche bien visible
+      pdf.setFillColor(11, 21, 40);
+      pdf.roundedRect(marginX + 7, 46.5, 78, 6, 1, 1, 'F');
+      pdf.setFontSize(8.5);
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(11, 21, 40);
-      pdf.text("SUJET OFFICIEL D'EXAMEN RÉGIONAL", marginX + 6, 49.5);
+      pdf.setTextColor(255, 255, 255);
+      pdf.text("SUJET OFFICIEL D'EXAMEN RÉGIONAL", marginX + 9, 50.8);
 
-      let textY = 54.5;
+      let textY = 57;
       if (contextLines.length > 0) {
-        pdf.setFont('helvetica', 'normal');
-        pdf.setTextColor(51, 65, 85);
+        pdf.setFontSize(sujetContextFontSize);
+        pdf.setFont('times', 'italic');
+        pdf.setTextColor(15, 23, 42);
         contextLines.forEach((line: string) => {
-          pdf.text(line, marginX + 6, textY);
-          textY += 4.2;
+          pdf.text(line, marginX + 8, textY);
+          textY += contextLineHeight;
         });
+        textY += gapBetween;
       }
-      // Question en GRAS bien visible
+
+      // Question en GRAS bien visible et calibrée plus grande
+      pdf.setFontSize(sujetQuestionFontSize);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(11, 21, 40);
       questionLines.forEach((line: string) => {
-        pdf.text(line, marginX + 6, textY);
-        textY += 4.2;
+        pdf.text(line, marginX + 8, textY);
+        textY += questionLineHeight;
       });
 
       // 3. Bannière Section Recto
-      const bannerY = 44 + sujetBoxHeight + 4;
+      const bannerY = 44 + sujetBoxHeight + 5;
+      const bannerHeight = 6.5;
       pdf.setFillColor(11, 21, 40);
-      pdf.roundedRect(marginX, bannerY, contentWidth, 6, 1, 1, 'F');
-      pdf.setFontSize(8);
+      pdf.roundedRect(marginX, bannerY, contentWidth, bannerHeight, 1, 1, 'F');
+      pdf.setFontSize(8.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(255, 255, 255);
-      pdf.text("PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT", pageWidth / 2, bannerY + 4.2, { align: 'center' });
+      pdf.text("PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT", pageWidth / 2, bannerY + 4.5, { align: 'center' });
 
-      // 4. Copie de l'élève (Espace aéré entre la barre et l'introduction)
-      const copyStartY = bannerY + 14; // Espace aéré et élégant avant l'introduction
+      // 4. Copie de l'élève (Espace aéré sous la barre et connecteurs logiques en gras)
+      const copyStartY = bannerY + bannerHeight + 13; // Saut aéré de 13mm entre la barre et l'introduction
       const activeScore = viewingArchiveItem ? viewingArchiveItem.score : scores.total;
 
       const rawParas = activeCopyText.trim().split(/\n\s*\n/).filter(Boolean);
@@ -2011,17 +2224,22 @@ export default function App() {
         copyLineFactor = 1.5;
       }
 
-      pdf.setFont('times', 'normal');
-      pdf.setFontSize(copyFontSize);
-      pdf.setTextColor(15, 23, 42);
-
+      const copyLineHeightMm = copyFontSize * 0.3527 * copyLineFactor;
       let currentCopyY = copyStartY;
-      const indentStr = '      ';
+      const indentMm = 8;
+
       paras.forEach((p: string) => {
-        const textWithIndent = indentStr + p.trim();
-        const splitLines = pdf.splitTextToSize(textWithIndent, contentWidth);
-        pdf.text(textWithIndent, marginX, currentCopyY, { align: 'justify', maxWidth: contentWidth, lineHeightFactor: copyLineFactor });
-        currentCopyY += splitLines.length * (copyFontSize * 0.3527 * copyLineFactor) + 5;
+        currentCopyY = renderFormattedJustifiedParagraph(
+          pdf,
+          p.trim(),
+          marginX,
+          currentCopyY,
+          contentWidth,
+          indentMm,
+          copyFontSize,
+          copyLineHeightMm
+        );
+        currentCopyY += 5; // Espacement inter-paragraphe
       });
 
       // 5. Cartouche Note Officielle Recto
@@ -2043,21 +2261,24 @@ export default function App() {
       drawHeader(2, 'Verso');
 
       // 1. Bannière Section Verso
+      const versoBannerY = 24;
+      const versoBannerHeight = 6.5;
       pdf.setFillColor(11, 21, 40);
-      pdf.roundedRect(marginX, 24, contentWidth, 6.5, 1, 1, 'F');
-      pdf.setFontSize(8);
+      pdf.roundedRect(marginX, versoBannerY, contentWidth, versoBannerHeight, 1, 1, 'F');
+      pdf.setFontSize(8.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(255, 255, 255);
-      pdf.text("PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE", pageWidth / 2, 28.5, { align: 'center' });
+      pdf.text("PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE", pageWidth / 2, versoBannerY + 4.5, { align: 'center' });
 
-      // 2. Modèle d'excellence (Saut de ligne aéré avant l'introduction)
+      // 2. Modèle d'excellence avec saut de ligne franc avant l'introduction et connecteurs logiques en gras
       const versoHtml = getVersoOptimizedHtml();
+      // On préserve les balises <strong> pour que les connecteurs soient en gras
       const versoParas = versoHtml
         .split(/<\/p>/i)
-        .map(p => p.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim())
-        .filter(p => p.length > 20);
+        .map(p => p.replace(/<p[^>]*>/i, '').trim())
+        .filter(p => p.replace(/<[^>]*>/g, '').trim().length > 20);
 
-      const versoWordCount = versoParas.reduce((acc, p) => acc + p.split(/\s+/).filter(Boolean).length, 0);
+      const versoWordCount = versoParas.reduce((acc, p) => acc + p.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length, 0);
 
       let versoFontSize = 11.5;
       let versoLineFactor = 1.9;
@@ -2075,17 +2296,21 @@ export default function App() {
         versoLineFactor = 1.55;
       }
 
-      pdf.setFont('times', 'normal');
-      pdf.setFontSize(versoFontSize);
-      pdf.setTextColor(15, 23, 42);
+      const versoLineHeightMm = versoFontSize * 0.3527 * versoLineFactor;
+      let currentVersoY = 50; // Saut de ligne franc et aéré de 19.5mm entre la bannière et l'introduction
 
-      // Saut de ligne net avant l'introduction de la page 2
-      let currentVersoY = 44; // Espace aéré et saut de ligne avant l'intro
       versoParas.forEach((p: string) => {
-        const textWithIndent = indentStr + p.trim();
-        const splitLines = pdf.splitTextToSize(textWithIndent, contentWidth);
-        pdf.text(textWithIndent, marginX, currentVersoY, { align: 'justify', maxWidth: contentWidth, lineHeightFactor: versoLineFactor });
-        currentVersoY += splitLines.length * (versoFontSize * 0.3527 * versoLineFactor) + 6.5;
+        currentVersoY = renderFormattedJustifiedParagraph(
+          pdf,
+          p,
+          marginX,
+          currentVersoY,
+          contentWidth,
+          indentMm,
+          versoFontSize,
+          versoLineHeightMm
+        );
+        currentVersoY += 6.5; // Espacement inter-paragraphe
       });
 
       // ========================================================
@@ -6627,8 +6852,8 @@ export default function App() {
                 </div>
               </div>
               <div className="duplex-subject-box">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  <span style={{ color: '#0b1528', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.6px', fontSize: '8pt', background: '#e2e8f0', padding: '2px 8px', borderRadius: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <span style={{ color: '#ffffff', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.6px', fontSize: '8.5pt', background: '#0b1528', padding: '3px 10px', borderRadius: '4px' }}>
                     Sujet Officiel d'Examen Régional
                   </span>
                 </div>
@@ -6638,7 +6863,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="duplex-section-banner">
+            <div className="duplex-section-banner" style={{ marginBottom: '18px' }}>
               PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT
             </div>
           </div>
@@ -6676,7 +6901,7 @@ export default function App() {
               <div className="duplex-divider" />
             </div>
 
-            <div className="duplex-section-banner" style={{ background: '#0b1528', color: '#ffffff', marginBottom: '8px' }}>
+            <div className="duplex-section-banner" style={{ background: '#0b1528', color: '#ffffff', marginBottom: '24px' }}>
               PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE
             </div>
           </div>
