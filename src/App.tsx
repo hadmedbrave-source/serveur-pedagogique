@@ -1532,81 +1532,46 @@ export default function App() {
     return clean.replace(rx, '<strong style="color: #0b1528; font-weight: 800; font-family: inherit;">$1</strong>');
   };
 
-  // Formate et met en valeur le sujet officiel avec la question / consigne en gras bien visible
+  // Formate et met en valeur le sujet officiel avec la question / consigne en gras bien visible et homogène
   const renderFormattedSujet = (rawSujet: string) => {
     const text = (rawSujet || '').trim();
     if (!text) {
       return (
-        <span style={{ fontStyle: 'italic', color: '#64748b', fontSize: '11pt' }}>
+        <span style={{ fontStyle: 'italic', color: '#64748b', fontSize: '10.5pt' }}>
           Consigne officielle d'examen régional du Baccalauréat
         </span>
       );
     }
 
-    // Directives et tournures interrogatives typiques des sujets du Régional
     const directiveRegex = /\b(partagez-vous|qu'en pensez-vous|pensez-vous|croyez-vous|êtes-vous|développez|dans un texte|rédigez|justifiez|appuyez|exprimez|dites ce que|selon vous|accordez-vous|donnez votre avis|votre point de vue)\b/i;
-
-    // Découpage en phrases
-    const sentences = text.split(/(?<=[.?!…»])\s+/);
-
-    if (sentences.length > 1) {
-      return (
-        <div style={{ fontSize: '11.5pt', lineHeight: 1.55 }}>
-          {sentences.map((sentence, idx) => {
-            const isQuestion = sentence.includes('?');
-            const isDirective = directiveRegex.test(sentence);
-            const isQuote = /^[«"“]/.test(sentence.trim()) || /[»"”]$/.test(sentence.trim());
-
-            if (isQuestion || isDirective) {
-              return (
-                <strong
-                  key={idx}
-                  style={{
-                    fontWeight: 800,
-                    color: '#0b1528',
-                    display: 'inline',
-                    fontSize: '12pt',
-                    letterSpacing: '0.1px',
-                  }}
-                >
-                  {sentence}{' '}
-                </strong>
-              );
-            }
-
-            return (
-              <span
-                key={idx}
-                style={{
-                  fontStyle: isQuote ? 'italic' : 'normal',
-                  color: isQuote ? '#0f172a' : '#1e293b',
-                  fontWeight: isQuote ? 600 : 400,
-                }}
-              >
-                {sentence}{' '}
-              </span>
-            );
-          })}
-        </div>
-      );
-    }
-
-    // Cas d'une phrase unique ou consigne directe
-    const hasQuestion = text.includes('?');
-    const isDirective = directiveRegex.test(text);
+    const paras = text.split(/\n+/).map((p: string) => p.trim()).filter(Boolean);
 
     return (
-      <div style={{ fontSize: '11.8pt', lineHeight: 1.55 }}>
-        {hasQuestion || isDirective ? (
-          <strong style={{ fontWeight: 800, color: '#0b1528', fontSize: '12.2pt', letterSpacing: '0.1px' }}>
-            {text}
-          </strong>
-        ) : (
-          <span style={{ color: '#0f172a' }}>
-            <strong style={{ fontWeight: 800, color: '#0b1528' }}>Consigne : </strong>
-            <span style={{ fontStyle: 'italic', fontWeight: 600 }}>« {text} »</span>
-          </span>
-        )}
+      <div style={{ fontSize: '10.8pt', lineHeight: 1.52, fontFamily: "'Newsreader', Georgia, serif" }}>
+        {paras.map((p: string, idx: number) => {
+          const isConsigne = p.includes('?') || directiveRegex.test(p);
+          const isQuote = /^[«"“]/.test(p) || /[»"”]$/.test(p);
+
+          if (isConsigne) {
+            return (
+              <p key={idx} style={{ fontWeight: 800, color: '#0b1528', marginTop: idx > 0 ? '5px' : '0', marginBottom: '0' }}>
+                {p}
+              </p>
+            );
+          }
+          if (isQuote) {
+            return (
+              <p key={idx} style={{ fontStyle: 'italic', color: '#1e293b', marginTop: idx > 0 ? '5px' : '0', marginBottom: '0' }}>
+                {p}
+              </p>
+            );
+          }
+          return (
+            <p key={idx} style={{ color: '#334155', marginTop: idx > 0 ? '5px' : '0', marginBottom: '0' }}>
+              {p}
+            </p>
+          );
+        })}
       </div>
     );
   };
@@ -2061,16 +2026,21 @@ export default function App() {
 
       // 1. Cartouche Candidat
       pdf.setFillColor(248, 250, 252);
-      pdf.setDrawColor(226, 232, 240);
+      pdf.setDrawColor(203, 213, 225);
+      pdf.setLineWidth(0.4);
       pdf.roundedRect(marginX, 23, contentWidth, 18, 2, 2, 'FD');
+
+      // Bordure latérale bleu nuit 3mm (homogène avec l'encadré du sujet)
+      pdf.setFillColor(11, 21, 40);
+      pdf.rect(marginX, 23, 3, 18, 'F');
 
       pdf.setFontSize(8.5);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 116, 139);
-      pdf.text('Candidat(e) :', marginX + 4, 28.5);
+      pdf.text('Candidat(e) :', marginX + 5, 28.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(11, 21, 40);
-      pdf.text(candidateRawName, marginX + 24, 28.5);
+      pdf.text(candidateRawName, marginX + 25, 28.5);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 116, 139);
@@ -2082,11 +2052,11 @@ export default function App() {
 
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 116, 139);
-      pdf.text('Session :', marginX + 4, 36.5);
+      pdf.text('Session :', marginX + 5, 36.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(11, 21, 40);
       const sessionVal = viewingArchiveItem?.date || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-      pdf.text(sessionVal, marginX + 24, 36.5);
+      pdf.text(sessionVal, marginX + 25, 36.5);
 
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(100, 116, 139);
@@ -2095,113 +2065,110 @@ export default function App() {
       pdf.setTextColor(11, 21, 40);
       pdf.text('Français • Épreuve de Production Écrite (Régional)', marginX + contentWidth / 2 + 18, 36.5);
 
-      // 2. Encadré Sujet Officiel Calibré, Haute Visibilité & Lisibilité
+      // 2. Encadré Sujet Officiel Calibré & Homogène (Typographie académique Times)
       const activeSujet = ((viewingArchiveItem ? viewingArchiveItem.sujet : sujet) || '').trim();
-      let sujetContext = '';
-      let sujetQuestion = '';
+      const rawSujetParas = activeSujet.split(/\n+/).map((p: string) => p.trim()).filter(Boolean);
+      const directiveRegex = /\b(partagez-vous|qu'en pensez-vous|pensez-vous|croyez-vous|êtes-vous|développez|dans un texte|rédigez|justifiez|appuyez|exprimez|dites ce que|selon vous|accordez-vous|donnez votre avis|votre point de vue)\b/i;
 
-      if (activeSujet.includes('\n\n')) {
-        const parts = activeSujet.split(/\n\s*\n/).filter(Boolean);
-        if (parts.length >= 2) {
-          sujetContext = parts[0].trim();
-          sujetQuestion = parts.slice(1).join('\n\n').trim();
+      interface ParsedSujetBlock {
+        lines: string[];
+        fontStyle: 'bold' | 'italic' | 'normal';
+        fontSize: number;
+        lineHeight: number;
+        color: [number, number, number];
+      }
+
+      const parsedSujetBlocks: ParsedSujetBlock[] = [];
+
+      rawSujetParas.forEach((para: string) => {
+        const isConsigne = para.includes('?') || directiveRegex.test(para);
+        const isQuote = /^[«"“]/.test(para) || /[»"”]$/.test(para);
+
+        let fontStyle: 'bold' | 'italic' | 'normal' = 'normal';
+        let fontSize = 10.5;
+        let lineHeight = 5.0;
+        let color: [number, number, number] = [30, 41, 59];
+
+        if (isConsigne) {
+          fontStyle = 'bold';
+          fontSize = 10.8;
+          lineHeight = 5.2;
+          color = [11, 21, 40];
+        } else if (isQuote) {
+          fontStyle = 'italic';
+          fontSize = 10.5;
+          lineHeight = 5.0;
+          color = [15, 23, 42];
         }
+
+        pdf.setFont('times', fontStyle);
+        pdf.setFontSize(fontSize);
+        const lines = pdf.splitTextToSize(para, contentWidth - 14);
+        parsedSujetBlocks.push({ lines, fontStyle, fontSize, lineHeight, color });
+      });
+
+      if (parsedSujetBlocks.length === 0) {
+        pdf.setFont('times', 'italic');
+        pdf.setFontSize(10.5);
+        const lines = pdf.splitTextToSize("Consigne officielle d'examen régional du Baccalauréat", contentWidth - 14);
+        parsedSujetBlocks.push({ lines, fontStyle: 'italic', fontSize: 10.5, lineHeight: 5.0, color: [100, 116, 139] });
       }
 
-      if (!sujetContext) {
-        const quoteMatch = activeSujet.match(/^([«"][^»"]+[»"])\s*([\s\S]*)$/);
-        if (quoteMatch) {
-          sujetContext = quoteMatch[1].trim();
-          sujetQuestion = quoteMatch[2].trim();
+      let totalSujetTextHeight = 0;
+      parsedSujetBlocks.forEach((block, idx) => {
+        totalSujetTextHeight += block.lines.length * block.lineHeight;
+        if (idx < parsedSujetBlocks.length - 1) {
+          totalSujetTextHeight += 2.5; // saut entre paragraphes du sujet
         }
-      }
+      });
 
-      if (!sujetContext) {
-        const qIdx = activeSujet.indexOf('?');
-        if (qIdx !== -1) {
-          const before = activeSujet.slice(0, qIdx + 1);
-          const after = activeSujet.slice(qIdx + 1).trim();
-          const lastDot = Math.max(before.lastIndexOf('. '), before.lastIndexOf('» '), before.lastIndexOf('! '));
-          if (lastDot !== -1 && lastDot < qIdx) {
-            sujetContext = before.slice(0, lastDot + 1).trim();
-            sujetQuestion = before.slice(lastDot + 1).trim() + (after ? ' ' + after : '');
-          }
-        }
-      }
+      const sujetBoxHeight = 11 + totalSujetTextHeight + 3.5;
 
-      if (!sujetContext && !sujetQuestion) {
-        sujetQuestion = activeSujet;
-      }
-
-      // Calibration typographique du sujet (Haute visibilité, contraste net et lisibilité optimale)
-      const sujetContextFontSize = 11.5;
-      const sujetQuestionFontSize = 12.5;
-      const contextLineHeight = 5.8;
-      const questionLineHeight = 6.2;
-
-      pdf.setFontSize(sujetContextFontSize);
-      pdf.setFont('times', 'italic');
-      const contextLines = sujetContext ? pdf.splitTextToSize(sujetContext, contentWidth - 14) : [];
-
-      pdf.setFontSize(sujetQuestionFontSize);
-      pdf.setFont('helvetica', 'bold');
-      const questionLines = pdf.splitTextToSize(sujetQuestion || "Consigne officielle d'examen régional", contentWidth - 14);
-
-      const contextHeight = contextLines.length * contextLineHeight;
-      const gapBetween = (contextLines.length > 0 && questionLines.length > 0) ? 3.5 : 0;
-      const questionHeight = questionLines.length * questionLineHeight;
-      const sujetBoxHeight = 14 + contextHeight + gapBetween + questionHeight + 4;
-
+      // Encadré extérieur (Identique au Cartouche Candidat pour parfaite homogénéité)
       pdf.setFillColor(248, 250, 252);
-      pdf.setDrawColor(100, 116, 139); // Bordure nette et définie
-      pdf.setLineWidth(0.6);
+      pdf.setDrawColor(203, 213, 225);
+      pdf.setLineWidth(0.4);
       pdf.roundedRect(marginX, 44, contentWidth, sujetBoxHeight, 2, 2, 'FD');
 
-      // Bordure latérale bleu nuit 4.5mm
+      // Bordure latérale bleu nuit 3mm assortie au Cartouche
       pdf.setFillColor(11, 21, 40);
-      pdf.rect(marginX, 44, 4.5, sujetBoxHeight, 'F');
+      pdf.rect(marginX, 44, 3, sujetBoxHeight, 'F');
 
-      // Badge Sujet Officiel : bloc sombre avec typographie blanche bien visible
-      pdf.setFillColor(11, 21, 40);
-      pdf.roundedRect(marginX + 7, 46.5, 78, 6, 1, 1, 'F');
-      pdf.setFontSize(8.5);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(255, 255, 255);
-      pdf.text("SUJET OFFICIEL D'EXAMEN RÉGIONAL", marginX + 9, 50.8);
-
-      let textY = 57;
-      if (contextLines.length > 0) {
-        pdf.setFontSize(sujetContextFontSize);
-        pdf.setFont('times', 'italic');
-        pdf.setTextColor(15, 23, 42);
-        contextLines.forEach((line: string) => {
-          pdf.text(line, marginX + 8, textY);
-          textY += contextLineHeight;
-        });
-        textY += gapBetween;
-      }
-
-      // Question en GRAS bien visible et calibrée plus grande
-      pdf.setFontSize(sujetQuestionFontSize);
+      // Badge discret et harmonieux
+      pdf.setFillColor(226, 232, 240);
+      pdf.roundedRect(marginX + 6, 46.5, 68, 5, 1, 1, 'F');
+      pdf.setFontSize(7.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(11, 21, 40);
-      questionLines.forEach((line: string) => {
-        pdf.text(line, marginX + 8, textY);
-        textY += questionLineHeight;
+      pdf.text("SUJET OFFICIEL D'EXAMEN RÉGIONAL", marginX + 8, 50.1);
+
+      // Tracé des lignes du sujet en Times (100% harmonieux avec la copie)
+      let textY = 55.5;
+      parsedSujetBlocks.forEach((block, idx) => {
+        pdf.setFont('times', block.fontStyle);
+        pdf.setFontSize(block.fontSize);
+        pdf.setTextColor(block.color[0], block.color[1], block.color[2]);
+        block.lines.forEach((line) => {
+          pdf.text(line, marginX + 6, textY);
+          textY += block.lineHeight;
+        });
+        if (idx < parsedSujetBlocks.length - 1) {
+          textY += 2.5;
+        }
       });
 
       // 3. Bannière Section Recto
-      const bannerY = 44 + sujetBoxHeight + 5;
-      const bannerHeight = 6.5;
+      const bannerY = 44 + sujetBoxHeight + 4;
+      const bannerHeight = 6;
       pdf.setFillColor(11, 21, 40);
       pdf.roundedRect(marginX, bannerY, contentWidth, bannerHeight, 1, 1, 'F');
       pdf.setFontSize(8.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(255, 255, 255);
-      pdf.text("PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT", pageWidth / 2, bannerY + 4.5, { align: 'center' });
+      pdf.text("PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT", pageWidth / 2, bannerY + 4.2, { align: 'center' });
 
       // 4. Copie de l'élève (Espace aéré sous la barre et connecteurs logiques en gras)
-      const copyStartY = bannerY + bannerHeight + 13; // Saut aéré de 13mm entre la barre et l'introduction
+      const copyStartY = bannerY + bannerHeight + 9; // Saut aéré et proportionné avant l'introduction
       const activeScore = viewingArchiveItem ? viewingArchiveItem.score : scores.total;
 
       const rawParas = activeCopyText.trim().split(/\n\s*\n/).filter(Boolean);
@@ -2262,13 +2229,13 @@ export default function App() {
 
       // 1. Bannière Section Verso
       const versoBannerY = 24;
-      const versoBannerHeight = 6.5;
+      const versoBannerHeight = 6;
       pdf.setFillColor(11, 21, 40);
       pdf.roundedRect(marginX, versoBannerY, contentWidth, versoBannerHeight, 1, 1, 'F');
       pdf.setFontSize(8.5);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(255, 255, 255);
-      pdf.text("PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE", pageWidth / 2, versoBannerY + 4.5, { align: 'center' });
+      pdf.text("PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE", pageWidth / 2, versoBannerY + 4.2, { align: 'center' });
 
       // 2. Modèle d'excellence avec saut de ligne franc avant l'introduction et connecteurs logiques en gras
       const versoHtml = getVersoOptimizedHtml();
@@ -2297,7 +2264,7 @@ export default function App() {
       }
 
       const versoLineHeightMm = versoFontSize * 0.3527 * versoLineFactor;
-      let currentVersoY = 50; // Saut de ligne franc et aéré de 19.5mm entre la bannière et l'introduction
+      let currentVersoY = 40; // Saut de ligne franc et harmonieux de 10mm après la bannière
 
       versoParas.forEach((p: string) => {
         currentVersoY = renderFormattedJustifiedParagraph(
@@ -6852,8 +6819,8 @@ export default function App() {
                 </div>
               </div>
               <div className="duplex-subject-box">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                  <span style={{ color: '#ffffff', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.6px', fontSize: '8.5pt', background: '#0b1528', padding: '3px 10px', borderRadius: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+                  <span style={{ color: '#0b1528', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', fontSize: '7.5pt', background: '#e2e8f0', padding: '2px 8px', borderRadius: '3px' }}>
                     Sujet Officiel d'Examen Régional
                   </span>
                 </div>
@@ -6863,7 +6830,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="duplex-section-banner" style={{ marginBottom: '18px' }}>
+            <div className="duplex-section-banner" style={{ marginBottom: '14px' }}>
               PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT
             </div>
           </div>
@@ -6901,7 +6868,7 @@ export default function App() {
               <div className="duplex-divider" />
             </div>
 
-            <div className="duplex-section-banner" style={{ background: '#0b1528', color: '#ffffff', marginBottom: '24px' }}>
+            <div className="duplex-section-banner" style={{ background: '#0b1528', color: '#ffffff', marginBottom: '16px' }}>
               PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE
             </div>
           </div>
