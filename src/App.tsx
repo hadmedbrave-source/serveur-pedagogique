@@ -1036,12 +1036,12 @@ export default function App() {
 
   // Scores de la grille officielle (10 points)
   const [scores, setScores] = useState({
-    c: 2.0,
-    s: 1.8,
-    a: 1.8,
-    l: 2.1,
-    x: 1.3,
-    total: '9.0',
+    c: 0,
+    s: 0,
+    a: 0,
+    l: 0,
+    x: 0,
+    total: '',
   });
 
   // Analyse didactique de l'armature logique (liens logiques officiels) de la copie du candidat
@@ -1105,7 +1105,7 @@ export default function App() {
     };
   }, [texte]);
 
-  // Attribution de la mention officielle selon la note sur 10 (Mention Très Bien, Bien, À consolider)
+  // Attribution rigoureuse de la mention officielle selon le barème du Baccalauréat
   const getMentionData = (note: number, isHorsSujetVal: boolean, isCopieIncompleteVal?: boolean, isDirectStartVal?: boolean, isSansConclusionVal?: boolean, isQuestionDeviationVal?: boolean) => {
     if (isHorsSujetVal) {
       return {
@@ -1137,21 +1137,39 @@ export default function App() {
         className: 'bg-amber-100 text-amber-900 border-amber-400 shadow-2xs',
       };
     }
-    if (note >= 8.0) {
+    if (note >= 8.5) {
       return {
-        label: 'Mention Très Bien',
+        label: 'Mention Très Bien (Excellence)',
         className: 'bg-emerald-100 text-emerald-800 border-emerald-300 shadow-2xs',
       };
     }
-    if (note >= 6.5) {
+    if (note >= 7.0) {
       return {
         label: 'Mention Bien',
         className: 'bg-blue-100 text-blue-800 border-blue-300 shadow-2xs',
       };
     }
+    if (note >= 5.5) {
+      return {
+        label: 'Mention Assez Bien',
+        className: 'bg-teal-100 text-teal-800 border-teal-300 shadow-2xs',
+      };
+    }
+    if (note >= 4.0) {
+      return {
+        label: 'Mention Passable (À consolider)',
+        className: 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs',
+      };
+    }
+    if (note > 0) {
+      return {
+        label: 'Insuffisant (À retravailler)',
+        className: 'bg-rose-100 text-rose-900 border-rose-300 shadow-2xs',
+      };
+    }
     return {
-      label: 'À consolider',
-      className: 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs',
+      label: 'En attente d’évaluation',
+      className: 'bg-slate-100 text-slate-700 border-slate-300',
     };
   };
 
@@ -1159,7 +1177,7 @@ export default function App() {
     ? 0
     : isCopieIncomplete
     ? 0
-    : (parseFloat(scores.total) || (scores.c + scores.s + scores.a + scores.l + scores.x) || 8.8);
+    : (parseFloat(scores.total) || (scores.c + scores.s + scores.a + scores.l + scores.x) || 0);
   const mentionInfo = getMentionData(currentScoreNum, isHorsSujet, isCopieIncomplete, isDirectStart, isSansConclusion, isQuestionDeviation);
 
   // Modal Changement de mot de passe sécurisé par Clé Maître Enseignant
@@ -1576,7 +1594,85 @@ export default function App() {
     );
   };
 
-  // Calibration intelligente de la typographie du Recto (Page 1) pour remplir harmonieusement toute la page
+  // Découpage académique rigoureux pour épreuve de production écrite régionale :
+  // Sépare de manière étanche et structurée : L'Introduction, Le Développement et La Conclusion
+  const splitAcademicEssay = (rawText: string): { type: 'introduction' | 'developpement' | 'conclusion'; label: string; text: string }[] => {
+    const clean = (rawText || '').trim();
+    if (!clean) return [];
+
+    let rawBlocks = clean.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    if (rawBlocks.length === 1 && clean.includes('\n')) {
+      rawBlocks = clean.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    }
+
+    if (rawBlocks.length >= 3) {
+      const introText = rawBlocks[0];
+      const conclusionText = rawBlocks[rawBlocks.length - 1];
+      const devBlocks = rawBlocks.slice(1, rawBlocks.length - 1);
+
+      const sections: { type: 'introduction' | 'developpement' | 'conclusion'; label: string; text: string }[] = [
+        { type: 'introduction', label: 'Introduction', text: introText }
+      ];
+
+      devBlocks.forEach((d) => {
+        sections.push({ type: 'developpement', label: 'Développement', text: d });
+      });
+
+      sections.push({ type: 'conclusion', label: 'Conclusion', text: conclusionText });
+      return sections;
+    }
+
+    const CONCLUSION_REGEX = /(?:^|[.?!…\n])\s*(?:[-–—]\s*)?(En conclusion|En définitive|Pour conclure|En somme|En résumé|Pour finir|Finalement|En dernière analyse|Au terme de cette réflexion|Ainsi donc|En guise de conclusion|En guise d'épilogue|Pour clore ce débat|En terminant)\b/i;
+    const DEV_REGEX = /(?:^|[.?!…\n])\s*(?:[-–—]\s*)?(En premier lieu|Tout d'abord|D'abord|D'une part|Premièrement|Certes|Il est indéniable|Force est de constater|D'un côté|Il convient d'abord|Pour commencer|Pour ma part|En ce qui me concerne|Quant à moi)\b/i;
+
+    const fullText = rawBlocks.join('\n\n');
+    const concMatch = fullText.match(CONCLUSION_REGEX);
+    let textBeforeConc = fullText;
+    let concPart = '';
+
+    if (concMatch && concMatch.index !== undefined) {
+      const keyword = concMatch[1];
+      const actualStart = fullText.indexOf(keyword, concMatch.index);
+      if (actualStart > 0) {
+        textBeforeConc = fullText.slice(0, actualStart).trim();
+        concPart = fullText.slice(actualStart).trim();
+      }
+    }
+
+    const devMatch = textBeforeConc.match(DEV_REGEX);
+    let introPart = textBeforeConc;
+    let devPart = '';
+
+    if (devMatch && devMatch.index !== undefined) {
+      const keyword = devMatch[1];
+      const actualDevStart = textBeforeConc.indexOf(keyword, devMatch.index);
+      if (actualDevStart > 0) {
+        introPart = textBeforeConc.slice(0, actualDevStart).trim();
+        devPart = textBeforeConc.slice(actualDevStart).trim();
+      }
+    }
+
+    if (concPart || devPart) {
+      const res: { type: 'introduction' | 'developpement' | 'conclusion'; label: string; text: string }[] = [];
+      if (introPart) res.push({ type: 'introduction', label: 'Introduction', text: introPart });
+      if (devPart) res.push({ type: 'developpement', label: 'Développement', text: devPart });
+      if (concPart) res.push({ type: 'conclusion', label: 'Conclusion', text: concPart });
+      if (res.length >= 2) return res;
+    }
+
+    if (rawBlocks.length === 2) {
+      return [
+        { type: 'introduction', label: 'Introduction', text: rawBlocks[0] },
+        { type: 'conclusion', label: 'Conclusion', text: rawBlocks[1] },
+      ];
+    }
+
+    return [{ type: 'introduction', label: 'Introduction', text: clean }];
+  };
+
+  // Calibration responsive et intelligente du Recto (Page 1) :
+  // Sépare distinctement Introduction, Développement et Conclusion,
+  // et adapte la typographie selon qu'il s'agisse de petits textes ou de grands textes
   const renderRectoContent = () => {
     let activeCopy = viewingArchiveItem ? viewingArchiveItem.texte : (texte || '');
     if (!viewingArchiveItem && editorRef.current && editorRef.current.innerText && editorRef.current.innerText.trim()) {
@@ -1591,65 +1687,80 @@ export default function App() {
       );
     }
 
+    const sections = splitAcademicEssay(raw);
     const words = raw.split(/\s+/).filter(Boolean);
     const wordCount = words.length;
 
-    // Calibration dynamique de la typographie pour remplir harmonieusement la page 1 (Recto)
-    let fontSize = '12.5pt';
-    let lineHeight = 2.15;
+    // Calibration responsive selon la longueur du texte (petits textes vs grands textes)
+    let fontSize = '11.5pt';
+    let lineHeight = 1.85;
     let textIndent = '2.8rem';
+    let sectionMarginBottom = '15px';
+    let devSubMarginBottom = '10px';
 
-    if (wordCount < 90) {
-      fontSize = '13.8pt';
-      lineHeight = 2.35;
-      textIndent = '3.0rem';
-    } else if (wordCount < 160) {
-      fontSize = '12.6pt';
+    if (wordCount < 100) {
+      fontSize = '12.8pt';
       lineHeight = 2.15;
-      textIndent = '2.8rem';
-    } else if (wordCount < 240) {
-      fontSize = '11.6pt';
+      textIndent = '3.0rem';
+      sectionMarginBottom = '20px';
+      devSubMarginBottom = '13px';
+    } else if (wordCount < 180) {
+      fontSize = '12.0pt';
       lineHeight = 1.95;
-      textIndent = '2.5rem';
-    } else if (wordCount < 330) {
-      fontSize = '10.6pt';
+      textIndent = '2.8rem';
+      sectionMarginBottom = '17px';
+      devSubMarginBottom = '11px';
+    } else if (wordCount < 260) {
+      fontSize = '11.2pt';
       lineHeight = 1.75;
-      textIndent = '2.2rem';
-    } else if (wordCount < 420) {
-      fontSize = '9.8pt';
+      textIndent = '2.5rem';
+      sectionMarginBottom = '14px';
+      devSubMarginBottom = '9px';
+    } else if (wordCount < 350) {
+      fontSize = '10.2pt';
       lineHeight = 1.55;
-      textIndent = '1.9rem';
+      textIndent = '2.2rem';
+      sectionMarginBottom = '10px';
+      devSubMarginBottom = '7px';
     } else {
-      fontSize = '9.0pt';
+      fontSize = '9.2pt';
       lineHeight = 1.38;
-      textIndent = '1.6rem';
+      textIndent = '1.8rem';
+      sectionMarginBottom = '7px';
+      devSubMarginBottom = '5px';
     }
 
-    let paras = raw.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
-    if (paras.length === 1 && raw.includes('\n')) {
-      paras = raw.split(/\n+/).filter((p: string) => p.trim().length > 0);
-    }
+    return sections.map((sec, idx) => {
+      const isLast = idx === sections.length - 1;
+      const isDevSub = sec.type === 'developpement' && sections[idx + 1]?.type === 'developpement';
+      const mBottom = isLast ? '0px' : (isDevSub ? devSubMarginBottom : sectionMarginBottom);
 
-    return paras.map((p: string, idx: number) => {
       return (
-        <p
+        <div
           key={idx}
+          className={`academic-section academic-section-${sec.type}`}
           style={{
-            textIndent,
-            marginTop: '0px',
-            marginBottom: '0px',
-            lineHeight,
-            fontSize,
-            textAlign: 'justify',
-            textJustify: 'inter-word',
-            wordBreak: 'break-word',
-            hyphens: 'auto',
-            WebkitHyphens: 'auto',
-            color: '#0f172a',
-            fontFamily: "'Newsreader', Georgia, serif",
+            marginBottom: mBottom,
           }}
-          dangerouslySetInnerHTML={{ __html: formatConnectorsInHtml(p) }}
-        />
+        >
+          <p
+            style={{
+              textIndent,
+              marginTop: '0px',
+              marginBottom: '0px',
+              lineHeight,
+              fontSize,
+              textAlign: 'justify',
+              textJustify: 'inter-word',
+              wordBreak: 'break-word',
+              hyphens: 'auto',
+              WebkitHyphens: 'auto',
+              color: '#0f172a',
+              fontFamily: "'Newsreader', Georgia, serif",
+            }}
+            dangerouslySetInnerHTML={{ __html: formatConnectorsInHtml(sec.text) }}
+          />
+        </div>
       );
     });
   };
@@ -1764,39 +1875,50 @@ export default function App() {
     // Calibration intelligente de la typographie du Verso pour remplir harmonieusement toute la page sans déborder
     const totalWords = extractedParagraphs.reduce((acc, p) => acc + p.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length, 0);
 
-    let fontSize = '12.5pt';
-    let lineHeight = 2.15;
+    let fontSize = '11.5pt';
+    let lineHeight = 1.85;
     let textIndent = '2.8rem';
+    let sectionMarginBottom = '15px';
+    let devSubMarginBottom = '10px';
 
     if (totalWords < 140) {
-      fontSize = '13.8pt';
-      lineHeight = 2.35;
-      textIndent = '3.0rem';
-    } else if (totalWords < 210) {
-      fontSize = '12.6pt';
+      fontSize = '12.8pt';
       lineHeight = 2.15;
-      textIndent = '2.8rem';
-    } else if (totalWords < 300) {
-      fontSize = '11.6pt';
+      textIndent = '3.0rem';
+      sectionMarginBottom = '20px';
+      devSubMarginBottom = '13px';
+    } else if (totalWords < 220) {
+      fontSize = '12.0pt';
       lineHeight = 1.95;
-      textIndent = '2.5rem';
-    } else if (totalWords < 400) {
-      fontSize = '10.6pt';
+      textIndent = '2.8rem';
+      sectionMarginBottom = '17px';
+      devSubMarginBottom = '11px';
+    } else if (totalWords < 320) {
+      fontSize = '11.2pt';
       lineHeight = 1.75;
-      textIndent = '2.2rem';
-    } else if (totalWords < 500) {
-      fontSize = '9.8pt';
+      textIndent = '2.5rem';
+      sectionMarginBottom = '14px';
+      devSubMarginBottom = '9px';
+    } else if (totalWords < 420) {
+      fontSize = '10.2pt';
       lineHeight = 1.55;
-      textIndent = '1.9rem';
+      textIndent = '2.2rem';
+      sectionMarginBottom = '10px';
+      devSubMarginBottom = '7px';
     } else {
-      fontSize = '9.0pt';
+      fontSize = '9.2pt';
       lineHeight = 1.38;
-      textIndent = '1.6rem';
+      textIndent = '1.8rem';
+      sectionMarginBottom = '7px';
+      devSubMarginBottom = '5px';
     }
 
     return extractedParagraphs
-      .map((inner) => {
-        return `<p style="text-indent: ${textIndent}; margin-top: 0; margin-bottom: 0; line-height: ${lineHeight}; font-size: ${fontSize}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; word-break: break-word; color: #0f172a; font-family: 'Newsreader', Georgia, serif;">${inner}</p>`;
+      .map((inner, pIdx) => {
+        const isLast = pIdx === extractedParagraphs.length - 1;
+        const isFirst = pIdx === 0;
+        const mBottom = isLast ? '0px' : (isFirst || pIdx === extractedParagraphs.length - 2 ? sectionMarginBottom : devSubMarginBottom);
+        return `<p style="text-indent: ${textIndent}; margin-top: 0; margin-bottom: ${mBottom}; line-height: ${lineHeight}; font-size: ${fontSize}; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; word-break: break-word; color: #0f172a; font-family: 'Newsreader', Georgia, serif;">${inner}</p>`;
       })
       .join('\n');
   };
@@ -2167,46 +2289,109 @@ export default function App() {
       pdf.setTextColor(255, 255, 255);
       pdf.text("PAGE 1 • RECTO : COPIE RÉDACTIONNELLE DU CANDIDAT", pageWidth / 2, bannerY + 4.2, { align: 'center' });
 
-      // 4. Copie de l'élève (Espace aéré sous la barre et connecteurs logiques en gras)
-      const copyStartY = bannerY + bannerHeight + 9; // Saut aéré et proportionné avant l'introduction
+      // 4. Copie du candidat : Découpage académique & Moteur Typographique Responsive
+      // Sépare de manière étanche : L'Introduction, Le Développement et La Conclusion
+      // et calibre la typographie pour que les petits comme les grands textes s'inscrivent parfaitement
+      // en garantissant que la conclusion ne déborde jamais sur la note d'évaluation.
       const activeScore = viewingArchiveItem ? viewingArchiveItem.score : scores.total;
+      const copySections = splitAcademicEssay(activeCopyText);
 
-      const rawParas = activeCopyText.trim().split(/\n\s*\n/).filter(Boolean);
-      const paras = rawParas.length > 0 ? rawParas : [activeCopyText.trim() || "(Aucun texte rédigé pour le moment dans l'espace de composition)"];
-      const totalWords = activeCopyText.trim().split(/\s+/).filter(Boolean).length;
+      // Espace vertical disponible strict pour la copie sur la Page 1 (Recto) :
+      // - Bannière se termine à bannerY + bannerHeight (approx 78-85mm)
+      // - Cartouche Note officielle fixé à y = 270mm (hauteur 9mm)
+      // - La copie et sa conclusion DOIVENT se terminer avant maxCopyEndY = 264mm
+      const minCopyStartY = bannerY + bannerHeight + 6.5;
+      const maxCopyEndY = 264;
+      const availableHeight = maxCopyEndY - minCopyStartY;
 
-      let copyFontSize = 11.5;
-      let copyLineFactor = 1.85;
-      if (totalWords < 100) {
-        copyFontSize = 13;
-        copyLineFactor = 2.1;
-      } else if (totalWords < 200) {
-        copyFontSize = 12;
-        copyLineFactor = 1.95;
-      } else if (totalWords < 320) {
-        copyFontSize = 11;
-        copyLineFactor = 1.75;
-      } else {
-        copyFontSize = 10;
-        copyLineFactor = 1.5;
-      }
+      // Profils de calibration typographique responsive (du plus généreux au plus compact)
+      const COPY_PROFILES = [
+        { fontSize: 12.5, lineFactor: 1.95, sectionGap: 8.5, devSubGap: 5.0 },
+        { fontSize: 12.0, lineFactor: 1.85, sectionGap: 7.8, devSubGap: 4.5 },
+        { fontSize: 11.5, lineFactor: 1.76, sectionGap: 7.0, devSubGap: 4.0 },
+        { fontSize: 11.0, lineFactor: 1.68, sectionGap: 6.2, devSubGap: 3.5 },
+        { fontSize: 10.5, lineFactor: 1.60, sectionGap: 5.5, devSubGap: 3.0 },
+        { fontSize: 10.0, lineFactor: 1.52, sectionGap: 4.8, devSubGap: 2.5 },
+        { fontSize: 9.5,  lineFactor: 1.45, sectionGap: 4.2, devSubGap: 2.2 },
+        { fontSize: 9.0,  lineFactor: 1.38, sectionGap: 3.6, devSubGap: 2.0 },
+        { fontSize: 8.5,  lineFactor: 1.32, sectionGap: 3.0, devSubGap: 1.8 },
+      ];
 
-      const copyLineHeightMm = copyFontSize * 0.3527 * copyLineFactor;
-      let currentCopyY = copyStartY;
       const indentMm = 8;
 
-      paras.forEach((p: string) => {
+      // Simulation précise pour trouver le profil typographique idéal garantissant le placement parfait
+      let chosenProfile = COPY_PROFILES[COPY_PROFILES.length - 1];
+      let chosenSimulatedH = availableHeight;
+
+      for (const prof of COPY_PROFILES) {
+        pdf.setFontSize(prof.fontSize);
+        pdf.setFont('times', 'normal');
+        const lineHMm = prof.fontSize * 0.3527 * prof.lineFactor;
+
+        let simH = 0;
+        copySections.forEach((sec, sIdx) => {
+          const plainWords = sec.text.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+          let linesCount = 0;
+          let curLineWidth = 0;
+          const normalSpace = pdf.getTextWidth(' ');
+
+          for (let wIdx = 0; wIdx < plainWords.length; wIdx++) {
+            const wText = plainWords[wIdx];
+            const wWidth = pdf.getTextWidth(wText);
+            const lineMax = (linesCount === 0) ? (contentWidth - indentMm) : contentWidth;
+            const spaceNeeded = curLineWidth > 0 ? normalSpace : 0;
+
+            if (curLineWidth > 0 && (curLineWidth + spaceNeeded + wWidth > lineMax + 0.1)) {
+              linesCount++;
+              curLineWidth = wWidth;
+            } else {
+              curLineWidth += spaceNeeded + wWidth;
+            }
+          }
+          if (curLineWidth > 0) linesCount++;
+          simH += linesCount * lineHMm;
+
+          if (sIdx < copySections.length - 1) {
+            const isSubDev = sec.type === 'developpement' && copySections[sIdx + 1]?.type === 'developpement';
+            simH += isSubDev ? prof.devSubGap : prof.sectionGap;
+          }
+        });
+
+        if (simH <= availableHeight) {
+          chosenProfile = prof;
+          chosenSimulatedH = simH;
+          break;
+        }
+      }
+
+      // Gestion responsive pour les petits textes :
+      // Répartition harmonieuse de l'excédent vertical pour que la conclusion
+      // et l'ensemble de la copie soient optiquement équilibrés au centre de la page
+      const remainingSpace = Math.max(0, availableHeight - chosenSimulatedH);
+      const extraTopShift = Math.min(remainingSpace * 0.25, 12);
+      const copyStartY = minCopyStartY + extraTopShift;
+      const finalSectionGap = chosenProfile.sectionGap + Math.min(remainingSpace * 0.12, 3.5);
+      const finalDevSubGap = chosenProfile.devSubGap + Math.min(remainingSpace * 0.08, 2.0);
+
+      const copyLineHeightMm = chosenProfile.fontSize * 0.3527 * chosenProfile.lineFactor;
+      let currentCopyY = copyStartY;
+
+      copySections.forEach((sec, sIdx) => {
         currentCopyY = renderFormattedJustifiedParagraph(
           pdf,
-          p.trim(),
+          sec.text,
           marginX,
           currentCopyY,
           contentWidth,
           indentMm,
-          copyFontSize,
+          chosenProfile.fontSize,
           copyLineHeightMm
         );
-        currentCopyY += 5; // Espacement inter-paragraphe
+
+        if (sIdx < copySections.length - 1) {
+          const isSubDev = sec.type === 'developpement' && copySections[sIdx + 1]?.type === 'developpement';
+          currentCopyY += isSubDev ? finalDevSubGap : finalSectionGap;
+        }
       });
 
       // 5. Cartouche Note Officielle Recto
@@ -2237,47 +2422,109 @@ export default function App() {
       pdf.setTextColor(255, 255, 255);
       pdf.text("PAGE 2 • VERSO : MODÈLE RÉDACTIONNEL OPTIMISÉ D'EXCELLENCE", pageWidth / 2, versoBannerY + 4.2, { align: 'center' });
 
-      // 2. Modèle d'excellence avec saut de ligne franc avant l'introduction et connecteurs logiques en gras
+      // 2. Modèle d'excellence : Découpage en sections (Intro, Dév Axe 1, Dév Axe 2, Conclusion)
+      // et moteur typographique responsive pour remplir harmonieusement la page sans déborder
       const versoHtml = getVersoOptimizedHtml();
-      // On préserve les balises <strong> pour que les connecteurs soient en gras
       const versoParas = versoHtml
         .split(/<\/p>/i)
         .map(p => p.replace(/<p[^>]*>/i, '').trim())
         .filter(p => p.replace(/<[^>]*>/g, '').trim().length > 20);
 
-      const versoWordCount = versoParas.reduce((acc, p) => acc + p.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length, 0);
+      const versoSections = versoParas.map((pText, pIdx) => {
+        let type: 'introduction' | 'developpement' | 'conclusion' = 'developpement';
+        if (pIdx === 0) type = 'introduction';
+        else if (pIdx === versoParas.length - 1) type = 'conclusion';
+        return { text: pText, type };
+      });
 
-      let versoFontSize = 11.5;
-      let versoLineFactor = 1.9;
-      if (versoWordCount < 180) {
-        versoFontSize = 13;
-        versoLineFactor = 2.15;
-      } else if (versoWordCount < 280) {
-        versoFontSize = 12;
-        versoLineFactor = 1.95;
-      } else if (versoWordCount < 380) {
-        versoFontSize = 11;
-        versoLineFactor = 1.75;
-      } else {
-        versoFontSize = 10;
-        versoLineFactor = 1.55;
+      // Espace vertical disponible strict pour le verso :
+      // - Bannière se termine à 30mm.
+      // - Ligne de pied de page à 283mm. Donc maxVersoEndY = 277mm
+      const minVersoStartY = 39;
+      const maxVersoEndY = 277;
+      const availableVersoHeight = maxVersoEndY - minVersoStartY;
+
+      const VERSO_PROFILES = [
+        { fontSize: 12.5, lineFactor: 1.95, sectionGap: 8.5, devSubGap: 5.5 },
+        { fontSize: 12.0, lineFactor: 1.85, sectionGap: 7.8, devSubGap: 5.0 },
+        { fontSize: 11.5, lineFactor: 1.76, sectionGap: 7.0, devSubGap: 4.5 },
+        { fontSize: 11.0, lineFactor: 1.68, sectionGap: 6.2, devSubGap: 4.0 },
+        { fontSize: 10.5, lineFactor: 1.60, sectionGap: 5.5, devSubGap: 3.5 },
+        { fontSize: 10.0, lineFactor: 1.52, sectionGap: 4.8, devSubGap: 3.0 },
+        { fontSize: 9.5,  lineFactor: 1.45, sectionGap: 4.2, devSubGap: 2.5 },
+        { fontSize: 9.0,  lineFactor: 1.38, sectionGap: 3.6, devSubGap: 2.0 },
+      ];
+
+      let chosenVersoProfile = VERSO_PROFILES[VERSO_PROFILES.length - 1];
+      let chosenVersoSimH = availableVersoHeight;
+
+      for (const prof of VERSO_PROFILES) {
+        pdf.setFontSize(prof.fontSize);
+        pdf.setFont('times', 'normal');
+        const lineHMm = prof.fontSize * 0.3527 * prof.lineFactor;
+
+        let simH = 0;
+        versoSections.forEach((sec, sIdx) => {
+          const plainText = sec.text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+          const words = plainText.split(' ').filter(Boolean);
+          let linesCount = 0;
+          let curLineWidth = 0;
+          const normalSpace = pdf.getTextWidth(' ');
+
+          for (let wIdx = 0; wIdx < words.length; wIdx++) {
+            const wText = words[wIdx];
+            const wWidth = pdf.getTextWidth(wText);
+            const lineMax = (linesCount === 0) ? (contentWidth - indentMm) : contentWidth;
+            const spaceNeeded = curLineWidth > 0 ? normalSpace : 0;
+
+            if (curLineWidth > 0 && (curLineWidth + spaceNeeded + wWidth > lineMax + 0.1)) {
+              linesCount++;
+              curLineWidth = wWidth;
+            } else {
+              curLineWidth += spaceNeeded + wWidth;
+            }
+          }
+          if (curLineWidth > 0) linesCount++;
+          simH += linesCount * lineHMm;
+
+          if (sIdx < versoSections.length - 1) {
+            const isSubDev = sec.type === 'developpement' && versoSections[sIdx + 1]?.type === 'developpement';
+            simH += isSubDev ? prof.devSubGap : prof.sectionGap;
+          }
+        });
+
+        if (simH <= availableVersoHeight) {
+          chosenVersoProfile = prof;
+          chosenVersoSimH = simH;
+          break;
+        }
       }
 
-      const versoLineHeightMm = versoFontSize * 0.3527 * versoLineFactor;
-      let currentVersoY = 40; // Saut de ligne franc et harmonieux de 10mm après la bannière
+      const remainingVersoSpace = Math.max(0, availableVersoHeight - chosenVersoSimH);
+      const extraVersoTopShift = Math.min(remainingVersoSpace * 0.22, 10);
+      const versoStartY = minVersoStartY + extraVersoTopShift;
+      const finalVersoSectionGap = chosenVersoProfile.sectionGap + Math.min(remainingVersoSpace * 0.12, 3.5);
+      const finalVersoDevSubGap = chosenVersoProfile.devSubGap + Math.min(remainingVersoSpace * 0.08, 2.0);
 
-      versoParas.forEach((p: string) => {
+      const versoLineHeightMm = chosenVersoProfile.fontSize * 0.3527 * chosenVersoProfile.lineFactor;
+      let currentVersoY = versoStartY;
+
+      versoSections.forEach((sec, sIdx) => {
         currentVersoY = renderFormattedJustifiedParagraph(
           pdf,
-          p,
+          sec.text,
           marginX,
           currentVersoY,
           contentWidth,
           indentMm,
-          versoFontSize,
+          chosenVersoProfile.fontSize,
           versoLineHeightMm
         );
-        currentVersoY += 6.5; // Espacement inter-paragraphe
+
+        if (sIdx < versoSections.length - 1) {
+          const isSubDev = sec.type === 'developpement' && versoSections[sIdx + 1]?.type === 'developpement';
+          currentVersoY += isSubDev ? finalVersoDevSubGap : finalVersoSectionGap;
+        }
       });
 
       // ========================================================
@@ -3992,16 +4239,37 @@ export default function App() {
               scoreS = 0.75;
             }
 
-            // Si la copie est complète (Intro + 2 axes de développement + Conclusion) avec une bonne consistance (>= 85 mots)
-            // et sans pénalité didactique, elle accède légitimement au rang d'excellence (9/10 minimum)
-            const cleanParas = texte.replace(/<\/p>|<br\s*\/?>/gi, '\n\n').split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
-            const wordCount = texte.trim().split(/\s+/).filter(w => w.length > 0).length;
-            if (cleanParas.length >= 4 && wordCount >= 85 && !hasBadAmorce) {
-              scoreC = Math.max(scoreC, 2.0);
-              scoreS = Math.max(scoreS, 1.8);
-              scoreA = Math.max(scoreA, 1.8);
-              scoreL = Math.max(scoreL, 2.1);
-              scoreX = Math.max(scoreX, 1.3);
+            // Exécution rigoureuse et exigeante du barème officiel :
+            // Aucun rehaussement artificiel vers 9/10 ! Les copies normales ou moyennes
+            // manquant de pertinence, de cohérence ou d'ancrage littéraire sont notées avec sévérité didactique.
+            
+            // 1. Audit linguistique strict : sanction mathématique du nombre d'erreurs réelles
+            const rawTableExtract = extract('TABLEAU');
+            const errorRows = (rawTableExtract.match(/\|[^|\n]+\|[^|\n]+\|[^|\n]+\|/g) || []).filter(
+              (row: string) => !row.includes('---') && !row.toLowerCase().includes('erreur') && !row.toLowerCase().includes('extrait fautif')
+            );
+            const realErrorCount = errorRows.length;
+
+            if (realErrorCount >= 7) {
+              scoreL = Math.min(scoreL, 0.75);
+            } else if (realErrorCount >= 5) {
+              scoreL = Math.min(scoreL, 1.25);
+            } else if (realErrorCount >= 3) {
+              scoreL = Math.min(scoreL, 1.75);
+            }
+
+            // 2. Audit de la pertinence argumentative & ancrage littéraire concret
+            const lowerCopy = texte.toLowerCase();
+            const hasLiteraryReference = lowerCopy.includes('boîte') || lowerCopy.includes('boite') ||
+              lowerCopy.includes('sefrioui') || lowerCopy.includes('sidi mohammed') ||
+              lowerCopy.includes('antigone') || lowerCopy.includes('anouilh') || lowerCopy.includes('créon') ||
+              lowerCopy.includes('creon') || lowerCopy.includes('condamné') || lowerCopy.includes('condamne') ||
+              lowerCopy.includes('hugo') || lowerCopy.includes('maâlem') || lowerCopy.includes('maalem');
+
+            // Si le devoir ne comporte aucun ancrage littéraire concret dans une œuvre au programme,
+            // les critères d'arguments et de pertinence sont plafonnés à 1.25/2.0
+            if (!hasLiteraryReference && scoreA > 1.25) {
+              scoreA = 1.25;
             }
 
             totalCalc = (scoreC + scoreS + scoreA + scoreL + scoreX).toFixed(1);
@@ -4035,12 +4303,13 @@ export default function App() {
             scoreX = 0.7;
             totalCalc = '5.0';
           } else {
-            scoreC = 2.0;
-            scoreS = 1.8;
-            scoreA = 1.8;
-            scoreL = 2.1;
-            scoreX = 1.3;
-            totalCalc = '9.0';
+            // Fallback mesuré et réaliste si la grille n'a pas été fournie par l'IA
+            scoreC = 1.25;
+            scoreS = 1.0;
+            scoreA = 1.0;
+            scoreL = 1.5;
+            scoreX = 0.75;
+            totalCalc = '5.5';
           }
           if (v1) v1.innerText = scoreC.toFixed(1);
           if (v2) v2.innerText = scoreS.toFixed(1);
@@ -5414,7 +5683,7 @@ export default function App() {
                         isHorsSujet || isCopieIncomplete ? 'text-red-700' : isQuestionDeviation ? 'text-rose-800' : isDirectStart || isSansConclusion ? 'text-amber-800' : 'text-slate-950'
                       }`}
                     >
-                      {isHorsSujet || isCopieIncomplete ? '0/10' : `${scores.total || '8.8'}/10`}
+                      {isHorsSujet || isCopieIncomplete ? '0/10' : scores.total ? `${scores.total}/10` : '—/10'}
                     </span>
                   </div>
 
