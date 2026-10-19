@@ -847,7 +847,7 @@ RÈGLES D'OR ABSOLUES :
   - Si le candidat a rédigé une conclusion ou un paragraphe de clôture (ex: amorcé par « D'après ce qui précède », « En définitive », « En conclusion », « En guise de conclusion », « En somme », « Ainsi », « Au terme de notre réflexion », « Je confirme tenacement », etc., ou s'il s'agit du 4e paragraphe de clôture d'un plan structuré) :
     LA CONCLUSION EST PLEINEMENT PRÉSENTE ET VALIDE !
     NE COMMENCE JAMAIS PAR [[SANS_CONCLUSION]] SOUS AUCUN PRÉTEXTE !
-    Une production complète (Introduction avec accroche et problématique, 2 axes de développement équilibrés et illustrés d'exemples de l'œuvre, et Conclusion synthétique avec point de vue ferme et ouverture) est une COPIE D'EXCELLENCE qui mérite une note de 9/10 à 9.5/10 (ex: Consigne:2.0|Structure:1.8|Arguments:1.8|Langue:2.1|Lexique:1.3 = 9.0/10) !
+    Une production complète doit être évaluée avec un BARÈME RIGOUREUX ET EXIGEANT selon sa véritable valeur littéraire, sa cohérence interne, sa pertinence argumentative et la correction de sa langue (NE JAMAIS ATTRIBUER 9/10 À UN TEXTE NORMAL OU MOYEN QUI MANQUE DE COHÉRENCE ET DE PERTINENCE ! Les copies ordinaires ou moyennes se situent obligatoirement entre 4.5/10 et 6.5/10).
   - UNIQUEMENT SI LE CANDIDAT S'EST ARRÊTÉ EN PLEIN DÉVELOPPEMENT ET N'A ABSOLUMENT RÉDIGÉ AUCUN PARAGRAPHE DE CLÔTURE NI AUCUNE CONCLUSION :
     1. LA SANCTION ÉLIMINATOIRE DE 0/10 N'EST PAS APPLIQUÉE (ce n'est ni un 0/10, ni un hors-sujet).
     2. Commence impérativement par [[SANS_CONCLUSION]].
@@ -882,14 +882,33 @@ RÈGLES D'OR ABSOLUES :
 STRUCTURE DE RÉPONSE OBLIGATOIRE ET STRICTE :
 
 [[GRILLE]] : Consigne:X|Structure:X|Arguments:X|Langue:X|Lexique:X
-(Notes décimales sur le barème officiel de 10 points :
- - Consigne /2 (respect de la consigne et absence de hors-sujet)
- - Structure /2 (CRITÈRE DÉTERMINANT : QUALITÉ DE L'AMORCE DE L'INTRODUCTION ET PRISE EN COMPTE DIRECTE DES LIENS LOGIQUES MIS EN COULEURS DANS LA COPIE !
-    * RÈGLE FORMELLE SUR L'AMORCE : SI L'INTRODUCTION NE PRÉSENTE PAS LE SUJET AVEC UNE BONNE AMORCE (entrée abrupte, banalité, absence de mise en contexte littéraire ou sociétale), L'ÉLÈVE MÉRITE STRICTEMENT LA NOTE DE 0.75 POUR LA STRUCTURE : Structure:0.75 !
-    * Ce critère évalue également l'armature textuelle globale : présence indispensable de connecteurs d'attaque au début de chaque paragraphe de développement comme « En premier lieu » ou « D'une part », diversité et pertinence des transitions logiques mises en couleurs dans la copie, et connecteur académique de clôture de conclusion. Une copie pourvue d'une excellente amorce et de liens logiques riches et variés mis en couleurs doit être valorisée à 1.7-2.0/2. Une copie sans liens logiques ou avec des connecteurs inadaptés doit être lourdement pénalisée sur ce critère de Structure !)
- - Arguments /2 (solidité et illustrations)
- - Langue /2.5 (correction syntaxique et grammaticale)
- - Lexique /1.5 (précision lexicale))
+(BARÈME OFFICIEL DU BACCALAURÉAT RÉGIONAL SUR 10 POINTS - EXIGENT, RIGOUREUX ET SANS COMPLAISANCE :
+ ⚠️ INTERDICTION FORMELLE DE SURNOTER ! NE JAMAIS METTRE 9/10 À UN TEXTE ORDINAIRE QUI MANQUE DE COHÉRENCE OU DE PERTINENCE !
+ - Consigne /2 (Respect rigoureux du sujet et de la consigne) :
+   * 1.75 à 2.0 : Compréhension magistrale, prise de position ferme, claire, nuancée et parfaitement argumentée.
+   * 1.25 à 1.5 : Sujet compris mais traité de façon convenue, partielle ou timide.
+   * 0.75 à 1.0 : Traitement superficiel, hésitant, idées diluées ou floues.
+   * 0.0 à 0.5 : Déviation de consigne ou hors-sujet.
+ - Structure & Cohérence /2 (Organisation textuelle, enchaînement logique & liens logiques) :
+   * 1.75 à 2.0 : Amorce remarquable, problématique nette, progression logique sans faille, liens logiques variés et pertinents, conclusion solide.
+   * 1.25 à 1.5 : Plan visible mais transitions scolaires ou mécaniques, énumération simple, cohérence moyenne.
+   * 0.75 à 1.0 : Amorce défaillante ou abrupte (0.75 strict), ruptures logiques, manque de cohérence entre paragraphes, connecteurs absents ou mal employés.
+   * 0.0 à 0.5 : Attaque directe sans intro, absence de conclusion ou structure informe.
+ - Arguments & Pertinence /2 (Force argumentative et ancrage littéraire concret) :
+   * 1.75 à 2.0 : Arguments originaux, puissants et convaincants, étayés par des exemples PRÉCIS et DÉVELOPPÉS tirés de l'œuvre au programme (personnages nommés, scènes concrètes).
+   * 1.25 à 1.5 : Arguments recevables mais banals ou généraux, exemples littéraires simplement mentionnés sans analyse.
+   * 0.75 à 1.0 : Arguments faibles, répétitifs, idées reçues, manque de pertinence, aucun exemple littéraire concret ou exemples vagues.
+   * 0.25 à 0.5 : Arguments incohérents, contradictoires ou hors de propos.
+ - Langue /2.5 (Syntaxe, grammaire, accords et conjugaison - SANCTION DIRECTE DES ERREURS DE LA COPIE) :
+   * 0 faute : 2.5/2.5
+   * 1 à 2 fautes : 2.0 à 2.25/2.5
+   * 3 à 4 fautes : 1.5 à 1.75/2.5
+   * 5 à 6 fautes : 1.0 à 1.25/2.5
+   * 7 fautes ou plus : 0.25 à 0.75/2.5
+ - Lexique /1.5 (Richesse et précision du vocabulaire, orthographe lexicale) :
+   * 1.25 à 1.5 : Vocabulaire riche, précis, élégant et adapté au registre académique.
+   * 0.75 à 1.0 : Vocabulaire ordinaire, répétitions, manque de variété.
+   * 0.25 à 0.5 : Vocabulaire très pauvre, fautes d'usage, termes familiers.)
 
 [[TRANSCRIPTION]]
 (Transcris STRICTEMENT ET INTÉGRALEMENT l'ensemble de la copie du candidat mot à mot, sans omettre aucune phrase, sans tronquer et sans résumer.
@@ -1177,7 +1196,11 @@ CONSIGNES CHIRURGICALES POUR LA COMMISSION :
    - NON-RESPECT DE LA QUESTION DU SUJET / DÉVIATION DE LA CONSIGNE = NOTE GLOBALE STRICTEMENT PLAFONNÉE À 2/10 MAXIMUM : Si le candidat ne répond pas à 100% à la question spécifique posée par le sujet (par exemple s'il esquive la question « Partagez-vous ce second avis ? », omet totalement la « création artistique » et l'« autonomie », traite des causes médicales/pathologiques au lieu d'instruire le débat, ou laisse une prise de position inachevée comme « Personnellement, je pense que cet isolement est »), commence impérativement par [[DEVIATION_CONSIGNE]], attribue au maximum Consigne:0.25, et PLAFONNE STRICTEMENT LA NOTE GLOBALE À 2/10 MAXIMUM (la somme des critères ne doit en aucun cas dépasser 2.0/10) ! Dédie l'Audit Méthodologique ([[BILAN]]) à l'analyse approfondie de cette déviation. Les sections 3 (fautes) et 5 (optimisation stylistique) sont désactivées car il ne sert à rien de corriger ou d'optimiser une copie déviante.
    - ATTAQUE DIRECTE SANS INTRODUCTION (« PERSONNELLEMENT / POUR MA PART / DE MA PART / POUR MOI... ») AVEC DÉVELOPPEMENT ET CONCLUSION = NOTE MAX 5/10 : Si l'élève commence directement par son avis sans introduction préalable mais avec un développement et une conclusion, commence par [[ATTAQUE_DIRECTE]] (JAMAIS [[HORS_SUJET]] NI [[COPIE_INCOMPLETE]]), attribue au maximum Structure:0.5 et PLAFONNE LA NOTE GLOBALE À 5/10 MAXIMUM (la somme des 5 critères ne doit pas dépasser 5.0) !
    - ABSENCE DE CONCLUSION : UNIQUEMENT si la copie est interrompue après le développement et ne comporte aucun paragraphe de conclusion rédigé. Si la copie comporte un paragraphe de clôture (ex: « D'après ce qui précède », « En conclusion », « En définitive », « En somme », « Ainsi »...), la conclusion est validée et NE DOIT PAS être sanctionnée !
-   - COPIE D'EXCELLENCE COMPLÈTE (INTRODUCTION + 2 AXES + CONCLUSION) = 9/10 À 9.5/10 : Une copie complète avec une problématique claire, deux axes illustrés et une conclusion nette mérite une note d'excellence de 9/10 à 9.5/10 (ex: Consigne:2.0|Structure:1.8|Arguments:1.8|Langue:2.1|Lexique:1.3 = 9.0/10) !
+   - BARÈME OFFICIEL RIGOUREUX & EXIGEANT (INTERDICTION FORMELLE DE SURNOTER) :
+     ⚠️ NE JAMAIS ATTRIBUER 9/10 OU 9.5/10 À DES TEXTES NORMAUX QUI MANQUENT DE COHÉRENCE ET DE PERTINENCE !
+     * La note de 9/10 à 9.5/10 est réservée EXCLUSIVEMENT à des copies exceptionnelles et parfaites (style remarquable, zéro faute de langue, argumentation philosophique et littéraire brillante avec citations ou scènes précises des œuvres au programme, connecteurs variés et organiques).
+     * Pour les copies ordinaires ou moyennes (textes normaux avec idées convenues, argumentation superficielle, manque de pertinence ou de cohérence entre les idées, ou plusieurs fautes de langue) : la note se situe OBLIGATOIREMENT entre 4.5/10 et 6.5/10 (ex: Consigne:1.25|Structure:1.0|Arguments:1.0|Langue:1.5|Lexique:0.8 = 5.55/10) !
+     * Évalue impitoyablement chaque critère : Consigne /2 (sanctionner si traitement partiel ou superficiel), Structure /2 (sanctionner le manque de cohérence ou amorce faible 0.75 strict), Arguments /2 (sanctionner le manque de pertinence ou absence d'exemples littéraires précis de l'œuvre), Langue /2.5 (sanctionner chaque faute de grammaire/accord), Lexique /1.5 (vocabulaire ordinaire = max 0.75-1.0).
    - AMORCE DE L'INTRODUCTION SANS BONNE ACCROCHE = 0.75 POUR LA STRUCTURE : Si la copie contient une introduction mais que celle-ci ne présente pas le sujet avec une bonne amorce (démarrage abrupt, phrase banale, absence de cadrage liminaire), attribue STRICTEMENT la note de 0.75 pour la Structure (Structure:0.75) dans [[GRILLE]] et justifie cette pénalité dans le [[BILAN]].`
     : prompt;
 
