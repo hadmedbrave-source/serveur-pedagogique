@@ -95,6 +95,48 @@ function contractPreposition(prep: 'de' | 'à', text: string): string {
   }
 }
 
+// Nettoyage rigoureux des clauses de thèse pour éliminer tout bégaiement ou double connecteur (« d'autres en revanche estiment au contraire que d'autres en revanche... »)
+function cleanThesisClause(text: string): string {
+  if (!text) return '';
+  let s = text.trim();
+  // Nettoyer ponctuations finales si présentes
+  s = s.replace(/[.;:?!]+$/, '').trim();
+  // Supprimer les connecteurs d'opposition ou d'amorce déjà insérés
+  s = s
+    .replace(/^(d'autres\s+(en\s+revanche|au\s+contraire|pour\s+leur\s+part)?\s*(estiment|ressentent|pensent|affirment|considèrent|jugent|soutiennent|font\s+valoir)?\s*(au\s+contraire\s+)?que\s*)/i, '')
+    .replace(/^(d'autres\s+(en\s+revanche|au\s+contraire)\s*)/i, '')
+    .replace(/^(en\s+revanche\s*,?\s*|au\s+contraire\s*,?\s*|néanmoins\s*,?\s*|cependant\s*,?\s*|toutefois\s*,?\s*)/i, '')
+    .replace(/^(si\s+(certains|d'aucuns|une\s+partie\s+de\s+l'opinion)\s+(affirment|soutiennent|pensent|estiment|jugent)\s+(avec\s+conviction\s+)?que\s*)/i, '')
+    .replace(/^(certains\s+(affirment|soutiennent|pensent|estiment|jugent)\s+(avec\s+conviction\s+)?que\s*)/i, '')
+    .replace(/^(certaines\s+personnes\s+(aiment|préfèrent|estiment|pensent|choisissent)\s*)/i, (_match, verb) => {
+      const v = (verb || '').toLowerCase();
+      if (v === 'aiment' || v === 'préfèrent') return 'le fait de ';
+      return '';
+    })
+    .replace(/^(il\s+est\s+vrai\s+que\s*)/i, '')
+    .replace(/^(tandis\s+que\s*|alors\s+que\s*)/i, '')
+    .trim();
+
+  // Minuscule sur la première lettre sauf si nom propre (ex: Sidi Mohammed, Antigone)
+  const properNouns = ['Sidi', 'Antigone', 'Créon', 'Creon', 'Ismène', 'Ismene', 'Polynice', 'Hémon', 'Hemon', 'Victor', 'Hugo', 'Ahmed', 'Sefrioui'];
+  const firstWord = s.split(/\s+/)[0] || '';
+  if (!properNouns.includes(firstWord) && s.length > 0) {
+    s = s.charAt(0).toLowerCase() + s.slice(1);
+  }
+  return s;
+}
+
+// Nettoyage d'une question problématique pour éviter les doubles ponctuations
+function cleanQuestionSentence(q: string): string {
+  if (!q) return '';
+  let s = q.trim();
+  s = s.replace(/^[,\s;:]+/, '').replace(/[?!.\s]+$/, '').trim();
+  if (s.length > 0) {
+    s = s.charAt(0).toLowerCase() + s.slice(1);
+  }
+  return s;
+}
+
 function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | null): SubjectAnalysis {
   const clean = (rawSubject || '')
     .replace(/^Sujet\s*:\s*/i, '')
@@ -180,9 +222,9 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     (lower.includes('rester seule') && lower.includes('ami'))
   ) {
     themeName = 'le choix entre la solitude et la recherche de compagnie';
-    these1 = 'certaines personnes aiment rester seules pour goûter au calme, affirmer leur autonomie et stimuler leur imagination';
+    these1 = 'le recueillement solitaire permet de cultiver la paix intérieure et l\'autonomie';
     these1Explication = 'En effet, le recueillement solitaire offre un havre protecteur pour réfléchir et rêver en profondeur, à l\'image de Sidi Mohammed dans son univers secret.';
-    these2 = 'd\'autres en revanche ressentent le besoin vital d\'avoir de la compagnie et de s\'entourer d\'amis pour partager les joies de la vie et surmonter l\'isolement';
+    these2 = 'la présence d\'amis et la vie en communauté demeurent indispensables au bonheur et à l\'épanouissement';
     these2Explication = 'En effet, l\'être humain a un besoin fondamental d\'écoute, de dialogue sincère et d\'entraide pour s\'épanouir harmonieusement au milieu des siens.';
     questionCentrale = 'convient-il de rechercher la tranquillité de la solitude ou de privilégier la chaleur de la compagnie et de l\'amitié';
 
@@ -209,9 +251,9 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     conclusionFermeAlt = 'la solitude choisie n\'est nullement un fardeau, mais un refuge fécond qui permet à l\'esprit de s\'épanouir et de cultiver sa véritable liberté';
   } else if (lower.includes('solitude') || lower.includes('seul')) {
     themeName = 'la solitude et son impact sur l\'individu';
-    these1 = 'la solitude choisie permet à l\'individu de se recueillir, d\'affirmer son autonomie et de stimuler son imagination';
+    these1 = 'la solitude choisie permet à l\'individu de se recueillir et d\'affirmer son autonomie';
     these1Explication = 'En effet, loin du bruit et du regard des autres, l\'esprit trouve le calme nécessaire pour réfléchir et créer son propre monde.';
-    these2 = 'la solitude subie isole la personne et lui fait éprouver une souffrance morale pesante';
+    these2 = 'la solitude subie isole l\'être humain et le prive de la chaleur des liens fraternels';
     these2Explication = 'En effet, l\'être humain a un besoin vital de dialogue et d\'affection fraternelle pour se sentir compris et aimé.';
     questionCentrale = 'doit-on percevoir la solitude comme un refuge fécond ou comme une douloureuse épreuve';
     theseSimpleAvis = 'la solitude constitue le lieu privilégié de la réflexion, de l\'autonomie et de la création artistique';
@@ -744,38 +786,36 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
     setSelectedVariante(null);
 
     const theme = subjectAnalysis.themeName;
-    const t1 = subjectAnalysis.these1;
+    const t1 = cleanThesisClause(subjectAnalysis.these1);
     const t1Exp = subjectAnalysis.these1Explication;
-    const t2 = subjectAnalysis.these2;
+    const t2 = cleanThesisClause(subjectAnalysis.these2);
     const t2Exp = subjectAnalysis.these2Explication;
-    const qCentral = subjectAnalysis.questionCentrale;
+    const qCentral = cleanQuestionSentence(subjectAnalysis.questionCentrale);
 
     if (step === 'INTRO') {
       if (selectedPlan === 'DIALECTIQUE') {
-        // Variante 1 : Clarté & Simplicité Directe (Vocabulaire accessible, arguments nets et bien expliqués)
+        // Variante 1 : Clarté & Simplicité Directe (Vocabulaire accessible, opposition nette sans double connecteur, fin stricte sur la problématique)
         setVarianteA(
-          `Dans l'œuvre « ${selectedOeuvre} » comme dans notre société, la question relative ${contractPreposition('à', theme)} suscite de vives discussions. Si certains affirment avec conviction que ${t1}, d'autres en revanche estiment au contraire que ${t2}. Dès lors, ${qCentral} ? Pour répondre clairement à cette interrogation, nous examinerons d'abord les raisons qui soutiennent la première idée, avant d'aborder dans un second temps les nuances et les réserves nécessaires.`
+          `Dans l'œuvre « ${selectedOeuvre} » comme dans notre société, la question relative ${contractPreposition('à', theme)} suscite de vives discussions. Si certains soutiennent avec conviction que ${t1}, d'autres estiment au contraire que ${t2}. Dès lors, ${qCentral} ?`
         );
 
-        // Variante 2 : Élégance & Nuance Académique (50% soutenu / 50% simple et fort, structure officielle)
+        // Variante 2 : Élégance Académique & Immersion Littéraire (Ancrage direct dans l'œuvre, style soigné, clôture nette sur la question)
         setVarianteB(
-          `Force est de constater que la problématique inhérente ${contractPreposition('à', theme)} interpelle vivement notre réflexion contemporaine. Tandis qu'une partie de l'opinion défend l'idée selon laquelle ${t1}, d'autres observateurs font valoir en revanche que ${t2}. Il importe dès lors de s'interroger : ${qCentral} ? Pour éclairer ce débat, nous analyserons dans un premier temps le bien-fondé de cette position, avant d'en mesurer dans un second temps les limites légitimes.`
+          `Quand on plonge dans la lecture attentive de « ${selectedOeuvre} », on constate que la tension relative ${contractPreposition('à', theme)} constitue une interrogation existentielle majeure. Tandis qu'une partie de l'opinion défend l'idée selon laquelle ${t1}, d'autres observateurs font valoir que ${t2}. Il importe dès lors de s'interroger : ${qCentral} ?`
         );
       } else {
-        // Plan Simple : Plaidoyer et défense résolue du point de vue personnel ancré dans l'œuvre avec annonce des 2 arguments
-        const avis = currentSimpleAvis;
-        const arg1 = dev1Argument.trim() || currentArg1Simple;
-        const arg2 = dev2Argument.trim() || currentArg2Simple;
-        const qSimple = currentQuestionSimple;
+        // Plan Simple : Plaidoyer et défense résolue du point de vue personnel ancré dans l'œuvre, fin stricte sur la problématique
+        const avis = cleanThesisClause(currentSimpleAvis);
+        const qSimple = cleanQuestionSentence(currentQuestionSimple);
 
-        // Variante 1 : Clarté & Simplicité Directe (Fluide, sans faute de contraction, prise de position directe sans redondance)
+        // Variante 1 : Clarté & Simplicité Directe
         setVarianteA(
-          `Dans l'œuvre « ${selectedOeuvre} » comme au sein de notre quotidien, la réflexion relative ${contractPreposition('à', theme)} occupe une place prépondérante. Pour ma part, je soutiens fermement que ${avis}. Dès lors, ${qSimple} ? Afin de justifier ce point de vue, nous verrons d'abord que ${arg1}, puis nous montrerons dans un second temps que ${arg2}.`
+          `Dans l'œuvre « ${selectedOeuvre} » comme au sein de notre quotidien, la réflexion relative ${contractPreposition('à', theme)} occupe une place prépondérante. Pour ma part, je soutiens fermement que ${avis}. Dès lors, ${qSimple} ?`
         );
 
-        // Variante 2 : Élégance Équilibrée 50/50 (Tournure soignée, registre académique équilibré, argumentation solide)
+        // Variante 2 : Élégance Académique & Immersion Littéraire
         setVarianteB(
-          `Dans l'œuvre « ${selectedOeuvre} » comme au cœur des débats actuels, la problématique inhérente ${contractPreposition('à', theme)} interpelle vivement notre conscience. Loin de toute hésitation, j'adhère sans réserve à l'idée selon laquelle ${avis}. Il convient dès lors de poser la question essentielle : ${qSimple} ? Pour approfondir cette réflexion, nous mettrons d'abord en lumière le fait que ${arg1}, avant de souligner combien ${arg2}.`
+          `Quand on plonge dans la lecture attentive de « ${selectedOeuvre} », la problématique inhérente ${contractPreposition('à', theme)} interpelle vivement notre réflexion. Loin de toute hésitation, j'adhère sans réserve à l'idée selon laquelle ${avis}. Il convient dès lors de poser la question essentielle : ${qSimple} ?`
         );
       }
     } else if (step === 'DEV_AXE1') {
@@ -1380,7 +1420,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                   <span>
                     {selectedPlan === 'DIALECTIQUE'
-                      ? '2. Confrontation des thèses : « Certains... d\'autres en revanche estiment... »'
+                      ? '2. Confrontation des thèses : « Si certains... d\'autres estiment au contraire... »'
                       : '2. Prise de position claire dès l\'introduction (Thèse défendue)'}
                   </span>
                 </label>
@@ -1389,17 +1429,17 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     <>
                       <button
                         type="button"
-                        onClick={() => setIntroTheses(`Certains affirment avec conviction que ${subjectAnalysis.these1}, tandis que d'autres en revanche estiment que ${subjectAnalysis.these2}. `)}
+                        onClick={() => setIntroTheses(`Si certains soutiennent avec conviction que ${cleanThesisClause(subjectAnalysis.these1)}, d'autres estiment au contraire que ${cleanThesisClause(subjectAnalysis.these2)}. `)}
                         className="text-[11px] px-2 py-0.5 rounded bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200 transition font-medium cursor-pointer"
                       >
-                        + « Certains... d'autres en revanche estiment... »
+                        + « Si certains... d'autres estiment au contraire... »
                       </button>
                       <button
                         type="button"
-                        onClick={() => setIntroTheses(`Si une partie de l'opinion soutient que ${subjectAnalysis.these1}, d'autres voix en revanche font valoir que ${subjectAnalysis.these2}. `)}
+                        onClick={() => setIntroTheses(`Tandis qu'une partie de l'opinion défend l'idée selon laquelle ${cleanThesisClause(subjectAnalysis.these1)}, d'autres observateurs font valoir que ${cleanThesisClause(subjectAnalysis.these2)}. `)}
                         className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition font-medium cursor-pointer"
                       >
-                        + Variante d'opposition
+                        + Variante académique
                       </button>
                     </>
                   ) : (
@@ -2279,7 +2319,11 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                    <span>Variante 2 : « Élégance Équilibrée 50/50 »</span>
+                    <span>
+                      {reformulationStep === 'INTRO'
+                        ? 'Variante 2 : « Élégance Académique & Immersion Littéraire »'
+                        : 'Variante 2 : « Élégance Équilibrée 50/50 »'}
+                    </span>
                   </span>
                   {selectedVariante === 'B' && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-slate-950">Choisie</span>
@@ -2289,7 +2333,9 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                   « {varianteB} »
                 </p>
                 <div className="text-[10px] text-slate-500 font-medium">
-                  50% soutenu / 50% simple et fort : tournures soignées, sans lourdeur inutile.
+                  {reformulationStep === 'INTRO'
+                    ? "Ancrage littéraire direct dans l'œuvre, registre soigné et problématique rigoureuse."
+                    : '50% soutenu / 50% simple et fort : tournures soignées, sans lourdeur inutile.'}
                 </div>
               </div>
             </div>
