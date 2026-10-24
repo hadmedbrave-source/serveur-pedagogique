@@ -74,6 +74,8 @@ interface SubjectAnalysis {
   arg2SimpleExplicationAlt?: string;
   questionSimpleAlt?: string;
   conclusionFermeAlt?: string;
+  syntheseDialectique?: string;
+  ouvertureDialectique?: string;
 }
 
 // Fonction de contraction grammaticale française irréprochable (ex: "de + le choix" -> "du choix", "à + le choix" -> "au choix")
@@ -203,6 +205,8 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
   let arg2SimpleExplication = 'En effet, une communauté qui s\'appuie sur ce principe garantit la paix et l\'épanouissement partagé.';
   let questionSimple = 'en quoi cette prise de position constitue-t-elle une évidence incontestable';
   let conclusionFerme = 'ce principe s\'impose avec force comme une vérité fondamentale à préserver';
+  let syntheseDialectique = '';
+  let ouvertureDialectique = '';
 
   let hasDualOptions = false;
   let optionAName = '';
@@ -227,6 +231,8 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     these2 = 'la présence d\'amis et la vie en communauté demeurent indispensables au bonheur et à l\'épanouissement';
     these2Explication = 'En effet, l\'être humain a un besoin fondamental d\'écoute, de dialogue sincère et d\'entraide pour s\'épanouir harmonieusement au milieu des siens.';
     questionCentrale = 'convient-il de rechercher la tranquillité de la solitude ou de privilégier la chaleur de la compagnie et de l\'amitié';
+    syntheseDialectique = "l'épanouissement humain réside dans une harmonie féconde entre le ressourcement solitaire et la chaleur indispensable de la vie sociale et de l'amitié";
+    ouvertureDialectique = "comment préserver des espaces d'authenticité et de paix intérieure dans un monde contemporain hyperconnecté ?";
 
     // Option A : Préférer avoir de la compagnie (défense de la sociabilité et des amis)
     hasDualOptions = true;
@@ -256,6 +262,8 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     these2 = 'la solitude subie isole l\'être humain et le prive de la chaleur des liens fraternels';
     these2Explication = 'En effet, l\'être humain a un besoin vital de dialogue et d\'affection fraternelle pour se sentir compris et aimé.';
     questionCentrale = 'doit-on percevoir la solitude comme un refuge fécond ou comme une douloureuse épreuve';
+    syntheseDialectique = "la solitude ne devient féconde que lorsqu'elle est un choix serein de recueillement, sans jamais rompre les liens de bienveillance et d'amitié avec autrui";
+    ouvertureDialectique = "dans une société vouée au tumulte permanent, comment réapprendre à habiter sereinement sa propre solitude sans sombrer dans l'isolement ?";
     theseSimpleAvis = 'la solitude constitue le lieu privilégié de la réflexion, de l\'autonomie et de la création artistique';
     arg1Simple = 'la solitude choisie offre un refuge indispensable pour stimuler l\'imagination et féconder la création artistique';
     arg1SimpleExplication = 'En effet, loin du tumulte extérieur et de la banalité des conversations, l\'esprit s\'évade et invente un univers féerique et protecteur.';
@@ -493,6 +501,13 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     conclusionFerme = `l'idée selon laquelle « ${coreClaim} » triomphe avec éclat et doit guider nos convictions avec une détermination sans faille`;
   }
 
+  if (!syntheseDialectique) {
+    syntheseDialectique = `le juste équilibre conciliant les vertus de ${cleanThesisClause(these1)} et les bienfaits de ${cleanThesisClause(these2)} constitue la voie de la sagesse`;
+  }
+  if (!ouvertureDialectique) {
+    ouvertureDialectique = `comment les générations futures sauront-elles concilier durablement ces exigences au sein de la société contemporaine ?`;
+  }
+
   return {
     cleanSubject: clean,
     themeName,
@@ -509,6 +524,8 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     arg2SimpleExplication,
     questionSimple,
     conclusionFerme,
+    syntheseDialectique,
+    ouvertureDialectique,
   };
 }
 
@@ -559,7 +576,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
 
   // Champs du Développement Axe 2
   const [dev2Amorce, setDev2Amorce] = useState(
-    selectedPlan === 'DIALECTIQUE' ? 'Cependant, en revanche, ' : 'D\'autre part, en second lieu, '
+    selectedPlan === 'DIALECTIQUE' ? 'Cependant, ' : 'D\'autre part, '
   );
   const [dev2Argument, setDev2Argument] = useState('');
   const [dev2Explication, setDev2Explication] = useState('En effet, ');
@@ -586,10 +603,10 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
     setSelectedPlan(planToSet);
 
     if (planToSet === 'SIMPLE') {
-      setDev2Amorce("D'autre part, en second lieu, ");
+      setDev2Amorce("D'autre part, ");
       setConclBilan("D'après ce qui précède, je confirme tenacement que ");
     } else {
-      setDev2Amorce("Cependant, en revanche, ");
+      setDev2Amorce("Cependant, ");
       setConclBilan("En définitive, ");
     }
 
@@ -831,20 +848,35 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
 
       // Exemple suivant l'argument : si l'élève n'a pas encore saisi d'exemple, on prend le meilleur exemple détecté
       const finalEx = rawEx || (matchingAxe1.bestMatch ? matchingAxe1.bestMatch.phraseComplete : `Comme l'illustre un épisode marquant de « ${selectedOeuvre} »`);
+      const cleanFinalEx1 = finalEx.replace(/[.,;:]+$/, '').trim();
+
+      const cleanAmorce1 = dev1Amorce.replace(/^(en\s+premier\s+lieu,\s*)+/i, 'En premier lieu, ').trim() + ' ';
 
       // Variante 1 : Clarté & Simplicité directe (Langage simple, argument limpide, explication causale concrète)
       setVarianteA(
-        `${dev1Amorce}il apparaît indéniable que ${finalArg}. ${finalExpl} ${finalEx}, ce qui prouve avec clarté la justesse de cette idée.`
+        `${cleanAmorce1}il apparaît indéniable que ${finalArg}. ${finalExpl} ${cleanFinalEx1}, ce qui prouve avec clarté la justesse de cette idée.`
       );
 
       // Variante 2 : Élégance équilibrée 50/50 (Tournure soignée, registre académique accessible, explication approfondie)
       setVarianteB(
-        `${dev1Amorce}force est de reconnaître la pertinence de l'argument selon lequel ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${finalEx}, attestant que cette vérité transcende les époques et consolide notre réflexion.`
+        `${cleanAmorce1}force est de reconnaître la pertinence de l'argument selon lequel ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${cleanFinalEx1}, attestant que cette vérité transcende les époques et consolide notre réflexion.`
       );
     } else if (step === 'DEV_AXE2') {
       const rawArg = dev2Argument.trim();
       const rawExpl = dev2Explication.trim();
       const rawEx = dev2Exemple.trim();
+
+      // Nettoyer rigoureusement l'amorce pour éliminer tout double connecteur ("Cependant, en revanche,")
+      let cleanAmorce2 = dev2Amorce.trim();
+      if (/^cependant,\s*en\s*revanche/i.test(cleanAmorce2)) {
+        cleanAmorce2 = 'Cependant,';
+      } else if (/^d['’]autre\s+part,\s*en\s*second\s*lieu/i.test(cleanAmorce2)) {
+        cleanAmorce2 = "D'autre part,";
+      }
+      if (!cleanAmorce2.endsWith(',') && !cleanAmorce2.endsWith('.')) {
+        cleanAmorce2 += ',';
+      }
+      cleanAmorce2 += ' ';
 
       if (selectedPlan === 'DIALECTIQUE') {
         const finalArg = rawArg || t2;
@@ -852,15 +884,16 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
           ? rawExpl
           : t2Exp;
         const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : `À cet égard, une scène éloquente de « ${selectedOeuvre} »`);
+        const cleanFinalEx2 = finalEx.replace(/[.,;:]+$/, '').trim();
 
-        // Variante 1 : Clarté & Simplicité (Antithèse)
+        // Variante 1 : Clarté & Simplicité (Antithèse sans double connecteur ni point-virgule parasite)
         setVarianteA(
-          `${dev2Amorce}il convient de souligner que ${finalArg}. ${finalExpl} ${finalEx}, montrant ainsi que cette réalité ne doit pas être jugée de manière unilatérale.`
+          `${cleanAmorce2}il convient de souligner que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, montrant ainsi que cette réalité ne doit pas être jugée de manière unilatérale.`
         );
 
         // Variante 2 : Élégance académique 50/50 (Antithèse)
         setVarianteB(
-          `${dev2Amorce}il serait réducteur d'occulter le fait que ${finalArg}. ${finalExpl} ${finalEx}, prouvant avec éloquence que la lucidité exige de mesurer les contrepoids indispensables à tout jugement équilibré.`
+          `${cleanAmorce2}il serait réducteur d'occulter le fait que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, prouvant avec éloquence que la lucidité exige de mesurer les contrepoids indispensables à tout jugement équilibré.`
         );
       } else {
         // Plan Simple : 2ème argument complémentaire qui fortifie la même thèse (aucune antithèse)
@@ -869,15 +902,16 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
           ? rawExpl
           : currentArg2SimpleExplication;
         const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : `À ce propos, un exemple significatif de « ${selectedOeuvre} »`);
+        const cleanFinalEx2 = finalEx.replace(/[.,;:]+$/, '').trim();
 
         // Variante 1 : Clarté & Simplicité (Progression)
         setVarianteA(
-          `${dev2Amorce}il convient d'ajouter que ${finalArg}. ${finalExpl} ${finalEx}, ce qui consolide notre démonstration en lui apportant un second fondement solide.`
+          `${cleanAmorce2}il convient d'ajouter que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, ce qui consolide notre démonstration en lui apportant un second fondement solide.`
         );
 
         // Variante 2 : Élégance 50/50 (Progression)
         setVarianteB(
-          `${dev2Amorce}cette première analyse trouve un prolongement décisif dans le fait que ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${finalEx}, attestant avec éclat la solidité de notre point de vue.`
+          `${cleanAmorce2}cette première analyse trouve un prolongement décisif dans le fait que ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${cleanFinalEx2}, attestant avec éclat la solidité de notre point de vue.`
         );
       }
     } else if (step === 'CONCL') {
@@ -905,33 +939,41 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
           .trim();
       };
 
-      const rawPvdDialectique = conclPointDeVue.trim() || `le juste équilibre entre respect des principes et discernement personnel doit guider notre réflexion`;
+      const defaultPvdDialectique = subjectAnalysis.syntheseDialectique || `l'harmonie réside dans un juste équilibre entre les exigences individuelles et les nécessités collectives`;
+      const rawPvdDialectique = conclPointDeVue.trim() || defaultPvdDialectique;
       const rawPvdSimple = conclPointDeVue.trim() || currentConclusionFerme;
       const cleanPvdDialectique = cleanPointDeVue(rawPvdDialectique);
       const cleanPvdSimple = cleanPointDeVue(rawPvdSimple);
 
-      const ouv = conclOuverture.trim() || (selectedPlan === 'SIMPLE'
-        ? 'Dès lors, comment encourager chaque individu à cultiver cette autonomie face aux pressions extérieures ?'
-        : 'Dès lors, comment les générations futures sauront-elles concilier ces exigences face aux nouveaux défis contemporains ?');
+      const defaultOuv = selectedPlan === 'SIMPLE'
+        ? (subjectAnalysis.questionSimple ? `comment approfondir cette vérité face aux exigences contemporaines ?` : `comment préserver cette autonomie face aux pressions extérieures ?`)
+        : (subjectAnalysis.ouvertureDialectique || `comment concilier durablement ces exigences au sein de la société contemporaine ?`);
+
+      const rawOuv = conclOuverture.trim() || defaultOuv;
+      const cleanOuv = rawOuv
+        .replace(/^d['’]ailleurs,?\s*/i, '')
+        .replace(/^dès lors,?\s*/i, '')
+        .replace(/^en conclusion,?\s*/i, '')
+        .replace(/^en définitive,?\s*/i, '')
+        .trim();
+      const formattedOuv = cleanOuv ? (cleanOuv.charAt(0).toLowerCase() + cleanOuv.slice(1)) : '';
 
       if (selectedPlan === 'SIMPLE') {
         // Plan Simple : Zéro nuance ! Réaffirmation catégorique et tenace du point de vue personnel défendu
-        // Variante 1 : « Clarté & Fermeté Directe » (formulation unique et limpide, sans AUCUNE répétition de "je confirme")
         setVarianteA(
-          `D'après ce qui précède, je réaffirme avec conviction que ${cleanPvdSimple}. L'ensemble des arguments développés et les exemples tirés de « ${selectedOeuvre} » prouvent sans l'ombre d'un doute la justesse de cette prise de position. ${ouv}`
+          `D'après ce qui précède, je réaffirme avec conviction que ${cleanPvdSimple}. L'ensemble des arguments développés et les exemples tirés de « ${selectedOeuvre} » prouvent sans l'ombre d'un doute la justesse de cette prise de position. Dès lors, ${formattedOuv}`
         );
 
-        // Variante 2 : « Élégance & Conviction Inébranlable 50/50 »
         setVarianteB(
-          `En définitive, à la lumière de la démonstration rigoureuse qui précède, il apparaît incontestable que ${cleanPvdSimple}. Dès lors, je soutiens avec une conviction inébranlable et sans la moindre réserve la validité de ce point de vue personnel. Une perspective stimulante demeure toutefois ouverte : ${ouv}`
+          `En définitive, à la lumière de la démonstration rigoureuse qui précède, il apparaît incontestable que ${cleanPvdSimple}. Dès lors, je soutiens sans réserve la validité de ce point de vue personnel. Une perspective stimulante demeure ouverte : ${formattedOuv}`
         );
       } else {
-        // Plan Dialectique : Synthèse équilibrée
+        // Plan Dialectique : Synthèse équilibrée (sans double connecteur "En définitive, au terme..." et sans répétition de "Dès lors")
         setVarianteA(
-          `En définitive, au terme de notre réflexion relative ${contractPreposition('à', theme)}, il apparaît clairement que ces deux points de vue se complètent et s'éclairent mutuellement. Pour ma part, j'estime que ${cleanPvdDialectique}. ${ouv}`
+          `En définitive, l'analyse approfondie de la question relative ${contractPreposition('à', theme)} montre que ces deux points de vue, loin de s'exclure, se complètent harmonieusement. Pour ma part, j'estime que ${cleanPvdDialectique}. Dès lors, ${formattedOuv}`
         );
         setVarianteB(
-          `Au terme de cette réflexion, l'examen attentif de la problématique inhérente ${contractPreposition('à', theme)} permet de dégager une synthèse équilibrée et féconde. En ce qui me concerne, je demeure convaincu que ${cleanPvdDialectique}. Dès lors, une question essentielle demeure ouverte : ${ouv}`
+          `Au terme de cette réflexion, l'examen attentif de la problématique inhérente ${contractPreposition('à', theme)} permet de dégager une synthèse équilibrée et féconde. En ce qui me concerne, je demeure convaincu que ${cleanPvdDialectique}. Une perspective essentielle demeure dès lors ouverte : ${formattedOuv}`
         );
       }
     }
@@ -2151,7 +2193,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 onChange={(e) => setConclPointDeVue(e.target.value)}
                 placeholder={
                   selectedPlan === 'DIALECTIQUE'
-                    ? "Exemple : pour ma part, j'estime que le juste équilibre entre liberté individuelle et respect des règles communes doit prévaloir..."
+                    ? `Exemple : pour ma part, j'estime que ${subjectAnalysis.syntheseDialectique || "l'harmonie réside dans un juste équilibre entre ces deux exigences..."}`
                     : `Exemple : ${currentConclusionFerme}...`
                 }
                 className="w-full p-3 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-rose-600 focus:ring-2 focus:ring-rose-100 outline-none transition"
@@ -2167,7 +2209,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 rows={2}
                 value={conclOuverture}
                 onChange={(e) => setConclOuverture(e.target.value)}
-                placeholder="Exemple : Dès lors, comment éduquer les futures générations pour concilier tradition et modernité ?"
+                placeholder={`Exemple : Dès lors, ${subjectAnalysis.ouvertureDialectique || "comment préserver cet équilibre face aux mutations contemporaines ?"}`}
                 className="w-full p-3 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-amber-600 focus:ring-2 focus:ring-amber-100 outline-none transition"
               />
             </div>
@@ -2184,7 +2226,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  const rawPvd = conclPointDeVue.trim() || (selectedPlan === 'SIMPLE' ? subjectAnalysis.conclusionFerme : `le juste équilibre entre les différentes exigences doit guider notre jugement`);
+                  const rawPvd = conclPointDeVue.trim() || (selectedPlan === 'SIMPLE' ? subjectAnalysis.conclusionFerme : (subjectAnalysis.syntheseDialectique || `l'épanouissement humain réside dans un équilibre fécond entre ces deux impératifs`));
                   const cleanPvd = rawPvd
                     .replace(/^d['’]après ce qui précède,?\s*/i, '')
                     .replace(/^je confirme tenacement (que\s*)?/i, '')
