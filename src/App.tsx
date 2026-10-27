@@ -3134,58 +3134,55 @@ export default function App() {
     }
 
     if (!conclContent) {
-      conclContent = `<p><strong>En conclusion</strong>, l'analyse menée démontre que la solitude ne saurait être réduite à une fatalité stérile dès lors qu'elle s'accompagne d'une exigence de lucidité et d'une force de recul intérieur. Loin de s'opposer, la conscience intime de soi et la participation active à la vie sociale s'éclairent mutuellement pour forger une personnalité autonome et équilibrée. En définitive, ne revient-il pas à chaque conscience de transformer ses moments d'isolement en un tremplin fertile d'élévation morale et d'authenticité ?</p>`;
-    }
-
-    // Enrichissement substantiel des axes pour garantir strictement entre 16 et 19-20 lignes au total :
-    if (axe1Content && axe1Content.length < 280) {
-      axe1Content += ` Au sein de la médina traditionnelle décrite avec tendresse par <strong>Ahmed Sefrioui dans La Boîte à Merveilles</strong>, les querelles incessantes et les heurts mesquins observés à <strong>Dar Chouafa</strong> révèlent combien l'incompréhension mutuelle peut précipiter l'individu dans un désarroi douloureux. De surcroît, les souffrances éprouvées au Msid sous la férule du fqih illustrent la détresse de l'enfant privé d'écoute bienveillante. Ainsi, l'enfermement subi sans recours extérieur menace la sérénité de l'esprit et nourrit le sentiment d'abandon.`;
-    }
-
-    if (axe2Content && axe2Content.length < 280) {
-      axe2Content += ` À cet égard, le petit <strong>Sidi Mohammed</strong> transforme son isolement en une quête féconde grâce au trésor secret de <strong>sa boîte à merveilles</strong>, où les objets hétéroclites deviennent les confidents d'un univers poétique préservé des vulgarités adultes. De plus, les visites réconfortantes au sanctuaire de <strong>Sidi Ali Boughaleb</strong> avec sa mère <strong>Lalla Zoubida</strong> et les conseils du sage <strong>Sidi El Arafi</strong> démontrent que l'apaisement intérieur permet de transcender les tourments quotidiens. Dès lors, le retour lucide sur soi s'affirme comme le moteur privilégié d'une véritable émancipation.`;
+      conclContent = `<p><strong>En conclusion</strong>, l'amitié sincère et la présence de compagnons bienveillants représentent des piliers essentiels pour mener une vie équilibrée et épanouie. Partager ses joies et ses peines avec des amis fidèles donne une saveur incomparable à notre quotidien. En définitive, dans notre société moderne de plus en plus virtuelle, ne devrions-nous pas accorder plus d'importance aux relations humaines réelles plutôt que de nous enfermer dans la solitude de nos écrans ?</p>`;
     }
 
     const wrapSection = (badgeText: string, badgeBg: string, borderColor: string, bgColor: string, content: string) => {
-      if (!content || !content.trim()) return '';
+      if (!content) return '';
+      let cleanContent = content.trim();
       return `
-        <div style="margin-top:18px; margin-bottom:18px;">
-          <div style="margin-bottom:8px;">
-            <span style="background:${badgeBg}; color:#ffffff; font-weight:800; font-size:0.76rem; padding:3px 11px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.12); text-transform:uppercase; letter-spacing:0.03em;">
-              ${badgeText}
-            </span>
+        <div style="margin-bottom: 16px; padding: 16px 20px; background: ${bgColor}; border: 1.5px solid ${borderColor}; border-radius: 12px; position: relative;">
+          <div style="display: inline-block; margin-bottom: 10px; padding: 3px 10px; background: ${badgeBg}; color: #ffffff; font-weight: 800; font-size: 0.72rem; border-radius: 6px; letter-spacing: 0.04em;">
+            ${badgeText}
           </div>
-          <div style="background:${bgColor}; border-left:5px solid ${borderColor}; border:1px solid ${borderColor}40; border-left-width:5px; border-radius:0 12px 12px 0; padding:14px 16px; color:#1e293b; line-height:2.05; box-shadow:0 1px 3px rgba(0,0,0,0.03); text-align:justify; word-break:break-word; overflow-wrap:anywhere;">
-            ${content.startsWith('<p>') ? content : `<p>${content}</p>`}
+          <div style="line-height: 2.1; font-size: 1.05rem; color: #1e293b;">
+            ${cleanContent}
           </div>
         </div>
       `;
     };
 
     let bodyHtml = '';
-    bodyHtml += wrapSection('1. INTRODUCTION (ORANGE)', '#ea580c', '#ea580c', '#fff7ed', introContent);
-    if (axe1Content) {
-      const badgeTitle = isDialectique ? '2. AXE 1 / THÈSE (BLEU)' : (isAnalytique ? '2. PREMIER AXE / CAUSES (BLEU)' : '2. PREMIER AXE (BLEU)');
-      bodyHtml += wrapSection(badgeTitle, '#2563eb', '#2563eb', '#eff6ff', axe1Content);
-    }
-    if (axe2Content) {
-      const badgeColor = isDialectique ? '#9333ea' : '#0d9488';
-      const badgeTitle = isDialectique ? '3. AXE 2 / ANTITHÈSE (VIOLET)' : (isAnalytique ? '3. SECOND AXE / CONSÉQUENCES (SARCELLE)' : '3. SECOND AXE (SARCELLE)');
-      const bg = isDialectique ? '#faf5ff' : '#f0fdfa';
-      bodyHtml += wrapSection(badgeTitle, badgeColor, badgeColor, bg, axe2Content);
-    }
-    if (axe3Content) {
-      if (isAnalytique) {
-        bodyHtml += wrapSection('4. TROISIÈME AXE / SOLUTIONS & REMÈDES (AMBRE)', '#d97706', '#d97706', '#fffbeb', axe3Content);
-      } else {
-        bodyHtml += wrapSection('4. SYNTHÈSE (SARCELLE)', '#0d9488', '#0d9488', '#f0fdfa', axe3Content);
+    bodyHtml += wrapSection('1. INTRODUCTION (ORANGE)', '#ea580c', '#fed7aa', '#fff7ed', introContent);
+
+    if (isDialectique) {
+      bodyHtml += wrapSection('2. AXE 1 / THÈSE (BLEU)', '#2563eb', '#bfdbfe', '#eff6ff', axe1Content);
+      bodyHtml += wrapSection('3. AXE 2 / ANTITHÈSE (VIOLET)', '#9333ea', '#e9d5ff', '#faf5ff', axe2Content);
+      if (axe3Content) {
+        bodyHtml += wrapSection('4. SYNTHÈSE (SARCELLE)', '#0d9488', '#99f6e4', '#f0fdfa', axe3Content);
+      }
+    } else if (isAnalytique) {
+      bodyHtml += wrapSection('2. CAUSES (BLEU)', '#2563eb', '#bfdbfe', '#eff6ff', axe1Content);
+      bodyHtml += wrapSection('3. CONSÉQUENCES (SARCELLE)', '#0d9488', '#99f6e4', '#f0fdfa', axe2Content);
+      if (hasAxe3InRaw || axe3Content) {
+        bodyHtml += wrapSection('4. SOLUTIONS (AMBRE)', '#d97706', '#fde68a', '#fffbeb', axe3Content);
+      }
+    } else {
+      bodyHtml += wrapSection('2. PREMIER AXE (BLEU)', '#2563eb', '#bfdbfe', '#eff6ff', axe1Content);
+      bodyHtml += wrapSection('3. SECOND AXE (SARCELLE)', '#0d9488', '#99f6e4', '#f0fdfa', axe2Content);
+      if (axe3Content) {
+        bodyHtml += wrapSection('4. TROISIÈME AXE (AMBRE)', '#d97706', '#fde68a', '#fffbeb', axe3Content);
       }
     }
-    if (conclContent) {
-      bodyHtml += wrapSection('CONCLUSION (VERT ÉMERAUDE)', '#059669', '#059669', '#ecfdf5', conclContent);
-    }
+
+    bodyHtml += wrapSection('CONCLUSION (VERT ÉMERAUDE)', '#059669', '#a7f3d0', '#ecfdf5', conclContent);
 
     bodyHtml = highlightConnectors(bodyHtml);
+
+    // Élimination absolue des espaces parasites avant les virgules et signes de ponctuation
+    bodyHtml = bodyHtml.replace(/\s+([,;:?.!])/g, '$1');
+    bodyHtml = bodyHtml.replace(/(<\/strong>)\s+([,;:?.!])/gi, '$1$2');
+    bodyHtml = bodyHtml.replace(/(<\/span>)\s+([,;:?.!])/gi, '$1$2');
 
     const worksTerms = [
       'La Boîte à Merveilles', 'La Boite a Merveilles', 'Ahmed Sefrioui', 'Sidi Mohammed', 'Lalla Zoubida', 'Maâlem Abdeslam', 'Maalem Abdeslam', 'Lalla Aïcha', 'Lalla Aicha', 'Dar Chouafa', 'la voyante Kenza', 'la voyante', 'Sidi El Arafi', 'le fqih', 'le Msid', 'Zineb', 'Rahma', 'Fatma Bziouya', 'Moulay Larbi', 'Sidi Ali Boughaleb',
@@ -3658,7 +3655,11 @@ export default function App() {
       tLow.includes('isolement') || 
       tLow.includes('faiblesse') || 
       tLow.includes('épanouissement') || 
-      tLow.includes('epanouissement');
+      tLow.includes('epanouissement') ||
+      tLow.includes('seul') ||
+      tLow.includes('seule') ||
+      tLow.includes('compagnie') ||
+      tLow.includes('ami');
 
     const isAntigone = tLow.includes('antigone') || 
       tLow.includes('anouilh') || 
@@ -3702,7 +3703,7 @@ export default function App() {
     } else if (isGuerisseur) {
       themeTitle = "le recours aux tradipraticiens et aux guérisseurs traditionnels";
     } else if (isSolitude) {
-      themeTitle = "la réflexion engagée autour de la solitude et de l'épanouissement personnel";
+      themeTitle = "le choix entre la solitude et la recherche de compagnie";
     } else if (isAntigone) {
       themeTitle = "le conflit tragique entre l'obéissance aux impératifs de la loi et la liberté sacrée de la conscience";
     } else if (isCondamne) {
@@ -3778,19 +3779,19 @@ export default function App() {
 
     if (analysis.isSolitude) {
       return `<div class="model-intro">
-<p><strong>Dans La Boîte à Merveilles, le roman autobiographique d'Ahmed Sefrioui</strong>, la solitude et l'épanouissement de l'individu occupent une place centrale. Le livre pose une question qui dépasse le cadre du récit : l'isolement est-il une faiblesse qui enferme, ou une étape nécessaire pour mûrir et se découvrir soi-même ? Si certains considèrent la solitude comme une épreuve douloureuse qui marginalise l'individu, d'autres y voient au contraire le lieu privilégié de la réflexion, de l'autonomie et de la créativité.</p>
+<p>Dans le roman <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui comme dans notre société, le choix entre la solitude et la recherche de compagnie suscite souvent le débat. Pour ma part, je considère fermement que la présence d'amis sincères et la chaleur des relations humaines sont indispensables pour mener une vie heureuse et équilibrée. Dès lors, pour quelles raisons la compagnie et l'amitié constituent-elles un besoin fondamental de notre existence ?</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>D'une part</strong>, il est indéniable que la solitude peut être ressentie comme une souffrance lourde à porter lorsqu'elle est subie. L'être humain a un besoin fondamental de communiquer et de vivre en harmonie avec ses semblables. À cet égard, le jeune <strong>Sidi Mohammed</strong> illustre parfaitement cette détresse au début de l'œuvre. Âgé de six ans, il se sent exclu face aux jeux bruyants des enfants de son âge et traumatisé par le monde des adultes, notamment lors des querelles brutales entre voisines à <strong>Dar Chouafa</strong> ou au cours de la panique au <strong>bain maure</strong>. <strong>Par conséquent</strong>, un repli involontaire sur soi-même engendre un sentiment de tristesse, de rejet et d'incompréhension qui affaiblit le moral.</p>
+<p><strong>En premier lieu</strong>, s'entourer d'amis fidèles et de proches apporte un réconfort moral inestimable face aux épreuves de l'existence. Lorsque les difficultés surviennent, pouvoir confier ses doutes et partager sa peine avec une personne de confiance redonne espoir et courage pour surmonter le découragement. C'est précisément ce que révèle <strong>La Boîte à Merveilles d'Ahmed Sefrioui</strong> : quand le tisserand <strong>Maâlem Abdeslam</strong> perd tout son argent au souk des bijoutiers, la solidarité bienveillante de <strong>Lalla Aïcha</strong> envers son amie <strong>Lalla Zoubida</strong> et le soutien affectueux des voisines de <strong>Dar Chouafa</strong> permettent à la famille de tenir bon face à l'adversité. Ainsi, l'amitié sincère réchauffe le cœur et rend chaque être plus fort devant les obstacles de la vie.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>Cependant</strong>, la solitude s'avère être également un formidable levier d'émancipation et de maturité. <strong>En premier lieu</strong>, loin du vacarme quotidien, elle permet de libérer l'imagination. C'est précisément cette solitude d'enfant qui a poussé <strong>Ahmed Sefrioui</strong> à écrire ce magnifique roman d'une éclatante richesse poétique : grâce à son coffret d'objets simples métamorphosés en trésors fabuleux dans <strong>sa boîte à merveilles</strong>, l'isolement est devenu la source première de sa création artistique. <strong>En second lieu</strong>, le silence intérieur est indispensable pour prendre conscience de ses responsabilités. Comme le soulignait très justement <strong>Feu Sa Majesté le Roi Hassan II</strong> : « <em>Tout homme, à quelque échelon qu'il soit, quand il a quitté ses conseillers, ses amis, ses parents... il arrive à être solitaire.</em> » <strong>Ainsi</strong>, face aux grands choix de l'existence, chaque personne se retrouve seule avec sa conscience pour forger son propre destin.</p>
+<p><strong>En second lieu</strong>, vivre entouré de compagnons favorise l'apprentissage de la tolérance, de la générosité et du vivre-ensemble. L'être humain est un être social qui s'enrichit au contact des autres, alors que l'isolement excessif risque d'enfermer l'individu dans la tristesse, l'angoisse et le repli sur soi. Au début de l'œuvre, le jeune narrateur <strong>Sidi Mohammed</strong> souffre précisément de se sentir seul et incompris au milieu des adultes, cherchant désespérément une présence rassurante pour briser son désarroi. C'est pourquoi la compagnie d'amis sincères combat la monotonie, développe le sens du partage et apporte une joie vivifiante au quotidien. Dès lors, la vie en société et la chaleur humaine demeurent le plus sûr rempart contre la détresse de l'isolement.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En conclusion</strong>, la solitude présente une double dimension. Subie avec passivité, elle enferme l'être dans l'amertume ; mais acceptée avec lucidité, elle devient une étape féconde pour se comprendre, créer et mûrir. Pour s'épanouir pleinement, l'homme doit donc savoir apprécier des instants de recul solitaire, avant de revenir partager ses richesses avec la société.</p>
+<p><strong>En conclusion</strong>, l'amitié et la compagnie humaine représentent des piliers essentiels sans lesquels nul ne peut connaître un épanouissement complet. Partager ses joies et ses peines avec des amis fidèles donne une saveur incomparable à chaque journée. En définitive, dans un monde moderne de plus en plus virtuel, ne devrions-nous pas accorder plus d'importance aux relations humaines réelles plutôt que de nous enfermer dans la solitude de nos écrans ?</p>
 </div>`;
     }
 
@@ -3891,7 +3892,29 @@ export default function App() {
 </div>`;
     }
 
-    if (analysis.isSolitude || (analysis.work === 'boite' && !analysis.isAntigone && !analysis.isCondamne)) {
+    if (analysis.isSolitude) {
+      return `<div class="model-intro">
+<p>Dans le roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui comme dans notre vie quotidienne, la question relative au choix entre la solitude et la recherche de compagnie suscite de nombreuses discussions. D'un côté, certaines personnes aiment rester seules pour goûter au calme, réfléchir et imaginer leur propre univers, tandis que d'autres ressentent le besoin vital d'avoir des amis pour partager les joies de l'existence. Dès lors, convient-il de rechercher la tranquillité de la solitude ou de privilégier la chaleur de la compagnie et de l'amitié ?</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, la solitude choisie permet à l'individu de se reposer, de méditer et de développer librement son autonomie et sa créativité. Loin du bruit et de l'agitation des conversations ordinaires, l'esprit trouve le calme nécessaire pour faire le point sur sa vie et imaginer son propre univers. C'est exactement ce que nous montre le narrateur <strong>Sidi Mohammed</strong> dans <strong>La Boîte à Merveilles d'Ahmed Sefrioui</strong> : grâce aux menus objets rassemblés dans <strong>sa boîte à merveilles</strong>, l'enfant transforme ses heures solitaires en un refuge poétique et merveilleux qui le protège des tensions quotidiennes de <strong>Dar Chouafa</strong>. Ainsi, savoir apprécier des moments de calme intérieur fortifie la personnalité et libère l'imaginaire.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'être humain ne peut pas s'épanouir durablement dans l'isolement, car la présence d'amis et la solidarité sociale sont indispensables pour traverser les épreuves du destin. Face à la maladie, au deuil ou au découragement, la présence de proches bienveillants apporte une écoute sincère et une aide précieuse qu'aucune solitude ne saurait remplacer. Dans l'œuvre de Sefrioui, lors de la disparition de la petite <strong>Zineb</strong> au sanctuaire, toutes les femmes de <strong>Dar Chouafa</strong>, y compris <strong>Lalla Zoubida</strong> qui s'était pourtant violemment disputée avec <strong>Rahma</strong>, s'unissent immédiatement avec une immense compassion pour rechercher l'enfant et consoler la mère éplorée. De surcroît, les visites fraternelles entre <strong>Lalla Zoubida</strong> et <strong>Lalla Aïcha</strong> prouvent que l'amitié véritable allège les peines les plus lourdes. Dès lors, la vie en société et la chaleur des amis constituent un soutien vital irremplaçable.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, ces deux aspirations ne sont nullement incompatibles, mais se complètent au service d'un équilibre harmonieux. La véritable sagesse consiste à préserver des moments de calme pour méditer et cultiver sa paix intérieure, tout en restant ouvert aux autres et fidèle à ses liens d'amitié. Un isolement excessif conduit au repli sur soi, tandis qu'une vie sans aucun recul personnel étourdit l'esprit. Trouver la juste mesure entre être soi-même et vivre avec autrui est la clé de la sérénité.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, la solitude choisie et la recherche d'amitié répondent à deux besoins complémentaires de notre nature. Si le silence intérieur nourrit la pensée et l'autonomie, l'amitié sincère réchauffe le cœur et donne du sens au vivre-ensemble. En définitive, dans une société moderne de plus en plus connectée aux mondes virtuels, comment réussir à maintenir vivants des liens d'amitié sincères et réels ?</p>
+</div>`;
+    }
+
+    if (analysis.work === 'boite' && !analysis.isAntigone && !analysis.isCondamne) {
       return `<div class="model-intro">
 <p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de ${analysis.themeTitle} fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ?</p>
 </div>
