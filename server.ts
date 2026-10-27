@@ -1591,7 +1591,11 @@ function detectSubjectAnalysis(topic: string) {
     tLow.includes('isolement') || 
     tLow.includes('faiblesse') || 
     tLow.includes('épanouissement') || 
-    tLow.includes('epanouissement');
+    tLow.includes('epanouissement') ||
+    tLow.includes('seul') ||
+    tLow.includes('seule') ||
+    tLow.includes('compagnie') ||
+    tLow.includes('ami');
 
   const isAntigone = tLow.includes('antigone') || 
     tLow.includes('anouilh') || 
@@ -1635,7 +1639,7 @@ function detectSubjectAnalysis(topic: string) {
   } else if (isGuerisseur) {
     themeTitle = "le recours aux tradipraticiens et aux guérisseurs traditionnels";
   } else if (isSolitude) {
-    themeTitle = "la réflexion engagée autour de la solitude et de l'épanouissement de l'individu";
+    themeTitle = "le choix entre la solitude et la recherche de compagnie";
   } else if (isAntigone) {
     themeTitle = "le conflit tragique entre l'obéissance aux impératifs de la loi et la liberté sacrée de la conscience";
   } else if (isCondamne) {
@@ -1978,15 +1982,15 @@ ${(() => {
   }
 
   if (analysis.isSolitude) {
-    return `> **Texte Argumentatif : La solitude, obstacle ou force pour grandir ?**
+    return `> **Texte Argumentatif : Le choix entre la solitude et la recherche de compagnie**
 
-> **Dans La Boîte à Merveilles, le roman autobiographique d'Ahmed Sefrioui**, la solitude et l'épanouissement de l'individu occupent une place centrale. Le livre pose une question qui dépasse le cadre du récit : l'isolement est-il une faiblesse qui enferme, ou une étape nécessaire pour mûrir et se découvrir soi-même ? Si certains considèrent la solitude comme une épreuve douloureuse qui marginalise l'individu, d'autres y voient au contraire le lieu privilégié de la réflexion, de l'autonomie et de la créativité.
+> **Dans le roman autobiographique La Boîte à Merveilles d'Ahmed Sefrioui comme dans notre société**, le choix entre la solitude et la recherche de compagnie suscite souvent le débat. Pour ma part, je considère fermement que la présence d'amis sincères et la chaleur des relations humaines sont indispensables pour mener une vie heureuse et équilibrée. Dès lors, pour quelles raisons la compagnie et l'amitié constituent-elles un besoin fondamental de notre existence ?
 
-> **D'une part**, il est indéniable que la solitude peut être ressentie comme une souffrance lourde à porter lorsqu'elle est subie. L'être humain a un besoin fondamental de communiquer et de vivre en harmonie avec ses semblables. À cet égard, le jeune **Sidi Mohammed** illustre parfaitement cette détresse au début de l'œuvre. Âgé de six ans, il se sent exclu face aux jeux bruyants des enfants de son âge et traumatisé par le monde des adultes, notamment lors des querelles brutales entre voisines à **Dar Chouafa** ou au cours de la panique au **bain maure**. **Par conséquent**, un repli involontaire sur soi-même engendre un sentiment de tristesse, de rejet et d'incompréhension qui affaiblit le moral.
+> **En premier lieu**, s'entourer d'amis fidèles et de proches apporte un réconfort moral inestimable face aux épreuves de l'existence. Lorsque les difficultés surviennent, pouvoir confier ses doutes et partager sa peine avec une personne de confiance redonne espoir et courage pour surmonter le découragement. C'est précisément ce que révèle **La Boîte à Merveilles d'Ahmed Sefrioui** : quand le tisserand **Maâlem Abdeslam** perd tout son argent au souk des bijoutiers, la solidarité bienveillante de **Lalla Aïcha** envers son amie **Lalla Zoubida** et le soutien affectueux des voisines de **Dar Chouafa** permettent à la famille de tenir bon face à l'adversité. Ainsi, l'amitié sincère réchauffe le cœur et rend chaque être plus fort devant les obstacles de la vie.
 
-> **Cependant**, la solitude s'avère être également un formidable levier d'émancipation et de maturité. **En premier lieu**, loin du vacarme quotidien, elle permet de libérer l'imagination. C'est précisément cette solitude d'enfant qui a poussé **Ahmed Sefrioui** à écrire ce magnifique roman d'une éclatante richesse poétique : grâce à son coffret d'objets simples métamorphosés en trésors fabuleux dans **sa boîte à merveilles**, l'isolement est devenu la source première de sa création artistique. **En second lieu**, le silence intérieur est indispensable pour prendre conscience de ses responsabilités. Comme le soulignait très justement **Feu Sa Majesté le Roi Hassan II** : « *Tout homme, à quelque échelon qu'il soit, quand il a quitté ses conseillers, ses amis, ses parents... il arrive à être solitaire.* » **Ainsi**, face aux grands choix de l'existence, chaque personne se retrouve seule avec sa conscience pour forger son propre destin.
+> **En second lieu**, vivre entouré de compagnons favorise l'apprentissage de la tolérance, de la générosité et du vivre-ensemble. L'être humain est un être social qui s'enrichit au contact des autres, alors que l'isolement excessif risque d'enfermer l'individu dans la tristesse, l'angoisse et le repli sur soi. Au début de l'œuvre, le jeune narrateur **Sidi Mohammed** souffre précisément de se sentir seul et incompris au milieu des adultes, cherchant désespérément une présence rassurante pour briser son désarroi. C'est pourquoi la compagnie d'amis sincères combat la monotonie, développe le sens du partage et apporte une joie vivifiante au quotidien. Dès lors, la vie en société et la chaleur des amis demeurent le plus sûr rempart contre la détresse de l'isolement.
 
-> **En conclusion**, la solitude présente une double dimension. Subie avec passivité, elle enferme l'être dans l'amertume ; mais acceptée avec lucidité, elle devient une étape féconde pour se comprendre, créer et mûrir. Pour s'épanouir pleinement, l'homme doit donc savoir apprécier des instants de recul solitaire, avant de revenir partager ses richesses avec la société.`;
+> **En définitive**, l'amitié et la compagnie humaine représentent des piliers essentiels sans lesquels nul ne peut connaître un épanouissement complet. Partager ses joies et ses peines avec des amis fidèles donne une saveur incomparable à chaque journée. En conclusion, dans un monde moderne de plus en plus virtuel, ne devrions-nous pas accorder plus d'importance aux relations humaines réelles plutôt que de nous enfermer dans la solitude de nos écrans ?`;
   }
 
   if (analysis.isAntigone) {
@@ -2068,19 +2072,19 @@ ${(() => {
 
   if (analysis.isSolitude) {
     return `<div class="model-intro">
-<p><strong>Dans La Boîte à Merveilles, le roman autobiographique d'Ahmed Sefrioui</strong>, la solitude et l'épanouissement de l'individu occupent une place centrale. Le livre pose une question qui dépasse le cadre du récit : l'isolement est-il une faiblesse qui enferme, ou une étape nécessaire pour mûrir et se découvrir soi-même ? Si certains considèrent la solitude comme une épreuve douloureuse qui marginalise l'individu, d'autres y voient au contraire le lieu privilégié de la réflexion, de l'autonomie et de la créativité.</p>
+<p>Dans le roman <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui comme dans notre société, le choix entre la solitude et la recherche de compagnie suscite souvent le débat. Pour ma part, je considère fermement que la présence d'amis sincères et la chaleur des relations humaines sont indispensables pour mener une vie heureuse et équilibrée. Dès lors, pour quelles raisons la compagnie et l'amitié constituent-elles un besoin fondamental de notre existence ?</p>
 </div>
 
 <div class="model-axe1">
-<p><strong>D'une part</strong>, il est indéniable que la solitude peut être ressentie comme une souffrance lourde à porter lorsqu'elle est subie. L'être humain a un besoin fondamental de communiquer et de vivre en harmonie avec ses semblables. À cet égard, le jeune <strong>Sidi Mohammed</strong> illustre parfaitement cette détresse au début de l'œuvre. Âgé de six ans, il se sent exclu face aux jeux bruyants des enfants de son âge et traumatisé par le monde des adultes, notamment lors des querelles brutales entre voisines à <strong>Dar Chouafa</strong> ou au cours de la panique au <strong>bain maure</strong>. <strong>Par conséquent</strong>, un repli involontaire sur soi-même engendre un sentiment de tristesse, de rejet et d'incompréhension qui affaiblit le moral.</p>
+<p><strong>En premier lieu</strong>, s'entourer d'amis fidèles et de proches apporte un réconfort moral inestimable face aux épreuves de l'existence. Lorsque les difficultés surviennent, pouvoir confier ses doutes et partager sa peine avec une personne de confiance redonne espoir et courage pour surmonter le découragement. C'est précisément ce que révèle <strong>La Boîte à Merveilles d'Ahmed Sefrioui</strong> : quand le tisserand <strong>Maâlem Abdeslam</strong> perd tout son argent au souk des bijoutiers, la solidarité bienveillante de <strong>Lalla Aïcha</strong> envers son amie <strong>Lalla Zoubida</strong> et le soutien affectueux des voisines de <strong>Dar Chouafa</strong> permettent à la famille de tenir bon face à l'adversité. Ainsi, l'amitié sincère réchauffe le cœur et rend chaque être plus fort devant les obstacles de la vie.</p>
 </div>
 
 <div class="model-axe2">
-<p><strong>Cependant</strong>, la solitude s'avère être également un formidable levier d'émancipation et de maturité. <strong>En premier lieu</strong>, loin du vacarme quotidien, elle permet de libérer l'imagination. C'est précisément cette solitude d'enfant qui a poussé <strong>Ahmed Sefrioui</strong> à écrire ce magnifique roman d'une éclatante richesse poétique : grâce à son coffret d'objets simples métamorphosés en trésors fabuleux dans <strong>sa boîte à merveilles</strong>, l'isolement est devenu la source première de sa création artistique. <strong>En second lieu</strong>, le silence intérieur est indispensable pour prendre conscience de ses responsabilités. Comme le soulignait très justement <strong>Feu Sa Majesté le Roi Hassan II</strong> : « <em>Tout homme, à quelque échelon qu'il soit, quand il a quitté ses conseillers, ses amis, ses parents... il arrive à être solitaire.</em> » <strong>Ainsi</strong>, face aux grands choix de l'existence, chaque personne se retrouve seule avec sa conscience pour forger son propre destin.</p>
+<p><strong>En second lieu</strong>, vivre entouré de compagnons favorise l'apprentissage de la tolérance, de la générosité et du vivre-ensemble. L'être humain est un être social qui s'enrichit au contact des autres, alors que l'isolement excessif risque d'enfermer l'individu dans la tristesse, l'angoisse et le repli sur soi. Au début de l'œuvre, le jeune narrateur <strong>Sidi Mohammed</strong> souffre précisément de se sentir seul et incompris au milieu des adultes, cherchant désespérément une présence rassurante pour briser son désarroi. C'est pourquoi la compagnie d'amis sincères combat la monotonie, développe le sens du partage et apporte une joie vivifiante au quotidien. Dès lors, la vie en société et la chaleur des amis demeurent le plus sûr rempart contre la détresse de l'isolement.</p>
 </div>
 
 <div class="model-concl">
-<p><strong>En conclusion</strong>, la solitude présente une double dimension. Subie avec passivité, elle enferme l'être dans l'amertume ; mais acceptée avec lucidité, elle devient une étape féconde pour se comprendre, créer et mûrir. Pour s'épanouir pleinement, l'homme doit donc savoir apprécier des instants de recul solitaire, avant de revenir partager ses richesses avec la société.</p>
+<p><strong>En conclusion</strong>, l'amitié et la compagnie humaine représentent des piliers essentiels sans lesquels nul ne peut connaître un épanouissement complet. Partager ses joies et ses peines avec des amis fidèles donne une saveur incomparable à chaque journée. En définitive, dans un monde moderne de plus en plus virtuel, ne devrions-nous pas accorder plus d'importance aux relations humaines réelles plutôt que de nous enfermer dans la solitude de nos écrans ?</p>
 </div>`;
   }
 
@@ -2164,7 +2168,29 @@ ${(() => {
 </div>`;
   }
 
-  if (analysis.isSolitude || (analysis.work === 'boite' && !analysis.isAntigone && !analysis.isCondamne)) {
+  if (analysis.isSolitude) {
+    return `<div class="model-intro">
+<p>Dans le roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui comme dans notre vie quotidienne, le choix entre la solitude et la recherche de compagnie suscite de nombreuses discussions. D'un côté, certaines personnes aiment rester seules afin de goûter au calme, de réfléchir et de développer leur imagination. D'un autre côté, d'autres ressentent le besoin vital d'avoir des amis pour partager les joies et les peines de l'existence. Dès lors, convient-il de rechercher la tranquillité de la solitude ou de privilégier la chaleur de la compagnie et de l'amitié ?</p>
+</div>
+
+<div class="model-axe1">
+<p><strong>D'une part</strong>, la solitude choisie permet à l'individu de se reposer, de méditer et de développer librement son autonomie et sa créativité. Loin du bruit et de l'agitation des conversations ordinaires, l'esprit trouve le calme nécessaire pour faire le point sur sa vie et imaginer son propre univers. C'est exactement ce que nous montre le narrateur <strong>Sidi Mohammed</strong> dans <strong>La Boîte à Merveilles d'Ahmed Sefrioui</strong> : grâce aux menus objets rassemblés dans <strong>sa boîte à merveilles</strong>, l'enfant transforme ses heures solitaires en un refuge poétique et merveilleux qui le protège des tensions quotidiennes de <strong>Dar Chouafa</strong>. Ainsi, savoir apprécier des moments de calme intérieur fortifie la personnalité et libère l'imaginaire.</p>
+</div>
+
+<div class="model-axe2">
+<p><strong>D'autre part</strong>, l'être humain ne peut pas s'épanouir durablement dans l'isolement, car la présence d'amis et la solidarité sociale sont indispensables pour traverser les épreuves du destin. Face à la maladie, au deuil ou au découragement, la présence de proches bienveillants apporte une écoute sincère et une aide précieuse qu'aucune solitude ne saurait remplacer. Dans l'œuvre de Sefrioui, lors de la disparition de la petite <strong>Zineb</strong> au sanctuaire, toutes les femmes de <strong>Dar Chouafa</strong>, y compris <strong>Lalla Zoubida</strong> qui s'était pourtant violemment disputée avec <strong>Rahma</strong>, s'unissent immédiatement avec une immense compassion pour rechercher l'enfant et consoler la mère éplorée. De surcroît, les visites fraternelles entre <strong>Lalla Zoubida</strong> et <strong>Lalla Aïcha</strong> prouvent que l'amitié véritable allège les peines les plus lourdes. Dès lors, la vie en société et la chaleur des amis constituent un soutien vital irremplaçable.</p>
+</div>
+
+<div class="model-axe3">
+<p><strong>Dès lors</strong>, ces deux aspirations ne sont nullement incompatibles, mais se complètent au service d'un équilibre harmonieux. La véritable sagesse consiste à préserver des moments de calme pour méditer et cultiver sa paix intérieure, tout en restant ouvert aux autres et fidèle à ses liens d'amitié. Un isolement excessif conduit au repli sur soi, tandis qu'une vie sans aucun recul personnel étourdit l'esprit. Trouver la juste mesure entre être soi-même et vivre avec autrui est la clé de la sérénité.</p>
+</div>
+
+<div class="model-concl">
+<p><strong>En conclusion</strong>, la solitude choisie et la recherche d'amitié répondent à deux besoins complémentaires de notre nature. Si le silence intérieur nourrit la pensée et l'autonomie, l'amitié sincère réchauffe le cœur et donne du sens au vivre-ensemble. En définitive, dans une société moderne de plus en plus connectée aux mondes virtuels, comment réussir à maintenir vivants des liens d'amitié sincères et réels ?</p>
+</div>`;
+  }
+
+  if (analysis.work === 'boite' && !analysis.isAntigone && !analysis.isCondamne) {
     return `<div class="model-intro">
 <p>Quand on plonge dans la lecture attentive du roman autobiographique <em>La Boîte à Merveilles</em> d'Ahmed Sefrioui, on constate que la réflexion autour de ${analysis.themeTitle} fait dialoguer deux approches complémentaires de la condition humaine. D'un côté, l'exigence d'une discipline quotidienne et l'attachement aux traditions communes s'imposent comme une nécessité sociale indispensable. D'un autre côté, le besoin de liberté intérieure et le recul critique s'affirment comme des conditions essentielles pour préserver la dignité de la personne. Dès lors, comment concilier le respect des devoirs collectifs et l'aspiration légitime à l'autonomie personnelle ? Il conviendra d'examiner dans un premier temps la valeur protectrice des devoirs partagés, d'envisager dans un deuxième temps la légitimité de l'émancipation personnelle, pour enfin dégager dans une synthèse équilibrée les conditions d'une harmonie durable.</p>
 </div>
