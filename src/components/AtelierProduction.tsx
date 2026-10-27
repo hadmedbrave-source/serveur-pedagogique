@@ -868,15 +868,16 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
 
       // Nettoyer rigoureusement l'amorce pour éliminer tout double connecteur ("Cependant, en revanche,")
       let cleanAmorce2 = dev2Amorce.trim();
-      if (/^cependant,\s*en\s*revanche/i.test(cleanAmorce2)) {
-        cleanAmorce2 = 'Cependant,';
-      } else if (/^d['’]autre\s+part,\s*en\s*second\s*lieu/i.test(cleanAmorce2)) {
-        cleanAmorce2 = "D'autre part,";
-      }
+      cleanAmorce2 = cleanAmorce2.replace(/^(cependant,?\s*en\s+revanche,?\s*|en\s+revanche,?\s*cependant,?\s*)/i, 'Cependant, ');
+      cleanAmorce2 = cleanAmorce2.replace(/^(d'autre\s+part,?\s*en\s+second\s+lieu,?\s*)/i, "D'autre part, ");
+      cleanAmorce2 = cleanAmorce2.replace(/^(d'autre\s+part,?\s*en\s+revanche,?\s*)/i, "D'autre part, ");
+      cleanAmorce2 = cleanAmorce2.replace(/^(toutefois,?\s*cependant,?\s*)/i, 'Toutefois, ');
       if (!cleanAmorce2.endsWith(',') && !cleanAmorce2.endsWith('.')) {
         cleanAmorce2 += ',';
       }
-      cleanAmorce2 += ' ';
+      if (!cleanAmorce2.endsWith(' ')) {
+        cleanAmorce2 += ' ';
+      }
 
       if (selectedPlan === 'DIALECTIQUE') {
         const finalArg = rawArg || t2;
@@ -886,14 +887,14 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : `À cet égard, une scène éloquente de « ${selectedOeuvre} »`);
         const cleanFinalEx2 = finalEx.replace(/[.,;:]+$/, '').trim();
 
-        // Variante 1 : Clarté & Simplicité (Antithèse sans double connecteur ni point-virgule parasite)
+        // Variante 1 : Clarté & Simplicité (Antithèse sans double connecteur ni jargon pompous)
         setVarianteA(
           `${cleanAmorce2}il convient de souligner que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, montrant ainsi que cette réalité ne doit pas être jugée de manière unilatérale.`
         );
 
-        // Variante 2 : Élégance académique 50/50 (Antithèse)
+        // Variante 2 : Élégance équilibrée (Langage clair, accessible, sans emphase artificielle)
         setVarianteB(
-          `${cleanAmorce2}il serait réducteur d'occulter le fait que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, prouvant avec éloquence que la lucidité exige de mesurer les contrepoids indispensables à tout jugement équilibré.`
+          `${cleanAmorce2}on ne saurait ignorer que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, ce qui montre avec netteté que la vie en société et la présence d'amis apportent un équilibre indispensable à chaque personne.`
         );
       } else {
         // Plan Simple : 2ème argument complémentaire qui fortifie la même thèse (aucune antithèse)
@@ -911,7 +912,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
 
         // Variante 2 : Élégance 50/50 (Progression)
         setVarianteB(
-          `${cleanAmorce2}cette première analyse trouve un prolongement décisif dans le fait que ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${cleanFinalEx2}, attestant avec éclat la solidité de notre point de vue.`
+          `${cleanAmorce2}cette première analyse trouve un prolongement naturel dans le fait que ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${cleanFinalEx2}, attestant avec clarté la solidité de notre point de vue.`
         );
       }
     } else if (step === 'CONCL') {
@@ -939,7 +940,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
           .trim();
       };
 
-      const defaultPvdDialectique = subjectAnalysis.syntheseDialectique || `l'harmonie réside dans un juste équilibre entre les exigences individuelles et les nécessités collectives`;
+      const defaultPvdDialectique = subjectAnalysis.syntheseDialectique || `l'harmonie réside dans un juste équilibre entre les moments de recueillement et les bienfaits de l'amitié`;
       const rawPvdDialectique = conclPointDeVue.trim() || defaultPvdDialectique;
       const rawPvdSimple = conclPointDeVue.trim() || currentConclusionFerme;
       const cleanPvdDialectique = cleanPointDeVue(rawPvdDialectique);
@@ -947,7 +948,7 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
 
       const defaultOuv = selectedPlan === 'SIMPLE'
         ? (subjectAnalysis.questionSimple ? `comment approfondir cette vérité face aux exigences contemporaines ?` : `comment préserver cette autonomie face aux pressions extérieures ?`)
-        : (subjectAnalysis.ouvertureDialectique || `comment concilier durablement ces exigences au sein de la société contemporaine ?`);
+        : (subjectAnalysis.ouvertureDialectique || `comment concilier durablement ces deux exigences au sein de la vie moderne ?`);
 
       const rawOuv = conclOuverture.trim() || defaultOuv;
       const cleanOuv = rawOuv
@@ -959,21 +960,21 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
       const formattedOuv = cleanOuv ? (cleanOuv.charAt(0).toLowerCase() + cleanOuv.slice(1)) : '';
 
       if (selectedPlan === 'SIMPLE') {
-        // Plan Simple : Zéro nuance ! Réaffirmation catégorique et tenace du point de vue personnel défendu
+        // Plan Simple : Réaffirmation claire et ferme du point de vue personnel défendu
         setVarianteA(
-          `D'après ce qui précède, je réaffirme avec conviction que ${cleanPvdSimple}. L'ensemble des arguments développés et les exemples tirés de « ${selectedOeuvre} » prouvent sans l'ombre d'un doute la justesse de cette prise de position. Dès lors, ${formattedOuv}`
+          `D'après ce qui précède, je réaffirme avec conviction que ${cleanPvdSimple}. L'ensemble des arguments développés et les exemples tirés de « ${selectedOeuvre} » prouvent sans doute la justesse de cette prise de position. Dès lors, ${formattedOuv}`
         );
 
         setVarianteB(
-          `En définitive, à la lumière de la démonstration rigoureuse qui précède, il apparaît incontestable que ${cleanPvdSimple}. Dès lors, je soutiens sans réserve la validité de ce point de vue personnel. Une perspective stimulante demeure ouverte : ${formattedOuv}`
+          `En définitive, à la lumière de cette démonstration, il apparaît certain que ${cleanPvdSimple}. Dès lors, je soutiens pleinement la valeur de ce point de vue personnel. Une question essentielle demeure ouverte : ${formattedOuv}`
         );
       } else {
-        // Plan Dialectique : Synthèse équilibrée (sans double connecteur "En définitive, au terme..." et sans répétition de "Dès lors")
+        // Plan Dialectique : Synthèse équilibrée en langage clair sans jargon pompeux
         setVarianteA(
-          `En définitive, l'analyse approfondie de la question relative ${contractPreposition('à', theme)} montre que ces deux points de vue, loin de s'exclure, se complètent harmonieusement. Pour ma part, j'estime que ${cleanPvdDialectique}. Dès lors, ${formattedOuv}`
+          `En définitive, l'examen attentif de la question relative ${contractPreposition('à', theme)} montre que ces deux points de vue se complètent harmonieusement. Pour ma part, j'estime que ${cleanPvdDialectique}. Dès lors, ${formattedOuv}`
         );
         setVarianteB(
-          `Au terme de cette réflexion, l'examen attentif de la problématique inhérente ${contractPreposition('à', theme)} permet de dégager une synthèse équilibrée et féconde. En ce qui me concerne, je demeure convaincu que ${cleanPvdDialectique}. Une perspective essentielle demeure dès lors ouverte : ${formattedOuv}`
+          `Au terme de cette réflexion, l'analyse menée autour ${contractPreposition('de', theme)} permet de dégager un juste équilibre. En ce qui me concerne, je pense que ${cleanPvdDialectique}. Une question essentielle se pose alors : ${formattedOuv}`
         );
       }
     }
