@@ -1,0 +1,318 @@
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+  Timestamp,
+} from 'firebase/firestore';
+import { signInWithPopup, signOut, User } from 'firebase/auth';
+import { auth, db, googleProvider, handleFirestoreError, OperationType } from './config';
+
+export const TEACHER_ADMIN_EMAIL = 'hadmed.brave@gmail.com';
+const COLLECTION_NAME = 'teacher_subjects';
+
+const ALLOWED_OEUVRES = new Set([
+  'La Boîte à Merveilles',
+  'Antigone',
+  'Le Dernier Jour d’un Condamné',
+  'Sujet de Société Général',
+]);
+
+const ALLOWED_SESSIONS = new Set(['Session Normale', 'Session de Rattrapage']);
+
+const ALLOWED_PLANS = new Set(['Plan Simple', 'Plan Dialectique', 'Plan Analytique']);
+
+export interface FirestoreTeacherSubject {
+  id: string;
+  titre: string;
+  oeuvre: 'La Boîte à Merveilles' | 'Antigone' | 'Le Dernier Jour d’un Condamné' | 'Sujet de Société Général';
+  region: string;
+  annee: string;
+  session: 'Session Normale' | 'Session de Rattrapage';
+  consigne: string;
+  typePlanSuggere?: 'Plan Simple' | 'Plan Dialectique' | 'Plan Analytique';
+  conseilsEnseignant?: string;
+  sourceEnseignant?: boolean;
+  isModifiedByTeacher?: boolean;
+  isDeleted?: boolean;
+  dateAjout?: string;
+  dateModif?: string;
+  updatedAtMs?: number;
+}
+
+export function isFirebaseTeacherAdmin(user: User | null): boolean {
+  if (!user || !user.email || !user.emailVerified) return false;
+  return user.email.trim().toLowerCase() === TEACHER_ADMIN_EMAIL;
+}
+
+export async function signInTeacherWithGoogle(): Promise<{
+  success: boolean;
+  user?: User;
+  message?: string;
+}> {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    if (!isFirebaseTeacherAdmin(user)) {
+      await signOut(auth);
+      return {
+        success: false,
+        message: `Le compte ${user.email || 'sélectionné'} n'est pas habilité. Veuillez vous connecter avec le compte enseignant ${TEACHER_ADMIN_EMAIL}.`,
+      };
+    }
+    return { success: true, user };
+  } catch (error: any) {
+    const code = error?.code || '';
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+      return {
+        success: false,
+        message: 'Fenêtre de connexion Google fermée avant la validation.',
+      };
+    }
+    if (code === 'auth/popup-blocked') {
+      return {
+        success: false,
+        message: 'Le navigateur a bloqué la fenêtre de connexion Google. Veuillez autoriser les pop-ups puis réessayer.',
+      };
+    }
+    return {
+      success: false,
+      message: `Erreur de connexion Google : ${error?.message || 'veuillez réessayer.'}`,
+    };
+  }
+}
+
+export async function signOutTeacherFirebase(): Promise<void> {
+  try {
+    await signOut(auth);
+  } catch (err) {
+    console.warn('Erreur lors de la déconnexion Firebase:', err);
+  }
+}
+
+function sanitizeId(rawId: string): string {
+  const cleaned = (rawId || '').replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 128);
+  return cleaned || `prof-${Date.now()}`;
+}
+
+function sanitizeSubjectPayload(sub: FirestoreTeacherSubject) {
+  const safeId = sanitizeId(sub.id);
+  const safeTitre = (sub.titre || 'Sujet officiel').trim().slice(0, 300) || 'Sujet officiel';
+  const normalizedOeuvre =
+    sub.oeuvre === ("Le Dernier Jour d'un Condamné" as any)
+      ? 'Le Dernier Jour d’un Condamné'
+      : sub.oeuvre;
+  const safeOeuvre = ALLOWED_OEUVRES.has(normalizedOeuvre)
+    ? normalizedOeuvre
+    : 'Sujet de Société Général';
+  const safeRegion = (sub.region || 'Académie Régionale').trim().slice(0, 150) || 'Académie Régionale';
+  const safeAnnee = (sub.annee || '2026').trim().slice(0, 20) || '2026';
+  const safeSession = ALLOWED_SESSIONS.has(sub.session) ? sub.session : 'Session Normale';
+  const safeConsigne = (sub.consigne || 'Consigne du sujet').trim().slice(0, 8000) || 'Consigne du sujet';
+  const safePlan =
+    sub.typePlanSuggere && ALLOWED_PLANS.has(sub.typePlanSuggere)
+      ? sub.typePlanSuggere
+      : 'Plan Simple';
+  const safeConseils = (sub.conseilsEnseignant || '').trim().slice(0, 2000);
+  const nowDate = new Date().toLocaleDateString('fr-FR');
+  const nowStr =
+    nowDate +
+    ' à ' +
+    new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const safeDateAjout = (sub.dateAjout || nowDate).trim().slice(0, 64) || nowDate;
+  const safeDateModif = (sub.dateModif || nowStr).trim().slice(0, 64) || nowStr;
+
+  return {
+    id: safeId,
+    titre: safeTitre,
+    oeuvre: safeOeuvre,
+    region: safeRegion,
+    annee: safeAnnee,
+    session: safeSession,
+    consigne: safeConsigne,
+    typePlanSuggere: safePlan,
+    conseilsEnseignant: safeConseils,
+    sourceEnseignant: true,
+    isModifiedByTeacher: true,
+    isDeleted: Boolean(sub.isDeleted),
+    isPublic: true,
+    dateAjout: safeDateAjout,
+    dateModif: safeDateModif,
+  };
+}
+
+export function subscribeToFirestoreSubjects(
+  onUpdate: (subjects: FirestoreTeacherSubject[]) => void,
+  onError?: (err: Error) => void
+): () => void {
+  const q = query(collection(db, COLLECTION_NAME), where('isPublic', '==', true));
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const items: FirestoreTeacherSubject[] = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+        const updatedAt = data.updatedAt as Timestamp | undefined;
+        return {
+          id: typeof data.id === 'string' ? data.id : docSnap.id,
+          titre: String(data.titre || ''),
+          oeuvre: (ALLOWED_OEUVRES.has(data.oeuvre)
+            ? data.oeuvre
+            : 'Sujet de Société Général') as FirestoreTeacherSubject['oeuvre'],
+          region: String(data.region || 'Académie Régionale'),
+          annee: String(data.annee || '2026'),
+          session: (ALLOWED_SESSIONS.has(data.session)
+            ? data.session
+            : 'Session Normale') as FirestoreTeacherSubject['session'],
+          consigne: String(data.consigne || ''),
+          typePlanSuggere: (ALLOWED_PLANS.has(data.typePlanSuggere)
+            ? data.typePlanSuggere
+            : 'Plan Simple') as FirestoreTeacherSubject['typePlanSuggere'],
+          conseilsEnseignant:
+            typeof data.conseilsEnseignant === 'string' && data.conseilsEnseignant.trim()
+              ? data.conseilsEnseignant
+              : undefined,
+          sourceEnseignant: data.sourceEnseignant !== false,
+          isModifiedByTeacher: Boolean(data.isModifiedByTeacher),
+          isDeleted: Boolean(data.isDeleted),
+          dateAjout: typeof data.dateAjout === 'string' ? data.dateAjout : undefined,
+          dateModif: typeof data.dateModif === 'string' ? data.dateModif : undefined,
+          updatedAtMs: updatedAt && typeof updatedAt.toMillis === 'function' ? updatedAt.toMillis() : 0,
+        };
+      });
+
+      // Les sujets les plus récemment déposés ou modifiés apparaissent en premier
+      items.sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0));
+      onUpdate(items);
+    },
+    (error) => {
+      try {
+        handleFirestoreError(error, OperationType.LIST, COLLECTION_NAME);
+      } catch (wrapped) {
+        if (onError && wrapped instanceof Error) {
+          onError(wrapped);
+        }
+      }
+    }
+  );
+}
+
+export async function saveTeacherSubjectToFirestore(
+  sub: FirestoreTeacherSubject
+): Promise<boolean> {
+  const user = auth.currentUser;
+  if (!isFirebaseTeacherAdmin(user) || !user) {
+    return false;
+  }
+
+  const sanitized = sanitizeSubjectPayload({ ...sub, isDeleted: false });
+  const docPath = `${COLLECTION_NAME}/${sanitized.id}`;
+  const docRef = doc(db, COLLECTION_NAME, sanitized.id);
+
+  let exists = false;
+  try {
+    const existingSnap = await getDoc(docRef);
+    exists = existingSnap.exists();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, docPath);
+  }
+
+  if (exists) {
+    try {
+      await updateDoc(docRef, {
+        titre: sanitized.titre,
+        oeuvre: sanitized.oeuvre,
+        region: sanitized.region,
+        annee: sanitized.annee,
+        session: sanitized.session,
+        consigne: sanitized.consigne,
+        typePlanSuggere: sanitized.typePlanSuggere,
+        conseilsEnseignant: sanitized.conseilsEnseignant,
+        sourceEnseignant: sanitized.sourceEnseignant,
+        isModifiedByTeacher: sanitized.isModifiedByTeacher,
+        isDeleted: false,
+        dateModif: sanitized.dateModif,
+        updatedAt: serverTimestamp(),
+      });
+      return true;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, docPath);
+    }
+  } else {
+    try {
+      await setDoc(docRef, {
+        ...sanitized,
+        createdByUid: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return true;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, docPath);
+    }
+  }
+}
+
+export async function deleteTeacherSubjectInFirestore(
+  sub: FirestoreTeacherSubject,
+  isDefaultPlatformSubject: boolean
+): Promise<boolean> {
+  const user = auth.currentUser;
+  if (!isFirebaseTeacherAdmin(user) || !user) {
+    return false;
+  }
+
+  const sanitized = sanitizeSubjectPayload({ ...sub, isDeleted: true });
+  const docPath = `${COLLECTION_NAME}/${sanitized.id}`;
+  const docRef = doc(db, COLLECTION_NAME, sanitized.id);
+
+  if (!isDefaultPlatformSubject) {
+    try {
+      await deleteDoc(docRef);
+      return true;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, docPath);
+    }
+  }
+
+  // Pour un sujet par défaut de la plateforme, on enregistre un marqueur isDeleted: true afin qu'il soit masqué pour tous les candidats
+  let exists = false;
+  try {
+    const existingSnap = await getDoc(docRef);
+    exists = existingSnap.exists();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, docPath);
+  }
+
+  if (exists) {
+    try {
+      await updateDoc(docRef, {
+        isDeleted: true,
+        dateModif: sanitized.dateModif,
+        updatedAt: serverTimestamp(),
+      });
+      return true;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, docPath);
+    }
+  } else {
+    try {
+      await setDoc(docRef, {
+        ...sanitized,
+        isDeleted: true,
+        createdByUid: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return true;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, docPath);
+    }
+  }
+}
