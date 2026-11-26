@@ -225,6 +225,18 @@ export const OEUVRES_DATA: Record<
         analyse: 'Démontre que le respect des engagements sincères surpasse les illusions d\'un nouveau mariage d\'intérêt.',
         pole: 'antithese',
       },
+      {
+        id: 'bm-ingratitude-abdelkader',
+        theme: 'L\'ingratitude et la bonté mal récompensée',
+        argumentLie: 'Il arrive malheureusement que la générosité soit mal récompensée par une personne ingrate et malhonnête.',
+        explicationArgument: 'Certains individus profitent de la bonté de celui qui les aide et finissent par le trahir au lieu de lui être reconnaissants.',
+        keywords: ['ingrat', 'ingratitude', 'bonté', 'générosité', 'trahison', 'abdelkader', 'moulay larbi', 'aide', 'aider', 'mal récompensé', 'confiance', 'méfiance', 'prudent'],
+        connecteur: 'À titre d\'exemple,',
+        situation: 'la trahison d\'Abdelkader envers son patron Moulay Larbi',
+        phraseComplete: 'À titre d\'exemple, dans La Boîte à Merveilles, Moulay Larbi aide son ouvrier Abdelkader à se marier et lui prête de l\'argent pour s\'associer avec lui, mais Abdelkader nie sa dette devant les juges et cause la ruine de son bienfaiteur.',
+        analyse: 'Montre que l\'ingratitude existe réellement et qu\'elle peut causer une grande déception à ceux qui font le bien.',
+        pole: 'both',
+      },
     ],
   },
   'Antigone': {
@@ -750,39 +762,107 @@ export function getModelArgumentsForTheme(
     }
   }
 
+  const isGeneralSociety = oeuvreName === 'Sujet de Société Général';
+
+  // 0. BONTÉ MAL RÉCOMPENSÉE / INGRATITUDE / AIDER AUTRUI
+  if (
+    norm.includes('ingrat') ||
+    norm.includes('bonté') ||
+    norm.includes('mal récompens') ||
+    norm.includes('abdelkader') ||
+    norm.includes('moulay larbi') ||
+    norm.includes('aider les autres')
+  ) {
+    const aiderArgs: ModelArgument[] = [
+      {
+        id: 'aide-1',
+        titreCourt: 'Ne pas punir les gens honnêtes à cause d\'un ingrat',
+        argumentClair: 'La faute d\'une personne ingrate ne doit pas nous pousser à refuser notre aide à tous ceux qui sont honnêtes et en difficulté.',
+        explicationSimple: 'En effet, tout le monde ne se comporte pas mal : si l\'on généralise une mauvaise expérience, on prive des personnes sincères d\'un soutien indispensable.',
+        exempleAssocie: isGeneralSociety
+          ? 'À titre d\'exemple, dans la vie de tous les jours, de nombreuses familles en difficulté retrouvent espoir grâce à l\'entraide de voisins ou d\'associations sincères et reconnaissantes.'
+          : 'Comme en témoigne l\'amitié fidèle entre Lalla Zoubida et Lalla Aïcha dans La Boîte à Merveilles, qui se soutiennent toujours avec loyauté et gratitude dans les moments difficiles.',
+      },
+      {
+        id: 'aide-2',
+        titreCourt: 'La bonté est une valeur noble et désintéressée',
+        argumentClair: 'Aider les autres est un devoir humain qui rend la société plus juste et apporte une vraie paix intérieure.',
+        explicationSimple: 'En effet, la vraie générosité ne cherche pas une récompense immédiate : elle repose sur la compassion et le plaisir sincère de soulager la peine d\'autrui.',
+        exempleAssocie: isGeneralSociety
+          ? 'Comme le montre l\'engagement des bénévoles qui donnent de leur temps pour aider les malades ou les démunis sans rien attendre en retour.'
+          : 'Comme l\'illustre la solidarité spontanée des voisines de Dar Chouafa dans La Boîte à Merveilles, qui accourent toutes pour aider Rahma lors de la disparition de sa fille Zineb.',
+      },
+    ];
+
+    const mefianceArgs: ModelArgument[] = [
+      {
+        id: 'mef-1',
+        titreCourt: 'La souffrance causée par une trahison',
+        argumentClair: 'Être trahi par quelqu\'un que l\'on a aidé blesse profondément et peut décourager de tendre la main à nouveau.',
+        explicationSimple: 'En effet, lorsqu\'une personne généreuse perd son argent ou sa tranquillité à cause d\'un ingrat, il est naturel qu\'elle devienne plus prudente et hésite avant d\'aider.',
+        exempleAssocie: isGeneralSociety
+          ? 'À titre d\'exemple, beaucoup de personnes qui ont prêté de l\'argent à un proche sans garantie regrettent leur geste quand celui-ci refuse ensuite de les rembourser.'
+          : 'À titre d\'exemple, dans La Boîte à Merveilles, Moulay Larbi fait confiance à son ouvrier Abdelkader et l\'aide financièrement, mais celui-ci le trahit devant la justice et provoque sa ruine.',
+      },
+      {
+        id: 'mef-2',
+        titreCourt: 'Aider avec prudence et discernement',
+        argumentClair: 'La bonté ne doit pas être aveugle : il est important de bien connaître la personne que l\'on aide pour éviter les abus.',
+        explicationSimple: 'En effet, rester lucide et prudent protège contre les profiteurs sans pour autant nous obliger à devenir égoïstes.',
+        exempleAssocie: isGeneralSociety
+          ? 'Comme on le voit souvent dans le travail ou le commerce, où fixer des règles claires permet d\'aider un partenaire tout en se protégeant des malhonnêtes.'
+          : 'Comme le rappelle la mésaventure de Moulay Larbi avec Abdelkader : un simple écrit devant témoins aurait évité à son bienfaiteur d\'être trompé.',
+      },
+    ];
+
+    if (plan === 'SIMPLE') {
+      if (stance === 'B') {
+        return axe === 'these' ? [mefianceArgs[0]] : [mefianceArgs[1]];
+      }
+      return axe === 'these' ? [aiderArgs[0]] : [aiderArgs[1]];
+    }
+    return axe === 'these' ? aiderArgs : mefianceArgs;
+  }
+
   // Modèles généraux valables pour tout sujet d'opinion
   if (axe === 'these') {
     return [
       {
         id: 'gen-these-1',
         titreCourt: 'La valeur fondamentale de cette position',
-        argumentClair: `Cette position repose sur une vérité indiscutable : elle répond aux exigences fondamentales de justice et d'épanouissement moral.`,
-        explicationSimple: 'En effet, lorsque l\'on respecte ce principe avec loyauté, l\'individu consolide ses repères et gagne en estime personnelle.',
-        exempleAssocie: `Comme l'illustre un épisode marquant de ${oeuvreName}, où le respect scrupuleux de ses devoirs confère à l'être humain une grandeur morale inébranlable.`,
+        argumentClair: `Cette position repose sur une idée juste et claire : elle répond à un besoin réel de respect et d'équilibre humain.`,
+        explicationSimple: 'En effet, lorsque l\'on reste fidèle à ce principe, on agit de manière responsable et on se sent en accord avec sa conscience.',
+        exempleAssocie: isGeneralSociety
+          ? 'À titre d\'exemple, dans la vie quotidienne, les personnes qui respectent leurs valeurs gagnent durablement la confiance et l\'estime de leur entourage.'
+          : `Comme l'illustre un épisode marquant de ${oeuvreName}, où le respect de ses valeurs donne à l'individu une vraie force morale.`,
       },
       {
         id: 'gen-these-2',
-        titreCourt: 'L\'utilité pour la paix sociale',
-        argumentClair: `D'une part, adopter ce comportement favorise la cohésion sociale et renforce les liens d'entraide entre les citoyens.`,
-        explicationSimple: 'En effet, une société où chacun se soucie du bien commun prévient l\'égoïsme et assure un climat de confiance partagée.',
-        exempleAssocie: `Comme le démontre la solidarité spontanée entre les habitants face à l'adversité dans ${oeuvreName}.`,
+        titreCourt: 'L\'utilité pour la vie en société',
+        argumentClair: `D'une part, adopter ce comportement favorise l'entente et renforce les liens de solidarité entre les gens.`,
+        explicationSimple: 'En effet, une société où chacun se soucie des autres lutte contre l\'égoïsme et crée un climat de confiance.',
+        exempleAssocie: isGeneralSociety
+          ? 'Comme le montre l\'entraide concrète entre citoyens et voisins lorsque survient une épreuve difficile.'
+          : `Comme le démontre la solidarité spontanée entre les personnages face aux difficultés dans ${oeuvreName}.`,
       },
     ];
   } else {
     return [
       {
         id: 'gen-anti-1',
-        titreCourt: 'Les limites et les risques d\'une application aveugle',
-        argumentClair: `Cependant, appliquer ce principe de manière rigide et sans discernement comporte de sérieux risques pour la liberté individuelle.`,
-        explicationSimple: 'En effet, tout excès nuit : ignorer la diversité des situations réelles conduit à des injustices regrettables.',
-        exempleAssocie: `Comme en atteste le conflit entre Créon et Antigone, où l'obstination sans nuance mène directement à la catastrophe.`,
+        titreCourt: 'Les limites d\'une attitude trop rigide',
+        argumentClair: `Cependant, appliquer cette idée sans nuance comporte des risques et peut créer des situations injustes.`,
+        explicationSimple: 'En effet, tout excès est dangereux : ne pas tenir compte des réalités concrètes empêche de trouver des solutions justes.',
+        exempleAssocie: isGeneralSociety
+          ? 'À titre d\'exemple, dans la vie courante, refuser d\'écouter les autres ou manquer de souplesse entraîne souvent des conflits évitables.'
+          : `Comme en témoigne la tension entre les personnages dans ${oeuvreName}, où l'entêtement sans nuance mène à une impasse.`,
       },
       {
         id: 'gen-anti-2',
-        titreCourt: 'La nécessité d\'un équilibre moderne',
-        argumentClair: `En revanche, les exigences du monde contemporain demandent d'adapter ces principes avec souplesse et ouverture d'esprit.`,
-        explicationSimple: 'En effet, le progrès exige de savoir remettre en question les certitudes acquises pour inventer de nouvelles solutions.',
-        exempleAssocie: `Comme le prouve l'évolution des mœurs et des idées qui enrichit les générations successives sans détruire les valeurs saines.`,
+        titreCourt: 'La nécessité d\'un juste équilibre',
+        argumentClair: `En revanche, la réalité d'aujourd'hui demande de faire preuve de souplesse et d'ouverture d'esprit.`,
+        explicationSimple: 'En effet, pour avancer sereinement, il faut savoir réfléchir avec mesure et adapter ses choix aux situations réelles.',
+        exempleAssocie: `Comme le prouve l'expérience quotidienne, où les solutions les plus sages naissent toujours du dialogue et de la mesure.`,
       },
     ];
   }
