@@ -1,0 +1,164 @@
+{
+  "entities": {
+    "TeacherSubject": {
+      "title": "TeacherSubject",
+      "description": "Sujet d'examen régional déposé, modifié ou masqué par l'enseignant pour tous les candidats.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Identifiant unique du sujet."
+        },
+        "titre": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Titre ou thème du sujet."
+        },
+        "oeuvre": {
+          "type": "string",
+          "maxLength": 100,
+          "enum": [
+            "La Boîte à Merveilles",
+            "Antigone",
+            "Le Dernier Jour d’un Condamné",
+            "Sujet de Société Général"
+          ],
+          "description": "Œuvre au programme ou sujet de société général."
+        },
+        "region": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 150,
+          "description": "Académie régionale."
+        },
+        "annee": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20,
+          "description": "Année de l'examen."
+        },
+        "session": {
+          "type": "string",
+          "maxLength": 50,
+          "enum": [
+            "Session Normale",
+            "Session de Rattrapage"
+          ],
+          "description": "Session d'examen."
+        },
+        "consigne": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8000,
+          "description": "Texte intégral de la consigne officielle."
+        },
+        "typePlanSuggere": {
+          "type": "string",
+          "maxLength": 50,
+          "enum": [
+            "Plan Simple",
+            "Plan Dialectique",
+            "Plan Analytique"
+          ],
+          "description": "Plan méthodologique conseillé."
+        },
+        "conseilsEnseignant": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Pistes didactiques ou conseils optionnels pour les candidats."
+        },
+        "sourceEnseignant": {
+          "type": "boolean",
+          "description": "Indique si le sujet provient de l'enseignant."
+        },
+        "isModifiedByTeacher": {
+          "type": "boolean",
+          "description": "Indique si le sujet a été créé ou modifié par l'enseignant."
+        },
+        "isDeleted": {
+          "type": "boolean",
+          "description": "Marqueur de suppression logique permettant aussi de masquer un sujet par défaut."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Visibilité publique pour tous les candidats de la plateforme."
+        },
+        "dateAjout": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Date d'ajout formatée."
+        },
+        "dateModif": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Date de dernière modification formatée."
+        },
+        "createdByUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "UID Firebase de l'enseignant créateur."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Horodatage serveur de création."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Horodatage serveur de dernière mise à jour."
+        }
+      },
+      "required": [
+        "id",
+        "titre",
+        "oeuvre",
+        "region",
+        "annee",
+        "session",
+        "consigne",
+        "typePlanSuggere",
+        "sourceEnseignant",
+        "isModifiedByTeacher",
+        "isDeleted",
+        "isPublic",
+        "dateAjout",
+        "dateModif",
+        "createdByUid",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Document d'habilitation d'un compte enseignant administrateur (géré hors client).",
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["admin"],
+          "maxLength": 20,
+          "description": "Rôle administrateur."
+        }
+      },
+      "required": ["role"]
+    }
+  },
+  "firestore": {
+    "/teacher_subjects/{subjectId}": {
+      "schema": { "$ref": "#/entities/TeacherSubject" },
+      "description": "Collection publique en lecture des sujets régionaux déposés, modifiés ou masqués par l'enseignant administrateur."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Collection protégée recensant les UID d'enseignants administrateurs."
+    }
+  }
+}
