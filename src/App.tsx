@@ -39,6 +39,17 @@ import {
   Hammer,
 } from 'lucide-react';
 import { AtelierProduction } from './components/AtelierProduction';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { auth } from './firebase/config';
+import {
+  deleteTeacherSubjectInFirestore,
+  isFirebaseTeacherAdmin,
+  saveTeacherSubjectToFirestore,
+  signInTeacherWithGoogle,
+  signOutTeacherFirebase,
+  subscribeToFirestoreSubjects,
+  TEACHER_ADMIN_EMAIL,
+} from './firebase/teacherSubjectsService';
 
 // ==========================================
 // DÉFINITIONS & DONNÉES PÉDAGOGIQUES INTÉGRÉES
@@ -661,60 +672,194 @@ export default function App() {
     setTexte(editor.innerText || '');
   };
 
-  // Bibliothèque des Sujets Régionaux Officiels
-  const [regionalSubjects, setRegionalSubjects] = useState<RegionalSubject[]>(() => {
+  const LOCAL_SUBJECTS_KEY = 'akhawayn_custom_regional_subjects';
+  const CLOUD_CACHE_KEY = 'akhawayn_cloud_subjects_cache';
+  const LOCAL_DELETED_KEY = 'akhawayn_deleted_regional_subjects';
+
+  const readSubjectArray = (storageKey: string): RegionalSubject[] => {
     try {
-      const saved = localStorage.getItem('akhawayn_custom_regional_subjects');
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const defaultIds = new Set(DEFAULT_REGIONAL_SUBJECTS.map((s) => s.id));
-          const customs = parsed.filter((s: RegionalSubject) => !defaultIds.has(s.id));
-          return [...customs, ...DEFAULT_REGIONAL_SUBJECTS];
+        if (Array.isArray(parsed)) {
+          return parsed.filter((s) => s && typeof s.id === 'string' && typeof s.titre === 'string');
         }
       }
     } catch (e) {
-      console.error(e);
+      console.error(`Erreur lecture localStorage (${storageKey}):`, e);
     }
-    return DEFAULT_REGIONAL_SUBJECTS;
-  });
+    return [];
+  };
 
-  // Synchronisation automatique des sujets déposés/modifiés par l'enseignant depuis le serveur (visible par tous les candidats)
+  const writeSubjectArray = (storageKey: string, subjects: RegionalSubject[]) => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(subjects));
+    } catch (e) {
+      console.error(`Erreur écriture localStorage (${storageKey}):`, e);
+    }
+  };
+
+  const readLocalCustomSubjects = (): RegionalSubject[] => readSubjectArray(LOCAL_SUBJECTS_KEY);
+  const writeLocalCustomSubjects = (subjects: RegionalSubject[]) =>
+    writeSubjectArray(LOCAL_SUBJECTS_KEY, subjects);
+
+  const readCloudCacheSubjects = (): RegionalSubject[] => readSubjectArray(CLOUD_CACHE_KEY);
+  const writeCloudCacheSubjects = (subjects: RegionalSubject[]) =>
+    writeSubjectArray(CLOUD_CACHE_KEY, subjects);
+
+  const readLocalDeletedIds = (): string[] => {
+    try {
+      const saved = localStorage.getItem(LOCAL_DELETED_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((id): id is string => typeof id === 'string');
+        }
+      }
+    } catch (e) {
+      console.error('Erreur lecture localStorage suppressions:', e);
+    }
+    return [];
+  };
+
+  const writeLocalDeletedIds = (ids: string[]) => {
+    try {
+      localStorage.setItem(LOCAL_DELETED_KEY, JSON.stringify(Array.from(new Set(ids))));
+    } catch (e) {
+      console.error('Erreur écriture localStorage suppressions:', e);
+    }
+  };
+
+  const mergeAllSubjectSources = (
+    firestoreDocs: RegionalSubject[],
+    serverDocs: RegionalSubject[],
+    localDocs: RegionalSubject[],
+    localDeletedIds: string[]
+  ): RegionalSubject[] => {
+    const activeById = new Map<string, RegionalSubject>();
+    const orderedIds: string[] = [];
+    const deletedIds = new Set<string>(localDeletedIds);
+
+    // 1. Collecter les suppressions depuis le cloud (Firestore) et le serveur
+    firestoreDocs.forEach((s) => {
+      if (s.isDeleted) {
+        deletedIds.add(s.id);
+      } else {
+        deletedIds.delete(s.id);
+      }
+    });
+
+    serverDocs.forEach((s) => {
+      const hasActiveInFirestore = firestoreDocs.some((fsItem) => fsItem.id === s.id && !fsItem.isDeleted);
+      if (s.isDeleted && !hasActiveInFirestore) {
+        deletedIds.add(s.id);
+      }
+    });
+
+    // Un sujet actif dans localDocs qui vient d'être recréé ne doit pas être masqué par localDeletedIds
+    localDocs.forEach((s) => {
+      if (!s.isDeleted) {
+        deletedIds.delete(s.id);
+      }
+    });
+
+    const pushIfNew = (item: RegionalSubject, forceTeacherSource = false) => {
+      if (!item || !item.id || deletedIds.has(item.id) || activeById.has(item.id)) return;
+      activeById.set(item.id, forceTeacherSource ? { ...item, sourceEnseignant: true } : item);
+      orderedIds.push(item.id);
+    };
+
+    // Priorité 1 : Sujets actifs stockés dans la base cloud Firestore (source de vérité multi-appareils)
+    firestoreDocs.filter((s) => !s.isDeleted).forEach((s) => pushIfNew(s, true));
+
+    // Priorité 2 : Sujets actifs sauvegardés localement dans ce navigateur (évite toute perte à l'actualisation)
+    localDocs.filter((s) => !s.isDeleted).forEach((s) => pushIfNew(s, true));
+
+    // Priorité 3 : Sujets actifs provenant du serveur Express (/api/teacher-subjects)
+    serverDocs.filter((s) => !s.isDeleted).forEach((s) => pushIfNew(s, true));
+
+    // Priorité 4 : Sujets par défaut de la plateforme non supprimés et non surchargés
+    DEFAULT_REGIONAL_SUBJECTS.forEach((s) => pushIfNew(s, false));
+
+    return orderedIds.map((id) => activeById.get(id)!).filter(Boolean);
+  };
+
+  const firestoreSubjectsRef = useRef<RegionalSubject[]>(readCloudCacheSubjects());
+  const serverSubjectsRef = useRef<RegionalSubject[]>([]);
+
+  const rebuildMergedSubjects = () => {
+    const merged = mergeAllSubjectSources(
+      firestoreSubjectsRef.current,
+      serverSubjectsRef.current,
+      readLocalCustomSubjects(),
+      readLocalDeletedIds()
+    );
+    setRegionalSubjects(merged);
+  };
+
+  // Bibliothèque des Sujets Régionaux Officiels (chargement instantané depuis le cache Cloud + localStorage + défaut)
+  const [regionalSubjects, setRegionalSubjects] = useState<RegionalSubject[]>(() =>
+    mergeAllSubjectSources(
+      readCloudCacheSubjects(),
+      [],
+      readLocalCustomSubjects(),
+      readLocalDeletedIds()
+    )
+  );
+
+  // État d'authentification Firebase Google pour la persistance Cloud Firestore
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const isFirebaseAdmin = isFirebaseTeacherAdmin(firebaseUser);
+  const [teacherAuthLoading, setTeacherAuthLoading] = useState<boolean>(false);
+  const [isSavingTeacherSubject, setIsSavingTeacherSubject] = useState<boolean>(false);
+
+  // Synchronisation des sujets déposés/modifiés par l'enseignant depuis le serveur Express (backup)
   const fetchServerSubjects = async () => {
     try {
-      const res = await fetch('/api/teacher-subjects');
+      const res = await fetch('/api/teacher-subjects', { cache: 'no-store' });
       if (res.ok) {
         const serverSubjects: RegionalSubject[] = await res.json();
         if (Array.isArray(serverSubjects)) {
-          const deletedIds = new Set(serverSubjects.filter((s) => s.isDeleted).map((s) => s.id));
-          const serverMap = new Map<string, RegionalSubject>();
-          serverSubjects.filter((s) => !s.isDeleted).forEach((s) => serverMap.set(s.id, s));
-
-          const merged: RegionalSubject[] = [];
-
-          // 1. D'abord les sujets créés ou modifiés par l'enseignant depuis le serveur
-          serverSubjects
-            .filter((s) => !s.isDeleted)
-            .forEach((s) => {
-              merged.push({ ...s, sourceEnseignant: true });
-            });
-
-          // 2. Ensuite les sujets de la plateforme non supprimés et non encore remplacés
-          DEFAULT_REGIONAL_SUBJECTS.forEach((s) => {
-            if (!deletedIds.has(s.id) && !serverMap.has(s.id)) {
-              merged.push(s);
-            }
-          });
-
-          setRegionalSubjects(merged);
+          serverSubjectsRef.current = serverSubjects;
+          rebuildMergedSubjects();
         }
       }
     } catch (err) {
-      // Mode hors-ligne ou fallback local
+      // Mode hors-ligne ou environnement sans backend Express : Firestore et localStorage prennent le relais
     }
   };
 
   useEffect(() => {
+    // 1. Écoute de l'état de connexion Google Enseignant (persisté automatiquement par Firebase Auth)
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      setFirebaseUser(user);
+      if (isFirebaseTeacherAdmin(user)) {
+        try {
+          sessionStorage.setItem('akhawayn_teacher_auth', 'true');
+        } catch {}
+        setIsTeacherAuthenticated(true);
+      }
+    });
+
+    // 2. Abonnement temps réel à la collection cloud Firestore teacher_subjects (visible par tous les candidats)
+    const unsubscribeFirestore = subscribeToFirestoreSubjects(
+      (fsSubjects) => {
+        firestoreSubjectsRef.current = fsSubjects;
+        writeCloudCacheSubjects(fsSubjects);
+
+        // Retirer de localStorage les sujets déjà confirmés dans le Cloud (et ceux marqués supprimés dans le Cloud)
+        const fsIds = new Set(fsSubjects.map((s) => s.id));
+        const remainingUnsynced = readLocalCustomSubjects().filter((s) => !fsIds.has(s.id));
+        writeLocalCustomSubjects(remainingUnsynced);
+
+        rebuildMergedSubjects();
+      },
+      (err) => {
+        console.warn('Synchronisation Firestore temporairement indisponible:', err.message);
+      }
+    );
+
+    // 3. Synchronisation complémentaire avec le serveur Express (no-store)
     fetchServerSubjects();
 
     const handleAfterPrint = () => {
@@ -723,7 +868,11 @@ export default function App() {
       if (docContainer) docContainer.removeAttribute('style');
     };
     window.addEventListener('afterprint', handleAfterPrint);
-    return () => window.removeEventListener('afterprint', handleAfterPrint);
+    return () => {
+      unsubscribeAuth();
+      unsubscribeFirestore();
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
   }, []);
 
   // Clé d'habilitation officielle réservée à l'enseignant pour déposer ou administrer les sujets
@@ -828,16 +977,59 @@ export default function App() {
     }
   };
 
-  const handleLockTeacherSpace = () => {
+  const handleGoogleTeacherSignIn = async (openModalAfter = true) => {
+    setTeacherAuthLoading(true);
+    setTeacherAuthError('');
+    const result = await signInTeacherWithGoogle();
+    setTeacherAuthLoading(false);
+
+    if (result.success) {
+      try {
+        sessionStorage.setItem('akhawayn_teacher_auth', 'true');
+      } catch {}
+      setIsTeacherAuthenticated(true);
+      setShowTeacherAuthModal(false);
+      setTeacherInputKey('');
+      setTeacherAuthError('');
+
+      // Synchroniser automatiquement vers Firestore d'éventuels sujets déposés localement avant la connexion Google
+      const localUnsynced = readLocalCustomSubjects().filter(
+        (loc) =>
+          !loc.isDeleted &&
+          !firestoreSubjectsRef.current.some((fsItem) => fsItem.id === loc.id && !fsItem.isDeleted)
+      );
+      for (const item of localUnsynced) {
+        try {
+          await saveTeacherSubjectToFirestore(item);
+        } catch (syncErr) {
+          console.warn('Synchronisation sujet local vers Cloud ignorée:', syncErr);
+        }
+      }
+
+      if (openModalAfter) {
+        setShowTeacherModal(true);
+      }
+      setSubjectLoadNotice(
+        `Session Enseignant Cloud activée (${TEACHER_ADMIN_EMAIL}) : vos sujets sont enregistrés définitivement pour tous les élèves.`
+      );
+      setTimeout(() => setSubjectLoadNotice(null), 5000);
+    } else if (result.message) {
+      setTeacherAuthError(result.message);
+      setTeacherFormError(result.message);
+    }
+  };
+
+  const handleLockTeacherSpace = async () => {
     try {
       sessionStorage.removeItem('akhawayn_teacher_auth');
     } catch (err) {
       console.error(err);
     }
+    await signOutTeacherFirebase();
     setIsTeacherAuthenticated(false);
     setShowTeacherModal(false);
     setEditingSubjectId(null);
-    setSubjectLoadNotice("Session enseignant verrouillée avec succès.");
+    setSubjectLoadNotice('Session enseignant verrouillée avec succès.');
     setTimeout(() => setSubjectLoadNotice(null), 3000);
   };
 
@@ -864,7 +1056,7 @@ export default function App() {
   const handleSaveTeacherSubject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isTeacherAuthenticated) {
-      setTeacherFormError("Autorisation requise. Veuillez saisir la clé d'habilitation enseignant.");
+      setTeacherFormError("Autorisation requise. Veuillez vous connecter à l'Espace Enseignant.");
       setShowTeacherModal(false);
       setShowTeacherAuthModal(true);
       return;
@@ -874,86 +1066,169 @@ export default function App() {
       return;
     }
 
+    setIsSavingTeacherSubject(true);
+    setTeacherFormError('');
+
     const isEditMode = Boolean(editingSubjectId);
     const targetId = editingSubjectId || `prof-${Date.now()}`;
-    const nowStr = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const existingSub = regionalSubjects.find((s) => s.id === targetId);
+    const nowStr =
+      new Date().toLocaleDateString('fr-FR') +
+      ' à ' +
+      new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
     const updatedSub: RegionalSubject = {
       id: targetId,
       titre: teacherTitre.trim(),
       oeuvre: teacherOeuvre,
       region: teacherRegion.trim() || 'Académie Régionale',
-      annee: teacherAnnee.trim() || '2024',
+      annee: teacherAnnee.trim() || '2026',
       session: teacherSession,
       consigne: teacherConsigne.trim(),
       typePlanSuggere: teacherPlan,
       conseilsEnseignant: teacherConseils.trim() || undefined,
-      dateAjout: new Date().toLocaleDateString('fr-FR'),
+      dateAjout: existingSub?.dateAjout || new Date().toLocaleDateString('fr-FR'),
       dateModif: nowStr,
       sourceEnseignant: true,
       isModifiedByTeacher: true,
       isDeleted: false,
     };
 
-    // 1. Mise à jour de l'état local immédiat
+    // 1. Sauvegarde immédiate et garantie dans localStorage (survit immédiatement à toute actualisation de page)
+    const currentLocal = readLocalCustomSubjects().filter((s) => s.id !== targetId);
+    writeLocalCustomSubjects([updatedSub, ...currentLocal]);
+    const currentDeleted = readLocalDeletedIds().filter((delId) => delId !== targetId);
+    writeLocalDeletedIds(currentDeleted);
+
+    // 2. Mise à jour immédiate de l'état local React
     setRegionalSubjects((prev) => {
       const filtered = prev.filter((s) => s.id !== targetId);
       return [updatedSub, ...filtered];
     });
 
-    // 2. Synchroniser le sujet actif s'il est en cours d'édition dans l'espace principal
+    // 3. Synchroniser le sujet actif s'il est en cours d'édition dans l'espace principal
     if (activeSubjectItem && activeSubjectItem.id === targetId) {
       setActiveSubjectItem(updatedSub);
       setSujet(updatedSub.consigne);
     }
 
-    // 3. Envoi au serveur pour synchronisation permanente
+    // 4. Sauvegarde Cloud permanente dans Firebase Firestore (si connecté avec le compte Google enseignant)
+    let savedToCloud = false;
+    if (isFirebaseTeacherAdmin(auth.currentUser)) {
+      try {
+        savedToCloud = await saveTeacherSubjectToFirestore(updatedSub);
+      } catch (cloudErr) {
+        console.error('Erreur sauvegarde Firestore:', cloudErr);
+      }
+    }
+
+    // 5. Envoi complémentaire au serveur Express (si disponible)
+    let savedToServer = false;
     try {
       const resp = await fetch('/api/teacher-subjects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify(updatedSub),
       });
       if (resp.ok) {
-        fetchServerSubjects();
+        savedToServer = true;
+        const data = await resp.json();
+        if (data && Array.isArray(data.subjects)) {
+          serverSubjectsRef.current = data.subjects;
+        }
       }
     } catch (err) {
-      console.warn('Erreur synchronisation serveur:', err);
+      console.warn('Synchronisation serveur Express indisponible:', err);
     }
 
+    rebuildMergedSubjects();
+    setIsSavingTeacherSubject(false);
     setTeacherFormSuccess(true);
     setTeacherFormError('');
+
+    // Ouvrir automatiquement la bibliothèque et rendre le sujet immédiatement visible
+    setShowLibrary(true);
+    setSearchQuery('');
+    if (
+      selectedOeuvreFilter !== 'TOUTES' &&
+      selectedOeuvreFilter !== 'ENSEIGNANT' &&
+      selectedOeuvreFilter !== updatedSub.oeuvre
+    ) {
+      setSelectedOeuvreFilter('TOUTES');
+    }
+
+    const actionLabel = isEditMode ? 'modifié' : 'déposé';
+    const noticeMsg = savedToCloud
+      ? `Sujet officiel « ${updatedSub.titre} » ${actionLabel} et enregistré définitivement dans la base Cloud pour tous les candidats !`
+      : savedToServer
+      ? `Sujet « ${updatedSub.titre} » ${actionLabel} et sauvegardé dans votre navigateur et sur le serveur. Connectez votre compte Google dans l'Espace Enseignant pour la sauvegarde Cloud permanente multi-appareils.`
+      : `Sujet « ${updatedSub.titre} » ${actionLabel} et sauvegardé sur cet appareil. Connectez votre compte Google dans l'Espace Enseignant pour le partager définitivement sur tous les appareils.`;
+
     setTimeout(() => {
       setShowTeacherModal(false);
       setTeacherFormSuccess(false);
-      const actionLabel = isEditMode ? 'modifié' : 'déposé';
-      setSubjectLoadNotice(`Sujet officiel « ${updatedSub.titre} » ${actionLabel} et synchronisé au niveau du serveur pour tous les candidats !`);
-      setTimeout(() => setSubjectLoadNotice(null), 4500);
+      setSubjectLoadNotice(noticeMsg);
+      setTimeout(() => setSubjectLoadNotice(null), 6000);
       setEditingSubjectId(null);
-    }, 1100);
+    }, 900);
   };
 
   const handleDeleteCustomSubject = async (id: string) => {
     if (!isTeacherAuthenticated) {
-      setTeacherAuthError("Accès réservé : seule la validation de la clé d'habilitation permet d'administrer les sujets.");
+      setTeacherAuthError("Accès réservé : seule la validation de l'espace enseignant permet d'administrer les sujets.");
       setShowTeacherAuthModal(true);
       return;
     }
     const targetSub = regionalSubjects.find((s) => s.id === id);
     const subTitle = targetSub ? targetSub.titre : 'ce sujet';
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement « ${subTitle} » de la plateforme pour tous les candidats ?`)) {
+    if (
+      window.confirm(
+        `Êtes-vous sûr de vouloir supprimer définitivement « ${subTitle} » de la plateforme pour tous les candidats ?`
+      )
+    ) {
+      const isDefaultPlatformSubject = DEFAULT_REGIONAL_SUBJECTS.some((s) => s.id === id);
+
+      // 1. Mise à jour immédiate de localStorage + état React
+      const remainingLocal = readLocalCustomSubjects().filter((s) => s.id !== id);
+      writeLocalCustomSubjects(remainingLocal);
+      const nextDeleted = [...readLocalDeletedIds(), id];
+      writeLocalDeletedIds(nextDeleted);
       setRegionalSubjects((prev) => prev.filter((s) => s.id !== id));
 
-      try {
-        await fetch(`/api/teacher-subjects/${id}`, {
-          method: 'DELETE',
-        });
-        fetchServerSubjects();
-        setSubjectLoadNotice(`Sujet « ${subTitle} » supprimé sur le serveur pour tous les candidats.`);
-        setTimeout(() => setSubjectLoadNotice(null), 4500);
-      } catch (err) {
-        console.warn('Erreur suppression serveur:', err);
+      // 2. Suppression dans Firestore Cloud (si connecté avec Google Enseignant)
+      let deletedInCloud = false;
+      if (targetSub && isFirebaseTeacherAdmin(auth.currentUser)) {
+        try {
+          deletedInCloud = await deleteTeacherSubjectInFirestore(targetSub, isDefaultPlatformSubject);
+        } catch (cloudErr) {
+          console.error('Erreur suppression Firestore:', cloudErr);
+        }
       }
+
+      // 3. Suppression complémentaire sur le serveur Express
+      try {
+        const resp = await fetch(`/api/teacher-subjects/${id}`, {
+          method: 'DELETE',
+          cache: 'no-store',
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && Array.isArray(data.subjects)) {
+            serverSubjectsRef.current = data.subjects;
+          }
+        }
+      } catch (err) {
+        console.warn('Erreur suppression serveur Express:', err);
+      }
+
+      rebuildMergedSubjects();
+      setSubjectLoadNotice(
+        deletedInCloud
+          ? `Sujet « ${subTitle} » supprimé définitivement dans la base Cloud pour tous les candidats.`
+          : `Sujet « ${subTitle} » supprimé sur cet appareil et le serveur.`
+      );
+      setTimeout(() => setSubjectLoadNotice(null), 4500);
     }
   };
 
@@ -6626,11 +6901,31 @@ export default function App() {
             </div>
 
             <form onSubmit={handleVerifyTeacherKey} className="p-5 sm:p-6 space-y-4">
-              <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 flex items-start gap-2.5">
-                <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-900 leading-relaxed">
-                  Cet espace est strictement réservé au professeur pour déposer ou administrer des sujets régionaux. Veuillez saisir la <strong className="font-semibold text-slate-900">Clé d'habilitation Enseignant</strong>.
+              <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2.5">
+                <p className="text-xs text-emerald-950 leading-relaxed">
+                  <strong>Connexion recommandée :</strong> connectez-vous avec votre compte Google enseignant (<span className="font-semibold">{TEACHER_ADMIN_EMAIL}</span>) pour enregistrer vos sujets <strong>définitivement dans le Cloud</strong> pour tous les candidats.
                 </p>
+                <button
+                  type="button"
+                  disabled={teacherAuthLoading}
+                  onClick={() => handleGoogleTeacherSignIn(true)}
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white text-xs font-bold shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>
+                    {teacherAuthLoading
+                      ? 'Connexion Google en cours...'
+                      : 'Connexion Google Enseignant (Sauvegarde Cloud Permanente)'}
+                  </span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="h-px bg-slate-200 flex-1" />
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                  ou via la clé d&apos;habilitation
+                </span>
+                <div className="h-px bg-slate-200 flex-1" />
               </div>
 
               {teacherAuthError && (
@@ -6642,13 +6937,12 @@ export default function App() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                  Clé d'habilitation Enseignant
+                  Clé d&apos;habilitation Enseignant
                 </label>
                 <div className="relative">
                   <input
                     type={showTeacherKeyPlain ? 'text' : 'password'}
                     required
-                    autoFocus
                     value={teacherInputKey}
                     onChange={(e) => {
                       setTeacherInputKey(e.target.value);
@@ -6688,7 +6982,7 @@ export default function App() {
                   className="px-5 py-2.5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl shadow-md transition cursor-pointer flex items-center gap-1.5 active:scale-95"
                 >
                   <KeyRound className="w-4 h-4 text-slate-950 stroke-[2.5]" />
-                  <span>Déverrouiller l'Espace</span>
+                  <span>Déverrouiller par Clé</span>
                 </button>
               </div>
             </form>
@@ -6734,12 +7028,32 @@ export default function App() {
               </button>
             </div>
 
-            {/* Bannière de session enseignant active avec option de verrouillage */}
-            <div className="bg-amber-50/90 px-5 py-2 border-b border-amber-200 flex items-center justify-between text-xs text-amber-950">
-              <span className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Session Enseignant vérifiée : <strong>hadmed.brave@gmail.com</strong></span>
-              </span>
+            {/* Bannière de session enseignant active avec statut Cloud Firestore */}
+            <div className="bg-amber-50/90 px-5 py-2.5 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-950">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isFirebaseAdmin ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                  }`}
+                ></span>
+                {isFirebaseAdmin ? (
+                  <span>
+                    Base Cloud Firestore active : <strong>{firebaseUser?.email}</strong>
+                  </span>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>Mode local / clé active</span>
+                    <button
+                      type="button"
+                      disabled={teacherAuthLoading}
+                      onClick={() => handleGoogleTeacherSignIn(false)}
+                      className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition cursor-pointer"
+                    >
+                      {teacherAuthLoading ? 'Connexion...' : 'Activer la sauvegarde Cloud (Google)'}
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={handleLockTeacherSpace}
@@ -6763,9 +7077,13 @@ export default function App() {
                 <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>
-                    {editingSubjectId
-                      ? 'Modifications enregistrées et synchronisées sur le serveur pour tous les candidats !'
-                      : 'Sujet enregistré avec succès et synchronisé sur le serveur pour tous les candidats !'}
+                    {isFirebaseAdmin
+                      ? editingSubjectId
+                        ? 'Modifications enregistrées définitivement dans la base Cloud pour tous les candidats !'
+                        : 'Sujet enregistré définitivement dans la base Cloud pour tous les candidats !'
+                      : editingSubjectId
+                      ? 'Modifications sauvegardées localement et synchronisées avec le serveur !'
+                      : 'Sujet sauvegardé localement et synchronisé avec le serveur !'}
                   </span>
                 </div>
               )}
@@ -6950,13 +7268,16 @@ export default function App() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 text-xs font-bold bg-[#0b1528] hover:bg-slate-800 text-white rounded-xl shadow-md transition cursor-pointer flex items-center gap-2 active:scale-95"
+                    disabled={isSavingTeacherSubject}
+                    className="px-5 py-2.5 text-xs font-bold bg-[#0b1528] hover:bg-slate-800 disabled:opacity-60 text-white rounded-xl shadow-md transition cursor-pointer flex items-center gap-2 active:scale-95"
                   >
                     <Check className="w-4 h-4 text-amber-400 stroke-[2.5]" />
                     <span>
-                      {editingSubjectId
-                        ? 'Enregistrer les Modifications sur le Serveur'
-                        : 'Enregistrer et Publier sur le Serveur'}
+                      {isSavingTeacherSubject
+                        ? 'Enregistrement en cours...'
+                        : editingSubjectId
+                        ? 'Enregistrer les Modifications'
+                        : 'Enregistrer et Publier le Sujet'}
                     </span>
                   </button>
                 </div>
