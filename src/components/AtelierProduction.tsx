@@ -182,7 +182,9 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     lower.includes('sidi mohammed') ||
     lower.includes('dar chouafa') ||
     lower.includes('maâlem') ||
-    lower.includes('abdeslem')
+    lower.includes('abdeslem') ||
+    lower.includes('abdelkader') ||
+    lower.includes('moulay larbi')
   ) {
     oeuvre = 'La Boîte à Merveilles';
   } else if (subjectItem?.oeuvre && OEUVRES_DATA[subjectItem.oeuvre]) {
@@ -341,20 +343,57 @@ function analyzeSubjectText(rawSubject: string, subjectItem?: RegionalSubject | 
     arg2SimpleExplication = 'En effet, vivre dans la quête perpétuelle de l\'argent empoisonne les relations humaines et détruit le sens du partage.';
     questionSimple = 'en quoi les richesses spirituelles et affectives surpassent-elles infiniment la fortune matérielle';
     conclusionFerme = 'le bonheur authentique ne se mesure jamais à l\'abondance des richesses matérielles, mais à la pureté des relations humaines';
+  } else if (
+    lower.includes('abdelkader') ||
+    lower.includes('moulay larbi') ||
+    lower.includes('ingrat') ||
+    lower.includes('mal récompens') ||
+    lower.includes('mal recompens') ||
+    lower.includes('refuser toute aide') ||
+    ((lower.includes('bonté') || lower.includes('générosité')) && (lower.includes('aide') || lower.includes('autrui')))
+  ) {
+    themeName = 'l\'ingratitude face à la bonté et le fait d\'aider les autres';
+    these1 = 'il faut continuer à aider les autres même si certaines personnes se montrent ingrates';
+    these1Explication = 'En effet, on fait le bien par bonté et par devoir humain, pas seulement pour être remercié, et la faute d\'un seul ingrat ne doit pas punir les gens honnêtes.';
+    these2 = 'une trahison ou une grande ingratitude peut blesser une personne généreuse et la pousser à devenir méfiante';
+    these2Explication = 'En effet, lorsqu\'on tend la main à quelqu\'un et qu\'il nous trahit en retour, on souffre beaucoup et on hésite avant d\'accorder sa confiance à nouveau.';
+    questionCentrale = 'l\'ingratitude de certaines personnes est-elle une raison suffisante pour refuser toute aide aux autres';
+    syntheseDialectique = 'il ne faut jamais cesser d\'aider les autres à cause de quelques ingrats, mais il est sage de faire preuve de prudence avant d\'accorder sa confiance';
+    ouvertureDialectique = 'comment apprendre à rester généreux et solidaire sans se laisser tromper par les personnes malhonnêtes ?';
+
+    hasDualOptions = true;
+    optionAName = 'Continuer à aider les autres malgré l\'ingratitude';
+    optionBName = 'Limiter son aide et rester méfiant par peur d\'être trahi';
+
+    theseSimpleAvis = 'l\'ingratitude de certaines personnes n\'est pas une raison suffisante pour refuser d\'aider les autres';
+    arg1Simple = 'la majorité des gens sont honnêtes et ne doivent pas payer pour la faute d\'une seule personne ingrate';
+    arg1SimpleExplication = 'En effet, si l\'on arrête d\'aider à cause d\'une mauvaise expérience, ce sont les personnes sincères et en difficulté qui en souffrent le plus.';
+    arg2Simple = 'faire le bien est une valeur noble qui rend la société plus humaine et apporte une vraie paix du cœur';
+    arg2SimpleExplication = 'En effet, la vraie générosité ne cherche pas une récompense immédiate ; elle naît du désir sincère de soulager la peine d\'autrui.';
+    questionSimple = 'pour quelles raisons doit-on continuer à aider les autres malgré le risque d\'être mal récompensé';
+    conclusionFerme = 'malgré les déceptions causées par l\'ingratitude, la bonté et l\'entraide restent des valeurs essentielles qu\'il ne faut jamais abandonner';
+
+    theseSimpleAvisAlt = 'les mauvaises expériences d\'ingratitude expliquent pourquoi il vaut mieux se montrer très prudent avant d\'aider quelqu\'un';
+    arg1SimpleAlt = 'aider sans réfléchir expose les personnes trop gentilles à l\'abus et à la ruine';
+    arg1SimpleExplicationAlt = 'En effet, certaines personnes malhonnêtes profitent de la bonté des autres et finissent par leur causer de graves problèmes.';
+    arg2SimpleAlt = 'une trahison brise la confiance et pousse naturellement à se protéger soi-même et sa famille';
+    arg2SimpleExplicationAlt = 'En effet, après avoir été trompé par quelqu\'un qu\'on a soutenu, il devient très difficile de tendre la main sans crainte.';
+    questionSimpleAlt = 'pourquoi l\'ingratitude pousse-t-elle parfois les gens à se méfier et à refuser d\'aider les autres';
+    conclusionFermeAlt = 'la prudence reste nécessaire face aux personnes malhonnêtes, car la bonté aveugle peut mener à de douloureuses déceptions';
   } else if (lower.includes('solidarité') || lower.includes('entraide') || lower.includes('voisin')) {
-    themeName = 'l\'importance de la solidarité et de l\'entraide sociale';
-    these1 = 'l\'entraide et la bienveillance entre concitoyens constituent le ciment indispensable d\'une société apaisée';
-    these1Explication = 'En effet, se soutenir mutuellement dans les moments de deuil ou d\'épreuve rend la collectivité plus humaine et plus forte.';
-    these2 = 'l\'individualisme croissant et la méfiance tendent parfois à fragiliser ces élans fraternels';
-    these2Explication = 'En effet, la recherche du profit personnel ou la peur du jugement d\'autrui poussent souvent les individus à se replier sur eux-mêmes.';
-    questionCentrale = 'dans quelle mesure la solidarité demeure-t-elle un devoir fondamental pour préserver le vivre-ensemble';
-    theseSimpleAvis = 'la solidarité fraternelle constitue la colonne vertébrale indispensable à toute société digne et fraternelle';
-    arg1Simple = 'l\'entraide mutuelle protège les plus faibles contre les aléas cruels de l\'existence';
-    arg1SimpleExplication = 'En effet, face à la maladie ou à la misère, le soutien des voisins transforme le malheur individuel en courage partagé.';
-    arg2Simple = 'elle combat l\'égoïsme et instaure un climat de confiance et de fraternité durable';
-    arg2SimpleExplication = 'En effet, partager son pain et ses peines renforce la concorde civile et élève moralement la communauté.';
-    questionSimple = 'en quoi la solidarité active s\'impose-t-elle comme le rempart essentiel contre l\'isolement et la détresse';
-    conclusionFerme = 'la solidarité entre les hommes demeure le trésor inaltérable qui donne tout son sens à la vie en société';
+    themeName = 'la solidarité et l\'entraide entre les gens';
+    these1 = 'l\'entraide et la bienveillance rendent la vie en société plus juste et plus chaleureuse';
+    these1Explication = 'En effet, se soutenir dans les moments difficiles donne du courage à ceux qui souffrent et renforce les liens entre les gens.';
+    these2 = 'l\'égoïsme et la méfiance affaiblissent parfois cet esprit d\'entraide au quotidien';
+    these2Explication = 'En effet, beaucoup de personnes pensent d\'abord à leur propre intérêt ou craignent d\'être déçues en aidant les autres.';
+    questionCentrale = 'dans quelle mesure la solidarité reste-t-elle essentielle pour bien vivre ensemble';
+    theseSimpleAvis = 'la solidarité et l\'entraide sont indispensables pour construire une société juste et humaine';
+    arg1Simple = 'aider son prochain protège les personnes les plus fragiles face aux difficultés de la vie';
+    arg1SimpleExplication = 'En effet, devant la maladie ou la pauvreté, le soutien des voisins et des proches aide à retrouver espoir et courage.';
+    arg2Simple = 'l\'entraide combat l\'égoïsme et crée un climat de confiance et de respect mutuel';
+    arg2SimpleExplication = 'En effet, partager ce que l\'on a et se soucier des autres rapproche les gens et apaise les tensions.';
+    questionSimple = 'pourquoi la solidarité est-elle indispensable pour lutter contre l\'isolement et les difficultés du quotidien';
+    conclusionFerme = 'l\'entraide entre les hommes reste une valeur essentielle qui donne tout son sens à la vie en société';
   } else if (lower.includes('désobé') || lower.includes('desobe') || lower.includes('loi') || lower.includes('révolte') || lower.includes('revolte') || lower.includes('devoir moral') || lower.includes('créon') || lower.includes('creon')) {
     themeName = 'le devoir de désobéissance morale face à une loi injuste';
     these1 = 'la fidélité à sa conscience et aux devoirs sacrés autorise à refuser les lois tyranniques des hommes';
@@ -677,15 +716,44 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
     return subjectAnalysis.conclusionFerme;
   }, [selectedStance, subjectAnalysis]);
 
+  const isGeneralSociety = useMemo(() => {
+    return (
+      selectedOeuvre === 'Sujet de Société Général' ||
+      !['La Boîte à Merveilles', 'Antigone', 'Le Dernier Jour d’un Condamné'].includes(selectedOeuvre)
+    );
+  }, [selectedOeuvre]);
+
+  const oeuvreFullLabel = useMemo(() => {
+    if (selectedOeuvre === 'La Boîte à Merveilles') {
+      return `le roman La Boîte à Merveilles d'Ahmed Sefrioui`;
+    } else if (selectedOeuvre === 'Antigone') {
+      return `la pièce Antigone de Jean Anouilh`;
+    } else if (selectedOeuvre === 'Le Dernier Jour d’un Condamné') {
+      return `le roman Le Dernier Jour d'un Condamné de Victor Hugo`;
+    }
+    return `la vie quotidienne`;
+  }, [selectedOeuvre]);
+
+  const oeuvreReadingLabel = useMemo(() => {
+    if (selectedOeuvre === 'La Boîte à Merveilles') {
+      return `La Boîte à Merveilles d'Ahmed Sefrioui`;
+    } else if (selectedOeuvre === 'Antigone') {
+      return `la pièce Antigone de Jean Anouilh`;
+    } else if (selectedOeuvre === 'Le Dernier Jour d’un Condamné') {
+      return `Le Dernier Jour d'un Condamné de Victor Hugo`;
+    }
+    return `la vie quotidienne`;
+  }, [selectedOeuvre]);
+
   const oeuvreIntroPhrase = useMemo(() => {
     if (selectedOeuvre === 'La Boîte à Merveilles') {
-      return `Dans l'œuvre « La Boîte à Merveilles » d'Ahmed Sefrioui`;
+      return `Dans le roman La Boîte à Merveilles d'Ahmed Sefrioui`;
     } else if (selectedOeuvre === 'Antigone') {
-      return `Dans la pièce tragique « Antigone » de Jean Anouilh`;
+      return `Dans la pièce Antigone de Jean Anouilh`;
     } else if (selectedOeuvre === 'Le Dernier Jour d’un Condamné') {
-      return `Dans l'œuvre engagée « Le Dernier Jour d’un Condamné » de Victor Hugo`;
+      return `Dans le roman Le Dernier Jour d'un Condamné de Victor Hugo`;
     }
-    return `Dans la littérature comme au sein des débats de société`;
+    return `Dans notre société actuelle`;
   }, [selectedOeuvre]);
 
   // État des 2 variantes de reformulation
@@ -810,30 +878,46 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
     const qCentral = cleanQuestionSentence(subjectAnalysis.questionCentrale);
 
     if (step === 'INTRO') {
-      if (selectedPlan === 'DIALECTIQUE') {
-        // Variante 1 : Clarté & Simplicité Directe (Vocabulaire accessible, opposition nette sans double connecteur, fin stricte sur la problématique)
-        setVarianteA(
-          `Dans l'œuvre « ${selectedOeuvre} » comme dans notre société, la question relative ${contractPreposition('à', theme)} suscite de vives discussions. Si certains soutiennent avec conviction que ${t1}, d'autres estiment au contraire que ${t2}. Dès lors, ${qCentral} ?`
-        );
+      if (isGeneralSociety) {
+        // SUJET DE SOCIÉTÉ GÉNÉRAL : Introduction générale, souple, simple et fluide (JAMAIS de lien artificiel avec une œuvre)
+        if (selectedPlan === 'DIALECTIQUE') {
+          setVarianteA(
+            `De nos jours, la question liée ${contractPreposition('à', theme)} suscite de nombreux avis dans notre société. Si certains pensent que ${t1}, d'autres estiment au contraire que ${t2}. Dès lors, ${qCentral} ?`
+          );
+          setVarianteB(
+            `Dans la vie de tous les jours, le sujet ${contractPreposition('de', theme)} partage souvent les gens. D'un côté, plusieurs personnes affirment que ${t1} ; d'un autre côté, certains soutiennent que ${t2}. On peut alors se demander : ${qCentral} ?`
+          );
+        } else {
+          const avis = cleanThesisClause(currentSimpleAvis);
+          const qSimple = cleanQuestionSentence(currentQuestionSimple);
 
-        // Variante 2 : Élégance Académique & Immersion Littéraire (Ancrage direct dans l'œuvre, style soigné, clôture nette sur la question)
-        setVarianteB(
-          `Quand on plonge dans la lecture attentive de « ${selectedOeuvre} », on constate que la tension relative ${contractPreposition('à', theme)} constitue une interrogation existentielle majeure. Tandis qu'une partie de l'opinion défend l'idée selon laquelle ${t1}, d'autres observateurs font valoir que ${t2}. Il importe dès lors de s'interroger : ${qCentral} ?`
-        );
+          setVarianteA(
+            `De nos jours, la question liée ${contractPreposition('à', theme)} concerne chacun d'entre nous dans la vie quotidienne. Pour ma part, je pense clairement que ${avis}. Dès lors, ${qSimple} ?`
+          );
+          setVarianteB(
+            `Dans notre société actuelle, le thème ${contractPreposition('de', theme)} revient souvent dans les discussions. En ce qui me concerne, je suis convaincu que ${avis}. Dès lors, ${qSimple} ?`
+          );
+        }
       } else {
-        // Plan Simple : Plaidoyer et défense résolue du point de vue personnel ancré dans l'œuvre, fin stricte sur la problématique
-        const avis = cleanThesisClause(currentSimpleAvis);
-        const qSimple = cleanQuestionSentence(currentQuestionSimple);
+        // ŒUVRE AU PROGRAMME SÉLECTIONNÉE : Forcer une liaison claire et fluide avec l'œuvre choisie, en langage simple
+        if (selectedPlan === 'DIALECTIQUE') {
+          setVarianteA(
+            `Dans ${oeuvreFullLabel}, comme dans la vie de tous les jours, la question liée ${contractPreposition('à', theme)} partage les avis. Si certains pensent que ${t1}, d'autres estiment au contraire que ${t2}. Dès lors, ${qCentral} ?`
+          );
+          setVarianteB(
+            `Quand on plonge dans la lecture de ${oeuvreReadingLabel}, on remarque vite que le sujet ${contractPreposition('de', theme)} fait débat. D'un côté, certains défendent l'idée que ${t1} ; d'un autre côté, d'autres affirment que ${t2}. On peut alors se demander : ${qCentral} ?`
+          );
+        } else {
+          const avis = cleanThesisClause(currentSimpleAvis);
+          const qSimple = cleanQuestionSentence(currentQuestionSimple);
 
-        // Variante 1 : Clarté & Simplicité Directe
-        setVarianteA(
-          `Dans l'œuvre « ${selectedOeuvre} » comme au sein de notre quotidien, la réflexion relative ${contractPreposition('à', theme)} occupe une place prépondérante. Pour ma part, je soutiens fermement que ${avis}. Dès lors, ${qSimple} ?`
-        );
-
-        // Variante 2 : Élégance Académique & Immersion Littéraire
-        setVarianteB(
-          `Quand on plonge dans la lecture attentive de « ${selectedOeuvre} », la problématique inhérente ${contractPreposition('à', theme)} interpelle vivement notre réflexion. Loin de toute hésitation, j'adhère sans réserve à l'idée selon laquelle ${avis}. Il convient dès lors de poser la question essentielle : ${qSimple} ?`
-        );
+          setVarianteA(
+            `Dans ${oeuvreFullLabel}, comme dans notre vie quotidienne, la question liée ${contractPreposition('à', theme)} mérite qu'on y réfléchisse. Pour ma part, je pense clairement que ${avis}. Dès lors, ${qSimple} ?`
+          );
+          setVarianteB(
+            `Quand on plonge dans la lecture de ${oeuvreReadingLabel}, on voit bien combien le sujet ${contractPreposition('de', theme)} est important dans la vie humaine. En ce qui me concerne, je suis convaincu que ${avis}. Dès lors, ${qSimple} ?`
+          );
+        }
       }
     } else if (step === 'DEV_AXE1') {
       // Nettoyage et explicitation claire de l'argument du candidat
@@ -846,20 +930,22 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         ? rawExpl
         : (selectedPlan === 'SIMPLE' ? currentArg1SimpleExplication : t1Exp);
 
-      // Exemple suivant l'argument : si l'élève n'a pas encore saisi d'exemple, on prend le meilleur exemple détecté
-      const finalEx = rawEx || (matchingAxe1.bestMatch ? matchingAxe1.bestMatch.phraseComplete : `Comme l'illustre un épisode marquant de « ${selectedOeuvre} »`);
+      const defaultEx1 = isGeneralSociety
+        ? `Comme on le voit souvent dans la vie de tous les jours`
+        : `Comme l'illustre un épisode marquant de ${oeuvreReadingLabel}`;
+      const finalEx = rawEx || (matchingAxe1.bestMatch ? matchingAxe1.bestMatch.phraseComplete : defaultEx1);
       const cleanFinalEx1 = finalEx.replace(/[.,;:]+$/, '').trim();
 
       const cleanAmorce1 = dev1Amorce.replace(/^(en\s+premier\s+lieu,\s*)+/i, 'En premier lieu, ').trim() + ' ';
 
-      // Variante 1 : Clarté & Simplicité directe (Langage simple, argument limpide, explication causale concrète)
+      // Variante 1 : Clarté & Simplicité directe
       setVarianteA(
-        `${cleanAmorce1}il apparaît indéniable que ${finalArg}. ${finalExpl} ${cleanFinalEx1}, ce qui prouve avec clarté la justesse de cette idée.`
+        `${cleanAmorce1}il est clair que ${finalArg}. ${finalExpl} ${cleanFinalEx1}, ce qui montre bien la justesse de cette idée.`
       );
 
-      // Variante 2 : Élégance équilibrée 50/50 (Tournure soignée, registre académique accessible, explication approfondie)
+      // Variante 2 : Style fluide et équilibré (sans jargon pompeux)
       setVarianteB(
-        `${cleanAmorce1}force est de reconnaître la pertinence de l'argument selon lequel ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${cleanFinalEx1}, attestant que cette vérité transcende les époques et consolide notre réflexion.`
+        `${cleanAmorce1}on remarque facilement que ${finalArg}. ${finalExpl} C'est justement ce que confirme ${cleanFinalEx1}, prouvant ainsi la solidité de cet argument.`
       );
     } else if (step === 'DEV_AXE2') {
       const rawArg = dev2Argument.trim();
@@ -884,39 +970,41 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         const finalExpl = rawExpl && rawExpl !== 'En effet,' && rawExpl !== 'En effet, '
           ? rawExpl
           : t2Exp;
-        const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : `À cet égard, une scène éloquente de « ${selectedOeuvre} »`);
+        const defaultEx2 = isGeneralSociety
+          ? `À titre d'exemple, on observe souvent ce comportement dans la vie courante`
+          : `À cet égard, un passage précis de ${oeuvreReadingLabel} le montre bien`;
+        const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : defaultEx2);
         const cleanFinalEx2 = finalEx.replace(/[.,;:]+$/, '').trim();
 
-        // Variante 1 : Clarté & Simplicité (Antithèse sans double connecteur ni jargon pompous)
         setVarianteA(
-          `${cleanAmorce2}il convient de souligner que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, montrant ainsi que cette réalité ne doit pas être jugée de manière unilatérale.`
+          `${cleanAmorce2}il faut aussi souligner que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, ce qui montre qu'on ne peut pas voir les choses d'un seul côté.`
         );
 
-        // Variante 2 : Élégance équilibrée (Langage clair, accessible, sans emphase artificielle)
         setVarianteB(
-          `${cleanAmorce2}on ne saurait ignorer que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, ce qui montre avec netteté que la vie en société et la présence d'amis apportent un équilibre indispensable à chaque personne.`
+          `${cleanAmorce2}on ne peut pas ignorer que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, prouvant ainsi qu'il est important de tenir compte de cet autre point de vue.`
         );
       } else {
-        // Plan Simple : 2ème argument complémentaire qui fortifie la même thèse (aucune antithèse)
+        // Plan Simple : 2ème argument complémentaire qui fortifie la même thèse
         const finalArg = rawArg || currentArg2Simple;
         const finalExpl = rawExpl && rawExpl !== 'En effet,' && rawExpl !== 'En effet, '
           ? rawExpl
           : currentArg2SimpleExplication;
-        const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : `À ce propos, un exemple significatif de « ${selectedOeuvre} »`);
+        const defaultEx2Simple = isGeneralSociety
+          ? `À ce propos, la vie quotidienne nous offre de nombreux exemples concrets`
+          : `À ce propos, un exemple précis tiré de ${oeuvreReadingLabel} le confirme`;
+        const finalEx = rawEx || (matchingAxe2.bestMatch ? matchingAxe2.bestMatch.phraseComplete : defaultEx2Simple);
         const cleanFinalEx2 = finalEx.replace(/[.,;:]+$/, '').trim();
 
-        // Variante 1 : Clarté & Simplicité (Progression)
         setVarianteA(
-          `${cleanAmorce2}il convient d'ajouter que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, ce qui consolide notre démonstration en lui apportant un second fondement solide.`
+          `${cleanAmorce2}il faut ajouter que ${finalArg}. ${finalExpl} ${cleanFinalEx2}, ce qui renforce encore davantage notre point de vue.`
         );
 
-        // Variante 2 : Élégance 50/50 (Progression)
         setVarianteB(
-          `${cleanAmorce2}cette première analyse trouve un prolongement naturel dans le fait que ${finalArg}. ${finalExpl} C'est précisément ce que confirme ${cleanFinalEx2}, attestant avec clarté la solidité de notre point de vue.`
+          `${cleanAmorce2}cette première idée est renforcée par le fait que ${finalArg}. ${finalExpl} C'est exactement ce que confirme ${cleanFinalEx2}, montrant clairement la force de notre avis.`
         );
       }
     } else if (step === 'CONCL') {
-      // Nettoyage rigoureux pour éviter toute répétition de formules (ex: "je confirme" ou "d'après ce qui précède")
+      // Nettoyage rigoureux pour éviter toute répétition de formules
       const cleanPointDeVue = (raw: string) => {
         return raw
           .trim()
@@ -940,15 +1028,15 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
           .trim();
       };
 
-      const defaultPvdDialectique = subjectAnalysis.syntheseDialectique || `l'harmonie réside dans un juste équilibre entre les moments de recueillement et les bienfaits de l'amitié`;
+      const defaultPvdDialectique = subjectAnalysis.syntheseDialectique || `un juste équilibre entre ces deux points de vue permet d'avancer de façon raisonnable`;
       const rawPvdDialectique = conclPointDeVue.trim() || defaultPvdDialectique;
       const rawPvdSimple = conclPointDeVue.trim() || currentConclusionFerme;
       const cleanPvdDialectique = cleanPointDeVue(rawPvdDialectique);
       const cleanPvdSimple = cleanPointDeVue(rawPvdSimple);
 
       const defaultOuv = selectedPlan === 'SIMPLE'
-        ? (subjectAnalysis.questionSimple ? `comment approfondir cette vérité face aux exigences contemporaines ?` : `comment préserver cette autonomie face aux pressions extérieures ?`)
-        : (subjectAnalysis.ouvertureDialectique || `comment concilier durablement ces deux exigences au sein de la vie moderne ?`);
+        ? (subjectAnalysis.ouvertureDialectique || `comment mettre cette valeur en pratique chaque jour autour de nous ?`)
+        : (subjectAnalysis.ouvertureDialectique || `comment trouver durablement ce juste équilibre dans notre vie quotidienne ?`);
 
       const rawOuv = conclOuverture.trim() || defaultOuv;
       const cleanOuv = rawOuv
@@ -959,26 +1047,36 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
         .trim();
       const formattedOuv = cleanOuv ? (cleanOuv.charAt(0).toLowerCase() + cleanOuv.slice(1)) : '';
 
+      const conclSourceText = isGeneralSociety
+        ? `les exemples tirés de la vie quotidienne`
+        : `les exemples tirés de ${oeuvreReadingLabel}`;
+
       if (selectedPlan === 'SIMPLE') {
-        // Plan Simple : Réaffirmation claire et ferme du point de vue personnel défendu
         setVarianteA(
-          `D'après ce qui précède, je réaffirme avec conviction que ${cleanPvdSimple}. L'ensemble des arguments développés et les exemples tirés de « ${selectedOeuvre} » prouvent sans doute la justesse de cette prise de position. Dès lors, ${formattedOuv}`
+          `En conclusion, je réaffirme clairement que ${cleanPvdSimple}. Les arguments développés et ${conclSourceText} montrent bien la justesse de ce point de vue. Dès lors, ${formattedOuv}`
         );
 
         setVarianteB(
-          `En définitive, à la lumière de cette démonstration, il apparaît certain que ${cleanPvdSimple}. Dès lors, je soutiens pleinement la valeur de ce point de vue personnel. Une question essentielle demeure ouverte : ${formattedOuv}`
+          `En définitive, tout ce qui précède montre bien que ${cleanPvdSimple}. Pour ma part, je reste pleinement convaincu de la valeur de cette idée. Une question se pose alors : ${formattedOuv}`
         );
       } else {
-        // Plan Dialectique : Synthèse équilibrée en langage clair sans jargon pompeux
         setVarianteA(
-          `En définitive, l'examen attentif de la question relative ${contractPreposition('à', theme)} montre que ces deux points de vue se complètent harmonieusement. Pour ma part, j'estime que ${cleanPvdDialectique}. Dès lors, ${formattedOuv}`
+          `En conclusion, la réflexion sur ${theme} montre que ces deux points de vue se complètent. Pour ma part, je pense que ${cleanPvdDialectique}. Dès lors, ${formattedOuv}`
         );
         setVarianteB(
-          `Au terme de cette réflexion, l'analyse menée autour ${contractPreposition('de', theme)} permet de dégager un juste équilibre. En ce qui me concerne, je pense que ${cleanPvdDialectique}. Une question essentielle se pose alors : ${formattedOuv}`
+          `En définitive, l'examen de cette question permet de trouver un juste équilibre. En ce qui me concerne, j'estime que ${cleanPvdDialectique}. Une question essentielle reste alors ouverte : ${formattedOuv}`
         );
       }
     }
   };
+
+  // Actualiser instantanément les 2 variantes si l'élève change d'œuvre ou de plan pendant que la modale est ouverte
+  useEffect(() => {
+    if (showReformulations && reformulationStep) {
+      generateTwoVariants(reformulationStep);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOeuvre, selectedPlan, selectedStance]);
 
   // Validation d'une variante choisie et passage à l'étape suivante
   const handleApplyVariant = (chosenText: string) => {
@@ -1081,11 +1179,9 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
           </span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {activeSubjectItem?.typePlanSuggere && (
-            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              {activeSubjectItem.typePlanSuggere}
-            </span>
-          )}
+          <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            {selectedPlan === 'SIMPLE' ? 'Plan Simple' : 'Plan Dialectique'}
+          </span>
           <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
             Thème : {subjectAnalysis.themeName}
           </span>
@@ -1428,30 +1524,59 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-1">
                 <label className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                  <span>1. Accroche / Sujet amené (Généralité ou constat de société)</span>
+                  <span>
+                    {isGeneralSociety
+                      ? '1. Accroche / Sujet amené (Amorce générale, souple et claire)'
+                      : `1. Accroche / Sujet amené (Lien direct avec ${selectedOeuvre})`}
+                  </span>
                 </label>
                 <div className="flex items-center gap-1 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => setIntroAccroche(`De nos jours, ${subjectAnalysis.themeName} occupe une place prépondérante dans les débats actuels. `)}
-                    className="text-[11px] px-2 py-0.5 rounded bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 transition font-medium cursor-pointer"
-                  >
-                    + Constat actuel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIntroAccroche(`Depuis toujours, la question de ${subjectAnalysis.themeName} interpelle la conscience humaine. `)}
-                    className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition font-medium cursor-pointer"
-                  >
-                    + Généralité intemporelle
-                  </button>
+                  {isGeneralSociety ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIntroAccroche(`De nos jours, la question liée ${contractPreposition('à', subjectAnalysis.themeName)} concerne tout le monde dans la vie quotidienne. `)}
+                        className="text-[11px] px-2 py-0.5 rounded bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 transition font-medium cursor-pointer"
+                      >
+                        + Constat actuel (De nos jours...)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIntroAccroche(`Dans notre société actuelle, le sujet ${contractPreposition('de', subjectAnalysis.themeName)} revient souvent dans les discussions. `)}
+                        className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition font-medium cursor-pointer"
+                      >
+                        + Vie quotidienne (Dans notre société...)
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIntroAccroche(`Quand on plonge dans la lecture de ${oeuvreReadingLabel}, on remarque vite que la question liée ${contractPreposition('à', subjectAnalysis.themeName)} occupe une place importante. `)}
+                        className="text-[11px] px-2 py-0.5 rounded bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 transition font-medium cursor-pointer"
+                      >
+                        + « Quand on plonge dans la lecture... »
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIntroAccroche(`Dans ${oeuvreFullLabel}, comme dans la vie de tous les jours, le sujet ${contractPreposition('de', subjectAnalysis.themeName)} mérite qu'on y réfléchisse. `)}
+                        className="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition font-medium cursor-pointer"
+                      >
+                        + Dans l'œuvre...
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
               <textarea
                 rows={2}
                 value={introAccroche}
                 onChange={(e) => setIntroAccroche(e.target.value)}
-                placeholder="Exemple : De nos jours, la question de la solidarité suscite de nombreux débats au sein de notre société..."
+                placeholder={
+                  isGeneralSociety
+                    ? "Exemple : De nos jours, ce sujet revient souvent dans notre vie quotidienne..."
+                    : `Exemple : Quand on plonge dans la lecture de ${oeuvreReadingLabel}, on remarque que...`
+                }
                 className="w-full p-3 bg-slate-50/70 border border-slate-300 rounded-lg text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition"
               />
             </div>
@@ -2359,17 +2484,19 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                     : 'border-slate-200 bg-slate-50/60 hover:border-amber-300 hover:bg-white'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5 leading-snug">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
                     <span>
                       {reformulationStep === 'INTRO'
-                        ? 'Variante 2 : « Élégance Académique & Immersion Littéraire »'
-                        : 'Variante 2 : « Élégance Équilibrée 50/50 »'}
+                        ? isGeneralSociety
+                          ? 'Variante 2 : « Style Fluide & Naturel »'
+                          : 'Variante 2 : « Lien Direct avec l\'Œuvre »'
+                        : 'Variante 2 : « Style Fluide & Équilibré »'}
                     </span>
                   </span>
                   {selectedVariante === 'B' && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-slate-950">Choisie</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-slate-950 shrink-0">Choisie</span>
                   )}
                 </div>
                 <p className="text-xs text-slate-800 leading-relaxed font-newsreader italic mb-3">
@@ -2377,8 +2504,10 @@ export const AtelierProduction: React.FC<AtelierProductionProps> = ({
                 </p>
                 <div className="text-[10px] text-slate-500 font-medium">
                   {reformulationStep === 'INTRO'
-                    ? "Ancrage littéraire direct dans l'œuvre, registre soigné et problématique rigoureuse."
-                    : '50% soutenu / 50% simple et fort : tournures soignées, sans lourdeur inutile.'}
+                    ? isGeneralSociety
+                      ? 'Amorce générale et souple, langage simple et clair, problématique directe.'
+                      : 'Amorce liée à l\'œuvre (« Quand on plonge... »), langage clair et fluide.'
+                    : 'Formulation claire, fluide et bien structurée, sans lourdeur inutile.'}
                 </div>
               </div>
             </div>
