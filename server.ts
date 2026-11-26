@@ -367,6 +367,11 @@ function saveTeacherSubjects(data: any[]) {
 }
 
 app.get('/api/teacher-subjects', (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+  });
   res.json(loadTeacherSubjects());
 });
 
