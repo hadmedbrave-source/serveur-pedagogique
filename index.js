@@ -359,6 +359,11 @@ function saveTeacherSubjects(data) {
 }
 
 app.get('/api/teacher-subjects', (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+  });
   res.json(loadTeacherSubjects());
 });
 
@@ -368,12 +373,40 @@ app.post('/api/teacher-subjects', (req, res) => {
     return res.status(400).json({ success: false, message: 'Titre et consigne requis.' });
   }
   const current = loadTeacherSubjects();
-  const filtered = current.filter((s) => s.id !== newSub.id);
+  const subId = newSub.id || `teacher-${Date.now()}`;
+  const filtered = current.filter((s) => s.id !== subId);
+  const nowStr = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const entry = {
     ...newSub,
-    id: newSub.id || `teacher-${Date.now()}`,
+    id: subId,
     sourceEnseignant: true,
+    isModifiedByTeacher: true,
+    isDeleted: false,
+    dateModif: nowStr,
     dateAjout: newSub.dateAjout || new Date().toLocaleDateString('fr-FR'),
+  };
+  filtered.unshift(entry);
+  saveTeacherSubjects(filtered);
+  return res.json({ success: true, subject: entry, subjects: filtered });
+});
+
+app.put('/api/teacher-subjects/:id', (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+  if (!updateData || !updateData.titre || !updateData.consigne) {
+    return res.status(400).json({ success: false, message: 'Titre et consigne requis.' });
+  }
+  const current = loadTeacherSubjects();
+  const filtered = current.filter((s) => s.id !== id);
+  const nowStr = new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const entry = {
+    ...updateData,
+    id,
+    sourceEnseignant: true,
+    isModifiedByTeacher: true,
+    isDeleted: false,
+    dateModif: nowStr,
+    dateAjout: updateData.dateAjout || new Date().toLocaleDateString('fr-FR'),
   };
   filtered.unshift(entry);
   saveTeacherSubjects(filtered);
@@ -384,8 +417,13 @@ app.delete('/api/teacher-subjects/:id', (req, res) => {
   const { id } = req.params;
   const current = loadTeacherSubjects();
   const filtered = current.filter((s) => s.id !== id);
+  filtered.push({
+    id,
+    isDeleted: true,
+    dateSuppr: new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+  });
   saveTeacherSubjects(filtered);
-  return res.json({ success: true, count: filtered.length });
+  return res.json({ success: true, count: filtered.length, id, subjects: filtered });
 });
 
 // Recherche intelligente et universelle de la variable OpenAI (supporte open ia, OPEN_IA, OPENAI_API_KEY, etc.)
